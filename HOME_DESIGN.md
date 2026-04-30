@@ -21,6 +21,11 @@ Juhap is a responsive web app for alcohol and food pairing recommendations. Scre
 - Render all page content from mock data.
 - Alcohol and food pairing text must use `+` between the drink and food names.
 
+## Naming Convention
+
+- CSS class names use `snake_case`.
+- JavaScript and TypeScript identifiers use `camelCase`.
+
 ## Visual Theme
 
 - Calm light gray background with a centered app surface.

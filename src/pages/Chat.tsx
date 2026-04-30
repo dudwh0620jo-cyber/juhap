@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router"
 import "../styles/chat.css"
+
+type ChatProps = {
+  onClose: () => void
+}
 
 const quickSuggestions = [
   "라벨 스캔하기",
@@ -8,8 +11,7 @@ const quickSuggestions = [
   "주류문화 용어 알기",
 ]
 
-export default function Chat() {
-  const navigate = useNavigate()
+export default function Chat({ onClose }: ChatProps) {
   const [isCompact, setIsCompact] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [selectedPrompt, setSelectedPrompt] = useState(quickSuggestions[1])
@@ -21,22 +23,13 @@ export default function Chat() {
 
   function closeModal() {
     setIsVisible(false)
-    setTimeout(() => navigate("/home"), 220)
-  }
-
-  function selectSuggestion(suggestion: string) {
-    setSelectedPrompt(suggestion)
-    setIsCompact(true)
-  }
-
-  function focusInput() {
-    setIsCompact(true)
+    setTimeout(onClose, 220)
   }
 
   return (
-    <section className="chat-page page-screen" aria-label="채팅">
-      <div className={isVisible ? "chat-sheet is-open" : "chat-sheet"}>
-        <header className="chat-header">
+    <section className="chat_page" aria-label="채팅">
+      <div className={isVisible ? "chat_sheet is_open" : "chat_sheet"}>
+        <header className="chat_header">
           <button type="button" aria-label="닫기" onClick={closeModal}>
             <span />
             <span />
@@ -44,29 +37,36 @@ export default function Chat() {
         </header>
 
         {!isCompact ? (
-          <section className="chat-intro">
-            <div className="chat-hero">
-              <div className="ai-face ai-face--large" aria-hidden="true">
+          <section className="chat_intro">
+            <div className="chat_hero">
+              <div className="ai_face ai_face_large" aria-hidden="true">
                 <span />
               </div>
               <p>“비 오는 화요일 퇴근길이네요. 오늘은 차분한 화이트 와인 한 잔 어떠세요?”</p>
             </div>
 
-            <div className="chat-suggestion-list">
+            <div className="chat_suggestion_list">
               {quickSuggestions.map((item) => (
-                <button type="button" key={item} onClick={() => selectSuggestion(item)}>
+                <button
+                  type="button"
+                  key={item}
+                  onClick={() => {
+                    setSelectedPrompt(item)
+                    setIsCompact(true)
+                  }}
+                >
                   {item}
                 </button>
               ))}
             </div>
           </section>
         ) : (
-          <section className="chat-thread">
-            <button type="button" className="selected-chip">
+          <section className="chat_thread">
+            <button type="button" className="selected_chip">
               {selectedPrompt}
             </button>
-            <div className="chat-bubble-row">
-              <div className="ai-face ai-face--small" aria-hidden="true">
+            <div className="chat_bubble_row">
+              <div className="ai_face ai_face_small" aria-hidden="true">
                 <span />
               </div>
               <p>비 오는 화요일 퇴근길이네요. 오늘은 차분한 화이트 와인 한 잔 어떠세요?</p>
@@ -74,14 +74,14 @@ export default function Chat() {
           </section>
         )}
 
-        <footer className="chat-input-bar">
+        <footer className="chat_input_bar">
           <button type="button" aria-label="이전">
             ↩
           </button>
           <input
-            placeholder="메시지를 입력해보세요"
-            onFocus={focusInput}
             aria-label="채팅 입력"
+            onFocus={() => setIsCompact(true)}
+            placeholder="메시지를 입력해보세요"
           />
           <button type="button" aria-label="카메라">
             📷
