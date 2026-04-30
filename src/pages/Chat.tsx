@@ -26,6 +26,11 @@ export default function Chat({ onClose }: ChatProps) {
     setTimeout(onClose, 220)
   }
 
+  function selectSuggestion(suggestion: string) {
+    setSelectedPrompt(suggestion)
+    setIsCompact(true)
+  }
+
   return (
     <section className="chat_page" aria-label="채팅">
       <div className={isVisible ? "chat_sheet is_open" : "chat_sheet"}>
@@ -47,14 +52,7 @@ export default function Chat({ onClose }: ChatProps) {
 
             <div className="chat_suggestion_list">
               {quickSuggestions.map((item) => (
-                <button
-                  type="button"
-                  key={item}
-                  onClick={() => {
-                    setSelectedPrompt(item)
-                    setIsCompact(true)
-                  }}
-                >
+                <button type="button" key={item} onClick={() => selectSuggestion(item)}>
                   {item}
                 </button>
               ))}
