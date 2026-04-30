@@ -4,9 +4,9 @@
 
 .detail_header {
   display: grid;
-  grid-template-columns: 44px 1fr auto;
+  grid-template-columns: 28px 44px 1fr auto;
   gap: 10px;
-  align-items: start;
+  align-items: center;
 }
 
 .detail_header h1 {
@@ -24,6 +24,19 @@
   border: 0;
   background: transparent;
   font-size: 13px;
+}
+
+.detail_back_button {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: #2d2d2d;
+  font-size: 20px;
+}
+
+.follow_button {
+  justify-self: end;
 }
 
 .detail_location {
@@ -210,14 +223,25 @@
   background: #ececec;
 }
 
-.comment_input span {
+.comment_input_field {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #2b2b2b;
+  font-size: 16px;
+}
+
+.comment_input_field::placeholder {
   color: #9b9b9b;
 }
 
 .comment_input button {
-  width: 30px;
-  height: 30px;
+  min-width: 48px;
+  height: 34px;
+  padding: 0 10px;
   border: 1px solid #222;
   border-radius: 8px;
   background: transparent;
+  font-size: 13px;
 }
