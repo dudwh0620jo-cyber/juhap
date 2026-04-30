@@ -1,3 +1,4 @@
+import { Link } from "react-router"
 import "../styles/home.css"
 
 const recommendationItems = [
@@ -111,22 +112,24 @@ export default function Home() {
 
       <section className="home_block">
         <h3>금주의 주류 소개</h3>
-        <article className="drink_card">
-          <div className="drink_info">
-            <h4>케이머스 나파 밸리 카버네 소비뇽 2023</h4>
-            <p>종류 : 레드와인</p>
-            <p>생산지 : 미국(U.S.A), California</p>
-            <p>품종 : Cabernet Sauvignon</p>
-            <p>평점 : 4.0</p>
-            <p>당도 : 낮은 당도</p>
-          </div>
-          <div className="drink_bottle" aria-hidden="true" />
-        </article>
+        <Link to="/product/1" className="drink_card_link">
+          <article className="drink_card">
+            <div className="drink_info">
+              <h4>케이머스 나파 밸리 카버네 소비뇽 2023</h4>
+              <p>종류 : 레드와인</p>
+              <p>생산지 : 미국(U.S.A), California</p>
+              <p>품종 : Cabernet Sauvignon</p>
+              <p>평점 : 4.0</p>
+              <p>당도 : 낮은 당도</p>
+            </div>
+            <div className="drink_bottle" aria-hidden="true" />
+          </article>
+        </Link>
       </section>
 
-      <button className="quiz_card" type="button">
+      <Link to="/quiz" className="quiz_card">
         퀴즈 풀고 포인트 받자!
-      </button>
+      </Link>
     </section>
   )
 }

@@ -6,6 +6,7 @@ import Community from "./pages/Community"
 import Home from "./pages/Home"
 import MyPage from "./pages/MyPage"
 import ProductDetail from "./pages/ProductDetail"
+import Quiz from "./pages/Quiz"
 import RankingDetail from "./pages/RankingDetail"
 import "./styles/common.css"
 
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/community/ranking/:rankId" element={<RankingDetail />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/quiz" element={<Quiz />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
 
