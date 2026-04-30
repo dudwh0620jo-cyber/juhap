@@ -1,0 +1,281 @@
+.ranking-detail-page {
+  padding-bottom: 132px;
+}
+
+.detail-author {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.detail-author .avatar,
+.comment-row .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #b0b0b0;
+}
+
+.detail-author h1 {
+  margin: 0 0 4px;
+  font-size: 33px;
+  font-weight: 800;
+}
+
+.detail-author p {
+  margin: 0 0 10px;
+  color: #5f5f5f;
+  font-size: 12px;
+}
+
+.detail-author button {
+  padding: 0;
+  background: transparent;
+  font-size: 13px;
+}
+
+.detail-location {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #ececec;
+  color: #6b6b6b;
+  font-size: 11px;
+}
+
+.detail-images {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 102px;
+  gap: 9px;
+  margin: 16px 0;
+}
+
+.detail-images div {
+  height: 160px;
+  background: #a7a7a7;
+}
+
+.ranking-detail-page h2 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 800;
+}
+
+.detail-tags {
+  display: flex;
+  gap: 18px;
+  margin: 10px 0 14px;
+}
+
+.detail-tags span {
+  color: #333333;
+  font-size: 17px;
+}
+
+.detail-body {
+  margin: 0 0 18px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.detail-product {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 42px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 14px 12px;
+  border-radius: 24px;
+  background: #ececec;
+}
+
+.product-thumb {
+  width: 40px;
+  height: 88px;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, #1e1e1e 0%, #2f2f2f 45%, #121212 100%);
+}
+
+.product-text h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.product-text div {
+  display: flex;
+  gap: 8px;
+}
+
+.product-text span {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #e5bcc1;
+  font-size: 15px;
+}
+
+.detail-product button {
+  width: 42px;
+  height: 54px;
+  border: 1px solid #222222;
+  border-radius: 14px;
+  background: #f4f4f4;
+  font-size: 26px;
+}
+
+.detail-recommend {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 8px;
+  padding: 14px 12px;
+  border-radius: 20px;
+  background: #ececec;
+}
+
+.recommend-icon {
+  font-size: 42px;
+  text-align: center;
+}
+
+.detail-recommend h3 {
+  margin: 0 0 4px;
+  font-size: 33px;
+}
+
+.detail-recommend p {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+
+.detail-recommend strong {
+  font-size: 30px;
+}
+
+.detail-actions {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 22px;
+  margin: 14px 0 18px;
+  color: #4d4d4d;
+  font-size: 31px;
+}
+
+.similar-title {
+  margin: 0 0 12px;
+  font-size: 35px;
+}
+
+.similar-list {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.similar-list article {
+  width: 98px;
+}
+
+.similar-thumb {
+  height: 98px;
+  background:
+    radial-gradient(circle at 72% 50%, #191919 0 8px, transparent 9px),
+    linear-gradient(135deg, #9b6a3a 0%, #41342d 52%, #bfa37c 100%);
+}
+
+.similar-list p {
+  margin: 4px 0 0;
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.comment-list {
+  display: grid;
+  gap: 0;
+  margin-bottom: 14px;
+}
+
+.comment-row {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid #a3a3a3;
+}
+
+.comment-row h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.comment-row p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.comment-input {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  min-height: 86px;
+  padding: 0 16px;
+  border-radius: 18px;
+  background: #ececec;
+}
+
+.comment-input span {
+  color: #9b9b9b;
+  font-size: 16px;
+}
+
+.comment-input button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #232323;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+}
+
+@media (max-width: 374px) {
+  .ranking-detail-page h2 {
+    font-size: 32px;
+  }
+
+  .detail-tags span {
+    font-size: 14px;
+  }
+
+  .detail-body {
+    font-size: 14px;
+  }
+
+  .product-text h3 {
+    font-size: 17px;
+  }
+
+  .product-text span {
+    font-size: 12px;
+  }
+
+  .detail-recommend h3 {
+    font-size: 26px;
+  }
+
+  .detail-recommend strong {
+    font-size: 22px;
+  }
+
+  .detail-actions {
+    font-size: 22px;
+  }
+
+  .similar-title {
+    font-size: 26px;
+  }
+}
