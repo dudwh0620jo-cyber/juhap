@@ -1,0 +1,134 @@
+.chat_page {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 20;
+  width: min(100%, 430px);
+  height: 80vh;
+  transform: translateX(-50%);
+}
+
+.chat_sheet {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  padding: 18px 16px 12px;
+  background: #d9d9d9;
+  transform: translateY(100%);
+  transition: transform 220ms ease-out;
+}
+
+.chat_sheet.is_open {
+  transform: translateY(0);
+}
+
+.chat_header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.chat_header button {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  background: transparent;
+}
+
+.chat_header button span {
+  position: absolute;
+  left: 7px;
+  top: 20px;
+  width: 28px;
+  height: 2px;
+  background: #222222;
+}
+
+.chat_header button span:first-child {
+  transform: rotate(45deg);
+}
+
+.chat_header button span:last-child {
+  transform: rotate(-45deg);
+}
+
+.chat_intro {
+  display: grid;
+  gap: 20px;
+}
+
+.chat_hero {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.ai_face {
+  border-radius: 18px;
+  background: #000;
+}
+
+.ai_face_large {
+  width: 110px;
+  height: 84px;
+}
+
+.ai_face_small {
+  width: 28px;
+  height: 24px;
+}
+
+.chat_suggestion_list {
+  display: grid;
+  gap: 10px;
+}
+
+.chat_suggestion_list button {
+  min-height: 52px;
+  border: 0;
+  border-radius: 20px;
+  background: #b6b6b6;
+  text-align: left;
+  padding: 0 18px;
+}
+
+.chat_thread {
+  display: grid;
+  gap: 14px;
+}
+
+.selected_chip {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #b6b6b6;
+}
+
+.chat_bubble_row {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+}
+
+.chat_bubble_row p {
+  margin: 0;
+  max-width: 240px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #e4e4e4;
+}
+
+.chat_input_bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.chat_input_bar input {
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 12px;
+}

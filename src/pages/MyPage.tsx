@@ -1,6 +1,3 @@
-export default function MyPage () {
-    return(
-        <>
-        </>
-    )
+export default function MyPage() {
+  return <section />
 }
