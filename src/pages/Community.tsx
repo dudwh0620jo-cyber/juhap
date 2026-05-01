@@ -589,7 +589,7 @@ export default function Community() {
   const cancelBookmark = () => setBookmarkPicker(null)
 
   const goToComments = (postId: number) => {
-    navigate(`/community/ranking/${postId}#comments`)
+    navigate(`/community/pairing/${postId}#comments`)
   }
 
   return (
@@ -663,7 +663,7 @@ export default function Community() {
                         ? "podium_card podium_second"
                         : "podium_card podium_third"
                   }
-                  to={`/community/ranking/${podium.id}`}
+                  to={`/community/pairing/${podium.id}`}
                 >
                   <span className="podium_rank">{podium.rank}</span>
                   <div
@@ -681,7 +681,7 @@ export default function Community() {
 
           <div className="ranking_list">
             {rankingRows.map((row) => (
-              <Link className="ranking_row" key={row.id} to={`/community/ranking/${row.id}`}>
+              <Link className="ranking_row" key={row.id} to={`/community/pairing/${row.id}`}>
                 <strong className="row_rank">{row.rank}</strong>
                 <div className="row_images">
                   <span />
@@ -769,7 +769,7 @@ export default function Community() {
                 </header>
 
                 {post.isQna ? (
-                  <Link className="feed_text_link" to={`/community/ranking/${post.id}`}>
+                  <Link className="feed_text_link" to={`/community/pairing/${post.id}`}>
                     <div className="free_layout">
                       <strong>{post.title}</strong>
                       <p className="free_body">{post.body}</p>
@@ -789,7 +789,7 @@ export default function Community() {
                         />
                       ))}
                     </div>
-                    <Link className="feed_text_link" to={`/community/ranking/${post.id}`}>
+                    <Link className="feed_text_link" to={`/community/pairing/${post.id}`}>
                       <strong>{post.title}</strong>
                       <p className="feed_body">{post.body}</p>
                     </Link>
