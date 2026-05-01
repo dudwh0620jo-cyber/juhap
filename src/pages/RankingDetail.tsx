@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react"
+import { useLayoutEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
-import { useNavigate } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import "../styles/ranking-detail.css"
 
 type CommentItem = {
@@ -17,9 +17,27 @@ const initialComments: CommentItem[] = [
 ]
 
 export default function RankingDetail() {
+  const location = useLocation()
   const navigate = useNavigate()
   const [commentValue, setCommentValue] = useState("")
   const [commentItems, setCommentItems] = useState<CommentItem[]>(initialComments)
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  useLayoutEffect(() => {
+    if (location.hash !== "#comments") {
+      return
+    }
+
+    const target = document.getElementById("comments")
+    if (!target) {
+      return
+    }
+
+    target.scrollIntoView({ behavior: "auto", block: "start" })
+  }, [location.hash])
 
   const nextId = useMemo(
     () => commentItems.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1,
@@ -122,7 +140,7 @@ export default function RankingDetail() {
         </article>
       </div>
 
-      <div className="comment_list">
+      <div className="comment_list" id="comments">
         {commentItems.map((item) => (
           <div className="comment_row" key={item.id}>
             <div className="avatar" />

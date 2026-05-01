@@ -69,8 +69,10 @@
 ## Product And Data Rules
 
 - Use mock data for backend-driven sections until API integration is ready.
+- Backend에서 내려오는 데이터(랭킹/피드/상세/댓글 등)는 API 연결 전까지 더미 데이터로 구성한다.
 - Keep mock data in clear objects that resemble future API responses.
 - Alcohol-food pairing labels use `주류 + 음식` format.
+- 기능을 추가할 때는, 별도 수정 요청이 없는 기존 UI/동작은 그대로 둔다(기존 기능이 사라지거나 동작이 바뀌지 않게 유지).
 
 ## Layout Rules
 
@@ -110,10 +112,19 @@
 - Top segmented control: `랭킹`, `커뮤니티`.
 - Ranking layout includes:
   - Period buttons (`주간`, `일간`, `월간`, `전체`)
-  - Category chips (`전체`, `와인`, `증류주`, `맥주`, `위스키`, `전통주`)
+  - Category chips (`전체`, `소주`, `와인`, `맥주`, `위스키/증류주`, `전통주`, `사케`, `기타`)
   - Podium section for ranks 1, 2, 3
   - Rounded ranking rows with rank, pair text, score, vote count, delta, category pill
 - Ranking rows must link to ranking detail routes.
+- Feed 탭 필터: `후기(최신순)`, `자유(Q&A)`, `인기(인기순)`, `팔로우(팔로우한 사람들의 피드)`.
+- Feed 카드 규칙:
+  - 사진 영역은 가로 스와이프(스크롤) + 스냅이 되어야 함.
+  - title + body 영역 터치 시 해당 랭킹 상세로 이동해야 함.
+  - 하단 액션은 좌→우 순서로 `좋아요(토글)`, `댓글(상세 댓글 섹션 이동)`, `공유(더미)`, `북마크(확인 후 토글)`.
+  - 카드 우측 상단 팔로우 버튼은 상태 기반:
+    - `팔로우` 탭: 항상 `언팔로우`(팔로잉 피드이므로).
+    - 그 외 탭: 팔로우 중이면 `팔로잉`, 아니면 `팔로우`.
+  - 후기 탭에는 우측 하단 `+` 글쓰기 FAB가 있으며, 초기 로딩/정지 상태에서는 숨김이고 스크롤을 내려야 노출됨.
 
 ## Ranking Detail Screen
 
@@ -121,6 +132,7 @@
 - Includes image row, pairing title, tags, and long description.
 - Includes product card and recommendation panel.
 - Includes action row, similar pairing list, comments, and bottom comment input.
+- 댓글 섹션은 `#comments` 해시로 진입 시 해당 위치로 스크롤되어야 함.
 
 ## Chat Screen
 
