@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 
@@ -36,6 +36,36 @@ const normalizeRankingCategory = (value: string | null): RankingCategory | null 
     return value
   }
   return null
+}
+
+const extractPairingTitle = (title: string) => {
+  const match = title.match(/([^\n+]{2,}?)\s*\+\s*([^\n+]{2,}?)(?=[,.\n]|$)/)
+  if (!match) {
+    return title
+  }
+  const left = match[1].trim()
+  const right = match[2].trim()
+  return `${left} + ${right}`
+}
+
+const pairingReviewGrades = ["뉴비 맛잘알", "찐조합러", "미식 탐험가", "페어링 고수", "조합 장인"] as const
+
+type GradeTier = 1 | 2 | 3 | 4 | 5
+
+const userGradesByAuthorId: Record<
+  number,
+  { alcoholReviewTier: GradeTier; pairingReviewTier: GradeTier }
+> = {
+  2001: { alcoholReviewTier: 3, pairingReviewTier: 2 },
+  2002: { alcoholReviewTier: 2, pairingReviewTier: 3 },
+  2003: { alcoholReviewTier: 4, pairingReviewTier: 4 },
+  2004: { alcoholReviewTier: 1, pairingReviewTier: 2 },
+  2019: { alcoholReviewTier: 3, pairingReviewTier: 3 },
+  2025: { alcoholReviewTier: 2, pairingReviewTier: 2 },
+  2101: { alcoholReviewTier: 2, pairingReviewTier: 1 },
+  2102: { alcoholReviewTier: 1, pairingReviewTier: 2 },
+  2103: { alcoholReviewTier: 1, pairingReviewTier: 2 },
+  2104: { alcoholReviewTier: 3, pairingReviewTier: 3 },
 }
 
 type RankingRow = {
@@ -78,6 +108,11 @@ type FollowUser = {
   name: string
   profile: string
   bio: string
+}
+
+type PopupChipGroup = {
+  title: string
+  chips: string[]
 }
 
 const rankingPeriods: Array<{ key: RankingPeriod; label: string }> = [
@@ -321,7 +356,7 @@ const feedPosts: FeedPost[] = [
     id: 1001,
     authorId: 2003,
     authorName: "서연",
-    title: "소주 + 삼겹살 조합, 깔끔하게 정리해봤어요",
+    title: "소주 + 삼겹살",
     body: "집에서 해먹을 때는 기름기 있는 부위일수록 도수/탄산 선택이 달라지더라고요. 저만의 기준 공유합니다.",
     createdAt: "2026-05-01T09:12:00+09:00",
     likeCount: 320,
@@ -333,7 +368,7 @@ const feedPosts: FeedPost[] = [
     id: 1002,
     authorId: 2001,
     authorName: "민지",
-    title: "막걸리 + 해물파전은 왜 이렇게 잘 맞을까요?",
+    title: "막걸리 + 해물파전",
     body: "바삭한 전이랑 산미 있는 막걸리 조합이 너무 좋아요. 추천 막걸리 있으면 알려주세요.",
     createdAt: "2026-04-30T21:40:00+09:00",
     likeCount: 188,
@@ -345,39 +380,33 @@ const feedPosts: FeedPost[] = [
     id: 1003,
     authorId: 2003,
     authorName: "서연",
-    title: "자유) 위스키 입문은 어떤 라인업이 좋아요?",
-    body: "버번/스카치/아이리시 중에 입문 난이도 낮은 걸로 추천 부탁드려요.",
+    title: "첫 위스키 입문 후기 공유해요",
+    body: "처음은 버번 하이볼로 시작했는데 생각보다 부담 없고 달달해서 좋았어요. 다음은 스카치도 도전해보려구요.",
     createdAt: "2026-05-01T01:10:00+09:00",
     likeCount: 96,
     commentCount: 34,
     popularityScore: 330,
     profile: "30대 / 경기 / 위스키 관심",
     isQna: true,
-    answerCount: 7,
-    answerPreview:
-      "처음이면 하이볼로 접근 가능한 버번부터 추천해요. 달콤한 향이 익숙해서 부담이 적습니다.",
   },
   {
     id: 1004,
     authorId: 2004,
     authorName: "지훈",
-    title: "자유) 사케는 어떤 음식이랑 제일 무난해요?",
-    body: "사시미 말고도 어울리는 메뉴가 궁금해요. 집에서 간단히 먹을 수 있는 걸로요!",
+    title: "사케에 잘 맞는 집안주 몇 개 추천",
+    body: "사시미 없을 때는 가라아게/오뎅/명란구이 조합이 제일 무난했어요. 차갑게 마시면 기름기도 잘 잡히더라구요.",
     createdAt: "2026-04-29T18:05:00+09:00",
     likeCount: 84,
     commentCount: 21,
     popularityScore: 210,
     profile: "20대 / 인천 / 사케 입문",
     isQna: true,
-    answerCount: 5,
-    answerPreview:
-      "가라아게/오뎅/명란처럼 짭짤한 안주가 무난해요. 차갑게 마시면 기름기도 잘 잡아줍니다.",
   },
   {
     id: 1005,
     authorId: 2001,
     authorName: "민지",
-    title: "레드 와인 + 스테이크, 너무 클래식하지만 정답",
+    title: "레드 와인 + 스테이크",
     body: "레어로 구웠을 때 탄닌이 기름을 잡아주는 느낌이 확실히 있어요. 소스는 과하지 않게!",
     createdAt: "2026-04-28T22:15:00+09:00",
     likeCount: 540,
@@ -389,7 +418,7 @@ const feedPosts: FeedPost[] = [
     id: 1006,
     authorId: 2002,
     authorName: "현우",
-    title: "IPA + 버거 조합이 인기인 이유",
+    title: "IPA + 햄버거",
     body: "홉의 씁쓸함이 느끼함을 잡아주고 향이 치즈랑 잘 맞아요. 추천 IPA도 남겨요.",
     createdAt: "2026-04-27T20:33:00+09:00",
     likeCount: 410,
@@ -401,7 +430,7 @@ const feedPosts: FeedPost[] = [
     id: 1007,
     authorId: 2101,
     authorName: "유나",
-    title: "소주 + 족발, 생각보다 깔끔해요",
+    title: "소주 + 족발",
     body: "족발은 기름질 것 같지만 새우젓/마늘이랑 같이 먹으면 소주가 느끼함을 잘 잡아줘요.",
     createdAt: "2026-05-01T08:02:00+09:00",
     likeCount: 66,
@@ -413,23 +442,20 @@ const feedPosts: FeedPost[] = [
     id: 1008,
     authorId: 2104,
     authorName: "수빈",
-    title: "자유) 회에 화이트 와인 vs 사케, 뭐가 더 무난해요?",
-    body: "둘 다 좋다는데 상황에 따라 추천이 갈릴 것 같아서요. 기준이 있나요?",
+    title: "회 먹을 때는 전 사케파예요",
+    body: "간장/와사비가 강한 날엔 사케가 감칠맛이랑 잘 맞고, 산뜻하게 먹고 싶으면 화이트 와인도 좋아요. 저는 보통 사케로 갑니다.",
     createdAt: "2026-04-30T23:55:00+09:00",
     likeCount: 51,
     commentCount: 17,
     popularityScore: 160,
     profile: "30대 / 제주 / 와인 · 사케",
     isQna: true,
-    answerCount: 3,
-    answerPreview:
-      "산뜻한 산미면 화이트 와인, 감칠맛 중심이면 사케가 무난해요. 간장/와사비 강도도 고려해보세요.",
   },
   {
     id: 1009,
     authorId: 2102,
     authorName: "도윤",
-    title: "칵테일 + 타코는 왜 이렇게 잘 맞을까",
+    title: "칵테일 + 타코",
     body: "라임/시트러스 계열이 타코의 향신료랑 잘 붙는 느낌. 데킬라 베이스 추천!",
     createdAt: "2026-04-30T12:20:00+09:00",
     likeCount: 140,
@@ -441,13 +467,39 @@ const feedPosts: FeedPost[] = [
     id: 1010,
     authorId: 2103,
     authorName: "지민",
-    title: "라거 + 감자튀김, 결국 클래식",
+    title: "라거 + 감자튀김",
     body: "짭짤함이랑 탄산/청량감 조합은 실패가 없네요. 소금 대신 시즈닝 바꿔도 좋고요.",
     createdAt: "2026-04-29T20:10:00+09:00",
     likeCount: 92,
     commentCount: 9,
     popularityScore: 180,
     profile: "20대 / 광주 / 맥주 · 페어링",
+  },
+  {
+    id: 1011,
+    authorId: 2019,
+    authorName: "연훈",
+    title: "버번 + 다크초콜릿",
+    body: "달달한 버번이랑 쌉싸름한 다크초콜릿 같이 먹으니까 밸런스가 딱이었어요. 늦은 밤에 한 잔 하기 좋네요.",
+    createdAt: "2026-05-01T01:10:00+09:00",
+    likeCount: 97,
+    commentCount: 34,
+    popularityScore: 330,
+    profile: "30대 / 경기 / 위스키 관심",
+    isQna: true,
+  },
+  {
+    id: 1012,
+    authorId: 2025,
+    authorName: "수연",
+    title: "주말 홈파티 페어링 기록",
+    body: "라거 + 치킨은 역시 실패가 없고, 막걸리 + 해물파전도 반응이 좋았어요. 다음엔 와인 쪽도 준비해보려구요.",
+    createdAt: "2026-05-01T01:10:00+09:00",
+    likeCount: 98,
+    commentCount: 34,
+    popularityScore: 330,
+    profile: "30대 / 경기 / 위스키 관심",
+    isQna: true,
   },
 ]
 
@@ -466,17 +518,64 @@ export default function Community() {
   const [followedUserIds, setFollowedUserIds] = useState<Set<number>>(
     () => new Set(followedUsersMock.map((user) => user.id)),
   )
-  const [hasReviewFabScrolled, setHasReviewFabScrolled] = useState(false)
-  const [isReviewWriteVisible, setIsReviewWriteVisible] = useState(false)
+  const [hasWriteFabScrolled, setHasWriteFabScrolled] = useState(false)
+  const [isWriteFabVisible, setIsWriteFabVisible] = useState(false)
   const [likedById, setLikedById] = useState<Record<number, boolean>>({})
   const [bookmarkListById, setBookmarkListById] = useState<Record<number, string | null>>({})
   const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(
     null,
   )
+  const [isFeedFilterPopupOpen, setIsFeedFilterPopupOpen] = useState(false)
+  const [selectedPopupChips, setSelectedPopupChips] = useState<Set<string>>(() => new Set())
+  const [feedSearchValue, setFeedSearchValue] = useState("")
+  const [isFeedSearchConfirmed, setIsFeedSearchConfirmed] = useState(false)
+  const feedSearchInputRef = useRef<HTMLInputElement | null>(null)
 
   const topTab = normalizeTopTab(searchParams.get("top")) ?? "feed"
   const rankingPeriod = normalizeRankingPeriod(searchParams.get("period")) ?? "weekly"
   const rankingCategory = normalizeRankingCategory(searchParams.get("cat")) ?? "all"
+
+  const feedFilterItems = [
+    { key: "review" as const, label: "후기" },
+    { key: "free" as const, label: "자유" },
+    { key: "popular" as const, label: "인기" },
+    { key: "follow" as const, label: "팔로우" },
+  ]
+
+  const popupChipGroups: PopupChipGroup[] = [
+    { title: "상황", chips: ["혼술", "데이트", "파티/모임", "홈파티", "기타"] },
+    { title: "음식", chips: ["고기류", "튀김", "매운음식", "해산물", "가벼운 안주"] },
+    { title: "스타일", chips: ["가볍게", "진하게", "분위기용", "가성비"] },
+    { title: "주종", chips: ["소주", "맥주", "와인", "위스키", "전통주", "기타"] },
+    { title: "카테고리", chips: ["럼", "진", "꼬냑", "위스키", "보드카", "데킬라", "브랜디"] },
+    { title: "상세 카테고리", chips: ["싱글몰트", "그레인", "블렌디드", "블렌디드몰트"] },
+    { title: "특징", chips: ["부드러운", "무거운", "가벼운", "독쓰는", "오크향", "과일향"] },
+  ]
+
+  const filteredPopupChipGroups = useMemo(() => {
+    const query = feedSearchValue.trim().toLowerCase()
+    if (!isFeedSearchConfirmed || !query) {
+      return popupChipGroups
+    }
+
+    const results: PopupChipGroup[] = []
+    for (const group of popupChipGroups) {
+      if (group.title.toLowerCase().includes(query)) {
+        results.push(group)
+        continue
+      }
+
+      const chips = group.chips.filter((chip) => chip.toLowerCase().includes(query))
+      if (chips.length > 0) {
+        results.push({ title: group.title, chips })
+      }
+    }
+
+    return results
+  }, [feedSearchValue, isFeedSearchConfirmed, popupChipGroups])
+
+  const isPopupSearchNoResults =
+    isFeedSearchConfirmed && feedSearchValue.trim() && filteredPopupChipGroups.length === 0
 
   const bookmarkLists = [
     { id: "default", label: "기본 북마크" },
@@ -541,20 +640,44 @@ export default function Community() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (topTab !== "feed" || feedFilter !== "review") {
-        setIsReviewWriteVisible(false)
+      if (topTab !== "feed" || (feedFilter !== "review" && feedFilter !== "free")) {
+        setIsWriteFabVisible(false)
         return
       }
 
-      setHasReviewFabScrolled(true)
+      setHasWriteFabScrolled(true)
       const nextVisible = window.scrollY > 0
-      setIsReviewWriteVisible((prev) => (prev === nextVisible ? prev : nextVisible))
+      setIsWriteFabVisible((prev) => (prev === nextVisible ? prev : nextVisible))
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true })
 
     return () => window.removeEventListener("scroll", handleScroll)
   }, [feedFilter, topTab])
+
+  useEffect(() => {
+    if (!isFeedFilterPopupOpen) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsFeedFilterPopupOpen(false)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isFeedFilterPopupOpen])
+
+  useEffect(() => {
+    if (!isFeedFilterPopupOpen) {
+      return
+    }
+
+    setIsFeedSearchConfirmed(false)
+    window.setTimeout(() => feedSearchInputRef.current?.focus(), 0)
+  }, [isFeedFilterPopupOpen])
 
   const getLikeCount = (post: FeedPost) => post.likeCount + (likedById[post.id] ? 1 : 0)
   const getCommentCount = (post: FeedPost) => post.commentCount
@@ -592,9 +715,43 @@ export default function Community() {
     navigate(`/community/pairing/${postId}#comments`)
   }
 
+  const togglePopupChip = (chipLabel: string) => {
+    setSelectedPopupChips((prev) => {
+      const next = new Set(prev)
+      if (next.has(chipLabel)) {
+        next.delete(chipLabel)
+      } else {
+        next.add(chipLabel)
+      }
+      return next
+    })
+  }
+
+  const openFeedFilterPopup = () => {
+    if (topTab !== "feed") {
+      return
+    }
+    setIsFeedFilterPopupOpen(true)
+  }
+
+  const changeFeedFilter = (nextFilter: FeedFilter) => {
+    setHasWriteFabScrolled(false)
+    setIsWriteFabVisible(false)
+    setFeedFilter(nextFilter)
+  }
+
   return (
     <section className="community_page page_screen" aria-label="커뮤니티">
       <header className="community_header">
+        <h3 className="community_title">커뮤니티</h3>
+        <button
+          className="search_button"
+          type="button"
+          aria-label="검색 필터 열기"
+          onClick={openFeedFilterPopup}
+        >
+          <span />
+        </button>
         <div className="community_tabs" aria-label="커뮤니티 탭">
           <button
             className={topTab === "ranking" ? "is_active" : ""}
@@ -611,10 +768,108 @@ export default function Community() {
             피드
           </button>
         </div>
-        <button className="search_button" type="button" aria-label="검색">
-          <span />
-        </button>
       </header>
+
+      {topTab === "feed" && isFeedFilterPopupOpen ? (
+        <div
+          className="feed_filter_overlay"
+          role="presentation"
+          onClick={() => setIsFeedFilterPopupOpen(false)}
+        >
+          <div
+            className="feed_filter_popup"
+            role="dialog"
+            aria-modal="true"
+            aria-label="피드 필터"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="feed_filter_popup_top">
+              <button
+                type="button"
+                className="feed_filter_close_button"
+                aria-label="닫기"
+                onClick={() => setIsFeedFilterPopupOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="feed_filter_search_shell" aria-label="커뮤니티 검색">
+              <div className="feed_filter_search">
+                <input
+                  ref={feedSearchInputRef}
+                  className="feed_filter_search_input"
+                  value={feedSearchValue}
+                  onChange={(event) => {
+                    setFeedSearchValue(event.target.value)
+                    setIsFeedSearchConfirmed(false)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") {
+                      return
+                    }
+                    event.preventDefault()
+                    if (!feedSearchValue.trim()) {
+                      return
+                    }
+                    setIsFeedSearchConfirmed(true)
+                    feedSearchInputRef.current?.blur()
+                  }}
+                  placeholder="검색어를 입력하세요"
+                  aria-label="커뮤니티 검색어 입력"
+                />
+                <button
+                  type="button"
+                  className="feed_filter_search_button"
+                  aria-label="검색"
+                  onClick={() => {
+                    if (!feedSearchValue.trim()) {
+                      return
+                    }
+                    setIsFeedSearchConfirmed(true)
+                    feedSearchInputRef.current?.blur()
+                  }}
+                >
+                  <span className="feed_filter_search_magnifier" aria-hidden="true" />
+                </button>
+              </div>
+              <span className="feed_filter_under_label" aria-hidden="true">
+                filter
+              </span>
+            </div>
+
+            {isPopupSearchNoResults ? (
+              <p className="feed_filter_no_results" role="status">
+                검색 결과가 없어요
+              </p>
+            ) : null}
+
+            <div className="feed_filter_popup_body">
+              {filteredPopupChipGroups.map((group) => (
+                <div className="feed_filter_group" key={group.title}>
+                  <h3 className="feed_filter_group_title">{group.title}</h3>
+                  <div className="feed_filter_group_chips">
+                    {group.chips.map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        className={
+                          selectedPopupChips.has(chip)
+                            ? "feed_filter_chip is_active"
+                            : "feed_filter_chip"
+                        }
+                        onClick={() => togglePopupChip(chip)}
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {topTab === "ranking" ? (
         <section className="ranking_page" aria-label="랭킹 목록">
@@ -705,43 +960,52 @@ export default function Community() {
         </section>
       ) : (
         <section className="feed_page" aria-label="커뮤니티 피드">
-          <div className="feed_filter_row">
-            {[
-              { key: "review" as const, label: "후기" },
-              { key: "free" as const, label: "자유" },
-              { key: "popular" as const, label: "인기" },
-              { key: "follow" as const, label: "팔로우" },
-            ].map((item) => (
+          <div className="feed_segment_row" aria-label="피드 필터">
+            {feedFilterItems.map((item) => (
               <button
-                className={feedFilter === item.key ? "is_active" : ""}
                 key={item.key}
-                onClick={() => {
-                  if (item.key === "review") {
-                    setHasReviewFabScrolled(false)
-                    setIsReviewWriteVisible(false)
-                  } else {
-                    setHasReviewFabScrolled(false)
-                    setIsReviewWriteVisible(false)
-                  }
-                  setFeedFilter(item.key)
-                }}
                 type="button"
+                className={feedFilter === item.key ? "is_active" : ""}
+                onClick={() => changeFeedFilter(item.key)}
               >
                 {item.label}
               </button>
             ))}
-            <button className="feed_drop_button" type="button" aria-label="필터 확장">
-              ▼
-            </button>
           </div>
-
           <div className="feed_cards">
+            {feedFilter === "free" || feedFilter === "review" ? (
+              <div className="feed_write_row" aria-label="글 작성">
+                <button type="button" className="feed_write_button">
+                  {feedFilter === "review" ? "페어링 후기 남기기" : "오늘의 자유로운 글남기기"}
+                  <span className="feed_write_action">글쓰기</span>
+                </button>
+              </div>
+            ) : null}
             {posts.map((post) => (
               <article className={post.isQna ? "feed_card is_free" : "feed_card"} key={post.id}>
                 <header className="feed_card_header">
                   <div className="avatar" />
                   <div className="feed_card_header_info">
-                    <h3>{post.authorName}</h3>
+                    <div className="feed_author_row">
+                      <h3>{post.authorName}</h3>
+                      <span
+                        className={
+                          userGradesByAuthorId[post.authorId]?.pairingReviewTier === 5
+                            ? "feed_post_badge is_tier5"
+                            : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 4
+                              ? "feed_post_badge is_tier4"
+                              : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 3
+                                ? "feed_post_badge is_tier3"
+                                : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 2
+                                  ? "feed_post_badge is_tier2"
+                                  : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 1
+                                    ? "feed_post_badge is_tier1"
+                                    : "feed_post_badge"
+                        }
+                      >
+                        {pairingReviewGrades[(userGradesByAuthorId[post.authorId]?.pairingReviewTier ?? 1) - 1]}
+                      </span>
+                    </div>
                     {post.profile ? <p>{post.profile}</p> : null}
                   </div>
                   <button
@@ -769,33 +1033,46 @@ export default function Community() {
                 </header>
 
                 {post.isQna ? (
-                  <Link className="feed_text_link" to={`/community/pairing/${post.id}`}>
+                  <Link className="feed_text_link is_free" to={`/community/pairing/${post.id}`}>
                     <div className="free_layout">
-                      <strong>{post.title}</strong>
+                      <div className="free_badge_row">
+                        {typeof post.answerCount === "number" ? (
+                          <span className="free_meta">답변 {post.answerCount}</span>
+                        ) : null}
+                      </div>
+                      <strong className="free_title">{post.title}</strong>
                       <p className="free_body">{post.body}</p>
-                      {post.answerPreview ? <p className="free_answer">{post.answerPreview}</p> : null}
-                      <span className="free_meta">답변 {post.answerCount ?? 0}</span>
+                      {post.answerPreview ? (
+                        <div className="free_answer_preview">
+                          <span className="free_answer_label">답변</span>
+                          <p className="free_answer">{post.answerPreview}</p>
+                        </div>
+                      ) : null}
                     </div>
                   </Link>
                 ) : (
                   <>
-                    <div className="feed_images">
-                      {Array.from({ length: 2 }).map((_, index) => (
-                        <div
-                          className="feed_image"
-                          key={index}
-                          aria-label={`사진 ${index + 1}`}
-                          role="img"
-                        />
-                      ))}
-                    </div>
                     <Link className="feed_text_link" to={`/community/pairing/${post.id}`}>
-                      <strong>{post.title}</strong>
+                      <div className="review_pair_row">
+                        <div className="review_pair_thumbs" aria-hidden="true">
+                          <span className="review_pair_thumb" />
+                          <span className="review_pair_thumb is_food" />
+                        </div>
+                        <div className="review_pair_text">
+                          <strong className="review_pair_title">{extractPairingTitle(post.title)}</strong>
+                          <div className="review_pair_rating" aria-label="평점">
+                            <span className="review_stars" aria-hidden="true">
+                              ★★★★★
+                            </span>
+                            <span className="review_score">4.9</span>
+                          </div>
+                        </div>
+                      </div>
                       <p className="feed_body">{post.body}</p>
                     </Link>
                   </>
                 )}
-
+                <hr></hr>
                 <div className="feed_actions">
                   <button
                     type="button"
@@ -886,13 +1163,11 @@ export default function Community() {
             </div>
           ) : null}
 
-          {feedFilter === "review" ? (
+          {feedFilter === "review" || feedFilter === "free" ? (
             <button
               type="button"
-              aria-label="후기 작성"
-              className={
-                hasReviewFabScrolled && isReviewWriteVisible ? "review_write_fab is_visible" : "review_write_fab"
-              }
+              aria-label="글 작성"
+              className={hasWriteFabScrolled && isWriteFabVisible ? "review_write_fab is_visible" : "review_write_fab"}
             >
               +
             </button>
