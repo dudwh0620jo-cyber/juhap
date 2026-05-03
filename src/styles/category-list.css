@@ -1,0 +1,150 @@
+.category_list_page {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.category_list_search {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.category_list_search_input {
+  flex: 1;
+  height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-sub-01);
+  font-size: 14px;
+  outline: none;
+}
+
+.category_list_search_confirm {
+  flex: 0 0 auto;
+  height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-sub-01);
+  color: #111;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.category_list_title {
+  margin: 0;
+  text-align: left;
+  font-size: var(--fs-h6);
+  font-weight: 700;
+}
+
+.category_list_cards {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.category_item_group {
+  display: grid;
+  gap: 12px;
+}
+
+.category_group_title {
+  margin: 0;
+  text-align: left;
+  font-size: var(--fs-h6);
+  font-weight: 700;
+}
+
+.category_group_cards {
+  display: grid;
+  gap: 12px;
+}
+
+.category_list_empty {
+  padding: 12px 0;
+  color: #666;
+  font-size: 13px;
+}
+
+.category_list_empty p {
+  margin: 0 0 12px;
+}
+
+.category_list_empty_hint {
+  margin: 0;
+}
+
+.category_list_suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category_list_suggestion_chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-sub-01);
+  color: #111;
+  font-size: 13px;
+}
+
+.category_item_card {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 44px;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--color-sub-01);
+}
+
+.category_item_thumb {
+  width: 52px;
+  height: 72px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #b7a27c 0%, #6b5a3e 100%);
+}
+
+.category_item_text {
+  min-width: 0;
+}
+
+.category_item_name {
+  display: block;
+  font-size: var(--fs-h5);
+  line-height: 1.2;
+}
+
+.category_item_tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.category_item_tag {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f2c5c5;
+  color: #111;
+  font-size: 12px;
+}
+
+.category_item_link {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #111;
+  border-radius: 14px;
+  color: #111;
+  text-decoration: none;
+  background: var(--color-sub-01);
+  font-size: 20px;
+  line-height: 1;
+}
