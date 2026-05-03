@@ -1,14 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router"
+import CategorySearch from "../components/CategorySearch"
+import GroupNav from "../components/GroupNav"
+import SubcategoryCard from "../components/SubcategoryCard"
 import "../styles/category.css"
 
 type CategoryTab = "alcohol" | "food"
-
-type SubcategorySearchResult = {
-  groupId: string
-  groupLabel: string
-  itemLabel: string
-}
 
 const alcoholGroups = [
   {
@@ -86,16 +83,14 @@ export default function Category() {
   const [activeTab, setActiveTab] = useState<CategoryTab>("alcohol")
   const [activeAlcoholGroupId, setActiveAlcoholGroupId] = useState(alcoholGroups[0].id)
   const [activeFoodGroupId, setActiveFoodGroupId] = useState(foodGroups[0].id)
-  const [isSojuFlavorInfoVisible, setIsSojuFlavorInfoVisible] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const searchInputRef = useRef<HTMLInputElement | null>(null)
-  const sojuFlavorInfoTimeoutRef = useRef<number | null>(null)
 
   const groups = activeTab === "alcohol" ? alcoholGroups : foodGroups
   const activeGroupId = activeTab === "alcohol" ? activeAlcoholGroupId : activeFoodGroupId
   const activeGroup = groups.find((group) => group.id === activeGroupId) ?? groups[0]
 
-  const filteredItems = useMemo<SubcategorySearchResult[]>(() => {
+  const filteredItems = useMemo(() => {
     const normalizedQuery = searchValue.trim().toLowerCase()
     if (!normalizedQuery) {
       return activeGroup.items.map((itemLabel) => ({
@@ -118,9 +113,7 @@ export default function Category() {
         const uniqueKeySet = new Set<string>()
         return results.filter((result) => {
           const key = `${result.groupId}::${result.itemLabel}`
-          if (uniqueKeySet.has(key)) {
-            return false
-          }
+          if (uniqueKeySet.has(key)) return false
           uniqueKeySet.add(key)
           return true
         })
@@ -135,25 +128,6 @@ export default function Category() {
         itemLabel,
       }))
   }, [activeGroup.id, activeGroup.items, activeGroup.label, activeTab, searchValue])
-
-  useEffect(() => {
-    return () => {
-      if (sojuFlavorInfoTimeoutRef.current) {
-        window.clearTimeout(sojuFlavorInfoTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  const openSojuFlavorInfo = () => {
-    if (sojuFlavorInfoTimeoutRef.current) {
-      window.clearTimeout(sojuFlavorInfoTimeoutRef.current)
-    }
-
-    setIsSojuFlavorInfoVisible(true)
-    sojuFlavorInfoTimeoutRef.current = window.setTimeout(() => {
-      setIsSojuFlavorInfoVisible(false)
-    }, 5000)
-  }
 
   const goToCategoryList = (groupLabel: string, subcategoryLabel: string) => {
     const params = new URLSearchParams()
@@ -182,97 +156,29 @@ export default function Category() {
       </header>
 
       <div className="category_layout">
-        <aside className="group_nav" aria-label={activeTab === "alcohol" ? "주류 대분류" : "음식 대분류"}>
-          {groups.map((group) => (
-            <button
-              className={group.id === activeGroup.id ? "is_selected" : ""}
-              key={group.id}
-              onClick={() =>
-                activeTab === "alcohol" ? setActiveAlcoholGroupId(group.id) : setActiveFoodGroupId(group.id)
-              }
-              type="button"
-            >
-              {group.label}
-            </button>
-          ))}
-        </aside>
+        <GroupNav
+          groups={groups}
+          activeGroupId={activeGroup.id}
+          onGroupChange={(id) =>
+            activeTab === "alcohol" ? setActiveAlcoholGroupId(id) : setActiveFoodGroupId(id)
+          }
+          ariaLabel={activeTab === "alcohol" ? "주류 대분류" : "음식 대분류"}
+        />
 
         <section className="group_content" aria-label={activeTab === "alcohol" ? "주류 소분류" : "음식 소분류"}>
-          <div className="category_search">
-            <input
-              className="category_search_input"
-              ref={searchInputRef}
-              value={searchValue}
-              onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="검색하기"
-              aria-label="카테고리 검색"
-            />
-            {searchValue.trim() ? (
-              <button
-                type="button"
-                className="category_search_confirm"
-                aria-label="검색 확인"
-                onClick={() => searchInputRef.current?.blur()}
-              >
-                확인
-              </button>
-            ) : null}
-          </div>
+          <CategorySearch ref={searchInputRef} value={searchValue} onChange={setSearchValue} />
           <div className="subcategory_grid">
             {filteredItems.length === 0 ? (
               <p className="category_empty">검색 결과가 없어요.</p>
             ) : null}
-            {filteredItems.map((result) => {
-              const isSojuFlavor =
-                activeTab === "alcohol" && result.groupId === "soju" && result.itemLabel === "플레이버"
-              if (!isSojuFlavor) {
-                return (
-                  <div className="subcategory_card" key={`${result.groupId}-${result.itemLabel}`}>
-                    <button
-                      className="subcategory_card_button"
-                      type="button"
-                      onClick={() => goToCategoryList(result.groupLabel, result.itemLabel)}
-                    >
-                      {result.itemLabel}
-                    </button>
-                  </div>
-                )
-              }
-
-              return (
-                <div className="subcategory_card" key={`${result.groupId}-${result.itemLabel}`}>
-                  <button
-                    className="subcategory_card_button"
-                    type="button"
-                    onClick={() => goToCategoryList(result.groupLabel, result.itemLabel)}
-                  >
-                    {result.itemLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className="subcategory_info_button"
-                    aria-label="플레이버 안내"
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      openSojuFlavorInfo()
-                    }}
-                  >
-                    i
-                  </button>
-
-                  <div
-                    className={
-                      isSojuFlavorInfoVisible ? "subcategory_info_bubble is_visible" : "subcategory_info_bubble"
-                    }
-                    role="status"
-                    aria-live="polite"
-                  >
-                    과일향이나 특정 향/맛이 가향된 소주를 말해요.
-                  </div>
-                </div>
-              )
-            })}
+            {filteredItems.map((result) => (
+              <SubcategoryCard
+                key={`${result.groupId}-${result.itemLabel}`}
+                result={result}
+                isSojuFlavor={activeTab === "alcohol" && result.groupId === "soju" && result.itemLabel === "플레이버"}
+                onClick={goToCategoryList}
+              />
+            ))}
           </div>
         </section>
       </div>

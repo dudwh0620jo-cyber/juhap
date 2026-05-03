@@ -1,14 +1,10 @@
 import { useMemo, useRef, useState } from "react"
-import { Link, useSearchParams } from "react-router"
+import { useSearchParams } from "react-router"
+import CategoryItemCard, { type CategoryListItem } from "../components/CategoryItemCard"
+import CategoryItemGroup from "../components/CategoryItemGroup"
+import CategoryListSearch from "../components/CategoryListSearch"
+import SuggestionChips from "../components/SuggestionChips"
 import "../styles/category-list.css"
-
-type CategoryListItem = {
-  id: string
-  name: string
-  subGroup: string
-  tags: string[]
-  keywords: string[]
-}
 
 const relatedTermsBySubcategory: Record<string, string[]> = {
   레드: ["레드와인", "red", "레드", "드라이", "탄닌"],
@@ -102,7 +98,7 @@ const mockItemsByKey: Record<string, CategoryListItem[]> = {
     {
       id: "wine-white-3",
       name: "소비뇽 블랑 말보로 2023",
-      subGroup: "소비뇽 블랑",
+      subGroup: "소비뇨 블랑",
       tags: ["화이트와인", "시트러스", "3만원대"],
       keywords: ["sauvignon", "자몽", "허브", "상큼"],
     },
@@ -299,36 +295,28 @@ export default function CategoryList() {
 
   const filteredItems = useMemo(() => {
     const query = searchValue.trim().toLowerCase()
-    if (!query) {
-      return items
-    }
+    if (!query) return items
 
     return items.filter((item) => {
-      if (item.name.toLowerCase().includes(query)) {
-        return true
-      }
-      if (item.subGroup.toLowerCase().includes(query)) {
-        return true
-      }
-      return item.tags.some((tag) => tag.toLowerCase().includes(query))
-        || item.keywords.some((keyword) => keyword.toLowerCase().includes(query))
-        || queryContextKeywords.some((keyword) => keyword.toLowerCase().includes(query))
+      if (item.name.toLowerCase().includes(query)) return true
+      if (item.subGroup.toLowerCase().includes(query)) return true
+      return (
+        item.tags.some((tag) => tag.toLowerCase().includes(query)) ||
+        item.keywords.some((keyword) => keyword.toLowerCase().includes(query)) ||
+        queryContextKeywords.some((keyword) => keyword.toLowerCase().includes(query))
+      )
     })
   }, [items, queryContextKeywords, searchValue])
 
   const shouldShowNoResults = useMemo(() => {
     const query = searchValue.trim()
-    if (!query) {
-      return false
-    }
+    if (!query) return false
     return isSearchConfirmed && filteredItems.length === 0
   }, [filteredItems.length, isSearchConfirmed, searchValue])
 
   const groupedItems = useMemo(() => {
     const query = searchValue.trim().toLowerCase()
-    if (!query) {
-      return null
-    }
+    if (!query) return null
 
     const scoreItem = (item: CategoryListItem) => {
       const name = item.name.toLowerCase()
@@ -337,21 +325,11 @@ export default function CategoryList() {
       const keywordText = item.keywords.join(" ").toLowerCase()
       const contextText = queryContextKeywords.join(" ").toLowerCase()
 
-      if (name.includes(query)) {
-        return 5
-      }
-      if (subGroup.includes(query)) {
-        return 4
-      }
-      if (tagText.includes(query)) {
-        return 3
-      }
-      if (keywordText.includes(query)) {
-        return 2
-      }
-      if (contextText.includes(query)) {
-        return 1
-      }
+      if (name.includes(query)) return 5
+      if (subGroup.includes(query)) return 4
+      if (tagText.includes(query)) return 3
+      if (keywordText.includes(query)) return 2
+      if (contextText.includes(query)) return 1
       return 0
     }
 
@@ -370,9 +348,7 @@ export default function CategoryList() {
     for (const bucket of buckets) {
       bucket.items.sort((a, b) => {
         const scoreDiff = scoreItem(b) - scoreItem(a)
-        if (scoreDiff !== 0) {
-          return scoreDiff
-        }
+        if (scoreDiff !== 0) return scoreDiff
         return a.name.localeCompare(b.name)
       })
     }
@@ -382,16 +358,12 @@ export default function CategoryList() {
 
   const suggestions = useMemo(() => {
     const query = searchValue.trim().toLowerCase()
-    if (!query) {
-      return []
-    }
+    if (!query) return []
 
     const pool = new Set<string>()
     for (const item of items) {
       pool.add(item.subGroup)
-      for (const tag of item.tags) {
-        pool.add(tag)
-      }
+      for (const tag of item.tags) pool.add(tag)
     }
 
     return Array.from(pool)
@@ -401,43 +373,15 @@ export default function CategoryList() {
 
   return (
     <section className="category_list_page page_screen" aria-label="카테고리 리스트">
-      <div className="category_list_search" aria-label="검색하기">
-        <input
-          ref={searchInputRef}
-          className="category_list_search_input"
-          value={searchValue}
-          onChange={(event) => {
-            setSearchValue(event.target.value)
-            setIsSearchConfirmed(false)
-          }}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter") {
-              return
-            }
-            event.preventDefault()
-            if (!searchValue.trim()) {
-              return
-            }
-            setIsSearchConfirmed(true)
-            searchInputRef.current?.blur()
-          }}
-          placeholder="검색하기"
-          aria-label="카테고리 리스트 검색"
-        />
-        {searchValue.trim() ? (
-          <button
-            type="button"
-            className="category_list_search_confirm"
-            aria-label="검색 확인"
-            onClick={() => {
-              setIsSearchConfirmed(true)
-              searchInputRef.current?.blur()
-            }}
-          >
-            확인
-          </button>
-        ) : null}
-      </div>
+      <CategoryListSearch
+        ref={searchInputRef}
+        value={searchValue}
+        onChange={(value) => {
+          setSearchValue(value)
+          setIsSearchConfirmed(false)
+        }}
+        onConfirm={() => setIsSearchConfirmed(true)}
+      />
 
       <h2 className="category_list_title">{title}</h2>
 
@@ -446,97 +390,26 @@ export default function CategoryList() {
           groupedItems.length === 0 ? (
             <>
               {shouldShowNoResults && suggestions.length > 0 ? (
-                <div className="category_list_suggestions" aria-label="비슷한 카테고리 추천">
-                  {suggestions.map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      type="button"
-                      className="category_list_suggestion_chip"
-                      onClick={() => {
-                        setSearchValue(suggestion)
-                        setIsSearchConfirmed(false)
-                      }}
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
+                <SuggestionChips
+                  suggestions={suggestions}
+                  onSelect={(suggestion) => {
+                    setSearchValue(suggestion)
+                    setIsSearchConfirmed(false)
+                  }}
+                />
               ) : null}
-
               {items.map((item) => (
-                <article className="category_item_card" key={item.id}>
-                  <div className="category_item_thumb" aria-hidden="true" />
-
-                  <div className="category_item_text">
-                    <strong className="category_item_name">{item.name}</strong>
-                    <div className="category_item_tags" aria-label="태그">
-                      {item.tags.map((tag) => (
-                        <span className="category_item_tag" key={tag}>
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Link className="category_item_link" to={`/product/${item.id}`} aria-label={`${item.name} 상세 보기`}>
-                    →
-                  </Link>
-                </article>
+                <CategoryItemCard key={item.id} item={item} />
               ))}
             </>
           ) : (
-            groupedItems.map((group) => (
-              <section className="category_item_group" key={group.subGroup} aria-label={group.subGroup}>
-                <h3 className="category_group_title">{group.subGroup}</h3>
-                <div className="category_group_cards">
-                  {group.items.map((item) => (
-                    <article className="category_item_card" key={item.id}>
-                      <div className="category_item_thumb" aria-hidden="true" />
-
-                      <div className="category_item_text">
-                        <strong className="category_item_name">{item.name}</strong>
-                        <div className="category_item_tags" aria-label="태그">
-                          {item.tags.map((tag) => (
-                            <span className="category_item_tag" key={tag}>
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <Link
-                        className="category_item_link"
-                        to={`/product/${item.id}`}
-                        aria-label={`${item.name} 상세 보기`}
-                      >
-                        →
-                      </Link>
-                    </article>
-                  ))}
-                </div>
-              </section>
+            groupedItems.map((itemGroup) => (
+              <CategoryItemGroup key={itemGroup.subGroup} group={itemGroup} />
             ))
           )
         ) : (
           filteredItems.map((item) => (
-            <article className="category_item_card" key={item.id}>
-              <div className="category_item_thumb" aria-hidden="true" />
-
-              <div className="category_item_text">
-                <strong className="category_item_name">{item.name}</strong>
-                <div className="category_item_tags" aria-label="태그">
-                  {item.tags.map((tag) => (
-                    <span className="category_item_tag" key={tag}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <Link className="category_item_link" to={`/product/${item.id}`} aria-label={`${item.name} 상세 보기`}>
-                →
-              </Link>
-            </article>
+            <CategoryItemCard key={item.id} item={item} />
           ))
         )}
       </div>
