@@ -6,7 +6,7 @@
 - Home screen: `src/pages/Home.tsx`
 - Category screen: `src/pages/Category.tsx`
 - Community and ranking screen: `src/pages/Community.tsx`
-- Ranking detail screen: `src/pages/RankingDetail.tsx`
+- Pairing detail screen: `src/pages/PairingDetail.tsx`
 - Chat modal: `src/pages/Chat.tsx`
 - Page-specific CSS lives in `src/styles`.
 - Shared layout and bottom navigation styles live in `src/styles/common.css`.
@@ -19,12 +19,14 @@
 - If a value is not registered in `:root` (e.g. `#000000`), use the raw value as-is. Do not add new variables to `:root` just to use them.
 
 ### Registered font families
+
 | Variable | Value |
 |---|---|
 | `--font-title` | "Noto Serif KR", serif |
 | `--font-main` | "Pretendard Variable", sans-serif |
 
 ### Registered font sizes
+
 | Variable | px |
 |---|---|
 | `--fs-display` | 32px |
@@ -38,6 +40,7 @@
 | `--fs-small` | 14px |
 
 ### Registered colors
+
 | Variable | Hex |
 |---|---|
 | `--color-main-01` | #F6ECD9 |
@@ -72,7 +75,12 @@
 - Backend에서 내려오는 데이터(랭킹/피드/상세/댓글 등)는 API 연결 전까지 더미 데이터로 구성한다.
 - Keep mock data in clear objects that resemble future API responses.
 - Alcohol-food pairing labels use `주류 + 음식` format.
+- 커뮤니티 페어링 더미 데이터는 검색 필터를 위해 `주종/카테고리/상세카테고리/특징/음식` 메타를 함께 가진다.
 - 기능을 추가할 때는, 별도 수정 요청이 없는 기존 UI/동작은 그대로 둔다(기존 기능이 사라지거나 동작이 바뀌지 않게 유지).
+
+- User grade labels:
+  - 페어링 등급(커뮤니티 글/댓글 작성자): `뉴비 맛잘알` → `찐조합러` → `미식 탐험가` → `페어링 고수` → `조합 장인`
+  - 주류 추천 등급(제품 상세 리뷰 작성자): `테이스터` → `셀렉터` → `큐레이터` → `소믈리에` → `마스터`
 
 ## Layout Rules
 
@@ -139,6 +147,15 @@
 ## Community Ranking Screen
 
 - Top segmented control: `랭킹`, `커뮤니티`.
+- 커뮤니티 공통 검색 팝업(피드/랭킹 공통):
+  - 상단: 왼쪽 `취소` 버튼 + 입력바(왼쪽 돋보기, placeholder: `조합, 주류, 안주 검색`)
+  - 섹션 순서: `주종` → `카테고리` → `상세카테고리` → `특징` → `음식` → `최근검색`
+  - 필터 동작:
+    - `주종`은 단일 선택(1개만 선택 가능), 선택 시 해당 `카테고리`만 노출
+    - 상위 카테고리 변경으로 하위 옵션이 비활성/비노출되는 경우, 해당 하위 선택은 자동으로 선택 해제(초기화)된다
+    - `카테고리`는 중복 선택 가능, 선택된 카테고리 기준으로 `상세카테고리` 옵션이 확장됨
+    - `상세카테고리`는 중복 선택 가능, 선택된 상세카테고리 기준으로 `특징` 옵션이 확장됨
+    - `특징`은 중복 선택 가능(OR 매칭), 선택된 특징에 해당하는 피드 글이 검색 결과로 표시됨
 - Ranking layout includes:
   - Period buttons (`주간`, `일간`, `월간`, `전체`)
   - Category chips (`전체`, `소주`, `와인`, `맥주`, `위스키/증류주`, `전통주`, `사케`, `기타`)
@@ -152,12 +169,15 @@
   - 하단 액션은 좌→우 순서로 `좋아요(토글)`, `댓글(상세 댓글 섹션 이동)`, `공유(더미)`, `북마크(확인 후 토글)`.
   - 카드 우측 상단 팔로우 버튼은 상태 기반:
     - `팔로우` 탭: 항상 `언팔로우`(팔로잉 피드이므로).
-    - 그 외 탭: 팔로우 중이면 `팔로잉`, 아니면 `팔로우`.
+    - 그 외 탭: 팔로우 중이면 `언팔로우`, 아니면 `팔로우`.
   - 후기 탭에는 우측 하단 `+` 글쓰기 FAB가 있으며, 초기 로딩/정지 상태에서는 숨김이고 스크롤을 내려야 노출됨.
 
 ## Pairing Detail Screen
 
 - Includes profile header with location chip.
+- Header follow button:
+  - Toggles follow state for the post author (`팔로우` / `언팔로우`).
+  - Persist follow state in `localStorage` for mock behavior.
 - Includes image row, pairing title, tags, and long description.
 - Includes product card and recommendation panel.
 - Includes action row, similar pairing list, comments, and bottom comment input.
