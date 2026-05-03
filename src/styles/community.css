@@ -788,6 +788,7 @@
   gap: 12px;
   align-items: center;
   margin: 0;
+  padding: 0px 0 12px;
 }
 
 .review_pair_thumbs {
@@ -809,7 +810,7 @@
 
 .review_pair_text {
   display: grid;
-  gap: 4px;
+  /* gap: 4px; */
 }
 
 .review_pair_title {

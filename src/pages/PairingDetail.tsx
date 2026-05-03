@@ -4,6 +4,9 @@ import { useLocation, useNavigate, useParams } from "react-router"
 import "../styles/pairing-detail.css"
 
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
+const getPairingCommentsStorageKey = (pairingId: string) => `pairing_detail_comments_${pairingId}`
+const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
+const getPairingRecommendStorageKey = (pairingId: string) => `pairing_detail_recommend_${pairingId}`
 
 type CommentItem = {
   id: number
@@ -37,7 +40,172 @@ type PairingDetailNavState = {
   authorId?: number
   authorName?: string
   profile?: string
+  locationLabel?: string
+  drinkType?: string
   source?: "feed" | "ranking"
+}
+
+type SimilarPairingItem = {
+  id: number
+  pairingTitle: string
+  authorId: number
+  authorName: string
+  profile: string
+  locationLabel: string
+  drinkType: string
+}
+
+const similarPairingsMock: SimilarPairingItem[] = [
+  {
+    id: 1002,
+    pairingTitle: "막걸리 + 해물파전",
+    authorId: 2001,
+    authorName: "민지",
+    profile: "20대 / 부산 / 전통주 입문",
+    locationLabel: "부산",
+    drinkType: "전통주",
+  },
+  {
+    id: 1013,
+    pairingTitle: "하이볼 + 치킨",
+    authorId: 2002,
+    authorName: "현우",
+    profile: "20대 / 대전 / 맥주 러버",
+    locationLabel: "대전",
+    drinkType: "기타",
+  },
+  {
+    id: 1014,
+    pairingTitle: "소주토닉 하이볼 + 피자",
+    authorId: 2102,
+    authorName: "도윤",
+    profile: "30대 / 대구 / 위스키 · 칵테일",
+    locationLabel: "대구",
+    drinkType: "기타",
+  },
+  {
+    id: 1005,
+    pairingTitle: "레드 와인 + 스테이크",
+    authorId: 2001,
+    authorName: "민지",
+    profile: "30대 / 서울 / 와인 선호",
+    locationLabel: "서울",
+    drinkType: "와인",
+  },
+  {
+    id: 1006,
+    pairingTitle: "IPA + 햄버거",
+    authorId: 2002,
+    authorName: "현우",
+    profile: "20대 / 대전 / 맥주 러버",
+    locationLabel: "대전",
+    drinkType: "맥주",
+  },
+  {
+    id: 1007,
+    pairingTitle: "소주 + 족발",
+    authorId: 2101,
+    authorName: "유나",
+    profile: "20대 / 서울 / 소주 · 전통주",
+    locationLabel: "서울",
+    drinkType: "소주",
+  },
+  {
+    id: 1008,
+    pairingTitle: "사케 + 회",
+    authorId: 2104,
+    authorName: "수빈",
+    profile: "30대 / 제주 / 와인 · 사케",
+    locationLabel: "제주",
+    drinkType: "사케",
+  },
+  {
+    id: 1010,
+    pairingTitle: "라거 + 감자튀김",
+    authorId: 2103,
+    authorName: "지민",
+    profile: "20대 / 광주 / 맥주 · 페어링",
+    locationLabel: "광주",
+    drinkType: "맥주",
+  },
+]
+
+type RecommendedProduct = {
+  id: string
+  name: string
+  categoryLabel: string
+  subLabel: string
+  priceLabel: string
+  route: string
+}
+
+const recommendedProductByDrinkType: Record<string, RecommendedProduct> = {
+  소주: {
+    id: "soju-jinro-classic-1",
+    name: "참이슬 후레쉬",
+    categoryLabel: "소주",
+    subLabel: "17.0%",
+    priceLabel: "4,500원~",
+    route: "/product/soju-jinro-classic-1",
+  },
+  맥주: {
+    id: "beer-cass-lager-1",
+    name: "카스 프레시",
+    categoryLabel: "맥주",
+    subLabel: "라거",
+    priceLabel: "3,900원~",
+    route: "/product/beer-cass-lager-1",
+  },
+  와인: {
+    id: "wine-cabernet-1",
+    name: "카베르네 소비뇽",
+    categoryLabel: "와인",
+    subLabel: "레드",
+    priceLabel: "29,000원~",
+    route: "/product/wine-cabernet-1",
+  },
+  위스키: {
+    id: "whisky-single-malt-1",
+    name: "싱글몰트 위스키",
+    categoryLabel: "위스키",
+    subLabel: "싱글몰트",
+    priceLabel: "79,000원~",
+    route: "/product/whisky-single-malt-1",
+  },
+  전통주: {
+    id: "tradition-makgeolli-1",
+    name: "프리미엄 막걸리",
+    categoryLabel: "전통주",
+    subLabel: "막걸리",
+    priceLabel: "9,900원~",
+    route: "/product/tradition-makgeolli-1",
+  },
+  사케: {
+    id: "sake-junmai-1",
+    name: "준마이 사케",
+    categoryLabel: "사케",
+    subLabel: "준마이",
+    priceLabel: "33,000원~",
+    route: "/product/sake-junmai-1",
+  },
+  기타: {
+    id: "etc-highball-can-1",
+    name: "소주 토닉 하이볼(캔)",
+    categoryLabel: "하이볼",
+    subLabel: "소주토닉",
+    priceLabel: "12,000원~",
+    route: "/product/etc-highball-can-1",
+  },
+}
+
+const priceRangeTagByDrinkType: Record<string, string> = {
+  소주: "1만원 이하",
+  맥주: "1만원 이하",
+  와인: "2~5만원",
+  위스키: "3~8만원",
+  전통주: "1~3만원",
+  사케: "2~5만원",
+  기타: "1~3만원",
 }
 
 export default function PairingDetail() {
@@ -45,12 +213,17 @@ export default function PairingDetail() {
   const navigate = useNavigate()
   const { pairingId } = useParams()
   const [commentValue, setCommentValue] = useState("")
-  const [commentItems, setCommentItems] = useState<CommentItem[]>(initialComments)
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
+  const [editingCommentValue, setEditingCommentValue] = useState("")
 
   const navState = (location.state ?? {}) as PairingDetailNavState
   const pairingTitle = navState.pairingTitle?.trim() || `페어링 #${pairingId ?? ""}`.trim()
+  const drinkTypeLabel =
+    navState.drinkType?.trim() ||
+    (pairingTitle.includes("+") ? pairingTitle.split("+")[0]?.trim() : "")
   const authorName = navState.authorName?.trim() || "익명"
   const profile = navState.profile?.trim() || "20대 / 서울"
+  const locationLabel = navState.locationLabel?.trim() || profile.split("/")?.[1]?.trim() || "서울"
   const currentUser = { id: 9999, name: "나", meta: "서울 · 20대" }
   const [followedUserIds, setFollowedUserIds] = useState<Set<number>>(() => {
     try {
@@ -70,6 +243,65 @@ export default function PairingDetail() {
 
   const authorId = typeof navState.authorId === "number" ? navState.authorId : null
   const isFollowing = authorId !== null && followedUserIds.has(authorId)
+
+  const [isRecommended, setIsRecommended] = useState(false)
+  const [recommendCount, setRecommendCount] = useState(874)
+  const [isLiked, setIsLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(847)
+
+  const commentsStorageKey = useMemo(() => {
+    return pairingId ? getPairingCommentsStorageKey(pairingId) : null
+  }, [pairingId])
+
+  const similarItems = useMemo(() => {
+    const currentId = typeof pairingId === "string" ? Number(pairingId) : NaN
+    const drinkHint = pairingTitle.split("+")[0]?.trim() ?? ""
+    const drinkTypeHint = drinkTypeLabel || drinkHint
+    const candidates = similarPairingsMock
+      .filter((item) => item.id !== currentId)
+      .sort((a, b) => (a.drinkType === drinkTypeHint ? -1 : 0) - (b.drinkType === drinkTypeHint ? -1 : 0))
+
+    const prioritized = candidates.filter(
+      (item) => item.pairingTitle.includes(drinkHint) || item.drinkType === drinkTypeHint,
+    )
+    const fallback = candidates.filter((item) => !prioritized.includes(item))
+    return [...prioritized, ...fallback].slice(0, 2)
+  }, [drinkTypeLabel, pairingId, pairingTitle])
+
+  const recommendedProduct = useMemo(() => {
+    if (drinkTypeLabel && recommendedProductByDrinkType[drinkTypeLabel]) {
+      return recommendedProductByDrinkType[drinkTypeLabel]
+    }
+    return recommendedProductByDrinkType.기타
+  }, [drinkTypeLabel])
+
+  const [commentItems, setCommentItems] = useState<CommentItem[]>(() => {
+    if (!pairingId) {
+      return initialComments
+    }
+    try {
+      const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
+      if (!raw) {
+        return initialComments
+      }
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) {
+        return initialComments
+      }
+      return parsed.filter(
+        (item): item is CommentItem =>
+          item &&
+          typeof item === "object" &&
+          typeof item.id === "number" &&
+          typeof item.userId === "number" &&
+          typeof item.userName === "string" &&
+          typeof item.userMeta === "string" &&
+          typeof item.text === "string",
+      )
+    } catch {
+      return initialComments
+    }
+  })
 
   const userPairingTiersById: Record<number, 1 | 2 | 3 | 4 | 5> = {
     2001: 2,
@@ -114,6 +346,40 @@ export default function PairingDetail() {
   }, [])
 
   useLayoutEffect(() => {
+    if (!pairingId) {
+      return
+    }
+    try {
+      const raw = window.localStorage.getItem(getPairingRecommendStorageKey(pairingId))
+      if (raw) {
+        const parsed = JSON.parse(raw) as { count?: number; recommended?: boolean }
+        if (typeof parsed?.count === "number" && Number.isFinite(parsed.count)) {
+          setRecommendCount(parsed.count)
+        }
+        if (typeof parsed?.recommended === "boolean") {
+          setIsRecommended(parsed.recommended)
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    try {
+      const rawLikes = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
+      if (!rawLikes) {
+        setIsLiked(false)
+        return
+      }
+      const parsed = JSON.parse(rawLikes)
+      if (Array.isArray(parsed)) {
+        setIsLiked(parsed.includes(Number(pairingId)))
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [pairingId])
+
+  useLayoutEffect(() => {
     if (location.hash !== "#comments") {
       return
     }
@@ -130,6 +396,51 @@ export default function PairingDetail() {
     () => commentItems.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1,
     [commentItems],
   )
+
+  useLayoutEffect(() => {
+    if (!pairingId) {
+      return
+    }
+    setEditingCommentId(null)
+    setEditingCommentValue("")
+    try {
+      const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
+      if (!raw) {
+        setCommentItems(initialComments)
+        return
+      }
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) {
+        setCommentItems(initialComments)
+        return
+      }
+      setCommentItems(
+        parsed.filter(
+          (item): item is CommentItem =>
+            item &&
+            typeof item === "object" &&
+            typeof item.id === "number" &&
+            typeof item.userId === "number" &&
+            typeof item.userName === "string" &&
+            typeof item.userMeta === "string" &&
+            typeof item.text === "string",
+        ),
+      )
+    } catch {
+      setCommentItems(initialComments)
+    }
+  }, [pairingId])
+
+  useLayoutEffect(() => {
+    if (!commentsStorageKey) {
+      return
+    }
+    try {
+      window.localStorage.setItem(commentsStorageKey, JSON.stringify(commentItems))
+    } catch {
+      // ignore storage errors
+    }
+  }, [commentItems, commentsStorageKey])
 
   const handleSubmitComment = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -151,6 +462,37 @@ export default function PairingDetail() {
     setCommentValue("")
   }
 
+  const startEditComment = (item: CommentItem) => {
+    setEditingCommentId(item.id)
+    setEditingCommentValue(item.text)
+  }
+
+  const cancelEditComment = () => {
+    setEditingCommentId(null)
+    setEditingCommentValue("")
+  }
+
+  const confirmEditComment = () => {
+    if (editingCommentId === null) {
+      return
+    }
+    const trimmedValue = editingCommentValue.trim()
+    if (!trimmedValue) {
+      return
+    }
+    setCommentItems((prev) =>
+      prev.map((item) => (item.id === editingCommentId ? { ...item, text: trimmedValue } : item)),
+    )
+    cancelEditComment()
+  }
+
+  const removeComment = (commentId: number) => {
+    setCommentItems((prev) => prev.filter((item) => item.id !== commentId))
+    if (editingCommentId === commentId) {
+      cancelEditComment()
+    }
+  }
+
   const toggleFollow = () => {
     if (authorId === null) {
       return
@@ -169,6 +511,53 @@ export default function PairingDetail() {
       }
       return next
     })
+  }
+
+  const toggleRecommend = () => {
+    if (!pairingId) {
+      return
+    }
+    const nextRecommended = !isRecommended
+    setIsRecommended(nextRecommended)
+    setRecommendCount((countPrev) => {
+      const nextCount = Math.max(0, countPrev + (nextRecommended ? 1 : -1))
+      try {
+        window.localStorage.setItem(
+          getPairingRecommendStorageKey(pairingId),
+          JSON.stringify({ count: nextCount, recommended: nextRecommended }),
+        )
+      } catch {
+        // ignore storage errors
+      }
+      return nextCount
+    })
+  }
+
+  const toggleLike = () => {
+    if (!pairingId) {
+      return
+    }
+    const numericId = Number(pairingId)
+    if (!Number.isFinite(numericId)) {
+      return
+    }
+
+    const nextLiked = !isLiked
+    setIsLiked(nextLiked)
+    setLikeCount((countPrev) => Math.max(0, countPrev + (nextLiked ? 1 : -1)))
+    try {
+      const raw = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
+      const parsed = raw ? JSON.parse(raw) : []
+      const set = new Set<number>(Array.isArray(parsed) ? parsed : [])
+      if (nextLiked) {
+        set.add(numericId)
+      } else {
+        set.delete(numericId)
+      }
+      window.localStorage.setItem(COMMUNITY_LIKED_POSTS_KEY, JSON.stringify(Array.from(set)))
+    } catch {
+      // ignore storage errors
+    }
   }
 
   return (
@@ -193,7 +582,7 @@ export default function PairingDetail() {
             ) : null}
           </h1>
           <p>{profile}</p>
-          <span className="detail_location">커뮤니티</span>
+          <span className="detail_location">{locationLabel}</span>
         </div>
         <button
           type="button"
@@ -206,15 +595,15 @@ export default function PairingDetail() {
         </button>
       </header>
 
-      <div className="detail_images" aria-label="페어링 이미지">
-        <div />
-        <div />
+      <div className="detail_images" aria-label="페어링 이미지(좌우 스와이프)">
+        <div className="detail_image_item" />
+        <div className="detail_image_item" />
       </div>
 
       <h2>{pairingTitle}</h2>
       <div className="detail_tags">
-        <span>2~3만원</span>
-        <span>가볍고 상큼하게</span>
+        <span>{priceRangeTagByDrinkType[drinkTypeLabel] ?? "1~3만원"}</span>
+        <span>{drinkTypeLabel ? `${drinkTypeLabel} 추천` : "추천"}</span>
       </div>
 
       <p className="detail_text">
@@ -225,44 +614,88 @@ export default function PairingDetail() {
       <article className="detail_product_card">
         <div className="product_thumb" />
         <div className="product_text">
-          <h3>케이머스 나파 밸리 카버네 소비뇽 2023</h3>
+          <h3>{recommendedProduct.name}</h3>
           <div>
-            <span>레드와인</span>
-            <span>산미</span>
-            <span>8만원대</span>
+            <span>{recommendedProduct.categoryLabel}</span>
+            <span>{recommendedProduct.subLabel}</span>
+            <span>{recommendedProduct.priceLabel}</span>
           </div>
         </div>
-        <button type="button" aria-label="제품 보기" onClick={() => navigate("/product/caymus-2023-1")}>
+        <button type="button" aria-label="제품 보기" onClick={() => navigate(recommendedProduct.route)}>
           →
         </button>
       </article>
 
       <article className="recommend_panel">
-        <div className="recommend_icon">💬</div>
-        <div>
-          <h3>추천해요</h3>
-          <p>이 조합이 좋았다면 추천을 눌러주세요</p>
-          <strong>874</strong>
-        </div>
+        <button
+          type="button"
+          className="recommend_button"
+          aria-label="조합 추천"
+          aria-pressed={isRecommended}
+          onClick={toggleRecommend}
+        >
+          <div className="recommend_icon" aria-hidden="true">
+            💬
+          </div>
+          <div>
+            <h3>추천해요</h3>
+            <p>이 조합이 좋으셨다면 추천을 눌러주세요</p>
+            <strong>{recommendCount.toLocaleString()}</strong>
+          </div>
+        </button>
       </article>
 
-      <div className="detail_actions">
-        <span>♡ 847</span>
-        <span>💬 124</span>
-        <span>↗</span>
-        <span>🔖</span>
+      <div className="detail_actions" aria-label="액션">
+        <button
+          type="button"
+          className={isLiked ? "detail_action_button is_active" : "detail_action_button"}
+          aria-label="좋아요"
+          aria-pressed={isLiked}
+          onClick={toggleLike}
+        >
+          {isLiked ? "♥" : "♡"} <span>{likeCount}</span>
+        </button>
+        <button
+          type="button"
+          className="detail_action_button"
+          aria-label="댓글 달기"
+          onClick={() => document.getElementById("comments")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        >
+          💬 <span>{commentItems.length}</span>
+        </button>
+        <button type="button" className="detail_action_button" aria-label="공유">
+          ↗ 공유
+        </button>
+        <button type="button" className="detail_action_button" aria-label="북마크">
+          🔖 저장
+        </button>
       </div>
 
       <h3 className="similar_title">유사한 분위기 조합 둘러보기</h3>
-      <div className="similar_list">
-        <article>
-          <div className="similar_thumb" />
-          <p>막걸리 + 전</p>
-        </article>
-        <article>
-          <div className="similar_thumb" />
-          <p>와인 + 치즈</p>
-        </article>
+      <div className="similar_list" aria-label="유사한 페어링 추천">
+        {similarItems.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className="similar_card"
+            onClick={() => {
+              navigate(`/community/pairing/${item.id}`, {
+                state: {
+                  pairingTitle: item.pairingTitle,
+                  authorId: item.authorId,
+                  authorName: item.authorName,
+                  profile: item.profile,
+                  locationLabel: item.locationLabel,
+                  drinkType: item.drinkType,
+                  source: "feed",
+                } satisfies PairingDetailNavState,
+              })
+            }}
+          >
+            <div className="similar_thumb" aria-hidden="true" />
+            <p>{item.pairingTitle}</p>
+          </button>
+        ))}
       </div>
 
       <div className="comment_list" id="comments">
@@ -270,13 +703,45 @@ export default function PairingDetail() {
           <div className="comment_row" key={item.id}>
             <div className="avatar" />
             <div>
-              <h4>
-                {item.userName} <span className="comment_meta">{item.userMeta}</span>
-                <span className={getTierClassName(userPairingTiersById[item.userId])}>
-                  {getTierLabel(userPairingTiersById[item.userId])}
-                </span>
-              </h4>
-              <p>{item.text}</p>
+              <div className="comment_header_row">
+                <h4>
+                  {item.userName} <span className="comment_meta">{item.userMeta}</span>
+                  <span className={getTierClassName(userPairingTiersById[item.userId])}>
+                    {getTierLabel(userPairingTiersById[item.userId])}
+                  </span>
+                </h4>
+                {item.userId === currentUser.id ? (
+                  <div className="comment_actions">
+                    <button type="button" onClick={() => startEditComment(item)}>
+                      수정
+                    </button>
+                    <button type="button" onClick={() => removeComment(item.id)}>
+                      삭제
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+
+              {editingCommentId === item.id ? (
+                <div className="comment_edit_shell">
+                  <input
+                    className="comment_edit_input"
+                    value={editingCommentValue}
+                    onChange={(event) => setEditingCommentValue(event.target.value)}
+                    aria-label="댓글 수정"
+                  />
+                  <div className="comment_edit_actions">
+                    <button type="button" onClick={cancelEditComment}>
+                      취소
+                    </button>
+                    <button type="button" className="is_primary" onClick={confirmEditComment}>
+                      저장
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p>{item.text}</p>
+              )}
             </div>
           </div>
         ))}

@@ -178,9 +178,18 @@
 - Header follow button:
   - Toggles follow state for the post author (`팔로우` / `언팔로우`).
   - Persist follow state in `localStorage` for mock behavior.
+- Image row is horizontally swipeable (scroll-snap).
 - Includes image row, pairing title, tags, and long description.
 - Includes product card and recommendation panel.
+  - Product card uses mock recommendation based on the pairing's `주종` (left side of `주류 + 음식`).
+- Recommendation banner toggles recommend state (tap: +1, tap again: -1) and persists per pairing in `localStorage`.
 - Includes action row, similar pairing list, comments, and bottom comment input.
+- Similar pairing list uses mock data and navigates to another pairing detail when tapped.
+- Like button toggles like state (tap: +1, tap again: -1) and is reflected in the community list via shared `localStorage`.
+- Comments:
+  - User can add a comment.
+  - Comments written by the current user can be edited or deleted.
+  - Persist comments per pairing in `localStorage` so they remain after navigation.
 - 댓글 섹션은 `#comments` 해시로 진입 시 해당 위치로 스크롤되어야 함.
 
 ### Route

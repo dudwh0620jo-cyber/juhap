@@ -141,16 +141,17 @@ type PopupChipGroup = {
 
 const COMMUNITY_SEARCH_RECENT_KEY = "community_search_recent_terms"
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
+const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
 const MAX_RECENT_TERMS = 10
 
 const popupCategoryByDrinkType: Record<string, string[]> = {
-  소주: ["증류주", "하이볼"],
+  소주: ["증류주"],
   맥주: ["라거/필스너", "IPA", "크래프트"],
   와인: ["레드", "화이트", "스파클링"],
-  위스키: ["하이볼", "증류주"],
+  위스키: ["증류주"],
   전통주: ["막걸리"],
   사케: ["사케준마이"],
-  기타: ["칵테일", "논알콜"],
+  기타: ["하이볼", "칵테일", "논알콜"],
 }
 
 const popupDetailByCategory: Record<string, string[]> = {
@@ -161,7 +162,7 @@ const popupDetailByCategory: Record<string, string[]> = {
   화이트: ["시트러스", "트로피컬"],
   스파클링: ["브뤼", "스위트"],
   증류주: ["싱글몰트", "블렌디드", "버번"],
-  하이볼: ["버번", "블렌디드"],
+  하이볼: ["소주토닉", "버번", "블렌디드"],
   막걸리: ["비살균", "살균"],
   사케준마이: ["준마이", "긴죠"],
   칵테일: ["시트러스", "트로피컬"],
@@ -175,6 +176,7 @@ const popupFeaturesByDetail: Record<string, Array<"부드러운" | "무거운" |
   뉴잉글랜드: ["부드러운", "과일향"],
   세션: ["가벼운", "톡쏘는"],
   임페리얼: ["무거운"],
+  소주토닉: ["가벼운", "톡쏘는", "과일향"],
   오크숙성: ["무거운", "오크향"],
   프루티: ["가벼운", "과일향"],
   시트러스: ["톡쏘는", "과일향"],
@@ -470,18 +472,18 @@ const feedPosts: FeedPost[] = [
     id: 1001,
     authorId: 2003,
     authorName: "서연",
-    title: "소주 + 삼겹살",
+    title: "하이볼 + 삼겹살",
     body: "집에서 해먹을 때는 기름기 있는 부위일수록 도수/탄산 선택이 달라지더라고요. 저만의 기준 공유합니다.",
     createdAt: "2026-05-01T09:12:00+09:00",
     likeCount: 320,
     commentCount: 28,
     popularityScore: 402,
     profile: "30대 / 서울 / 소주 · 맥주 선호",
-    searchTags: ["소주", "증류주", "삼겹살", "부드러운", "무거운", "오크향"],
-    drinkType: "소주",
-    categories: ["증류주"],
-    detailCategories: ["버번"],
-    features: ["부드러운", "무거운", "오크향"],
+    searchTags: ["기타", "하이볼", "소주토닉", "삼겹살", "가벼운", "톡쏘는", "과일향"],
+    drinkType: "기타",
+    categories: ["하이볼"],
+    detailCategories: ["소주토닉"],
+    features: ["가벼운", "톡쏘는", "과일향"],
     foods: ["삼겹살"],
   },
   {
@@ -721,7 +723,27 @@ export default function Community() {
   )
   const [hasWriteFabScrolled, setHasWriteFabScrolled] = useState(false)
   const [isWriteFabVisible, setIsWriteFabVisible] = useState(false)
-  const [likedById, setLikedById] = useState<Record<number, boolean>>({})
+  const [likedById, setLikedById] = useState<Record<number, boolean>>(() => {
+    try {
+      const raw = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
+      if (!raw) {
+        return {}
+      }
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) {
+        return {}
+      }
+      const record: Record<number, boolean> = {}
+      for (const value of parsed) {
+        if (typeof value === "number" && Number.isFinite(value)) {
+          record[value] = true
+        }
+      }
+      return record
+    } catch {
+      return {}
+    }
+  })
   const [bookmarkListById, setBookmarkListById] = useState<Record<number, string | null>>({})
   const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(
     null,
@@ -1248,7 +1270,19 @@ export default function Community() {
   const getCommentCount = (post: FeedPost) => post.commentCount
 
   const toggleLike = (postId: number) => {
-    setLikedById((prev) => ({ ...prev, [postId]: !prev[postId] }))
+    setLikedById((prev) => {
+      const next = { ...prev, [postId]: !prev[postId] }
+      try {
+        const likedIds = Object.entries(next)
+          .filter(([, liked]) => liked)
+          .map(([key]) => Number(key))
+          .filter((value) => Number.isFinite(value))
+        window.localStorage.setItem(COMMUNITY_LIKED_POSTS_KEY, JSON.stringify(likedIds))
+      } catch {
+        // ignore storage errors
+      }
+      return next
+    })
   }
 
   const openBookmarkPicker = (postId: number) => {
@@ -1279,6 +1313,7 @@ export default function Community() {
   const goToComments = (postId: number) => {
     const post = feedPosts.find((item) => item.id === postId)
     const pairingTitle = post?.title ? extractPairingTitle(post.title) : ""
+    const locationLabel = post?.profile?.split("/")?.[1]?.trim() ?? ""
     navigate(`/community/pairing/${postId}#comments`, {
       state: post
         ? {
@@ -1286,6 +1321,8 @@ export default function Community() {
             authorId: post.authorId,
             authorName: post.authorName,
             profile: post.profile ?? "",
+            locationLabel,
+            drinkType: post.drinkType ?? "",
             source: "feed",
           }
         : undefined,
@@ -1858,17 +1895,19 @@ export default function Community() {
                 </header>
 
                 {post.isQna ? (
-                  <Link
-                    className="feed_text_link is_free"
-                    to={`/community/pairing/${post.id}`}
-                    state={{
-                      pairingTitle: extractPairingTitle(post.title),
-                      authorId: post.authorId,
-                      authorName: post.authorName,
-                      profile: post.profile ?? "",
-                      source: "feed",
-                    }}
-                  >
+                    <Link
+                      className="feed_text_link is_free"
+                      to={`/community/pairing/${post.id}`}
+                      state={{
+                        pairingTitle: extractPairingTitle(post.title),
+                        authorId: post.authorId,
+                        authorName: post.authorName,
+                        profile: post.profile ?? "",
+                        locationLabel: post.profile?.split("/")?.[1]?.trim() ?? "",
+                        drinkType: post.drinkType ?? "",
+                        source: "feed",
+                      }}
+                    >
                     <div className="free_layout">
                       <div className="free_badge_row">
                         {typeof post.answerCount === "number" ? (
@@ -1895,6 +1934,8 @@ export default function Community() {
                         authorId: post.authorId,
                         authorName: post.authorName,
                         profile: post.profile ?? "",
+                        locationLabel: post.profile?.split("/")?.[1]?.trim() ?? "",
+                        drinkType: post.drinkType ?? "",
                         source: "feed",
                       }}
                     >
