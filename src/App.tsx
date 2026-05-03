@@ -1,13 +1,14 @@
 import { useState } from "react"
 import { Navigate, NavLink, Route, Routes } from "react-router"
 import Category from "./pages/Category"
+import CategoryList from "./pages/CategoryList"
 import Chat from "./pages/Chat"
 import Community from "./pages/Community"
 import Home from "./pages/Home"
 import MyPage from "./pages/MyPage"
 import ProductDetail from "./pages/ProductDetail"
 import Quiz from "./pages/Quiz"
-import RankingDetail from "./pages/RankingDetail"
+import PairingDetail from "./pages/PairingDetail"
 import "./styles/common.css"
 
 const leftNavItems = [
@@ -30,9 +31,10 @@ export default function App() {
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
           <Route path="/category" element={<Category />} />
+          <Route path="/category/list" element={<CategoryList />} />
           <Route path="/chat" element={<Navigate to="/home" replace />} />
           <Route path="/community" element={<Community />} />
-          <Route path="/community/ranking/:rankId" element={<RankingDetail />} />
+          <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/quiz" element={<Quiz />} />
