@@ -71,31 +71,41 @@
 }
 
 .detail_images {
-  display: grid;
-  grid-template-columns: 1fr 108px;
-  gap: 10px;
-  margin: 14px 0;
+  display: flex;
+  gap: 12px;
+  margin: 12px 0 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
-.detail_images div {
-  height: 130px;
+.detail_images::-webkit-scrollbar {
+  display: none;
+}
+
+.detail_image_item {
+  flex: 0 0 100%;
+  height: 180px;
+  border-radius: 16px;
   background: #a7a7a7;
+  scroll-snap-align: start;
 }
 
 .pairing_detail_page h2 {
-  margin: 0;
-  font-size: 40px;
+  margin: 0 0 8px;
+  font-size: 24px;
 }
 
 .detail_tags {
   display: flex;
   gap: 18px;
-  margin: 8px 0 12px;
+  margin: 0 0 12px;
 }
 
 .detail_text {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -145,12 +155,24 @@
 
 .recommend_panel {
   display: grid;
-  grid-template-columns: 56px 1fr;
   gap: 12px;
   margin-top: 12px;
-  padding: 14px 12px;
+  padding: 12px;
   border-radius: 20px;
   background: #ececec;
+}
+
+.recommend_button {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
 }
 
 .recommend_icon {
@@ -160,27 +182,50 @@
 
 .recommend_panel h3 {
   margin: 0 0 4px;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .recommend_panel p {
   margin: 0 0 4px;
+  color: #5f5f5f;
+  font-size: 13px;
 }
 
 .recommend_panel strong {
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .detail_actions {
-  display: flex;
-  gap: 20px;
-  margin: 14px 0;
-  font-size: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.detail_action_button {
+  min-height: 44px;
+  border: 1px solid #d6d6d6;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+  cursor: pointer;
+}
+
+.detail_action_button.is_active {
+  border-color: #222;
+  background: #f7f3ec;
+}
+
+.detail_action_button span {
+  margin-left: 4px;
+  font-weight: 800;
 }
 
 .similar_title {
   margin: 0 0 10px;
-  font-size: 26px;
+  font-size: 16px;
 }
 
 .similar_list {
@@ -189,8 +234,17 @@
   margin-bottom: 12px;
 }
 
-.similar_list article {
+.similar_card {
   width: 96px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  min-height: 132px;
+  display: grid;
+  grid-template-rows: 96px auto;
+  align-content: start;
 }
 
 .similar_thumb {
@@ -209,7 +263,9 @@
 .comment_list {
   display: grid;
 }
-
+.comment_row:last-child {
+  border-bottom: 0;
+}
 .comment_row {
   display: grid;
   grid-template-columns: 44px 1fr;
@@ -219,8 +275,67 @@
   border-bottom: 1px solid #a3a3a3;
 }
 
+.comment_header_row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .comment_row h4 {
   margin: 0 0 4px;
+}
+
+.comment_actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.comment_actions button {
+  border: 0;
+  background: transparent;
+  color: #7a5c2b;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.comment_edit_shell {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.comment_edit_input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d6d6d6;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.comment_edit_actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.comment_edit_actions button {
+  min-width: 54px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #222;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.comment_edit_actions button.is_primary {
+  background: #222;
+  color: #fff;
 }
 
 .user_grade_badge {
