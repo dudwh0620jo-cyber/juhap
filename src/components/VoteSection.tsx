@@ -47,25 +47,32 @@ function VoteCard({ title, percent, voted, isSelected, onVote }: VoteCardProps) 
       {isSelected && <span className="vote_my_pick">✓</span>}
       <h4>{title}</h4>
       <p>{voted ? `${percent}%` : "--"}</p>
-      <button type="button" onClick={onVote}>
-        {voted ? "다시 투표하기" : "투표하고 현황보기"}
-      </button>
+      <button type="button" onClick={onVote} style={{ visibility: voted ? "hidden" : "visible" }}>투표하고 현황보기</button>
     </article>
   )
 }
 
 export default function VoteSection({ voteId, question, options }: VoteSectionProps) {
   const [selectedIndex, setSelectedIndex] = useState<0 | 1 | null>(() => {
-    const val = getStoredPicks()[String(voteId)]
-    return val !== undefined ? val : null
+    try {
+      const picks = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}")
+      const val = picks[String(voteId)]
+      return val !== undefined ? val : null
+    } catch {
+      return null
+    }
   })
 
   const voted = selectedIndex !== null
 
   function handleVote(index: 0 | 1) {
-    const next = voted ? null : index
-    setSelectedIndex(next)
-    storePick(voteId, next)
+    setSelectedIndex(index)
+    storePick(voteId, index)
+    try {
+      const picks = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}")
+      picks[String(voteId)] = index
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(picks))
+    } catch {}
   }
 
   return (

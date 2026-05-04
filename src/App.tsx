@@ -1,9 +1,10 @@
-﻿import { useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router"
 import Category from "./pages/Category"
 import CategoryList from "./pages/CategoryList"
 import Chat from "./pages/Chat"
 import Community from "./pages/Community"
+import CommunityRanking from "./pages/Ranking"
 import Home from "./pages/Home"
 import MyPage from "./pages/MyPage"
 import ProductDetail from "./pages/ProductDetail"
@@ -40,6 +41,10 @@ const rightNavItems = [
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
   const isRankingActive = pathname === "/community/ranking"
   const isCommunityActive = pathname.startsWith("/community") && !isRankingActive
 
@@ -67,7 +72,7 @@ export default function App() {
           <Route path="/category/list" element={<CategoryList />} />
           <Route path="/chat" element={<Navigate to="/home" replace />} />
           <Route path="/community" element={<Community />} />
-          <Route path="/community/ranking" element={<Community />} />
+          <Route path="/community/ranking" element={<CommunityRanking />} />
           <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />

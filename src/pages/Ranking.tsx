@@ -1,20 +1,10 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useLocation, useNavigate, useSearchParams } from "react-router"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
-import FeedSegmentTabs from "../components/FeedSegmentTabs"
-import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
-import RelatedContentPostCard from "../components/RelatedContentPostCard"
-import CommunitySearchInput from "../components/CommunitySearchInput"
 import CommunityRankingSection from "../components/CommunityRankingSection"
+import CommunitySearchInput from "../components/CommunitySearchInput"
 import CommunityFeedFilterPopupBody from "../components/CommunityFeedFilterPopupBody"
-import FeedWriteRow from "../components/FeedWriteRow"
-import FeedWriteFab from "../components/FeedWriteFab"
-
-// NOTE: The contents of `src/pages/community/*` were inlined into this file so the `community` folder can be deleted.
-// This is intentionally a single-file bundle for the Community page (as requested).
-
-type FeedFilter = "review" | "free" | "popular" | "follow"
 
 type RankingPeriod = "weekly" | "daily" | "monthly" | "all"
 type RankingCategory =
@@ -26,8 +16,6 @@ type RankingCategory =
   | "tradition"
   | "sake"
   | "etc"
-
-type GradeTier = 1 | 2 | 3 | 4 | 5
 
 type RankingRow = {
   id: number
@@ -67,15 +55,9 @@ type FeedPost = {
   searchTags?: string[]
   drinkType?: string
   categories?: string[]
-  features?: string[]
+  detailCategories?: string[]
+  features?: Array<"부드러운" | "무거운" | "가벼운" | "톡쏘는" | "오크향" | "과일향">
   foods?: string[]
-}
-
-type FollowUser = {
-  id: number
-  name: string
-  profile: string
-  bio: string
 }
 
 type PopupChipGroup = {
@@ -84,27 +66,7 @@ type PopupChipGroup = {
 }
 
 const COMMUNITY_SEARCH_RECENT_KEY = "community_search_recent_terms"
-const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
-const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
 const MAX_RECENT_TERMS = 10
-
-const pairingReviewGrades = ["테이스터", "셀렉터", "큐레이터", "소믈리에", "마스터"] as const
-
-const userGradesByAuthorId: Record<
-  number,
-  { alcoholReviewTier: GradeTier; pairingReviewTier: GradeTier }
-> = {
-  2001: { alcoholReviewTier: 3, pairingReviewTier: 2 },
-  2002: { alcoholReviewTier: 2, pairingReviewTier: 3 },
-  2003: { alcoholReviewTier: 4, pairingReviewTier: 4 },
-  2004: { alcoholReviewTier: 1, pairingReviewTier: 2 },
-  2019: { alcoholReviewTier: 3, pairingReviewTier: 3 },
-  2025: { alcoholReviewTier: 2, pairingReviewTier: 2 },
-  2101: { alcoholReviewTier: 2, pairingReviewTier: 1 },
-  2102: { alcoholReviewTier: 1, pairingReviewTier: 2 },
-  2103: { alcoholReviewTier: 1, pairingReviewTier: 2 },
-  2104: { alcoholReviewTier: 3, pairingReviewTier: 3 },
-}
 
 const rankingPeriods: Array<{ key: RankingPeriod; label: string }> = [
   { key: "weekly", label: "주간" },
@@ -124,141 +86,58 @@ const rankingCategories: Array<{ key: RankingCategory; label: string }> = [
   { key: "etc", label: "기타" },
 ]
 
-const feedFilterItems: Array<{ key: FeedFilter; label: string }> = [
-  { key: "review", label: "후기" },
-  { key: "free", label: "자유" },
-  { key: "popular", label: "인기" },
-  { key: "follow", label: "팔로우" },
-]
-
-const bookmarkLists = [
-  { id: "default", label: "기본 북마크" },
-  { id: "wine", label: "와인 페어링" },
-  { id: "whisky", label: "위스키 페어링" },
-] as const
-
 const popupCategoryByDrinkType: Record<string, string[]> = {
-  사케: ["준마이 다이긴죠", "다이긴죠", "준마이 긴죠", "긴죠", "준마이", "혼죠조", "후츠슈(일반주)"],
-  소주: ["데일리(희석식)", "프리미엄(증류식)", "플레이버"],
-  와인: ["레드", "화이트", "로제", "스파클링", "내추럴", "포트", "디저트"],
-  맥주: ["라거/필스너", "에일/IPA", "흑맥주(스타우트)", "과일맥주"],
-  위스키: ["싱글몰트", "블렌디드 몰트", "블렌디드", "아메리칸(버번/라이/테네시)", "그레인", "기타 국가 위스키"],
-  증류주: ["백주/고량주", "진", "보드카", "테킬라", "럼", "브랜디(꼬냑/아르마냑)"],
-  전통주: ["막걸리/탁주", "약주/청주", "전통 증류주", "과실주(한국 와인)"],
-  기타: ["리큐르", "하이볼", "칵테일", "논알콜/저도수"],
+  소주: ["증류주"],
+  맥주: ["라거/필스너", "IPA", "크래프트"],
+  와인: ["레드", "화이트", "스파클링"],
+  위스키: ["증류주"],
+  전통주: ["막걸리"],
+  사케: ["사케준마이"],
+  기타: ["하이볼", "칵테일", "논알콜"],
 }
 
-const popupFeaturesByDrinkType: Record<string, string[]> = {
-  사케: [
-    "과일향(긴죠향)",
-    "쌀향",
-    "누룩향",
-    "꽃향",
-    "단맛(아마구치)",
-    "드라이(카라구치)",
-    "산미",
-    "감칠맛(우마미)",
-    "부드러움",
-    "깔끔함",
-    "무게감(바디)",
-  ],
-  소주: [
-    "곡물향",
-    "알코올향",
-    "무향(깔끔함)",
-    "과일향(플레이버)",
-    "단맛",
-    "쓴맛",
-    "고소함",
-    "가벼움",
-    "화함(알코올 타격감)",
-    "오일리함",
-  ],
-  와인: [
-    "레드과일",
-    "블랙과일",
-    "오크향",
-    "지구향(흙/가죽)",
-    "꽃향",
-    "산도",
-    "당도",
-    "탄닌(떫은맛)",
-    "과실미",
-    "라이트/풀바디",
-    "실키함",
-    "발포성(탄산)",
-  ],
-  맥주: [
-    "홉(시트러스/열대과일)",
-    "맥아(고소함/카라멜)",
-    "효모향",
-    "커피/초콜릿",
-    "쓴맛(IBU)",
-    "단맛",
-    "고소함",
-    "산미",
-    "탄산감",
-    "크리미함",
-    "바디감",
-  ],
-  위스키: [
-    "피트(스모키)",
-    "바닐라/카라멜",
-    "과일",
-    "스파이시",
-    "견과류",
-    "단맛",
-    "짠맛(해조류)",
-    "매운맛",
-    "오크맛",
-    "묵직함",
-    "오일리함",
-    "긴 여운(Finish)",
-  ],
-  증류주: [
-    "농향(화려함)",
-    "장향(진함)",
-    "청향(깨끗함)",
-    "미향(은은함)",
-    "파인애플",
-    "곡물",
-    "누룩",
-    "단맛",
-    "화한 매운맛",
-    "감칠맛",
-    "부드러움",
-    "강한 타격감",
-    "깔끔한 끝맛",
-  ],
-  전통주: [
-    "곡물향",
-    "누룩향",
-    "과실향",
-    "산뜻한 향",
-    "당도",
-    "산미(신맛)",
-    "구수함",
-    "떫은맛",
-    "걸쭉함(바디)",
-    "탄산감",
-    "청량감",
-  ],
-  기타: ["맥주향", "와인향", "과일", "허브", "커피", "크림", "견과류", "단맛", "쌉쌀함", "청량함", "탄산감"],
+const popupDetailByCategory: Record<string, string[]> = {
+  "라거/필스너": ["클래식", "드라이"],
+  IPA: ["웨스트코스트", "뉴잉글랜드"],
+  크래프트: ["세션", "임페리얼"],
+  레드: ["오크숙성", "프루티"],
+  화이트: ["시트러스", "트로피컬"],
+  스파클링: ["브뤼", "스위트"],
+  증류주: ["싱글몰트", "블렌디드", "버번"],
+  하이볼: ["소주토닉", "버번", "블렌디드"],
+  막걸리: ["비살균", "살균"],
+  사케준마이: ["준마이", "긴죠"],
+  칵테일: ["시트러스", "트로피컬"],
+  논알콜: ["제로", "로우알콜"],
 }
 
-const popupFoodCategories = [
-  "디저트",
-  "과일",
-  "치즈",
-  "육류",
-  "구이",
-  "해산물",
-  "튀김",
-  "국물/탕",
-  "면",
-  "과자",
-  "베지테리안",
-]
+const popupFeaturesByDetail: Record<
+  string,
+  Array<"부드러운" | "무거운" | "가벼운" | "톡쏘는" | "오크향" | "과일향">
+> = {
+  클래식: ["가벼운", "톡쏘는"],
+  드라이: ["가벼운"],
+  웨스트코스트: ["톡쏘는", "무거운"],
+  뉴잉글랜드: ["부드러운", "과일향"],
+  세션: ["가벼운", "톡쏘는"],
+  임페리얼: ["무거운"],
+  소주토닉: ["가벼운", "톡쏘는", "과일향"],
+  오크숙성: ["무거운", "오크향"],
+  프루티: ["가벼운", "과일향"],
+  시트러스: ["톡쏘는", "과일향"],
+  트로피컬: ["과일향", "가벼운"],
+  브뤼: ["톡쏘는", "가벼운"],
+  스위트: ["부드러운", "과일향"],
+  싱글몰트: ["무거운", "오크향", "부드러운"],
+  블렌디드: ["부드러운", "무거운"],
+  버번: ["부드러운", "오크향", "무거운"],
+  비살균: ["부드러운", "가벼운"],
+  살균: ["가벼운"],
+  준마이: ["부드러운", "가벼운"],
+  긴죠: ["과일향", "가벼운"],
+  제로: ["가벼운", "톡쏘는"],
+  로우알콜: ["가벼운"],
+}
 
 const podiumVotesById: Record<number, number> = {
   101: 8122,
@@ -289,16 +168,6 @@ const normalizeRankingCategory = (value: string | null): RankingCategory | null 
   return null
 }
 
-const extractPairingTitle = (title: string) => {
-  const match = title.match(/([^\n+]{2,}?)\s*\+\s*([^\n+]{2,}?)(?=[,.\n]|$)/)
-  if (!match) {
-    return title
-  }
-  const left = match[1].trim()
-  const right = match[2].trim()
-  return `${left} + ${right}`
-}
-
 const getPodiumVotes = (podium: RankingPodium) => {
   const explicitVotes = podium.votes ?? podiumVotesById[podium.id]
   if (typeof explicitVotes === "number" && Number.isFinite(explicitVotes)) {
@@ -312,23 +181,13 @@ const getPodiumVotes = (podium: RankingPodium) => {
 
 const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim()
 
-// For typo-ish / adjacency matching like "블렌디드몰트" vs "블렌디드 몰트",
-// or "논알콜 저도수" vs "논알콜/저도수".
-const normalizeFuzzyText = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/[\/()［］\[\],.\-·]/g, "")
-    .trim()
-
 const includesNormalized = (value: string, query: string) => {
   const normalizedValue = normalizeSearchText(value)
   const normalizedQuery = normalizeSearchText(query)
   if (!normalizedQuery) {
     return true
   }
-  if (normalizedValue.includes(normalizedQuery)) return true
-  return normalizeFuzzyText(value).includes(normalizeFuzzyText(query))
+  return normalizedValue.includes(normalizedQuery)
 }
 
 const createRankingFeatureTags = (category: RankingCategory, pairing: string) => {
@@ -355,97 +214,6 @@ const createRankingFeatureTags = (category: RankingCategory, pairing: string) =>
   }
 
   return tags
-}
-
-function useStoredNumberSet(key: string, defaultIds: readonly number[]) {
-  const [value, setValue] = useState<Set<number>>(() => {
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (!raw) {
-        return new Set(defaultIds)
-      }
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) {
-        return new Set(defaultIds)
-      }
-      const ids = parsed.filter((item): item is number => typeof item === "number" && Number.isFinite(item))
-      return new Set(ids)
-    } catch {
-      return new Set(defaultIds)
-    }
-  })
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (!raw) {
-        window.localStorage.setItem(key, JSON.stringify(Array.from(value)))
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, [key, value])
-
-  const toggle = (id: number) => {
-    setValue((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      try {
-        window.localStorage.setItem(key, JSON.stringify(Array.from(next)))
-      } catch {
-        // ignore storage errors
-      }
-      return next
-    })
-  }
-
-  return { value, setValue, toggle }
-}
-
-function useStoredBooleanRecordFromIds(key: string) {
-  const [value, setValue] = useState<Record<number, boolean>>(() => {
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (!raw) {
-        return {}
-      }
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) {
-        return {}
-      }
-      const record: Record<number, boolean> = {}
-      for (const item of parsed) {
-        if (typeof item === "number" && Number.isFinite(item)) {
-          record[item] = true
-        }
-      }
-      return record
-    } catch {
-      return {}
-    }
-  })
-
-  const toggle = (id: number) => {
-    setValue((prev) => {
-      const next = { ...prev, [id]: !prev[id] }
-      try {
-        const ids = Object.entries(next)
-          .filter(([, liked]) => liked)
-          .map(([entryKey]) => Number(entryKey))
-          .filter((num) => Number.isFinite(num))
-        window.localStorage.setItem(key, JSON.stringify(ids))
-      } catch {
-        // ignore storage errors
-      }
-      return next
-    })
-  }
-
-  return { value, setValue, toggle }
 }
 
 function useStoredStringArray(key: string, maxLength: number) {
@@ -710,6 +478,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["기타", "하이볼", "소주토닉", "삼겹살", "가벼운", "톡쏘는", "과일향"],
     drinkType: "기타",
     categories: ["하이볼"],
+    detailCategories: ["소주토닉"],
     features: ["가벼운", "톡쏘는", "과일향"],
     foods: ["삼겹살"],
   },
@@ -728,6 +497,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["전통주", "막걸리", "해물파전", "부드러운", "가벼운"],
     drinkType: "전통주",
     categories: ["막걸리"],
+    detailCategories: ["비살균"],
     features: ["부드러운", "가벼운"],
     foods: ["해물파전"],
   },
@@ -747,6 +517,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["위스키", "하이볼", "버번", "부드러운", "무거운", "오크향"],
     drinkType: "위스키",
     categories: ["하이볼"],
+    detailCategories: ["버번"],
     features: ["부드러운", "무거운", "오크향"],
     foods: ["치즈"],
   },
@@ -766,6 +537,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["사케", "사케준마이", "가라아게", "부드러운", "가벼운", "오뎅", "명란구이"],
     drinkType: "사케",
     categories: ["사케준마이"],
+    detailCategories: ["준마이"],
     features: ["부드러운", "가벼운"],
     foods: ["가라아게", "오뎅", "명란구이"],
   },
@@ -784,6 +556,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["와인", "레드", "스테이크", "오크숙성", "무거운", "오크향"],
     drinkType: "와인",
     categories: ["레드"],
+    detailCategories: ["오크숙성"],
     features: ["무거운", "오크향"],
     foods: ["스테이크"],
   },
@@ -802,6 +575,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["맥주", "IPA", "크래프트", "뉴잉글랜드", "부드러운", "과일향", "햄버거", "치즈"],
     drinkType: "맥주",
     categories: ["IPA", "크래프트"],
+    detailCategories: ["뉴잉글랜드"],
     features: ["부드러운", "과일향"],
     foods: ["햄버거", "치즈"],
   },
@@ -820,6 +594,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["소주", "증류주", "족발", "부드러운", "무거운"],
     drinkType: "소주",
     categories: ["증류주"],
+    detailCategories: ["블렌디드"],
     features: ["부드러운", "무거운"],
     foods: ["족발"],
   },
@@ -839,6 +614,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["사케", "사케준마이", "회", "부드러운", "가벼운"],
     drinkType: "사케",
     categories: ["사케준마이"],
+    detailCategories: ["긴죠"],
     features: ["과일향", "가벼운"],
     foods: ["회"],
   },
@@ -857,6 +633,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["기타", "칵테일", "시트러스", "톡쏘는", "과일향", "타코"],
     drinkType: "기타",
     categories: ["칵테일"],
+    detailCategories: ["시트러스"],
     features: ["톡쏘는", "과일향"],
     foods: ["타코"],
   },
@@ -875,6 +652,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["맥주", "라거/필스너", "드라이", "가벼운", "감자튀김"],
     drinkType: "맥주",
     categories: ["라거/필스너"],
+    detailCategories: ["드라이"],
     features: ["가벼운"],
     foods: ["감자튀김"],
   },
@@ -894,6 +672,7 @@ const feedPosts: FeedPost[] = [
     searchTags: ["위스키", "증류주", "싱글몰트", "무거운", "오크향", "부드러운", "다크초콜릿"],
     drinkType: "위스키",
     categories: ["증류주"],
+    detailCategories: ["싱글몰트"],
     features: ["무거운", "오크향", "부드러운"],
     foods: ["다크초콜릿"],
   },
@@ -913,40 +692,19 @@ const feedPosts: FeedPost[] = [
     searchTags: ["맥주", "라거/필스너", "치킨", "가벼운", "톡쏘는", "전통주", "막걸리", "해물파전"],
     drinkType: "맥주",
     categories: ["라거/필스너"],
+    detailCategories: ["클래식"],
     features: ["가벼운", "톡쏘는"],
     foods: ["치킨", "해물파전"],
   },
 ]
 
-const followedUsersMock: FollowUser[] = [
-  { id: 2001, name: "민지", profile: "30대 / 서울 / 와인 선호", bio: "퇴근 후 와인 한 잔, 페어링 기록합니다." },
-  { id: 2002, name: "현우", profile: "20대 / 부산 / 맥주 러버", bio: "수제맥주, 안주 조합 찾는 중." },
-  { id: 2003, name: "서연", profile: "30대 / 경기 / 위스키 관심", bio: "하이볼 레시피랑 입문 위스키 정리해요." },
-  { id: 2004, name: "지훈", profile: "20대 / 인천 / 사케 입문", bio: "사케·일식 페어링 위주로 올립니다." },
-]
-
-
-
-export default function Community() {
-  const location = useLocation()
-  const navigate = useNavigate()
+export default function CommunityRanking() {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const [feedFilter, setFeedFilter] = useState<FeedFilter>("review")
-  const { value: followedUserIds, toggle: toggleFollowUser } = useStoredNumberSet(
-    COMMUNITY_FOLLOWED_USERS_KEY,
-    followedUsersMock.map((user) => user.id),
-  )
-  const [hasWriteFabScrolled, setHasWriteFabScrolled] = useState(false)
-  const [isWriteFabVisible, setIsWriteFabVisible] = useState(false)
-  const { value: likedById, toggle: toggleLike } = useStoredBooleanRecordFromIds(COMMUNITY_LIKED_POSTS_KEY)
-  const [bookmarkListById, setBookmarkListById] = useState<Record<number, string | null>>({})
-  const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(
-    null,
-  )
   const [isFeedFilterPopupOpen, setIsFeedFilterPopupOpen] = useState(false)
   const [selectedDrinkType, setSelectedDrinkType] = useState<string | null>(null)
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(() => new Set())
+  const [selectedDetailCategories, setSelectedDetailCategories] = useState<Set<string>>(() => new Set())
   const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(() => new Set())
   const [selectedFoods, setSelectedFoods] = useState<Set<string>>(() => new Set())
   const [feedSearchValue, setFeedSearchValue] = useState("")
@@ -960,8 +718,6 @@ export default function Community() {
     MAX_RECENT_TERMS,
   )
 
-  const isRankingRoute = location.pathname === "/community/ranking"
-  const topTab = isRankingRoute ? "ranking" : "feed"
   const rankingPeriod = normalizeRankingPeriod(searchParams.get("period")) ?? "weekly"
   const rankingCategory = normalizeRankingCategory(searchParams.get("cat")) ?? "all"
 
@@ -982,20 +738,48 @@ export default function Community() {
   ]
 
   const availableCategories = useMemo(() => {
-    if (!selectedDrinkType) return []
+    if (!selectedDrinkType) {
+      const merged = new Set<string>()
+      for (const categories of Object.values(popupCategoryByDrinkType)) {
+        for (const category of categories) {
+          merged.add(category)
+        }
+      }
+      return Array.from(merged)
+    }
     return popupCategoryByDrinkType[selectedDrinkType] ?? []
   }, [selectedDrinkType])
 
-  const availableFeatures = useMemo(() => {
-    if (!selectedDrinkType) return []
-    if (selectedCategories.size === 0) return []
-    return popupFeaturesByDrinkType[selectedDrinkType] ?? []
-  }, [selectedCategories, selectedDrinkType])
+  const availableDetailCategories = useMemo(() => {
+    if (selectedCategories.size === 0) {
+      return []
+    }
+    const merged = new Set<string>()
+    for (const category of selectedCategories) {
+      for (const detail of popupDetailByCategory[category] ?? []) {
+        merged.add(detail)
+      }
+    }
+    return Array.from(merged)
+  }, [selectedCategories])
 
-  const availableFoods = useMemo(() => {
-    if (!selectedDrinkType) return []
-    return popupFoodCategories
-  }, [selectedDrinkType])
+  const availableFeatures = useMemo(() => {
+    if (selectedDetailCategories.size === 0) {
+      return []
+    }
+    const merged = new Set<string>()
+    for (const detail of selectedDetailCategories) {
+      for (const feature of popupFeaturesByDetail[detail] ?? []) {
+        merged.add(feature)
+      }
+    }
+    return Array.from(merged)
+  }, [selectedDetailCategories])
+
+  useEffect(() => {
+    const valid = new Set(availableDetailCategories)
+    setSelectedDetailCategories((prev) => new Set(Array.from(prev).filter((item) => valid.has(item))))
+  }, [availableDetailCategories])
 
   useEffect(() => {
     const valid = new Set(availableFeatures)
@@ -1006,58 +790,60 @@ export default function Community() {
     const groups: PopupChipGroup[] = [
       { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
       { title: "카테고리", chips: availableCategories },
+      { title: "상세카테고리", chips: availableDetailCategories },
       { title: "특징", chips: availableFeatures },
       {
         title: "음식",
-        chips: availableFoods,
+        chips: [
+          "치킨",
+          "피자",
+          "삼겹살",
+          "회",
+          "굴",
+          "떡볶이",
+          "파스타",
+          "육회",
+          "치즈",
+          "족발",
+          "해물파전",
+          "스테이크",
+          "햄버거",
+          "감자튀김",
+          "다크초콜릿",
+          "타코",
+          "가라아게",
+          "오뎅",
+          "명란구이",
+        ],
       },
     ]
 
-    // Keep group titles visible even when chips are empty (step-by-step funnel UX).
-    return groups
-  }, [availableCategories, availableFeatures, availableFoods])
-
-  const searchAllChipGroups: PopupChipGroup[] = useMemo(() => {
-    const categorySet = new Set<string>()
-    for (const list of Object.values(popupCategoryByDrinkType)) {
-      for (const item of list) categorySet.add(item)
-    }
-    const featureSet = new Set<string>()
-    for (const list of Object.values(popupFeaturesByDrinkType)) {
-      for (const item of list) featureSet.add(item)
-    }
-
-    return [
-      { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
-      { title: "카테고리", chips: Array.from(categorySet) },
-      { title: "특징", chips: Array.from(featureSet) },
-      { title: "음식", chips: popupFoodCategories },
-    ]
-  }, [])
+    return groups.filter((group) => group.title === "주종" || group.chips.length > 0)
+  }, [availableCategories, availableDetailCategories, availableFeatures])
 
   void _legacyPopupChipGroups
 
   const filteredPopupChipGroups = useMemo(() => {
-      const query = feedSearchValue.trim().toLowerCase()
+    const query = feedSearchValue.trim().toLowerCase()
     if (!isFeedSearchConfirmed || !query) {
       return popupChipGroups
     }
 
     const results: PopupChipGroup[] = []
-    for (const group of searchAllChipGroups) {
+    for (const group of popupChipGroups) {
       if (group.title.toLowerCase().includes(query)) {
         results.push(group)
         continue
       }
 
-      const chips = group.chips.filter((chip) => includesNormalized(chip, query))
+      const chips = group.chips.filter((chip) => chip.toLowerCase().includes(query))
       if (chips.length > 0) {
         results.push({ title: group.title, chips })
       }
     }
 
     return results
-  }, [feedSearchValue, isFeedSearchConfirmed, popupChipGroups, searchAllChipGroups])
+  }, [feedSearchValue, isFeedSearchConfirmed, popupChipGroups])
 
   const isPopupSearchNoResults =
     isFeedSearchConfirmed && feedSearchValue.trim() && filteredPopupChipGroups.length === 0
@@ -1067,76 +853,9 @@ export default function Community() {
     isFeedSearchConfirmed ||
     Boolean(selectedDrinkType) ||
     selectedCategories.size > 0 ||
+    selectedDetailCategories.size > 0 ||
     selectedFeatures.size > 0 ||
     selectedFoods.size > 0
-
-  const posts = useMemo(() => {
-    const copy = [...feedPosts]
-
-    if (feedFilter === "review") {
-      return copy
-        .filter((post) => !post.isQna)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }
-
-    if (feedFilter === "free") {
-      return copy
-        .filter((post) => post.isQna)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }
-
-    if (feedFilter === "popular") {
-      return copy.sort((a, b) => b.popularityScore - a.popularityScore)
-    }
-
-    if (feedFilter === "follow") {
-      return copy
-        .filter((post) => followedUserIds.has(post.authorId))
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }
-
-    return []
-  }, [feedFilter, followedUserIds])
-
-  const filteredPosts = useMemo(() => {
-    if (!isCommunitySearchActive) {
-      return posts
-    }
-
-    const query = feedSearchValue.trim()
-    return posts.filter((post) => {
-      const targets = [
-        post.title,
-        post.body,
-        post.profile ?? "",
-        post.drinkType ?? "",
-        ...(post.categories ?? []),
-        ...(post.features ?? []),
-        ...(post.foods ?? []),
-        ...(post.searchTags ?? []),
-      ]
-      const queryMatches = !query || includesNormalized(targets.join(" "), query)
-
-      const drinkTypeMatches = !selectedDrinkType || post.drinkType === selectedDrinkType
-      const categoryMatches =
-        selectedCategories.size === 0 || (post.categories ?? []).some((item) => selectedCategories.has(item))
-      const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
-      const featureMatches =
-        selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
-
-      return (
-        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
-      )
-    })
-  }, [
-    feedSearchValue,
-    isCommunitySearchActive,
-    posts,
-    selectedCategories,
-    selectedDrinkType,
-    selectedFeatures,
-    selectedFoods,
-  ])
 
   const searchSuggestionTags = useMemo(() => {
     const query = feedSearchValue.trim()
@@ -1146,13 +865,19 @@ export default function Community() {
 
     const normalizedQuery = normalizeSearchText(query)
     const filterPostWithoutQuery = (post: FeedPost) => {
-      const drinkTypeMatches = !selectedDrinkType || post.drinkType === selectedDrinkType
+      const drinkTypeMatches =
+        !selectedDrinkType ||
+        post.drinkType === selectedDrinkType ||
+        (post.categories ?? []).some((item) => (popupCategoryByDrinkType[selectedDrinkType] ?? []).includes(item))
       const categoryMatches =
         selectedCategories.size === 0 || (post.categories ?? []).some((item) => selectedCategories.has(item))
+      const detailMatches =
+        selectedDetailCategories.size === 0 ||
+        (post.detailCategories ?? []).some((item) => selectedDetailCategories.has(item))
       const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
       const featureMatches =
         selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
-      return drinkTypeMatches && categoryMatches && foodMatches && featureMatches
+      return drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
     }
 
     const candidates = new Map<string, number>()
@@ -1166,6 +891,7 @@ export default function Community() {
       const tagPool = [
         post.drinkType ?? "",
         ...(post.categories ?? []),
+        ...(post.detailCategories ?? []),
         ...(post.features ?? []),
         ...(post.foods ?? []),
         ...(post.searchTags ?? []),
@@ -1179,14 +905,14 @@ export default function Community() {
         let score = baseScore
         if (normalizedTag.includes(normalizedQuery) || normalizedQuery.includes(normalizedTag)) {
           score += 5
-        } else if (normalizedTag && normalizedQuery && (normalizedTag[0] === normalizedQuery[0])) {
+        } else if (normalizedTag && normalizedQuery && normalizedTag[0] === normalizedQuery[0]) {
           score += 1
         }
         bump(tag, score)
       }
     }
 
-  const hasResultsForTag = (tag: string) => {
+    const hasResultsForTag = (tag: string) => {
       for (const post of feedPosts) {
         if (!filterPostWithoutQuery(post)) continue
         const tagPool = [
@@ -1194,6 +920,7 @@ export default function Community() {
           post.body,
           post.drinkType ?? "",
           ...(post.categories ?? []),
+          ...(post.detailCategories ?? []),
           ...(post.features ?? []),
           ...(post.foods ?? []),
           ...(post.searchTags ?? []),
@@ -1211,6 +938,7 @@ export default function Community() {
       .filter(([tag]) => {
         if (selectedDrinkType && tag === selectedDrinkType) return false
         if (selectedCategories.has(tag)) return false
+        if (selectedDetailCategories.has(tag)) return false
         if (selectedFeatures.has(tag)) return false
         if (selectedFoods.has(tag)) return false
         return true
@@ -1221,10 +949,12 @@ export default function Community() {
   }, [
     feedSearchValue,
     selectedCategories,
+    selectedDetailCategories,
     selectedDrinkType,
     selectedFeatures,
     selectedFoods,
   ])
+
   const rankingData = rankingDataByPeriod[rankingPeriod]
   const rankingRows = useMemo(() => {
     return rankingCategory === "all"
@@ -1247,13 +977,16 @@ export default function Community() {
       const drinkTypeMatches = !selectedDrinkType || includesNormalized(categoryLabel, selectedDrinkType)
       const categoryMatches =
         selectedCategories.size === 0 || Array.from(selectedCategories).some((item) => includesNormalized(targets.join(" "), item))
+      const detailMatches =
+        selectedDetailCategories.size === 0 ||
+        Array.from(selectedDetailCategories).some((item) => includesNormalized(targets.join(" "), item))
       const foodMatches =
         selectedFoods.size === 0 || Array.from(selectedFoods).some((item) => includesNormalized(row.pair, item))
       const featureMatches =
         selectedFeatures.size === 0 || featureTags.some((tag) => selectedFeatures.has(tag))
 
       return (
-        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
+        queryMatches && drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
       )
     })
   }, [
@@ -1261,6 +994,7 @@ export default function Community() {
     isCommunitySearchActive,
     rankingRows,
     selectedCategories,
+    selectedDetailCategories,
     selectedDrinkType,
     selectedFeatures,
     selectedFoods,
@@ -1284,13 +1018,16 @@ export default function Community() {
       const drinkTypeMatches = !selectedDrinkType || includesNormalized(categoryLabel, selectedDrinkType)
       const categoryMatches =
         selectedCategories.size === 0 || Array.from(selectedCategories).some((item) => includesNormalized(targets.join(" "), item))
+      const detailMatches =
+        selectedDetailCategories.size === 0 ||
+        Array.from(selectedDetailCategories).some((item) => includesNormalized(targets.join(" "), item))
       const foodMatches =
         selectedFoods.size === 0 || Array.from(selectedFoods).some((item) => includesNormalized(podium.pair, item))
       const featureMatches =
         selectedFeatures.size === 0 || featureTags.some((tag) => selectedFeatures.has(tag))
 
       return (
-        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
+        queryMatches && drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
       )
     })
   }, [
@@ -1298,30 +1035,14 @@ export default function Community() {
     isCommunitySearchActive,
     rankingPodium,
     selectedCategories,
+    selectedDetailCategories,
     selectedDrinkType,
     selectedFeatures,
     selectedFoods,
   ])
 
-  const isRankingNoResults = isCommunitySearchActive && filteredRankingRows.length === 0 && filteredRankingPodium.length === 0
-  const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (topTab !== "feed" || (feedFilter !== "review" && feedFilter !== "free")) {
-        setIsWriteFabVisible(false)
-        return
-      }
-
-      setHasWriteFabScrolled(true)
-      const nextVisible = window.scrollY > 0
-      setIsWriteFabVisible((prev) => (prev === nextVisible ? prev : nextVisible))
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [feedFilter, topTab])
+  const isRankingNoResults =
+    isCommunitySearchActive && filteredRankingRows.length === 0 && filteredRankingPodium.length === 0
 
   useEffect(() => {
     if (!isFeedFilterPopupOpen) {
@@ -1363,62 +1084,47 @@ export default function Community() {
     setCollapsibleChipGroups(next)
   }, [filteredPopupChipGroups, expandedChipGroups])
 
-  const getLikeCount = (post: FeedPost) => post.likeCount + (likedById[post.id] ? 1 : 0)
-  const getCommentCount = (post: FeedPost) => post.commentCount
+  const openFeedFilterPopup = () => setIsFeedFilterPopupOpen(true)
 
-  const openBookmarkPicker = (postId: number) => {
-    const currentListId = bookmarkListById[postId]
-    setBookmarkPicker({ postId, selectedListId: currentListId ?? bookmarkLists[0].id })
-  }
-
-  const confirmBookmark = () => {
-    if (!bookmarkPicker) {
+  const confirmFeedSearch = (term?: string) => {
+    const query = (term ?? feedSearchValue).trim()
+    if (!query) {
       return
     }
 
-    setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: bookmarkPicker.selectedListId }))
-    setBookmarkPicker(null)
-  }
-
-  const removeBookmark = () => {
-    if (!bookmarkPicker) {
-      return
-    }
-
-    setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: null }))
-    setBookmarkPicker(null)
-  }
-
-  const cancelBookmark = () => setBookmarkPicker(null)
-
-  const goToComments = (postId: number) => {
-    const post = feedPosts.find((item) => item.id === postId)
-    const pairingTitle = post?.title ? extractPairingTitle(post.title) : ""
-    const locationLabel = post?.locationLabel?.trim() ?? ""
-    navigate(`/community/pairing/${postId}#comments`, {
-      state: post
-        ? {
-            pairingTitle,
-            authorId: post.authorId,
-            authorName: post.authorName,
-            profile: post.profile ?? "",
-            locationLabel,
-            drinkType: post.drinkType ?? "",
-            source: "feed",
-          }
-        : undefined,
+    setFeedSearchValue(query)
+    setIsFeedSearchConfirmed(true)
+    setRecentSearchTerms((prev) => {
+      const normalized = query.toLowerCase()
+      const next = [query, ...prev.filter((item) => item.toLowerCase() !== normalized)]
+      return next.slice(0, MAX_RECENT_TERMS)
     })
+    feedSearchInputRef.current?.blur()
   }
 
   const toggleDrinkType = (nextDrinkType: string) => {
     setSelectedDrinkType((prev) => (prev === nextDrinkType ? null : nextDrinkType))
     setSelectedCategories(new Set())
+    setSelectedDetailCategories(new Set())
     setSelectedFeatures(new Set())
     setIsFeedSearchConfirmed(true)
   }
 
   const toggleCategory = (chip: string) => {
     setSelectedCategories((prev) => {
+      const next = new Set(prev)
+      if (next.has(chip)) {
+        next.delete(chip)
+      } else {
+        next.add(chip)
+      }
+      return next
+    })
+    setIsFeedSearchConfirmed(true)
+  }
+
+  const toggleDetailCategory = (chip: string) => {
+    setSelectedDetailCategories((prev) => {
       const next = new Set(prev)
       if (next.has(chip)) {
         next.delete(chip)
@@ -1474,35 +1180,11 @@ export default function Community() {
     })
   }
 
-  const openFeedFilterPopup = () => setIsFeedFilterPopupOpen(true)
-
-  const confirmFeedSearch = (term?: string) => {
-    const query = (term ?? feedSearchValue).trim()
-    if (!query) {
-      return
-    }
-
-    setFeedSearchValue(query)
-    setIsFeedSearchConfirmed(true)
-    setRecentSearchTerms((prev) => {
-      const normalized = query.toLowerCase()
-      const next = [query, ...prev.filter((item) => item.toLowerCase() !== normalized)]
-      return next.slice(0, MAX_RECENT_TERMS)
-    })
-    feedSearchInputRef.current?.blur()
-  }
-
-  const changeFeedFilter = (nextFilter: FeedFilter) => {
-    setHasWriteFabScrolled(false)
-    setIsWriteFabVisible(false)
-    setFeedFilter(nextFilter)
-  }
-
   return (
     <section className="community_page page_screen" aria-label="커뮤니티">
       <CommunityHeader
         title="커뮤니티"
-        topTab={topTab}
+        topTab="ranking"
         openFilterAriaLabel="검색 필터 열기"
         onOpenFilter={openFeedFilterPopup}
       />
@@ -1521,7 +1203,6 @@ export default function Community() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="feed_filter_popup_top">
-              
               <CommunitySearchInput
                 shellAriaLabel="커뮤니티 검색"
                 inputAriaLabel="커뮤니티 검색어 입력"
@@ -1563,6 +1244,7 @@ export default function Community() {
               onToggleGroupExpanded={toggleChipGroupExpanded}
               selectedDrinkType={selectedDrinkType}
               selectedCategories={selectedCategories}
+              selectedDetailCategories={selectedDetailCategories}
               selectedFeatures={selectedFeatures}
               selectedFoods={selectedFoods}
               onChipClick={(groupTitle, chip) => {
@@ -1572,6 +1254,10 @@ export default function Community() {
                 }
                 if (groupTitle === "카테고리") {
                   toggleCategory(chip)
+                  return
+                }
+                if (groupTitle === "상세카테고리") {
+                  toggleDetailCategory(chip)
                   return
                 }
                 if (groupTitle === "특징") {
@@ -1592,143 +1278,24 @@ export default function Community() {
         </div>
       ) : null}
 
-      {topTab === "ranking" ? (
-        <CommunityRankingSection
-          periodItems={rankingPeriods}
-          activePeriod={rankingPeriod}
-          onChangePeriod={(period) => setQueryParam("period", period)}
-          categoryItems={rankingCategories}
-          activeCategory={rankingCategory}
-          onChangeCategory={(category) => setQueryParam("cat", category)}
-          podiumRankOrder={podiumRankOrder}
-          podiumItems={filteredRankingPodium}
-          getPodiumVotes={getPodiumVotes}
-          isNoResults={isRankingNoResults}
-          suggestionTags={searchSuggestionTags}
-          onSelectSuggestionTag={(tag) => {
-            setFeedSearchValue(tag)
-            setIsFeedSearchConfirmed(true)
-          }}
-          rows={filteredRankingRows}
-        />
-      ) : (
-      <section className="feed_page" aria-label="커뮤니티 피드">
-          <FeedSegmentTabs
-            ariaLabel="피드 필터"
-            items={feedFilterItems}
-            activeKey={feedFilter}
-            onChange={(key) => changeFeedFilter(key as FeedFilter)}
-          />
-          <div className="feed_cards">
-            {isFeedNoResults ? (
-              <div className="search_no_results" role="status">
-                <p className="search_no_results_title">검색 결과가 없어요</p>
-                {searchSuggestionTags.length > 0 ? (
-                  <div className="search_suggestion_row" aria-label="추천 태그">
-                    {searchSuggestionTags.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        className="search_suggestion_chip"
-                        onClick={() => {
-                          setFeedSearchValue(tag)
-                          setIsFeedSearchConfirmed(true)
-                        }}
-                      >
-                        #{tag}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            {feedFilter === "free" || feedFilter === "review" ? <FeedWriteRow ariaLabel="글 작성" mode={feedFilter} /> : null}
-            {filteredPosts.map((post) => (
-              <RelatedContentPostCard
-                key={post.id}
-                postId={post.id}
-                isQna={post.isQna}
-                authorName={post.authorName}
-                profile={post.profile}
-                badgeClassName={
-                  userGradesByAuthorId[post.authorId]?.pairingReviewTier === 5
-                    ? "feed_post_badge is_tier5"
-                    : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 4
-                      ? "feed_post_badge is_tier4"
-                      : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 3
-                        ? "feed_post_badge is_tier3"
-                        : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 2
-                          ? "feed_post_badge is_tier2"
-                          : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 1
-                            ? "feed_post_badge is_tier1"
-                            : "feed_post_badge"
-                }
-                badgeText={pairingReviewGrades[(userGradesByAuthorId[post.authorId]?.pairingReviewTier ?? 1) - 1]}
-                followButtonClassName={
-                  followedUserIds.has(post.authorId) ? "follow_toggle_button is_following" : "follow_toggle_button"
-                }
-                followAriaLabel={
-                  feedFilter === "follow"
-                    ? "언팔로우"
-                    : followedUserIds.has(post.authorId)
-                      ? "언팔로잉"
-                      : "팔로우"
-                }
-                followText={
-                  feedFilter === "follow" ? "언팔로우" : followedUserIds.has(post.authorId) ? "언팔로잉" : "팔로우"
-                }
-                onToggleFollow={() => toggleFollowUser(post.authorId)}
-                linkTo={`/community/pairing/${post.id}`}
-                linkState={{
-                  pairingTitle: extractPairingTitle(post.title),
-                  authorId: post.authorId,
-                  authorName: post.authorName,
-                  profile: post.profile ?? "",
-                  locationLabel: post.locationLabel?.trim() ?? "",
-                  drinkType: post.drinkType ?? "",
-                  source: "feed",
-                }}
-                title={post.isQna ? post.title : extractPairingTitle(post.title)}
-                body={post.body}
-                answerCount={post.answerCount}
-                answerPreview={post.answerPreview}
-                likeActive={Boolean(likedById[post.id])}
-                likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
-                likeText={`${getLikeCount(post)}`}
-                onToggleLike={() => toggleLike(post.id)}
-                commentText={`${getCommentCount(post)}`}
-                onViewComments={() => goToComments(post.id)}
-                bookmarkActive={Boolean(bookmarkListById[post.id])}
-                bookmarkAriaLabel={bookmarkListById[post.id] ? "북마크 변경" : "북마크"}
-                onOpenBookmarkPicker={() => openBookmarkPicker(post.id)}
-              />
-            ))}
-          </div>
-
-          {bookmarkPicker ? (
-            <CommunityBookmarkPickerModal
-              picker={bookmarkPicker}
-              lists={bookmarkLists}
-              ariaLabel="북마크 리스트 선택"
-              titleText={
-                bookmarkListById[bookmarkPicker.postId] ? "북마크를 어디로 옮길까요?" : "어느 리스트에 저장할까요?"
-              }
-              listPickerAriaLabel="북마크 리스트"
-              secondaryLabel={bookmarkListById[bookmarkPicker.postId] ? "해제" : "취소"}
-              primaryLabel="확인"
-              onDismiss={cancelBookmark}
-              onSelectList={(listId) => setBookmarkPicker({ ...bookmarkPicker, selectedListId: listId })}
-              onSecondary={bookmarkListById[bookmarkPicker.postId] ? removeBookmark : cancelBookmark}
-              onPrimary={confirmBookmark}
-            />
-          ) : null}
-
-          {feedFilter === "review" || feedFilter === "free" ? (
-            <FeedWriteFab ariaLabel="글 작성" isVisible={hasWriteFabScrolled && isWriteFabVisible} />
-          ) : null}
-        </section>
-      )}
+      <CommunityRankingSection
+        periodItems={rankingPeriods}
+        activePeriod={rankingPeriod}
+        onChangePeriod={(period) => setQueryParam("period", period)}
+        categoryItems={rankingCategories}
+        activeCategory={rankingCategory}
+        onChangeCategory={(category) => setQueryParam("cat", category)}
+        podiumRankOrder={podiumRankOrder}
+        podiumItems={filteredRankingPodium}
+        getPodiumVotes={getPodiumVotes}
+        isNoResults={isRankingNoResults}
+        suggestionTags={searchSuggestionTags}
+        onSelectSuggestionTag={(tag) => {
+          setFeedSearchValue(tag)
+          setIsFeedSearchConfirmed(true)
+        }}
+        rows={filteredRankingRows}
+      />
     </section>
   )
 }
