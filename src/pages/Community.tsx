@@ -10,34 +10,846 @@ import CommunityRankingSection from "../components/CommunityRankingSection"
 import CommunityFeedFilterPopupBody from "../components/CommunityFeedFilterPopupBody"
 import FeedWriteRow from "../components/FeedWriteRow"
 import FeedWriteFab from "../components/FeedWriteFab"
-import type { FeedFilter, FeedPost, PopupChipGroup } from "./community/types"
-import {
-  COMMUNITY_FOLLOWED_USERS_KEY,
-  COMMUNITY_LIKED_POSTS_KEY,
-  COMMUNITY_SEARCH_RECENT_KEY,
-  MAX_RECENT_TERMS,
-  bookmarkLists,
-  feedFilterItems,
-  pairingReviewGrades,
-  popupCategoryByDrinkType,
-  popupDetailByCategory,
-  popupFeaturesByDetail,
-  rankingCategories,
-  rankingPeriods,
-  userGradesByAuthorId,
-} from "./community/constants"
-import { feedPosts, followedUsersMock, rankingDataByPeriod } from "./community/mock"
-import {
-  createRankingFeatureTags,
-  extractPairingTitle,
-  getPodiumVotes,
-  includesNormalized,
-  normalizeRankingCategory,
-  normalizeRankingPeriod,
-  normalizeSearchText,
-  normalizeTopTab,
-} from "./community/utils"
-import { useStoredBooleanRecordFromIds, useStoredNumberSet, useStoredStringArray } from "./community/hooks/useCommunityStorage"
+
+// NOTE: The contents of `src/pages/community/*` were inlined into this file so the `community` folder can be deleted.
+// This is intentionally a single-file bundle for the Community page (as requested).
+
+type TopTab = "ranking" | "feed"
+type FeedFilter = "review" | "free" | "popular" | "follow"
+
+type RankingPeriod = "weekly" | "daily" | "monthly" | "all"
+type RankingCategory =
+  | "all"
+  | "soju"
+  | "wine"
+  | "beer"
+  | "whisky_spirit"
+  | "tradition"
+  | "sake"
+  | "etc"
+
+type GradeTier = 1 | 2 | 3 | 4 | 5
+
+type RankingRow = {
+  id: number
+  rank: number
+  pair: string
+  category: RankingCategory
+  score: number
+  votes: number
+  delta: string
+}
+
+type RankingPodium = {
+  id: number
+  rank: 1 | 2 | 3
+  pair: string
+  category: RankingCategory
+  score: number
+  votes?: number
+  thumbVariant?: "default" | "bottle"
+}
+
+type FeedPost = {
+  id: number
+  authorId: number
+  authorName: string
+  title: string
+  body: string
+  createdAt: string
+  likeCount: number
+  commentCount: number
+  popularityScore: number
+  profile?: string
+  isQna?: boolean
+  answerPreview?: string
+  answerCount?: number
+  searchTags?: string[]
+  drinkType?: string
+  categories?: string[]
+  detailCategories?: string[]
+  features?: Array<"부드러운" | "무거운" | "가벼운" | "톡쏘는" | "오크향" | "과일향">
+  foods?: string[]
+}
+
+type FollowUser = {
+  id: number
+  name: string
+  profile: string
+  bio: string
+}
+
+type PopupChipGroup = {
+  title: string
+  chips: string[]
+}
+
+const COMMUNITY_SEARCH_RECENT_KEY = "community_search_recent_terms"
+const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
+const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
+const MAX_RECENT_TERMS = 10
+
+const pairingReviewGrades = ["뉴비 맛잘알", "찐조합러", "미식 탐험가", "페어링 고수", "조합 장인"] as const
+
+const userGradesByAuthorId: Record<
+  number,
+  { alcoholReviewTier: GradeTier; pairingReviewTier: GradeTier }
+> = {
+  2001: { alcoholReviewTier: 3, pairingReviewTier: 2 },
+  2002: { alcoholReviewTier: 2, pairingReviewTier: 3 },
+  2003: { alcoholReviewTier: 4, pairingReviewTier: 4 },
+  2004: { alcoholReviewTier: 1, pairingReviewTier: 2 },
+  2019: { alcoholReviewTier: 3, pairingReviewTier: 3 },
+  2025: { alcoholReviewTier: 2, pairingReviewTier: 2 },
+  2101: { alcoholReviewTier: 2, pairingReviewTier: 1 },
+  2102: { alcoholReviewTier: 1, pairingReviewTier: 2 },
+  2103: { alcoholReviewTier: 1, pairingReviewTier: 2 },
+  2104: { alcoholReviewTier: 3, pairingReviewTier: 3 },
+}
+
+const rankingPeriods: Array<{ key: RankingPeriod; label: string }> = [
+  { key: "weekly", label: "주간" },
+  { key: "daily", label: "일간" },
+  { key: "monthly", label: "월간" },
+  { key: "all", label: "전체" },
+]
+
+const rankingCategories: Array<{ key: RankingCategory; label: string }> = [
+  { key: "all", label: "전체" },
+  { key: "soju", label: "소주" },
+  { key: "wine", label: "와인" },
+  { key: "beer", label: "맥주" },
+  { key: "whisky_spirit", label: "위스키/증류주" },
+  { key: "tradition", label: "전통주" },
+  { key: "sake", label: "사케" },
+  { key: "etc", label: "기타" },
+]
+
+const feedFilterItems: Array<{ key: FeedFilter; label: string }> = [
+  { key: "review", label: "후기" },
+  { key: "free", label: "자유" },
+  { key: "popular", label: "인기" },
+  { key: "follow", label: "팔로우" },
+]
+
+const bookmarkLists = [
+  { id: "default", label: "기본 북마크" },
+  { id: "wine", label: "와인 페어링" },
+  { id: "whisky", label: "위스키 페어링" },
+] as const
+
+const popupCategoryByDrinkType: Record<string, string[]> = {
+  소주: ["증류주"],
+  맥주: ["라거/필스너", "IPA", "크래프트"],
+  와인: ["레드", "화이트", "스파클링"],
+  위스키: ["증류주"],
+  전통주: ["막걸리"],
+  사케: ["사케준마이"],
+  기타: ["하이볼", "칵테일", "논알콜"],
+}
+
+const popupDetailByCategory: Record<string, string[]> = {
+  "라거/필스너": ["클래식", "드라이"],
+  IPA: ["웨스트코스트", "뉴잉글랜드"],
+  크래프트: ["세션", "임페리얼"],
+  레드: ["오크숙성", "프루티"],
+  화이트: ["시트러스", "트로피컬"],
+  스파클링: ["브뤼", "스위트"],
+  증류주: ["싱글몰트", "블렌디드", "버번"],
+  하이볼: ["소주토닉", "버번", "블렌디드"],
+  막걸리: ["비살균", "살균"],
+  사케준마이: ["준마이", "긴죠"],
+  칵테일: ["시트러스", "트로피컬"],
+  논알콜: ["제로", "로우알콜"],
+}
+
+const popupFeaturesByDetail: Record<string, Array<"부드러운" | "무거운" | "가벼운" | "톡쏘는" | "오크향" | "과일향">> =
+  {
+    클래식: ["가벼운", "톡쏘는"],
+    드라이: ["가벼운"],
+    웨스트코스트: ["톡쏘는", "무거운"],
+    뉴잉글랜드: ["부드러운", "과일향"],
+    세션: ["가벼운", "톡쏘는"],
+    임페리얼: ["무거운"],
+    소주토닉: ["가벼운", "톡쏘는", "과일향"],
+    오크숙성: ["무거운", "오크향"],
+    프루티: ["가벼운", "과일향"],
+    시트러스: ["톡쏘는", "과일향"],
+    트로피컬: ["과일향", "가벼운"],
+    브뤼: ["톡쏘는", "가벼운"],
+    스위트: ["부드러운", "과일향"],
+    싱글몰트: ["무거운", "오크향", "부드러운"],
+    블렌디드: ["부드러운", "무거운"],
+    버번: ["부드러운", "오크향", "무거운"],
+    비살균: ["부드러운", "가벼운"],
+    살균: ["가벼운"],
+    준마이: ["부드러운", "가벼운"],
+    긴죠: ["과일향", "가벼운"],
+    제로: ["가벼운", "톡쏘는"],
+    로우알콜: ["가벼운"],
+  }
+
+const podiumVotesById: Record<number, number> = {
+  101: 8122,
+  102: 8494,
+  103: 8494,
+}
+
+const normalizeTopTab = (value: string | null): TopTab | null => {
+  if (value === "ranking" || value === "feed") {
+    return value
+  }
+  return null
+}
+
+const normalizeRankingPeriod = (value: string | null): RankingPeriod | null => {
+  if (value === "weekly" || value === "daily" || value === "monthly" || value === "all") {
+    return value
+  }
+  return null
+}
+
+const normalizeRankingCategory = (value: string | null): RankingCategory | null => {
+  if (
+    value === "all" ||
+    value === "soju" ||
+    value === "wine" ||
+    value === "beer" ||
+    value === "whisky_spirit" ||
+    value === "tradition" ||
+    value === "sake" ||
+    value === "etc"
+  ) {
+    return value
+  }
+  return null
+}
+
+const extractPairingTitle = (title: string) => {
+  const match = title.match(/([^\n+]{2,}?)\s*\+\s*([^\n+]{2,}?)(?=[,.\n]|$)/)
+  if (!match) {
+    return title
+  }
+  const left = match[1].trim()
+  const right = match[2].trim()
+  return `${left} + ${right}`
+}
+
+const getPodiumVotes = (podium: RankingPodium) => {
+  const explicitVotes = podium.votes ?? podiumVotesById[podium.id]
+  if (typeof explicitVotes === "number" && Number.isFinite(explicitVotes)) {
+    return Math.max(0, Math.round(explicitVotes))
+  }
+
+  const base = 5200
+  const noise = (podium.id * 37 + podium.rank * 191) % 3600
+  return base + noise
+}
+
+const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim()
+
+const includesNormalized = (value: string, query: string) => {
+  const normalizedValue = normalizeSearchText(value)
+  const normalizedQuery = normalizeSearchText(query)
+  if (!normalizedQuery) {
+    return true
+  }
+  return normalizedValue.includes(normalizedQuery)
+}
+
+const createRankingFeatureTags = (category: RankingCategory, pairing: string) => {
+  const tags: string[] = []
+  const normalized = normalizeSearchText(pairing)
+
+  if (category === "beer") {
+    tags.push("가벼운", "톡쏘는")
+  } else if (category === "soju") {
+    tags.push("가벼운", "톡쏘는")
+  } else if (category === "wine") {
+    tags.push("무거운", "과일향")
+    if (normalized.includes("스테이크") || normalized.includes("치즈")) {
+      tags.push("오크향")
+    }
+  } else if (category === "whisky_spirit") {
+    tags.push("무거운", "오크향", "부드러운")
+  } else if (category === "tradition") {
+    tags.push("부드러운", "가벼운")
+  } else if (category === "sake") {
+    tags.push("부드러운", "가벼운")
+  } else {
+    tags.push("과일향", "톡쏘는")
+  }
+
+  return tags
+}
+
+function useStoredNumberSet(key: string, defaultIds: readonly number[]) {
+  const [value, setValue] = useState<Set<number>>(() => {
+    try {
+      const raw = window.localStorage.getItem(key)
+      if (!raw) {
+        return new Set(defaultIds)
+      }
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) {
+        return new Set(defaultIds)
+      }
+      const ids = parsed.filter((item): item is number => typeof item === "number" && Number.isFinite(item))
+      return new Set(ids)
+    } catch {
+      return new Set(defaultIds)
+    }
+  })
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(key)
+      if (!raw) {
+        window.localStorage.setItem(key, JSON.stringify(Array.from(value)))
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [key, value])
+
+  const toggle = (id: number) => {
+    setValue((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      try {
+        window.localStorage.setItem(key, JSON.stringify(Array.from(next)))
+      } catch {
+        // ignore storage errors
+      }
+      return next
+    })
+  }
+
+  return { value, setValue, toggle }
+}
+
+function useStoredBooleanRecordFromIds(key: string) {
+  const [value, setValue] = useState<Record<number, boolean>>(() => {
+    try {
+      const raw = window.localStorage.getItem(key)
+      if (!raw) {
+        return {}
+      }
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) {
+        return {}
+      }
+      const record: Record<number, boolean> = {}
+      for (const item of parsed) {
+        if (typeof item === "number" && Number.isFinite(item)) {
+          record[item] = true
+        }
+      }
+      return record
+    } catch {
+      return {}
+    }
+  })
+
+  const toggle = (id: number) => {
+    setValue((prev) => {
+      const next = { ...prev, [id]: !prev[id] }
+      try {
+        const ids = Object.entries(next)
+          .filter(([, liked]) => liked)
+          .map(([entryKey]) => Number(entryKey))
+          .filter((num) => Number.isFinite(num))
+        window.localStorage.setItem(key, JSON.stringify(ids))
+      } catch {
+        // ignore storage errors
+      }
+      return next
+    })
+  }
+
+  return { value, setValue, toggle }
+}
+
+function useStoredStringArray(key: string, maxLength: number) {
+  const [value, setValue] = useState<string[]>(() => {
+    try {
+      const raw = window.localStorage.getItem(key)
+      if (!raw) {
+        return []
+      }
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) {
+        return []
+      }
+      return parsed.filter((term): term is string => typeof term === "string" && term.trim().length > 0)
+    } catch {
+      return []
+    }
+  })
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value.slice(0, maxLength)))
+    } catch {
+      // ignore storage errors
+    }
+  }, [key, maxLength, value])
+
+  return { value, setValue }
+}
+
+const rankingDataByPeriod: Record<
+  RankingPeriod,
+  { podiumByCategory: Record<RankingCategory, RankingPodium[]>; rows: RankingRow[] }
+> = {
+  weekly: {
+    podiumByCategory: {
+      all: [
+        { id: 101, rank: 1, pair: "진로 이즈백 + 삼겹살", category: "soju", score: 4.7, votes: 8122 },
+        { id: 102, rank: 2, pair: "막걸리 + 해물파전", category: "tradition", score: 4.7, votes: 8494 },
+        { id: 103, rank: 3, pair: "레드 와인 + 스테이크", category: "wine", score: 4.8, votes: 8494, thumbVariant: "bottle" },
+      ],
+      soju: [
+        { id: 111, rank: 1, pair: "진로 이즈백 + 삼겹살", category: "soju", score: 4.7, votes: 8122 },
+        { id: 112, rank: 2, pair: "참이슬 + 제육볶음", category: "soju", score: 4.6, votes: 6438 },
+        { id: 113, rank: 3, pair: "처음처럼 + 곱창", category: "soju", score: 4.5, votes: 5981 },
+      ],
+      wine: [
+        { id: 121, rank: 1, pair: "레드 와인 + 스테이크", category: "wine", score: 4.8, votes: 8494, thumbVariant: "bottle" },
+        { id: 122, rank: 2, pair: "샴페인 + 굴", category: "wine", score: 91.3, votes: 4218, thumbVariant: "bottle" },
+        { id: 123, rank: 3, pair: "화이트 와인 + 치즈", category: "wine", score: 4.7, votes: 4021, thumbVariant: "bottle" },
+      ],
+      beer: [
+        { id: 131, rank: 1, pair: "카스 맥주 + 치킨", category: "beer", score: 4.7, votes: 7621 },
+        { id: 132, rank: 2, pair: "테라 맥주 + 떡볶이", category: "beer", score: 4.6, votes: 3891 },
+        { id: 133, rank: 3, pair: "IPA + 버거", category: "beer", score: 4.5, votes: 3422 },
+      ],
+      whisky_spirit: [
+        { id: 141, rank: 1, pair: "발렌타인 + 다크초콜릿", category: "whisky_spirit", score: 4.6, votes: 3214 },
+        { id: 142, rank: 2, pair: "하이볼 + 나초", category: "whisky_spirit", score: 4.5, votes: 2981 },
+        { id: 143, rank: 3, pair: "진 + 토닉 + 올리브", category: "whisky_spirit", score: 4.4, votes: 2650 },
+      ],
+      tradition: [
+        { id: 151, rank: 1, pair: "막걸리 + 해물파전", category: "tradition", score: 4.7, votes: 8494 },
+        { id: 152, rank: 2, pair: "화요 25 + 회무침", category: "tradition", score: 4.7, votes: 5432 },
+        { id: 153, rank: 3, pair: "청주 + 모둠전", category: "tradition", score: 4.6, votes: 4108 },
+      ],
+      sake: [
+        { id: 161, rank: 1, pair: "사케 + 사시미", category: "sake", score: 4.6, votes: 3328 },
+        { id: 162, rank: 2, pair: "사케 + 가라아게", category: "sake", score: 4.5, votes: 2890 },
+        { id: 163, rank: 3, pair: "사케 + 오뎅", category: "sake", score: 4.4, votes: 2542 },
+      ],
+      etc: [
+        { id: 171, rank: 1, pair: "칵테일 + 타코", category: "etc", score: 4.6, votes: 3011 },
+        { id: 172, rank: 2, pair: "하드셀처 + 나초", category: "etc", score: 4.5, votes: 2740 },
+        { id: 173, rank: 3, pair: "무알콜 칵테일 + 샐러드", category: "etc", score: 4.4, votes: 2405 },
+      ],
+    },
+    rows: [
+      { id: 104, rank: 4, pair: "카스 맥주 + 치킨", category: "beer", score: 4.7, votes: 7621, delta: "-1" },
+      { id: 105, rank: 5, pair: "화요 25 + 회무침", category: "tradition", score: 4.7, votes: 5432, delta: "+5" },
+      { id: 106, rank: 6, pair: "샴페인 + 굴", category: "wine", score: 91.3, votes: 4218, delta: "+2" },
+      { id: 107, rank: 7, pair: "테라 맥주 + 떡볶이", category: "beer", score: 4.6, votes: 3891, delta: "-2" },
+      { id: 108, rank: 8, pair: "발렌타인 + 다크초콜릿", category: "whisky_spirit", score: 4.6, votes: 3214, delta: "–" },
+      { id: 109, rank: 9, pair: "사케 + 사시미", category: "sake", score: 4.6, votes: 3328, delta: "+1" },
+      { id: 110, rank: 10, pair: "진로 이즈백 + 삼겹살", category: "soju", score: 4.7, votes: 8122, delta: "+3" },
+    ],
+  },
+  daily: {
+    podiumByCategory: {
+      all: [
+        { id: 201, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 98.9 },
+        { id: 202, rank: 2, pair: "라거 맥주 + 감자튀김", category: "beer", score: 97.4 },
+        { id: 203, rank: 3, pair: "화이트 와인 + 치즈", category: "wine", score: 96.2, thumbVariant: "bottle" },
+      ],
+      soju: [
+        { id: 211, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 98.9 },
+        { id: 212, rank: 2, pair: "소주 + 곱창", category: "soju", score: 97.3 },
+        { id: 213, rank: 3, pair: "소주 + 제육볶음", category: "soju", score: 96.0 },
+      ],
+      wine: [
+        { id: 221, rank: 1, pair: "화이트 와인 + 치즈", category: "wine", score: 97.2, thumbVariant: "bottle" },
+        { id: 222, rank: 2, pair: "레드 와인 + 파스타", category: "wine", score: 96.6, thumbVariant: "bottle" },
+        { id: 223, rank: 3, pair: "샴페인 + 굴", category: "wine", score: 95.9, thumbVariant: "bottle" },
+      ],
+      beer: [
+        { id: 231, rank: 1, pair: "라거 맥주 + 감자튀김", category: "beer", score: 97.4 },
+        { id: 232, rank: 2, pair: "IPA + 버거", category: "beer", score: 96.5 },
+        { id: 233, rank: 3, pair: "밀맥주 + 피자", category: "beer", score: 95.6 },
+      ],
+      whisky_spirit: [
+        { id: 241, rank: 1, pair: "위스키 + 견과류", category: "whisky_spirit", score: 97.0 },
+        { id: 242, rank: 2, pair: "하이볼 + 나초", category: "whisky_spirit", score: 96.1 },
+        { id: 243, rank: 3, pair: "진 + 토닉 + 올리브", category: "whisky_spirit", score: 95.3 },
+      ],
+      tradition: [
+        { id: 251, rank: 1, pair: "막걸리 + 파전", category: "tradition", score: 96.8 },
+        { id: 252, rank: 2, pair: "청주 + 생선구이", category: "tradition", score: 95.9 },
+        { id: 253, rank: 3, pair: "약주 + 수육", category: "tradition", score: 95.0 },
+      ],
+      sake: [
+        { id: 261, rank: 1, pair: "사케 + 사시미", category: "sake", score: 96.7 },
+        { id: 262, rank: 2, pair: "사케 + 오뎅", category: "sake", score: 95.8 },
+        { id: 263, rank: 3, pair: "사케 + 스시", category: "sake", score: 95.1 },
+      ],
+      etc: [
+        { id: 271, rank: 1, pair: "칵테일 + 타코", category: "etc", score: 96.2 },
+        { id: 272, rank: 2, pair: "하드셀처 + 나초", category: "etc", score: 95.7 },
+        { id: 273, rank: 3, pair: "무알콜 칵테일 + 샐러드", category: "etc", score: 95.0 },
+      ],
+    },
+    rows: [
+      { id: 204, rank: 4, pair: "막걸리 + 파전", category: "tradition", score: 95.3, votes: 2210, delta: "+1" },
+      { id: 205, rank: 5, pair: "위스키 + 견과류", category: "whisky_spirit", score: 94.0, votes: 1982, delta: "-2" },
+      { id: 206, rank: 6, pair: "IPA + 버거", category: "beer", score: 93.2, votes: 1751, delta: "+4" },
+      { id: 207, rank: 7, pair: "소주 + 제육볶음", category: "soju", score: 92.1, votes: 1620, delta: "+2" },
+      { id: 208, rank: 8, pair: "레드 와인 + 파스타", category: "wine", score: 91.7, votes: 1496, delta: "-1" },
+      { id: 209, rank: 9, pair: "사케 + 오뎅", category: "sake", score: 90.9, votes: 1322, delta: "+6" },
+      { id: 210, rank: 10, pair: "칵테일 + 타코", category: "etc", score: 90.1, votes: 1210, delta: "-3" },
+    ],
+  },
+  monthly: {
+    podiumByCategory: {
+      all: [
+        { id: 301, rank: 1, pair: "레드 와인 + 스테이크", category: "wine", score: 99.1, thumbVariant: "bottle" },
+        { id: 302, rank: 2, pair: "소주 + 삼겹살", category: "soju", score: 98.3 },
+        { id: 303, rank: 3, pair: "막걸리 + 해물파전", category: "tradition", score: 97.7 },
+      ],
+      soju: [
+        { id: 311, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 98.5 },
+        { id: 312, rank: 2, pair: "소주 + 닭볶음탕", category: "soju", score: 97.2 },
+        { id: 313, rank: 3, pair: "소주 + 회", category: "soju", score: 96.8 },
+      ],
+      wine: [
+        { id: 321, rank: 1, pair: "레드 와인 + 스테이크", category: "wine", score: 99.1, thumbVariant: "bottle" },
+        { id: 322, rank: 2, pair: "화이트 와인 + 회", category: "wine", score: 98.2, thumbVariant: "bottle" },
+        { id: 323, rank: 3, pair: "로제 와인 + 샐러드", category: "wine", score: 97.4, thumbVariant: "bottle" },
+      ],
+      beer: [
+        { id: 331, rank: 1, pair: "IPA + 피자", category: "beer", score: 97.9 },
+        { id: 332, rank: 2, pair: "라거 맥주 + 치킨", category: "beer", score: 97.1 },
+        { id: 333, rank: 3, pair: "스타우트 + 디저트", category: "beer", score: 96.2 },
+      ],
+      whisky_spirit: [
+        { id: 341, rank: 1, pair: "버번 위스키 + 바비큐", category: "whisky_spirit", score: 98.0 },
+        { id: 342, rank: 2, pair: "위스키 + 다크초콜릿", category: "whisky_spirit", score: 97.1 },
+        { id: 343, rank: 3, pair: "진 + 토닉 + 올리브", category: "whisky_spirit", score: 96.5 },
+      ],
+      tradition: [
+        { id: 351, rank: 1, pair: "막걸리 + 해물파전", category: "tradition", score: 97.7 },
+        { id: 352, rank: 2, pair: "청주 + 생선구이", category: "tradition", score: 96.8 },
+        { id: 353, rank: 3, pair: "약주 + 수육", category: "tradition", score: 95.9 },
+      ],
+      sake: [
+        { id: 361, rank: 1, pair: "사케 + 스시", category: "sake", score: 97.2 },
+        { id: 362, rank: 2, pair: "사케 + 사시미", category: "sake", score: 96.6 },
+        { id: 363, rank: 3, pair: "사케 + 가라아게", category: "sake", score: 95.8 },
+      ],
+      etc: [
+        { id: 371, rank: 1, pair: "샴페인 + 굴", category: "etc", score: 97.0, thumbVariant: "bottle" },
+        { id: 372, rank: 2, pair: "칵테일 + 타코", category: "etc", score: 96.2 },
+        { id: 373, rank: 3, pair: "무알콜 칵테일 + 샐러드", category: "etc", score: 95.6 },
+      ],
+    },
+    rows: [
+      { id: 304, rank: 4, pair: "화이트 와인 + 회", category: "wine", score: 95.7, votes: 12480, delta: "+3" },
+      { id: 305, rank: 5, pair: "소주 + 닭볶음탕", category: "soju", score: 95.0, votes: 11302, delta: "-1" },
+      { id: 306, rank: 6, pair: "IPA + 피자", category: "beer", score: 94.2, votes: 9820, delta: "+2" },
+      { id: 307, rank: 7, pair: "청주 + 생선구이", category: "tradition", score: 93.8, votes: 9041, delta: "+1" },
+      { id: 308, rank: 8, pair: "버번 위스키 + 바비큐", category: "whisky_spirit", score: 93.0, votes: 8710, delta: "-2" },
+      { id: 309, rank: 9, pair: "사케 + 스시", category: "sake", score: 92.6, votes: 8444, delta: "+4" },
+      { id: 310, rank: 10, pair: "칵테일 + 타코", category: "etc", score: 92.1, votes: 8111, delta: "-3" },
+    ],
+  },
+  all: {
+    podiumByCategory: {
+      all: [
+        { id: 401, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 99.4 },
+        { id: 402, rank: 2, pair: "막걸리 + 해물파전", category: "tradition", score: 99.1 },
+        { id: 403, rank: 3, pair: "레드 와인 + 스테이크", category: "wine", score: 98.8, thumbVariant: "bottle" },
+      ],
+      soju: [
+        { id: 411, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 99.4 },
+        { id: 412, rank: 2, pair: "소주 + 회", category: "soju", score: 98.7 },
+        { id: 413, rank: 3, pair: "소주 + 곱창", category: "soju", score: 98.2 },
+      ],
+      wine: [
+        { id: 421, rank: 1, pair: "레드 와인 + 스테이크", category: "wine", score: 98.8, thumbVariant: "bottle" },
+        { id: 422, rank: 2, pair: "화이트 와인 + 치즈", category: "wine", score: 98.1, thumbVariant: "bottle" },
+        { id: 423, rank: 3, pair: "샴페인 + 굴", category: "wine", score: 97.8, thumbVariant: "bottle" },
+      ],
+      beer: [
+        { id: 431, rank: 1, pair: "라거 맥주 + 치킨", category: "beer", score: 98.1 },
+        { id: 432, rank: 2, pair: "IPA + 버거", category: "beer", score: 97.6 },
+        { id: 433, rank: 3, pair: "흑맥주 + 피자", category: "beer", score: 97.0 },
+      ],
+      whisky_spirit: [
+        { id: 441, rank: 1, pair: "위스키 + 다크초콜릿", category: "whisky_spirit", score: 98.3 },
+        { id: 442, rank: 2, pair: "버번 위스키 + 바비큐", category: "whisky_spirit", score: 97.9 },
+        { id: 443, rank: 3, pair: "하이볼 + 나초", category: "whisky_spirit", score: 97.4 },
+      ],
+      tradition: [
+        { id: 451, rank: 1, pair: "막걸리 + 해물파전", category: "tradition", score: 99.1 },
+        { id: 452, rank: 2, pair: "청주 + 모둠전", category: "tradition", score: 98.5 },
+        { id: 453, rank: 3, pair: "약주 + 수육", category: "tradition", score: 97.9 },
+      ],
+      sake: [
+        { id: 461, rank: 1, pair: "사케 + 사시미", category: "sake", score: 97.6 },
+        { id: 462, rank: 2, pair: "사케 + 스시", category: "sake", score: 97.1 },
+        { id: 463, rank: 3, pair: "사케 + 가라아게", category: "sake", score: 96.7 },
+      ],
+      etc: [
+        { id: 471, rank: 1, pair: "칵테일 + 타코", category: "etc", score: 97.3 },
+        { id: 472, rank: 2, pair: "하드셀처 + 나초", category: "etc", score: 96.9 },
+        { id: 473, rank: 3, pair: "무알콜 칵테일 + 샐러드", category: "etc", score: 96.5 },
+      ],
+    },
+    rows: [
+      { id: 404, rank: 4, pair: "위스키 + 다크초콜릿", category: "whisky_spirit", score: 98.1, votes: 62510, delta: "+2" },
+      { id: 405, rank: 5, pair: "IPA + 버거", category: "beer", score: 97.6, votes: 58922, delta: "+1" },
+      { id: 406, rank: 6, pair: "화이트 와인 + 치즈", category: "wine", score: 97.0, votes: 55201, delta: "-2" },
+      { id: 407, rank: 7, pair: "소주 + 회", category: "soju", score: 96.5, votes: 52418, delta: "+3" },
+      { id: 408, rank: 8, pair: "청주 + 모둠전", category: "tradition", score: 95.9, votes: 50110, delta: "-1" },
+      { id: 409, rank: 9, pair: "사케 + 사시미", category: "sake", score: 95.4, votes: 48102, delta: "+5" },
+      { id: 410, rank: 10, pair: "칵테일 + 타코", category: "etc", score: 94.8, votes: 46339, delta: "-4" },
+    ],
+  },
+}
+
+const feedPosts: FeedPost[] = [
+  {
+    id: 1001,
+    authorId: 2003,
+    authorName: "서연",
+    title: "하이볼 + 삼겹살",
+    body: "집에서 해먹을 때는 기름기 있는 부위일수록 도수/탄산 선택이 달라지더라고요. 저만의 기준 공유합니다.",
+    createdAt: "2026-05-01T09:12:00+09:00",
+    likeCount: 320,
+    commentCount: 28,
+    popularityScore: 402,
+    profile: "30대 / 서울 / 소주 · 맥주 선호",
+    searchTags: ["기타", "하이볼", "소주토닉", "삼겹살", "가벼운", "톡쏘는", "과일향"],
+    drinkType: "기타",
+    categories: ["하이볼"],
+    detailCategories: ["소주토닉"],
+    features: ["가벼운", "톡쏘는", "과일향"],
+    foods: ["삼겹살"],
+  },
+  {
+    id: 1002,
+    authorId: 2001,
+    authorName: "민지",
+    title: "막걸리 + 해물파전",
+    body: "바삭한 전이랑 산미 있는 막걸리 조합이 너무 좋아요. 추천 막걸리 있으면 알려주세요.",
+    createdAt: "2026-04-30T21:40:00+09:00",
+    likeCount: 188,
+    commentCount: 19,
+    popularityScore: 260,
+    profile: "20대 / 부산 / 전통주 입문",
+    searchTags: ["전통주", "막걸리", "해물파전", "부드러운", "가벼운"],
+    drinkType: "전통주",
+    categories: ["막걸리"],
+    detailCategories: ["비살균"],
+    features: ["부드러운", "가벼운"],
+    foods: ["해물파전"],
+  },
+  {
+    id: 1003,
+    authorId: 2003,
+    authorName: "서연",
+    title: "첫 위스키 입문 후기 공유해요",
+    body: "처음은 버번 하이볼로 시작했는데 생각보다 부담 없고 달달해서 좋았어요. 다음은 스카치도 도전해보려구요.",
+    createdAt: "2026-05-01T01:10:00+09:00",
+    likeCount: 96,
+    commentCount: 34,
+    popularityScore: 330,
+    profile: "30대 / 경기 / 위스키 관심",
+    isQna: true,
+    searchTags: ["위스키", "하이볼", "버번", "부드러운", "무거운", "오크향"],
+    drinkType: "위스키",
+    categories: ["하이볼"],
+    detailCategories: ["버번"],
+    features: ["부드러운", "무거운", "오크향"],
+    foods: ["치즈"],
+  },
+  {
+    id: 1004,
+    authorId: 2004,
+    authorName: "지훈",
+    title: "사케에 잘 맞는 집안주 몇 개 추천",
+    body: "사시미 없을 때는 가라아게/오뎅/명란구이 조합이 제일 무난했어요. 차갑게 마시면 기름기도 잘 잡히더라구요.",
+    createdAt: "2026-04-29T18:05:00+09:00",
+    likeCount: 84,
+    commentCount: 21,
+    popularityScore: 210,
+    profile: "20대 / 인천 / 사케 입문",
+    isQna: true,
+    searchTags: ["사케", "사케준마이", "가라아게", "부드러운", "가벼운", "오뎅", "명란구이"],
+    drinkType: "사케",
+    categories: ["사케준마이"],
+    detailCategories: ["준마이"],
+    features: ["부드러운", "가벼운"],
+    foods: ["가라아게", "오뎅", "명란구이"],
+  },
+  {
+    id: 1005,
+    authorId: 2001,
+    authorName: "민지",
+    title: "레드 와인 + 스테이크",
+    body: "레어로 구웠을 때 탄닌이 기름을 잡아주는 느낌이 확실히 있어요. 소스는 과하지 않게!",
+    createdAt: "2026-04-28T22:15:00+09:00",
+    likeCount: 540,
+    commentCount: 63,
+    popularityScore: 720,
+    profile: "30대 / 서울 / 와인 선호",
+    searchTags: ["와인", "레드", "스테이크", "오크숙성", "무거운", "오크향"],
+    drinkType: "와인",
+    categories: ["레드"],
+    detailCategories: ["오크숙성"],
+    features: ["무거운", "오크향"],
+    foods: ["스테이크"],
+  },
+  {
+    id: 1006,
+    authorId: 2002,
+    authorName: "현우",
+    title: "IPA + 햄버거",
+    body: "홉의 씁쓸함이 느끼함을 잡아주고 향이 치즈랑 잘 맞아요. 추천 IPA도 남겨요.",
+    createdAt: "2026-04-27T20:33:00+09:00",
+    likeCount: 410,
+    commentCount: 40,
+    popularityScore: 590,
+    profile: "20대 / 대전 / 맥주 러버",
+    searchTags: ["맥주", "IPA", "크래프트", "뉴잉글랜드", "부드러운", "과일향", "햄버거", "치즈"],
+    drinkType: "맥주",
+    categories: ["IPA", "크래프트"],
+    detailCategories: ["뉴잉글랜드"],
+    features: ["부드러운", "과일향"],
+    foods: ["햄버거", "치즈"],
+  },
+  {
+    id: 1007,
+    authorId: 2101,
+    authorName: "유나",
+    title: "소주 + 족발",
+    body: "족발은 기름질 것 같지만 새우젓/마늘이랑 같이 먹으면 소주가 느끼함을 잘 잡아줘요.",
+    createdAt: "2026-05-01T08:02:00+09:00",
+    likeCount: 66,
+    commentCount: 11,
+    popularityScore: 120,
+    profile: "20대 / 서울 / 소주 · 전통주",
+    searchTags: ["소주", "증류주", "족발", "부드러운", "무거운"],
+    drinkType: "소주",
+    categories: ["증류주"],
+    detailCategories: ["블렌디드"],
+    features: ["부드러운", "무거운"],
+    foods: ["족발"],
+  },
+  {
+    id: 1008,
+    authorId: 2104,
+    authorName: "수빈",
+    title: "회 먹을 때는 전 사케파예요",
+    body: "간장/와사비가 강한 날엔 사케가 감칠맛이랑 잘 맞고, 산뜻하게 먹고 싶으면 화이트 와인도 좋아요. 저는 보통 사케로 갑니다.",
+    createdAt: "2026-04-30T23:55:00+09:00",
+    likeCount: 51,
+    commentCount: 17,
+    popularityScore: 160,
+    profile: "30대 / 제주 / 와인 · 사케",
+    isQna: true,
+    searchTags: ["사케", "사케준마이", "회", "부드러운", "가벼운"],
+    drinkType: "사케",
+    categories: ["사케준마이"],
+    detailCategories: ["긴죠"],
+    features: ["과일향", "가벼운"],
+    foods: ["회"],
+  },
+  {
+    id: 1009,
+    authorId: 2102,
+    authorName: "도윤",
+    title: "칵테일 + 타코",
+    body: "라임/시트러스 계열이 타코의 향신료랑 잘 붙는 느낌. 데킬라 베이스 추천!",
+    createdAt: "2026-04-30T12:20:00+09:00",
+    likeCount: 140,
+    commentCount: 22,
+    popularityScore: 310,
+    profile: "30대 / 대구 / 위스키 · 칵테일",
+    searchTags: ["기타", "칵테일", "시트러스", "톡쏘는", "과일향", "타코"],
+    drinkType: "기타",
+    categories: ["칵테일"],
+    detailCategories: ["시트러스"],
+    features: ["톡쏘는", "과일향"],
+    foods: ["타코"],
+  },
+  {
+    id: 1010,
+    authorId: 2103,
+    authorName: "지민",
+    title: "라거 + 감자튀김",
+    body: "짭짤함이랑 탄산/청량감 조합은 실패가 없네요. 소금 대신 시즈닝 바꿔도 좋고요.",
+    createdAt: "2026-04-29T20:10:00+09:00",
+    likeCount: 92,
+    commentCount: 9,
+    popularityScore: 180,
+    profile: "20대 / 광주 / 맥주 · 페어링",
+    searchTags: ["맥주", "라거/필스너", "드라이", "가벼운", "감자튀김"],
+    drinkType: "맥주",
+    categories: ["라거/필스너"],
+    detailCategories: ["드라이"],
+    features: ["가벼운"],
+    foods: ["감자튀김"],
+  },
+  {
+    id: 1011,
+    authorId: 2019,
+    authorName: "연훈",
+    title: "버번 + 다크초콜릿",
+    body: "달달한 버번이랑 쌉싸름한 다크초콜릿 같이 먹으니까 밸런스가 딱이었어요. 늦은 밤에 한 잔 하기 좋네요.",
+    createdAt: "2026-05-01T01:10:00+09:00",
+    likeCount: 97,
+    commentCount: 34,
+    popularityScore: 330,
+    profile: "30대 / 경기 / 위스키 관심",
+    isQna: true,
+    searchTags: ["위스키", "증류주", "싱글몰트", "무거운", "오크향", "부드러운", "다크초콜릿"],
+    drinkType: "위스키",
+    categories: ["증류주"],
+    detailCategories: ["싱글몰트"],
+    features: ["무거운", "오크향", "부드러운"],
+    foods: ["다크초콜릿"],
+  },
+  {
+    id: 1012,
+    authorId: 2025,
+    authorName: "수연",
+    title: "주말 홈파티 페어링 기록",
+    body: "라거 + 치킨은 역시 실패가 없고, 막걸리 + 해물파전도 반응이 좋았어요. 다음엔 와인 쪽도 준비해보려구요.",
+    createdAt: "2026-05-01T01:10:00+09:00",
+    likeCount: 98,
+    commentCount: 34,
+    popularityScore: 330,
+    profile: "30대 / 경기 / 위스키 관심",
+    isQna: true,
+    searchTags: ["맥주", "라거/필스너", "치킨", "가벼운", "톡쏘는", "전통주", "막걸리", "해물파전"],
+    drinkType: "맥주",
+    categories: ["라거/필스너"],
+    detailCategories: ["클래식"],
+    features: ["가벼운", "톡쏘는"],
+    foods: ["치킨", "해물파전"],
+  },
+]
+
+const followedUsersMock: FollowUser[] = [
+  { id: 2001, name: "민지", profile: "30대 / 서울 / 와인 선호", bio: "퇴근 후 와인 한 잔, 페어링 기록합니다." },
+  { id: 2002, name: "현우", profile: "20대 / 부산 / 맥주 러버", bio: "수제맥주, 안주 조합 찾는 중." },
+  { id: 2003, name: "서연", profile: "30대 / 경기 / 위스키 관심", bio: "하이볼 레시피랑 입문 위스키 정리해요." },
+  { id: 2004, name: "지훈", profile: "20대 / 인천 / 사케 입문", bio: "사케·일식 페어링 위주로 올립니다." },
+]
 
 
 
