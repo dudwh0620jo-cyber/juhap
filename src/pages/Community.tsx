@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router"
+import { useLocation, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
@@ -61,6 +61,7 @@ type FeedPost = {
   commentCount: number
   popularityScore: number
   profile?: string
+  locationLabel?: string
   isQna?: boolean
   answerPreview?: string
   answerCount?: number
@@ -89,7 +90,7 @@ const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
 const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
 const MAX_RECENT_TERMS = 10
 
-const pairingReviewGrades = ["뉴비 맛잘알", "찐조합러", "미식 탐험가", "페어링 고수", "조합 장인"] as const
+const pairingReviewGrades = ["테이스터", "셀렉터", "큐레이터", "소믈리에", "마스터"] as const
 
 const userGradesByAuthorId: Record<
   number,
@@ -193,13 +194,6 @@ const podiumVotesById: Record<number, number> = {
   101: 8122,
   102: 8494,
   103: 8494,
-}
-
-const normalizeTopTab = (value: string | null): TopTab | null => {
-  if (value === "ranking" || value === "feed") {
-    return value
-  }
-  return null
 }
 
 const normalizeRankingPeriod = (value: string | null): RankingPeriod | null => {
@@ -632,6 +626,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 28,
     popularityScore: 402,
     profile: "30대 / 서울 / 소주 · 맥주 선호",
+    locationLabel: "아늑한 내방",
     searchTags: ["기타", "하이볼", "소주토닉", "삼겹살", "가벼운", "톡쏘는", "과일향"],
     drinkType: "기타",
     categories: ["하이볼"],
@@ -650,6 +645,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 19,
     popularityScore: 260,
     profile: "20대 / 부산 / 전통주 입문",
+    locationLabel: "비 오는 베란다",
     searchTags: ["전통주", "막걸리", "해물파전", "부드러운", "가벼운"],
     drinkType: "전통주",
     categories: ["막걸리"],
@@ -668,6 +664,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 34,
     popularityScore: 330,
     profile: "30대 / 경기 / 위스키 관심",
+    locationLabel: "자주가는 바",
     isQna: true,
     searchTags: ["위스키", "하이볼", "버번", "부드러운", "무거운", "오크향"],
     drinkType: "위스키",
@@ -687,6 +684,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 21,
     popularityScore: 210,
     profile: "20대 / 인천 / 사케 입문",
+    locationLabel: "늦은 밤 식탁",
     isQna: true,
     searchTags: ["사케", "사케준마이", "가라아게", "부드러운", "가벼운", "오뎅", "명란구이"],
     drinkType: "사케",
@@ -706,6 +704,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 63,
     popularityScore: 720,
     profile: "30대 / 서울 / 와인 선호",
+    locationLabel: "아늑한 우리집",
     searchTags: ["와인", "레드", "스테이크", "오크숙성", "무거운", "오크향"],
     drinkType: "와인",
     categories: ["레드"],
@@ -724,6 +723,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 40,
     popularityScore: 590,
     profile: "20대 / 대전 / 맥주 러버",
+    locationLabel: "햇살 드는 거실",
     searchTags: ["맥주", "IPA", "크래프트", "뉴잉글랜드", "부드러운", "과일향", "햄버거", "치즈"],
     drinkType: "맥주",
     categories: ["IPA", "크래프트"],
@@ -742,6 +742,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 11,
     popularityScore: 120,
     profile: "20대 / 서울 / 소주 · 전통주",
+    locationLabel: "우리집 야식상",
     searchTags: ["소주", "증류주", "족발", "부드러운", "무거운"],
     drinkType: "소주",
     categories: ["증류주"],
@@ -760,6 +761,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 17,
     popularityScore: 160,
     profile: "30대 / 제주 / 와인 · 사케",
+    locationLabel: "작은 주방 테이블",
     isQna: true,
     searchTags: ["사케", "사케준마이", "회", "부드러운", "가벼운"],
     drinkType: "사케",
@@ -779,6 +781,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 22,
     popularityScore: 310,
     profile: "30대 / 대구 / 위스키 · 칵테일",
+    locationLabel: "친구들과 홈파티",
     searchTags: ["기타", "칵테일", "시트러스", "톡쏘는", "과일향", "타코"],
     drinkType: "기타",
     categories: ["칵테일"],
@@ -797,6 +800,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 9,
     popularityScore: 180,
     profile: "20대 / 광주 / 맥주 · 페어링",
+    locationLabel: "퇴근 후 소파 앞",
     searchTags: ["맥주", "라거/필스너", "드라이", "가벼운", "감자튀김"],
     drinkType: "맥주",
     categories: ["라거/필스너"],
@@ -815,6 +819,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 34,
     popularityScore: 330,
     profile: "30대 / 경기 / 위스키 관심",
+    locationLabel: "잔잔한 밤 방구석",
     isQna: true,
     searchTags: ["위스키", "증류주", "싱글몰트", "무거운", "오크향", "부드러운", "다크초콜릿"],
     drinkType: "위스키",
@@ -834,6 +839,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 34,
     popularityScore: 330,
     profile: "30대 / 경기 / 위스키 관심",
+    locationLabel: "주말 홈파티",
     isQna: true,
     searchTags: ["맥주", "라거/필스너", "치킨", "가벼운", "톡쏘는", "전통주", "막걸리", "해물파전"],
     drinkType: "맥주",
@@ -854,6 +860,7 @@ const followedUsersMock: FollowUser[] = [
 
 
 export default function Community() {
+  const location = useLocation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -886,9 +893,16 @@ export default function Community() {
     MAX_RECENT_TERMS,
   )
 
-  const topTab = normalizeTopTab(searchParams.get("top")) ?? "feed"
+  const isRankingRoute = location.pathname === "/community/ranking"
+  const topTab: TopTab = isRankingRoute ? "ranking" : "feed"
   const rankingPeriod = normalizeRankingPeriod(searchParams.get("period")) ?? "weekly"
   const rankingCategory = normalizeRankingCategory(searchParams.get("cat")) ?? "all"
+
+  const setQueryParam = (key: "period" | "cat", value: string) => {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set(key, value)
+    setSearchParams(nextParams, { replace: true })
+  }
 
   const _legacyPopupChipGroups: PopupChipGroup[] = [
     { title: "상황", chips: ["혼술", "데이트", "파티/모임", "홈파티", "기타"] },
@@ -1272,12 +1286,6 @@ export default function Community() {
   const isRankingNoResults = isCommunitySearchActive && filteredRankingRows.length === 0 && filteredRankingPodium.length === 0
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
 
-  const setQueryParam = (key: "top" | "period" | "cat", value: string) => {
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set(key, value)
-    setSearchParams(nextParams, { replace: true })
-  }
-
   useEffect(() => {
     const handleScroll = () => {
       if (topTab !== "feed" || (feedFilter !== "review" && feedFilter !== "free")) {
@@ -1366,7 +1374,7 @@ export default function Community() {
   const goToComments = (postId: number) => {
     const post = feedPosts.find((item) => item.id === postId)
     const pairingTitle = post?.title ? extractPairingTitle(post.title) : ""
-    const locationLabel = post?.profile?.split("/")?.[1]?.trim() ?? ""
+    const locationLabel = post?.locationLabel?.trim() ?? ""
     navigate(`/community/pairing/${postId}#comments`, {
       state: post
         ? {
@@ -1491,12 +1499,9 @@ export default function Community() {
         topTab={topTab}
         tabsAriaLabel="커뮤니티 탭"
         openFilterAriaLabel="검색 필터 열기"
-        tabs={[
-          { key: "ranking", label: "랭킹" },
-          { key: "feed", label: "피드" },
-        ]}
+        tabs={topTab === "ranking" ? [{ key: "ranking", label: "랭킹" }] : [{ key: "feed", label: "피드" }]}
         onOpenFilter={openFeedFilterPopup}
-        onSelectTab={(tab) => setQueryParam("top", tab)}
+        onSelectTab={() => {}}
       />
 
       {isFeedFilterPopupOpen ? (
@@ -1609,7 +1614,7 @@ export default function Community() {
           rows={filteredRankingRows}
         />
       ) : (
-        <section className="feed_page" aria-label="커뮤니티 피드">
+      <section className="feed_page" aria-label="커뮤니티 피드">
           <FeedSegmentTabs
             ariaLabel="피드 필터"
             items={feedFilterItems}
@@ -1682,7 +1687,7 @@ export default function Community() {
                   authorId: post.authorId,
                   authorName: post.authorName,
                   profile: post.profile ?? "",
-                  locationLabel: post.profile?.split("/")?.[1]?.trim() ?? "",
+                  locationLabel: post.locationLabel?.trim() ?? "",
                   drinkType: post.drinkType ?? "",
                   source: "feed",
                 }}
