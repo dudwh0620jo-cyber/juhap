@@ -56,8 +56,7 @@ function VoteCard({ title, percent, voted, isSelected, onVote }: VoteCardProps) 
 
 export default function VoteSection({ voteId, question, options }: VoteSectionProps) {
   const [selectedIndex, setSelectedIndex] = useState<0 | 1 | null>(() => {
-    const picks = getStoredPicks()
-    const val = picks[String(voteId)]
+    const val = getStoredPicks()[String(voteId)]
     return val !== undefined ? val : null
   })
 

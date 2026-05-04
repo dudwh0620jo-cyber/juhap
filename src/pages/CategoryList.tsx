@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react"
-import { useSearchParams } from "react-router"
+import { useNavigate, useSearchParams } from "react-router"
 import CategoryItemCard, { type CategoryListItem } from "../components/CategoryItemCard"
 import CategoryItemGroup from "../components/CategoryItemGroup"
 import CategoryListSearch from "../components/CategoryListSearch"
@@ -278,6 +278,7 @@ const createFallbackItems = (group: string, sub: string): CategoryListItem[] => 
 }
 
 export default function CategoryList() {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const group = searchParams.get("group") ?? ""
   const sub = searchParams.get("sub") ?? ""
@@ -383,7 +384,10 @@ export default function CategoryList() {
         onConfirm={() => setIsSearchConfirmed(true)}
       />
 
-      <h2 className="category_list_title">{title}</h2>
+      <div className="category_list_title_row">
+        <button type="button" className="back_button" onClick={() => navigate("/category", { state: { groupLabel: group } })}>←</button>
+        <h2 className="category_list_title">{title}</h2>
+      </div>
 
       <div className="category_list_cards" aria-label="카테고리 상품 목록">
         {groupedItems ? (
