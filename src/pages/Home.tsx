@@ -8,12 +8,10 @@ import RankingSection from "../components/RankingSection"
 import WeeklyDrink from "../components/WeeklyDrink"
 import { type RecommendationItem } from "../components/RecommendationCard"
 
-const rankingItems = [
-  "한라산 - 방어회",
-  "카버네 소비뇽 - 고다치즈",
-  "발베니 12년 - 다크초콜릿",
-  "처음처럼 - 삼겹살",
-  "짐빔하이볼 - 어텀크리스피청포도",
+const rankingItems: [{ name: string; change: number }, { name: string; change: number }, { name: string; change: number }] = [
+  { name: "진로 이즈백 - 삼겹살", change: 12 },
+  { name: "카버네 소비뇽 - 고다치즈", change: -3 },
+  { name: "발베니 12년 - 다크초콜릿", change: 8 },
 ]
 
 const recommendationItems: RecommendationItem[] = [
@@ -122,10 +120,11 @@ export default function Home() {
       <SituationSection items={situationItems} />
 
       <VoteSection
+        voteId={1}
         question="불금에 어울리는 조합은?"
         options={[
-          { id: 1, title: "맥주에 피자다" },
-          { id: 2, title: "와인에 스테이크다" },
+          { id: 1, title: "맥주에 피자다", percent: 62 },
+          { id: 2, title: "와인에 스테이크다", percent: 38 },
         ]}
       />
 
