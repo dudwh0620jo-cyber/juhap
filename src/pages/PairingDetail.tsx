@@ -358,10 +358,10 @@ function PairingDetailContent(props: { pairingId: string | undefined; hash: stri
 
   const pairingTierLabels: Record<1 | 2 | 3 | 4 | 5, string> = {
     1: "테이스터",
-    2: "찐조합러",
-    3: "미식 탐험가",
-    4: "페어링 고수",
-    5: "조합 장인",
+    2: "셀렉터",
+    3: "큐레이터",
+    4: "소믈리에",
+    5: "마스터 등급",
   }
 
   const getTierLabel = (tier: number | undefined) => {
