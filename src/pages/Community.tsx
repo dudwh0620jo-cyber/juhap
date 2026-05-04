@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router"
+import { useLocation, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
@@ -90,7 +90,7 @@ const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
 const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
 const MAX_RECENT_TERMS = 10
 
-const pairingReviewGrades = ["뉴비 맛잘알", "찐조합러", "미식 탐험가", "페어링 고수", "조합 장인"] as const
+const pairingReviewGrades = ["테이스터", "셀렉터", "큐레이터", "소믈리에", "마스터"] as const
 
 const userGradesByAuthorId: Record<
   number,
@@ -194,13 +194,6 @@ const podiumVotesById: Record<number, number> = {
   101: 8122,
   102: 8494,
   103: 8494,
-}
-
-const normalizeTopTab = (value: string | null): TopTab | null => {
-  if (value === "ranking" || value === "feed") {
-    return value
-  }
-  return null
 }
 
 const normalizeRankingPeriod = (value: string | null): RankingPeriod | null => {
@@ -867,6 +860,7 @@ const followedUsersMock: FollowUser[] = [
 
 
 export default function Community() {
+  const location = useLocation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -899,9 +893,16 @@ export default function Community() {
     MAX_RECENT_TERMS,
   )
 
-  const topTab = normalizeTopTab(searchParams.get("top")) ?? "feed"
+  const isRankingRoute = location.pathname === "/community/ranking"
+  const topTab: TopTab = isRankingRoute ? "ranking" : "feed"
   const rankingPeriod = normalizeRankingPeriod(searchParams.get("period")) ?? "weekly"
   const rankingCategory = normalizeRankingCategory(searchParams.get("cat")) ?? "all"
+
+  const setQueryParam = (key: "period" | "cat", value: string) => {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set(key, value)
+    setSearchParams(nextParams, { replace: true })
+  }
 
   const _legacyPopupChipGroups: PopupChipGroup[] = [
     { title: "상황", chips: ["혼술", "데이트", "파티/모임", "홈파티", "기타"] },
@@ -1285,12 +1286,6 @@ export default function Community() {
   const isRankingNoResults = isCommunitySearchActive && filteredRankingRows.length === 0 && filteredRankingPodium.length === 0
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
 
-  const setQueryParam = (key: "top" | "period" | "cat", value: string) => {
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set(key, value)
-    setSearchParams(nextParams, { replace: true })
-  }
-
   useEffect(() => {
     const handleScroll = () => {
       if (topTab !== "feed" || (feedFilter !== "review" && feedFilter !== "free")) {
@@ -1504,12 +1499,9 @@ export default function Community() {
         topTab={topTab}
         tabsAriaLabel="커뮤니티 탭"
         openFilterAriaLabel="검색 필터 열기"
-        tabs={[
-          { key: "ranking", label: "랭킹" },
-          { key: "feed", label: "피드" },
-        ]}
+        tabs={topTab === "ranking" ? [{ key: "ranking", label: "랭킹" }] : [{ key: "feed", label: "피드" }]}
         onOpenFilter={openFeedFilterPopup}
-        onSelectTab={(tab) => setQueryParam("top", tab)}
+        onSelectTab={() => {}}
       />
 
       {isFeedFilterPopupOpen ? (
@@ -1622,7 +1614,7 @@ export default function Community() {
           rows={filteredRankingRows}
         />
       ) : (
-        <section className="feed_page" aria-label="커뮤니티 피드">
+      <section className="feed_page" aria-label="커뮤니티 피드">
           <FeedSegmentTabs
             ariaLabel="피드 필터"
             items={feedFilterItems}

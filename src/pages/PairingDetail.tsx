@@ -68,7 +68,7 @@ const userPairingTiersById: Record<number, 1 | 2 | 3 | 4 | 5> = {
 }
 
 const pairingTierLabels: Record<1 | 2 | 3 | 4 | 5, string> = {
-  1: "뉴비 맛잘알", 2: "찐조합러", 3: "미식 탐험가", 4: "페어링 고수", 5: "조합 장인",
+  1: "테이스터", 2: "셀렉터", 3: "큐레이터", 4: "소믈리에", 5: "마스터",
 }
 
 const getTierClassName = (tier: number | undefined) => {

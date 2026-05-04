@@ -1,6 +1,25 @@
 import { useState } from "react"
 import { Link } from "react-router"
-import { getStoredPicks, storePick } from "../utils/votePicks"
+
+const STORAGE_KEY = "vote_picks"
+
+function getStoredPicks(): Record<string, 0 | 1> {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
+  } catch {
+    return {}
+  }
+}
+
+function storePick(voteId: number, index: 0 | 1 | null) {
+  const picks = getStoredPicks()
+  if (index === null) {
+    delete picks[String(voteId)]
+  } else {
+    picks[String(voteId)] = index
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(picks))
+}
 
 type VoteOption = {
   id: number
