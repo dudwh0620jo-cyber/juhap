@@ -203,6 +203,10 @@
 }
 
 .detail_action_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   min-height: 44px;
   border: 1px solid #d6d6d6;
   border-radius: 14px;
@@ -218,8 +222,17 @@
   background: #f7f3ec;
 }
 
-.detail_action_button span {
-  margin-left: 4px;
+.detail_action_icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.detail_action_value {
+  font-weight: 800;
+}
+
+.detail_action_label {
   font-weight: 800;
 }
 
@@ -287,17 +300,57 @@
 }
 
 .comment_actions {
+  position: relative;
   display: inline-flex;
-  gap: 8px;
+  align-items: center;
 }
 
-.comment_actions button {
+.comment_menu_toggle {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   background: transparent;
-  color: #7a5c2b;
-  font-size: 12px;
-  font-weight: 700;
   cursor: pointer;
+}
+
+.comment_menu_toggle img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.8;
+}
+
+.comment_menu {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  z-index: 3;
+  display: grid;
+  min-width: 96px;
+  padding: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+}
+
+.comment_menu button {
+  height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 800;
+  color: #222;
+  cursor: pointer;
+}
+
+.comment_menu button:hover {
+  background: #f7f3ec;
 }
 
 .comment_edit_shell {
