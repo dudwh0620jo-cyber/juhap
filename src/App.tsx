@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router"
 import Category from "./pages/Category"
 import CategoryList from "./pages/CategoryList"
@@ -40,6 +40,10 @@ const rightNavItems = [
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
   const isRankingActive = pathname === "/community/ranking"
   const isCommunityActive = pathname.startsWith("/community") && !isRankingActive
 
