@@ -361,7 +361,7 @@ function PairingDetailContent(props: { pairingId: string | undefined; hash: stri
     2: "셀렉터",
     3: "큐레이터",
     4: "소믈리에",
-    5: "마스터 등급",
+    5: "마스터",
   }
 
   const getTierLabel = (tier: number | undefined) => {
