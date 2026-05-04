@@ -1,0 +1,170 @@
+.vote_list_page {
+  background: #f7f3ec;
+}
+
+.vote_list_header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.vote_list_header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.back_button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  color: #252525;
+}
+
+.vote_list_content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vote_list_card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.vote_list_card_header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.vote_list_question {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #252525;
+  line-height: 1.4;
+}
+
+.vote_list_date_wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.vote_list_date {
+  font-size: 13px;
+  font-weight: 500;
+  color: #8c8c8c;
+}
+
+.vote_list_active {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ca9e52;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.vote_list_options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vote_list_option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #f3f3f3;
+  overflow: hidden;
+}
+
+.vote_list_bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #f6ecd9;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.vote_list_option--winner .vote_list_bar {
+  background: #ca9e52;
+}
+
+.vote_list_label_wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 1;
+}
+
+.vote_list_label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #252525;
+}
+
+.vote_list_option .vote_my_pick {
+  position: static;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 1);
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.vote_list_percent {
+  position: relative;
+  font-size: 14px;
+  font-weight: 700;
+  color: #252525;
+  z-index: 1;
+}
+
+.vote_list_option--winner .vote_list_label_wrap,
+.vote_list_option--winner .vote_list_percent {
+  color: #fff;
+}
+
+.vote_list_total {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #8c8c8c;
+  text-align: right;
+}
+
+.vote_list_more {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1.5px solid #ca9e52;
+  border-radius: 999px;
+  background: transparent;
+  color: #a17c3b;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
