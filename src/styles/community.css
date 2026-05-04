@@ -24,8 +24,6 @@
   min-height: 44px;
   padding-right: 0;
   grid-column: 1 / -1;
-  border-radius: 999px;
-  background: #8f8f8f;
   
 }
 
@@ -854,8 +852,8 @@
 
 .feed_image {
   flex: 0 0 100%;
-  height: 160px;
-  border-radius: 14px;
+  height: 180px;
+  border-radius: 16px;
   background: #a7a7a7;
   scroll-snap-align: start;
 }
@@ -875,6 +873,42 @@
 .feed_body {
   margin: 0;
   font-size: 13px;
+}
+
+.feed_actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.feed_action_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  border: 1px solid #d6d6d6;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  color: #222;
+  cursor: pointer;
+}
+
+.feed_action_button.is_active {
+  border-color: #222;
+  background: #f7f3ec;
+}
+
+.feed_action_icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.feed_action_text {
+  line-height: 1;
 }
 
 .feed_card p {

@@ -1,5 +1,10 @@
-import { Link } from "react-router"
+﻿import { Link } from "react-router"
 import RelatedContentPostCardHeader from "./RelatedContentPostCardHeader"
+
+import iconBookmark from "../imgs/svg/bookmarksimple.svg"
+import iconChat from "../imgs/svg/chatcircle.svg"
+import iconHeart from "../imgs/svg/heart.svg"
+import iconShare from "../imgs/svg/sharenetwork.svg"
 
 type Props = {
   postId: number
@@ -87,26 +92,22 @@ export default function RelatedContentPostCard({
         </Link>
       ) : (
         <Link className="feed_text_link" to={linkTo} state={linkState}>
-          <div className="review_pair_row">
-            <div className="review_pair_thumbs" aria-hidden="true">
-              <span className="review_pair_thumb" />
-              <span className="review_pair_thumb is_food" />
-            </div>
-            <div className="review_pair_text">
-              <strong className="review_pair_title">{title}</strong>
-              <div className="review_pair_rating" aria-label="평점">
-                <span className="review_stars" aria-hidden="true">
-                  ★★★★★
-                </span>
-                <span className="review_score">4.9</span>
-              </div>
-            </div>
+          <div className="feed_images" aria-label="사진">
+            <div className="feed_image" />
+            <div className="feed_image" />
+          </div>
+          <strong className="review_pair_title">{title}</strong>
+          <div className="review_pair_rating" aria-label="평점">
+            <span className="review_stars" aria-hidden="true">
+              ★★★★★
+            </span>
+            <span className="review_score">4.9</span>
           </div>
           <p className="feed_body">{body}</p>
         </Link>
       )}
 
-      <hr></hr>
+      <hr />
       <div className="feed_actions">
         <button
           type="button"
@@ -114,15 +115,18 @@ export default function RelatedContentPostCard({
           aria-label={likeAriaLabel}
           onClick={onToggleLike}
         >
-          {likeText}
+          <img className="feed_action_icon" src={iconHeart} alt="" aria-hidden="true" />
+          <span className="feed_action_text">{likeText}</span>
         </button>
 
         <button type="button" className="feed_action_button" aria-label="댓글 보기" onClick={onViewComments}>
-          {commentText}
+          <img className="feed_action_icon" src={iconChat} alt="" aria-hidden="true" />
+          <span className="feed_action_text">{commentText}</span>
         </button>
 
         <button type="button" className="feed_action_button" aria-label="공유">
-          ↗
+          <img className="feed_action_icon" src={iconShare} alt="" aria-hidden="true" />
+          <span className="feed_action_text">공유</span>
         </button>
 
         <button
@@ -131,7 +135,8 @@ export default function RelatedContentPostCard({
           aria-label={bookmarkAriaLabel}
           onClick={onOpenBookmarkPicker}
         >
-          🔖
+          <img className="feed_action_icon" src={iconBookmark} alt="" aria-hidden="true" />
+          <span className="feed_action_text">북마크</span>
         </button>
       </div>
     </article>
