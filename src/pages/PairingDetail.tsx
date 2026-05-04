@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState } from "react"
+﻿import { useLayoutEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import "../styles/pairing-detail.css"
@@ -208,10 +208,10 @@ const priceRangeTagByDrinkType: Record<string, string> = {
   기타: "1~3만원",
 }
 
-export default function PairingDetail() {
+function PairingDetailContent(props: { pairingId: string | undefined; hash: string }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { pairingId } = useParams()
+  const pairingId = props.pairingId
   const [commentValue, setCommentValue] = useState("")
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editingCommentValue, setEditingCommentValue] = useState("")
@@ -244,9 +244,39 @@ export default function PairingDetail() {
   const authorId = typeof navState.authorId === "number" ? navState.authorId : null
   const isFollowing = authorId !== null && followedUserIds.has(authorId)
 
-  const [isRecommended, setIsRecommended] = useState(false)
-  const [recommendCount, setRecommendCount] = useState(874)
-  const [isLiked, setIsLiked] = useState(false)
+  const [isRecommended, setIsRecommended] = useState(() => {
+    if (!pairingId) return false
+    try {
+      const raw = window.localStorage.getItem(getPairingRecommendStorageKey(pairingId))
+      if (!raw) return false
+      const parsed = JSON.parse(raw) as { recommended?: boolean }
+      return typeof parsed?.recommended === "boolean" ? parsed.recommended : false
+    } catch {
+      return false
+    }
+  })
+  const [recommendCount, setRecommendCount] = useState(() => {
+    if (!pairingId) return 874
+    try {
+      const raw = window.localStorage.getItem(getPairingRecommendStorageKey(pairingId))
+      if (!raw) return 874
+      const parsed = JSON.parse(raw) as { count?: number }
+      return typeof parsed?.count === "number" && Number.isFinite(parsed.count) ? parsed.count : 874
+    } catch {
+      return 874
+    }
+  })
+  const [isLiked, setIsLiked] = useState(() => {
+    if (!pairingId) return false
+    try {
+      const rawLikes = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
+      if (!rawLikes) return false
+      const parsed = JSON.parse(rawLikes)
+      return Array.isArray(parsed) ? parsed.includes(Number(pairingId)) : false
+    } catch {
+      return false
+    }
+  })
   const [likeCount, setLikeCount] = useState(847)
 
   const commentsStorageKey = useMemo(() => {
@@ -346,41 +376,7 @@ export default function PairingDetail() {
   }, [])
 
   useLayoutEffect(() => {
-    if (!pairingId) {
-      return
-    }
-    try {
-      const raw = window.localStorage.getItem(getPairingRecommendStorageKey(pairingId))
-      if (raw) {
-        const parsed = JSON.parse(raw) as { count?: number; recommended?: boolean }
-        if (typeof parsed?.count === "number" && Number.isFinite(parsed.count)) {
-          setRecommendCount(parsed.count)
-        }
-        if (typeof parsed?.recommended === "boolean") {
-          setIsRecommended(parsed.recommended)
-        }
-      }
-    } catch {
-      // ignore storage errors
-    }
-
-    try {
-      const rawLikes = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
-      if (!rawLikes) {
-        setIsLiked(false)
-        return
-      }
-      const parsed = JSON.parse(rawLikes)
-      if (Array.isArray(parsed)) {
-        setIsLiked(parsed.includes(Number(pairingId)))
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, [pairingId])
-
-  useLayoutEffect(() => {
-    if (location.hash !== "#comments") {
+    if (props.hash !== "#comments") {
       return
     }
 
@@ -390,46 +386,12 @@ export default function PairingDetail() {
     }
 
     target.scrollIntoView({ behavior: "auto", block: "start" })
-  }, [location.hash])
+  }, [props.hash])
 
   const nextId = useMemo(
     () => commentItems.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1,
     [commentItems],
   )
-
-  useLayoutEffect(() => {
-    if (!pairingId) {
-      return
-    }
-    setEditingCommentId(null)
-    setEditingCommentValue("")
-    try {
-      const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
-      if (!raw) {
-        setCommentItems(initialComments)
-        return
-      }
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) {
-        setCommentItems(initialComments)
-        return
-      }
-      setCommentItems(
-        parsed.filter(
-          (item): item is CommentItem =>
-            item &&
-            typeof item === "object" &&
-            typeof item.id === "number" &&
-            typeof item.userId === "number" &&
-            typeof item.userName === "string" &&
-            typeof item.userMeta === "string" &&
-            typeof item.text === "string",
-        ),
-      )
-    } catch {
-      setCommentItems(initialComments)
-    }
-  }, [pairingId])
 
   useLayoutEffect(() => {
     if (!commentsStorageKey) {
@@ -761,4 +723,10 @@ export default function PairingDetail() {
       </form>
     </section>
   )
+}
+
+export default function PairingDetail() {
+  const location = useLocation()
+  const { pairingId } = useParams()
+  return <PairingDetailContent key={pairingId ?? "pairing"} pairingId={pairingId} hash={location.hash} />
 }

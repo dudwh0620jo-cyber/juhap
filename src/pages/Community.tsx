@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 
@@ -836,15 +836,17 @@ export default function Community() {
     return Array.from(merged)
   }, [selectedDetailCategories])
 
-  useEffect(() => {
+  const effectiveSelectedDetailCategories = useMemo(() => {
+    if (selectedDetailCategories.size === 0) return selectedDetailCategories
     const valid = new Set(availableDetailCategories)
-    setSelectedDetailCategories((prev) => new Set(Array.from(prev).filter((item) => valid.has(item))))
-  }, [availableDetailCategories])
+    return new Set(Array.from(selectedDetailCategories).filter((item) => valid.has(item)))
+  }, [availableDetailCategories, selectedDetailCategories])
 
-  useEffect(() => {
+  const effectiveSelectedFeatures = useMemo(() => {
+    if (selectedFeatures.size === 0) return selectedFeatures
     const valid = new Set(availableFeatures)
-    setSelectedFeatures((prev) => new Set(Array.from(prev).filter((item) => valid.has(item))))
-  }, [availableFeatures])
+    return new Set(Array.from(selectedFeatures).filter((item) => valid.has(item)))
+  }, [availableFeatures, selectedFeatures])
 
   const popupChipGroups: PopupChipGroup[] = useMemo(() => {
     const groups: PopupChipGroup[] = [
@@ -913,8 +915,8 @@ export default function Community() {
     isFeedSearchConfirmed ||
     Boolean(selectedDrinkType) ||
     selectedCategories.size > 0 ||
-    selectedDetailCategories.size > 0 ||
-    selectedFeatures.size > 0 ||
+    effectiveSelectedDetailCategories.size > 0 ||
+    effectiveSelectedFeatures.size > 0 ||
     selectedFoods.size > 0
 
   const bookmarkLists = [
@@ -985,11 +987,12 @@ export default function Community() {
       const categoryMatches =
         selectedCategories.size === 0 || (post.categories ?? []).some((item) => selectedCategories.has(item))
       const detailMatches =
-        selectedDetailCategories.size === 0 ||
-        (post.detailCategories ?? []).some((item) => selectedDetailCategories.has(item))
+        effectiveSelectedDetailCategories.size === 0 ||
+        (post.detailCategories ?? []).some((item) => effectiveSelectedDetailCategories.has(item))
       const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
       const featureMatches =
-        selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
+        effectiveSelectedFeatures.size === 0 ||
+        (post.features ?? []).some((item) => effectiveSelectedFeatures.has(item))
 
       return (
         queryMatches && drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
@@ -1000,9 +1003,9 @@ export default function Community() {
     isCommunitySearchActive,
     posts,
     selectedCategories,
-    selectedDetailCategories,
     selectedDrinkType,
-    selectedFeatures,
+    effectiveSelectedDetailCategories,
+    effectiveSelectedFeatures,
     selectedFoods,
   ])
 
@@ -1021,11 +1024,12 @@ export default function Community() {
       const categoryMatches =
         selectedCategories.size === 0 || (post.categories ?? []).some((item) => selectedCategories.has(item))
       const detailMatches =
-        selectedDetailCategories.size === 0 ||
-        (post.detailCategories ?? []).some((item) => selectedDetailCategories.has(item))
+        effectiveSelectedDetailCategories.size === 0 ||
+        (post.detailCategories ?? []).some((item) => effectiveSelectedDetailCategories.has(item))
       const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
       const featureMatches =
-        selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
+        effectiveSelectedFeatures.size === 0 ||
+        (post.features ?? []).some((item) => effectiveSelectedFeatures.has(item))
       return drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
     }
 
@@ -1087,8 +1091,8 @@ export default function Community() {
       .filter(([tag]) => {
         if (selectedDrinkType && tag === selectedDrinkType) return false
         if (selectedCategories.has(tag)) return false
-        if (selectedDetailCategories.has(tag)) return false
-        if (selectedFeatures.has(tag)) return false
+        if (effectiveSelectedDetailCategories.has(tag)) return false
+        if (effectiveSelectedFeatures.has(tag)) return false
         if (selectedFoods.has(tag)) return false
         return true
       })
@@ -1098,9 +1102,9 @@ export default function Community() {
   }, [
     feedSearchValue,
     selectedCategories,
-    selectedDetailCategories,
     selectedDrinkType,
-    selectedFeatures,
+    effectiveSelectedDetailCategories,
+    effectiveSelectedFeatures,
     selectedFoods,
   ])
   const rankingData = rankingDataByPeriod[rankingPeriod]
@@ -1126,12 +1130,12 @@ export default function Community() {
       const categoryMatches =
         selectedCategories.size === 0 || Array.from(selectedCategories).some((item) => includesNormalized(targets.join(" "), item))
       const detailMatches =
-        selectedDetailCategories.size === 0 ||
-        Array.from(selectedDetailCategories).some((item) => includesNormalized(targets.join(" "), item))
+        effectiveSelectedDetailCategories.size === 0 ||
+        Array.from(effectiveSelectedDetailCategories).some((item) => includesNormalized(targets.join(" "), item))
       const foodMatches =
         selectedFoods.size === 0 || Array.from(selectedFoods).some((item) => includesNormalized(row.pair, item))
       const featureMatches =
-        selectedFeatures.size === 0 || featureTags.some((tag) => selectedFeatures.has(tag))
+        effectiveSelectedFeatures.size === 0 || featureTags.some((tag) => effectiveSelectedFeatures.has(tag))
 
       return (
         queryMatches && drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
@@ -1142,9 +1146,9 @@ export default function Community() {
     isCommunitySearchActive,
     rankingRows,
     selectedCategories,
-    selectedDetailCategories,
     selectedDrinkType,
-    selectedFeatures,
+    effectiveSelectedDetailCategories,
+    effectiveSelectedFeatures,
     selectedFoods,
   ])
 
@@ -1167,12 +1171,12 @@ export default function Community() {
       const categoryMatches =
         selectedCategories.size === 0 || Array.from(selectedCategories).some((item) => includesNormalized(targets.join(" "), item))
       const detailMatches =
-        selectedDetailCategories.size === 0 ||
-        Array.from(selectedDetailCategories).some((item) => includesNormalized(targets.join(" "), item))
+        effectiveSelectedDetailCategories.size === 0 ||
+        Array.from(effectiveSelectedDetailCategories).some((item) => includesNormalized(targets.join(" "), item))
       const foodMatches =
         selectedFoods.size === 0 || Array.from(selectedFoods).some((item) => includesNormalized(podium.pair, item))
       const featureMatches =
-        selectedFeatures.size === 0 || featureTags.some((tag) => selectedFeatures.has(tag))
+        effectiveSelectedFeatures.size === 0 || featureTags.some((tag) => effectiveSelectedFeatures.has(tag))
 
       return (
         queryMatches && drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
@@ -1183,9 +1187,9 @@ export default function Community() {
     isCommunitySearchActive,
     rankingPodium,
     selectedCategories,
-    selectedDetailCategories,
     selectedDrinkType,
-    selectedFeatures,
+    effectiveSelectedDetailCategories,
+    effectiveSelectedFeatures,
     selectedFoods,
   ])
 
@@ -1235,7 +1239,6 @@ export default function Community() {
       return
     }
 
-    setIsFeedSearchConfirmed(false)
     window.setTimeout(() => feedSearchInputRef.current?.focus(), 0)
   }, [isFeedFilterPopupOpen])
 
@@ -1250,21 +1253,17 @@ export default function Community() {
     }
   }, [recentSearchTerms])
 
-  useEffect(() => {
+  const recomputeCollapsibleChipGroups = useCallback(() => {
     const next = new Set<string>()
-
     for (const group of filteredPopupChipGroups) {
       const el = chipGroupRefs.current.get(group.title)
-      if (!el) {
-        continue
-      }
+      if (!el) continue
       if (el.scrollHeight > el.clientHeight + 1) {
         next.add(group.title)
       }
     }
-
     setCollapsibleChipGroups(next)
-  }, [filteredPopupChipGroups, expandedChipGroups])
+  }, [filteredPopupChipGroups])
 
   const getLikeCount = (post: FeedPost) => post.likeCount + (likedById[post.id] ? 1 : 0)
   const getCommentCount = (post: FeedPost) => post.commentCount
@@ -1405,9 +1404,15 @@ export default function Community() {
       }
       return next
     })
+
+    window.setTimeout(() => recomputeCollapsibleChipGroups(), 0)
   }
 
-  const openFeedFilterPopup = () => setIsFeedFilterPopupOpen(true)
+  const openFeedFilterPopup = () => {
+    setIsFeedSearchConfirmed(false)
+    setIsFeedFilterPopupOpen(true)
+    window.setTimeout(() => recomputeCollapsibleChipGroups(), 0)
+  }
 
   const confirmFeedSearch = (term?: string) => {
     const query = (term ?? feedSearchValue).trim()
@@ -1425,19 +1430,7 @@ export default function Community() {
     feedSearchInputRef.current?.blur()
   }
 
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(COMMUNITY_FOLLOWED_USERS_KEY)
-      if (!raw) {
-        window.localStorage.setItem(
-          COMMUNITY_FOLLOWED_USERS_KEY,
-          JSON.stringify(Array.from(followedUserIds)),
-        )
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, [followedUserIds])
+  // keep followed ids in storage in the toggle handler; no effect needed
 
   const changeFeedFilter = (nextFilter: FeedFilter) => {
     setHasWriteFabScrolled(false)
@@ -1582,11 +1575,11 @@ export default function Community() {
                                 ? "feed_filter_chip is_active"
                                 : "feed_filter_chip"
                               : group.title === "상세카테고리"
-                                ? selectedDetailCategories.has(chip)
+                                ? effectiveSelectedDetailCategories.has(chip)
                                   ? "feed_filter_chip is_active"
                                   : "feed_filter_chip"
                                 : group.title === "특징"
-                                  ? selectedFeatures.has(chip)
+                                  ? effectiveSelectedFeatures.has(chip)
                                     ? "feed_filter_chip is_active"
                                     : "feed_filter_chip"
                                   : group.title === "음식"
