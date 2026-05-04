@@ -4,14 +4,16 @@ import AiCard from "../components/AiCard"
 import TodayRecommendation from "../components/TodayRecommendation"
 import SituationSection, { type SituationItem } from "../components/SituationSection"
 import VoteSection from "../components/VoteSection"
-import RankingSection from "../components/RankingSection"
+import RankingSection, { type RankingItem } from "../components/RankingSection"
 import WeeklyDrink from "../components/WeeklyDrink"
 import { type RecommendationItem } from "../components/RecommendationCard"
 
-const rankingItems: [{ name: string; change: number }, { name: string; change: number }, { name: string; change: number }] = [
-  { name: "진로 이즈백 - 삼겹살", change: 12 },
-  { name: "카버네 소비뇽 - 고다치즈", change: -3 },
-  { name: "발베니 12년 - 다크초콜릿", change: 8 },
+const rankingItems: [RankingItem, RankingItem, RankingItem, RankingItem, RankingItem] = [
+  { drink: "진로 이즈백", drinkEmoji: "🍶", food: "삼겹살", foodEmoji: "🥩", rating: 5.0, count: 8494 },
+  { drink: "막걸리", drinkEmoji: "🍵", food: "해물파전", foodEmoji: "🥞", rating: 4.9, count: 8122 },
+  { drink: "레드 와인", drinkEmoji: "🍷", food: "스테이크", foodEmoji: "🥩", rating: 4.8, count: 8013 },
+  { drink: "카스", drinkEmoji: "🍺", food: "치킨", foodEmoji: "🍗", rating: 4.7, count: 7521 },
+  { drink: "발베니 12년", drinkEmoji: "🥃", food: "다크초콜릿", foodEmoji: "🍫", rating: 4.6, count: 7203 },
 ]
 
 const recommendationItems: RecommendationItem[] = [

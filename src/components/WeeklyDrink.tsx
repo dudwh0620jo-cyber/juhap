@@ -29,13 +29,14 @@ function DrinkInfo({ info }: { info: WeeklyDrinkProps["info"] }) {
 export default function WeeklyDrink({ title, linkTo, info }: WeeklyDrinkProps) {
   return (
     <section className="home_block">
-      <h3>{title}</h3>
-      <Link to={linkTo} className="drink_card_link">
-        <article className="drink_card">
-          <DrinkInfo info={info} />
-          <div className="drink_bottle" aria-hidden="true" />
-        </article>
-      </Link>
+      <div className="ranking_header">
+        <h3>{title}</h3>
+        <Link to={linkTo} className="more_button">자세히 보기</Link>
+      </div>
+      <article className="drink_card">
+        <DrinkInfo info={info} />
+        <div className="drink_bottle" aria-hidden="true" />
+      </article>
     </section>
   )
 }
