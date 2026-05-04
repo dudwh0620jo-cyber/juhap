@@ -34,9 +34,6 @@
   font-size: 13px;
 }
 
-.community_tabs button.is_active {
-  background: #fff;
-}
 
 .search_button {
   position: relative;
@@ -615,16 +612,22 @@
 .feed_filter_chip {
   min-height: 32px;
   padding: 0 12px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 999px;
   background: #f2f2f2;
   color: #111;
   font-size: 13px;
+  font-weight: 700;
   white-space: nowrap;
+  transition: transform 120ms ease, background 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
 .feed_filter_chip.is_active {
-  background: #bdbdbd;
+  border-color: #222;
+  background: #222;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
 }
 
 .feed_cards {
