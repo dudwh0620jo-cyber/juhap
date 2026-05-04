@@ -3,13 +3,11 @@ import { useLocation, useNavigate, useParams } from "react-router"
 import CommentSection from "../components/CommentSection"
 import DetailActions from "../components/DetailActions"
 import PairingDetailHeader from "../components/PairingDetailHeader"
-import RecommendPanel from "../components/RecommendPanel"
 import SimilarPairingList, { type SimilarPairingItem } from "../components/SimilarPairingList"
 import "../styles/pairing-detail.css"
 
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
 const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
-const getPairingRecommendStorageKey = (pairingId: string) => `pairing_detail_recommend_${pairingId}`
 const getPairingCommentsStorageKey = (pairingId: string) => `pairing_detail_comments_${pairingId}`
 
 type PairingDetailNavState = {
@@ -121,24 +119,6 @@ export default function PairingDetail() {
 
   const isFollowing = authorId !== null && followedUserIds.has(authorId)
 
-  const [isRecommended, setIsRecommended] = useState(() => {
-    if (!pairingId) return false
-    try {
-      const raw = window.localStorage.getItem(getPairingRecommendStorageKey(pairingId))
-      if (!raw) return false
-      const parsed = JSON.parse(raw) as { count?: number; recommended?: boolean }
-      return typeof parsed?.recommended === "boolean" ? parsed.recommended : false
-    } catch { return false }
-  })
-  const [recommendCount, setRecommendCount] = useState(() => {
-    if (!pairingId) return 874
-    try {
-      const raw = window.localStorage.getItem(getPairingRecommendStorageKey(pairingId))
-      if (!raw) return 874
-      const parsed = JSON.parse(raw) as { count?: number; recommended?: boolean }
-      return typeof parsed?.count === "number" && Number.isFinite(parsed.count) ? parsed.count : 874
-    } catch { return 874 }
-  })
   const [isLiked, setIsLiked] = useState(() => {
     if (!pairingId) return false
     try {
@@ -209,24 +189,6 @@ export default function PairingDetail() {
     })
   }
 
-  const toggleRecommend = () => {
-    if (!pairingId) return
-    const nextRecommended = !isRecommended
-    setIsRecommended(nextRecommended)
-    setRecommendCount((countPrev) => {
-      const nextCount = Math.max(0, countPrev + (nextRecommended ? 1 : -1))
-      try {
-        window.localStorage.setItem(
-          getPairingRecommendStorageKey(pairingId),
-          JSON.stringify({ count: nextCount, recommended: nextRecommended }),
-        )
-      } catch {
-        // ignore storage errors
-      }
-      return nextCount
-    })
-  }
-
   const toggleLike = () => {
     if (!pairingId) return
     const numericId = Number(pairingId)
@@ -294,12 +256,6 @@ export default function PairingDetail() {
           →
         </button>
       </article>
-
-      <RecommendPanel
-        isRecommended={isRecommended}
-        recommendCount={recommendCount}
-        onToggle={toggleRecommend}
-      />
 
       <DetailActions
         isLiked={isLiked}

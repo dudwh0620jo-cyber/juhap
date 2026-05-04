@@ -1497,11 +1497,8 @@ export default function Community() {
       <CommunityHeader
         title="커뮤니티"
         topTab={topTab}
-        tabsAriaLabel="커뮤니티 탭"
         openFilterAriaLabel="검색 필터 열기"
-        tabs={topTab === "ranking" ? [{ key: "ranking", label: "랭킹" }] : [{ key: "feed", label: "피드" }]}
         onOpenFilter={openFeedFilterPopup}
-        onSelectTab={() => {}}
       />
 
       {isFeedFilterPopupOpen ? (
@@ -1697,9 +1694,9 @@ export default function Community() {
                 answerPreview={post.answerPreview}
                 likeActive={Boolean(likedById[post.id])}
                 likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
-                likeText={`♥ ${getLikeCount(post)}`}
+                likeText={`${getLikeCount(post)}`}
                 onToggleLike={() => toggleLike(post.id)}
-                commentText={`💬 ${getCommentCount(post)}`}
+                commentText={`${getCommentCount(post)}`}
                 onViewComments={() => goToComments(post.id)}
                 bookmarkActive={Boolean(bookmarkListById[post.id])}
                 bookmarkAriaLabel={bookmarkListById[post.id] ? "북마크 변경" : "북마크"}
