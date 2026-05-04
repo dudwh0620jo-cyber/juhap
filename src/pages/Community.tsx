@@ -61,6 +61,7 @@ type FeedPost = {
   commentCount: number
   popularityScore: number
   profile?: string
+  locationLabel?: string
   isQna?: boolean
   answerPreview?: string
   answerCount?: number
@@ -632,6 +633,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 28,
     popularityScore: 402,
     profile: "30대 / 서울 / 소주 · 맥주 선호",
+    locationLabel: "아늑한 내방",
     searchTags: ["기타", "하이볼", "소주토닉", "삼겹살", "가벼운", "톡쏘는", "과일향"],
     drinkType: "기타",
     categories: ["하이볼"],
@@ -650,6 +652,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 19,
     popularityScore: 260,
     profile: "20대 / 부산 / 전통주 입문",
+    locationLabel: "비 오는 베란다",
     searchTags: ["전통주", "막걸리", "해물파전", "부드러운", "가벼운"],
     drinkType: "전통주",
     categories: ["막걸리"],
@@ -668,6 +671,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 34,
     popularityScore: 330,
     profile: "30대 / 경기 / 위스키 관심",
+    locationLabel: "자주가는 바",
     isQna: true,
     searchTags: ["위스키", "하이볼", "버번", "부드러운", "무거운", "오크향"],
     drinkType: "위스키",
@@ -687,6 +691,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 21,
     popularityScore: 210,
     profile: "20대 / 인천 / 사케 입문",
+    locationLabel: "늦은 밤 식탁",
     isQna: true,
     searchTags: ["사케", "사케준마이", "가라아게", "부드러운", "가벼운", "오뎅", "명란구이"],
     drinkType: "사케",
@@ -706,6 +711,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 63,
     popularityScore: 720,
     profile: "30대 / 서울 / 와인 선호",
+    locationLabel: "아늑한 우리집",
     searchTags: ["와인", "레드", "스테이크", "오크숙성", "무거운", "오크향"],
     drinkType: "와인",
     categories: ["레드"],
@@ -724,6 +730,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 40,
     popularityScore: 590,
     profile: "20대 / 대전 / 맥주 러버",
+    locationLabel: "햇살 드는 거실",
     searchTags: ["맥주", "IPA", "크래프트", "뉴잉글랜드", "부드러운", "과일향", "햄버거", "치즈"],
     drinkType: "맥주",
     categories: ["IPA", "크래프트"],
@@ -742,6 +749,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 11,
     popularityScore: 120,
     profile: "20대 / 서울 / 소주 · 전통주",
+    locationLabel: "우리집 야식상",
     searchTags: ["소주", "증류주", "족발", "부드러운", "무거운"],
     drinkType: "소주",
     categories: ["증류주"],
@@ -760,6 +768,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 17,
     popularityScore: 160,
     profile: "30대 / 제주 / 와인 · 사케",
+    locationLabel: "작은 주방 테이블",
     isQna: true,
     searchTags: ["사케", "사케준마이", "회", "부드러운", "가벼운"],
     drinkType: "사케",
@@ -779,6 +788,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 22,
     popularityScore: 310,
     profile: "30대 / 대구 / 위스키 · 칵테일",
+    locationLabel: "친구들과 홈파티",
     searchTags: ["기타", "칵테일", "시트러스", "톡쏘는", "과일향", "타코"],
     drinkType: "기타",
     categories: ["칵테일"],
@@ -797,6 +807,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 9,
     popularityScore: 180,
     profile: "20대 / 광주 / 맥주 · 페어링",
+    locationLabel: "퇴근 후 소파 앞",
     searchTags: ["맥주", "라거/필스너", "드라이", "가벼운", "감자튀김"],
     drinkType: "맥주",
     categories: ["라거/필스너"],
@@ -815,6 +826,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 34,
     popularityScore: 330,
     profile: "30대 / 경기 / 위스키 관심",
+    locationLabel: "잔잔한 밤 방구석",
     isQna: true,
     searchTags: ["위스키", "증류주", "싱글몰트", "무거운", "오크향", "부드러운", "다크초콜릿"],
     drinkType: "위스키",
@@ -834,6 +846,7 @@ const feedPosts: FeedPost[] = [
     commentCount: 34,
     popularityScore: 330,
     profile: "30대 / 경기 / 위스키 관심",
+    locationLabel: "주말 홈파티",
     isQna: true,
     searchTags: ["맥주", "라거/필스너", "치킨", "가벼운", "톡쏘는", "전통주", "막걸리", "해물파전"],
     drinkType: "맥주",
@@ -1366,7 +1379,7 @@ export default function Community() {
   const goToComments = (postId: number) => {
     const post = feedPosts.find((item) => item.id === postId)
     const pairingTitle = post?.title ? extractPairingTitle(post.title) : ""
-    const locationLabel = post?.profile?.split("/")?.[1]?.trim() ?? ""
+    const locationLabel = post?.locationLabel?.trim() ?? ""
     navigate(`/community/pairing/${postId}#comments`, {
       state: post
         ? {
@@ -1682,7 +1695,7 @@ export default function Community() {
                   authorId: post.authorId,
                   authorName: post.authorName,
                   profile: post.profile ?? "",
-                  locationLabel: post.profile?.split("/")?.[1]?.trim() ?? "",
+                  locationLabel: post.locationLabel?.trim() ?? "",
                   drinkType: post.drinkType ?? "",
                   source: "feed",
                 }}

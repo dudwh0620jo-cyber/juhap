@@ -23,14 +23,14 @@ type PairingDetailNavState = {
 }
 
 const similarPairingsMock: SimilarPairingItem[] = [
-  { id: 1002, pairingTitle: "막걸리 + 해물파전", authorId: 2001, authorName: "민지", profile: "20대 / 부산 / 전통주 입문", locationLabel: "부산", drinkType: "전통주" },
-  { id: 1013, pairingTitle: "하이볼 + 치킨", authorId: 2002, authorName: "현우", profile: "20대 / 대전 / 맥주 러버", locationLabel: "대전", drinkType: "기타" },
-  { id: 1014, pairingTitle: "소주토닉 하이볼 + 피자", authorId: 2102, authorName: "도윤", profile: "30대 / 대구 / 위스키 · 칵테일", locationLabel: "대구", drinkType: "기타" },
-  { id: 1005, pairingTitle: "레드 와인 + 스테이크", authorId: 2001, authorName: "민지", profile: "30대 / 서울 / 와인 선호", locationLabel: "서울", drinkType: "와인" },
-  { id: 1006, pairingTitle: "IPA + 햄버거", authorId: 2002, authorName: "현우", profile: "20대 / 대전 / 맥주 러버", locationLabel: "대전", drinkType: "맥주" },
-  { id: 1007, pairingTitle: "소주 + 족발", authorId: 2101, authorName: "유나", profile: "20대 / 서울 / 소주 · 전통주", locationLabel: "서울", drinkType: "소주" },
-  { id: 1008, pairingTitle: "사케 + 회", authorId: 2104, authorName: "수빈", profile: "30대 / 제주 / 와인 · 사케", locationLabel: "제주", drinkType: "사케" },
-  { id: 1010, pairingTitle: "라거 + 감자튀김", authorId: 2103, authorName: "지민", profile: "20대 / 광주 / 맥주 · 페어링", locationLabel: "광주", drinkType: "맥주" },
+  { id: 1002, pairingTitle: "막걸리 + 해물파전", authorId: 2001, authorName: "민지", profile: "20대 / 부산 / 전통주 입문", locationLabel: "비 오는 베란다", drinkType: "전통주" },
+  { id: 1013, pairingTitle: "하이볼 + 치킨", authorId: 2002, authorName: "현우", profile: "20대 / 대전 / 맥주 러버", locationLabel: "자주가는 바", drinkType: "기타" },
+  { id: 1014, pairingTitle: "소주토닉 하이볼 + 피자", authorId: 2102, authorName: "도윤", profile: "30대 / 대구 / 위스키 · 칵테일", locationLabel: "게임 켜둔 거실", drinkType: "기타" },
+  { id: 1005, pairingTitle: "레드 와인 + 스테이크", authorId: 2001, authorName: "민지", profile: "30대 / 서울 / 와인 선호", locationLabel: "아늑한 우리집", drinkType: "와인" },
+  { id: 1006, pairingTitle: "IPA + 햄버거", authorId: 2002, authorName: "현우", profile: "20대 / 대전 / 맥주 러버", locationLabel: "햇살 드는 거실", drinkType: "맥주" },
+  { id: 1007, pairingTitle: "소주 + 족발", authorId: 2101, authorName: "유나", profile: "20대 / 서울 / 소주 · 전통주", locationLabel: "우리집 야식상", drinkType: "소주" },
+  { id: 1008, pairingTitle: "사케 + 회", authorId: 2104, authorName: "수빈", profile: "30대 / 제주 / 와인 · 사케", locationLabel: "작은 주방 테이블", drinkType: "사케" },
+  { id: 1010, pairingTitle: "라거 + 감자튀김", authorId: 2103, authorName: "지민", profile: "20대 / 광주 / 맥주 · 페어링", locationLabel: "퇴근 후 소파 앞", drinkType: "맥주" },
 ]
 
 type RecommendedProduct = {
@@ -102,7 +102,7 @@ export default function PairingDetail() {
     (pairingTitle.includes("+") ? pairingTitle.split("+")[0]?.trim() : "")
   const authorName = navState.authorName?.trim() || "익명"
   const profile = navState.profile?.trim() || "20대 / 서울"
-  const locationLabel = navState.locationLabel?.trim() || profile.split("/")?.[1]?.trim() || "서울"
+  const locationLabel = navState.locationLabel?.trim() || "아늑한 내방"
 
   const authorId = typeof navState.authorId === "number" ? navState.authorId : null
   const authorTier = authorId !== null ? userPairingTiersById[authorId] : undefined
