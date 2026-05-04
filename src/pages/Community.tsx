@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
@@ -9,7 +9,6 @@ import CommunitySearchInput from "../components/CommunitySearchInput"
 import CommunityRankingSection from "../components/CommunityRankingSection"
 import CommunityFeedFilterPopupBody from "../components/CommunityFeedFilterPopupBody"
 import FeedWriteRow from "../components/FeedWriteRow"
-import FeedWriteFab from "../components/FeedWriteFab"
 
 // NOTE: The contents of `src/pages/community/*` were inlined into this file so the `community` folder can be deleted.
 // This is intentionally a single-file bundle for the Community page (as requested).
@@ -69,6 +68,8 @@ type FeedPost = {
   categories?: string[]
   features?: string[]
   foods?: string[]
+  priceWon?: number
+  abv?: number
 }
 
 type FollowUser = {
@@ -87,6 +88,10 @@ const COMMUNITY_SEARCH_RECENT_KEY = "community_search_recent_terms"
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
 const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
 const MAX_RECENT_TERMS = 10
+const PRICE_MIN_WON = 0
+const PRICE_MAX_WON = 1_000_000
+const ABV_MIN = 0
+const ABV_MAX = 65
 
 const pairingReviewGrades = ["테이스터", "셀렉터", "큐레이터", "소믈리에", "마스터"] as const
 
@@ -712,6 +717,8 @@ const feedPosts: FeedPost[] = [
     categories: ["하이볼"],
     features: ["가벼운", "톡쏘는", "과일향"],
     foods: ["삼겹살"],
+    priceWon: 15000,
+    abv: 9,
   },
   {
     id: 1002,
@@ -730,6 +737,8 @@ const feedPosts: FeedPost[] = [
     categories: ["막걸리"],
     features: ["부드러운", "가벼운"],
     foods: ["해물파전"],
+    priceWon: 12000,
+    abv: 6,
   },
   {
     id: 1003,
@@ -749,6 +758,8 @@ const feedPosts: FeedPost[] = [
     categories: ["하이볼"],
     features: ["부드러운", "무거운", "오크향"],
     foods: ["치즈"],
+    priceWon: 79000,
+    abv: 40,
   },
   {
     id: 1004,
@@ -768,6 +779,8 @@ const feedPosts: FeedPost[] = [
     categories: ["사케준마이"],
     features: ["부드러운", "가벼운"],
     foods: ["가라아게", "오뎅", "명란구이"],
+    priceWon: 33000,
+    abv: 15,
   },
   {
     id: 1005,
@@ -786,6 +799,8 @@ const feedPosts: FeedPost[] = [
     categories: ["레드"],
     features: ["무거운", "오크향"],
     foods: ["스테이크"],
+    priceWon: 29000,
+    abv: 13,
   },
   {
     id: 1006,
@@ -804,6 +819,8 @@ const feedPosts: FeedPost[] = [
     categories: ["IPA", "크래프트"],
     features: ["부드러운", "과일향"],
     foods: ["햄버거", "치즈"],
+    priceWon: 9000,
+    abv: 6.5,
   },
   {
     id: 1007,
@@ -822,6 +839,8 @@ const feedPosts: FeedPost[] = [
     categories: ["증류주"],
     features: ["부드러운", "무거운"],
     foods: ["족발"],
+    priceWon: 10000,
+    abv: 17,
   },
   {
     id: 1008,
@@ -841,6 +860,8 @@ const feedPosts: FeedPost[] = [
     categories: ["사케준마이"],
     features: ["과일향", "가벼운"],
     foods: ["회"],
+    priceWon: 28000,
+    abv: 15,
   },
   {
     id: 1009,
@@ -859,6 +880,8 @@ const feedPosts: FeedPost[] = [
     categories: ["칵테일"],
     features: ["톡쏘는", "과일향"],
     foods: ["타코"],
+    priceWon: 18000,
+    abv: 12,
   },
   {
     id: 1010,
@@ -877,6 +900,8 @@ const feedPosts: FeedPost[] = [
     categories: ["라거/필스너"],
     features: ["가벼운"],
     foods: ["감자튀김"],
+    priceWon: 8000,
+    abv: 5,
   },
   {
     id: 1011,
@@ -896,6 +921,8 @@ const feedPosts: FeedPost[] = [
     categories: ["증류주"],
     features: ["무거운", "오크향", "부드러운"],
     foods: ["다크초콜릿"],
+    priceWon: 99000,
+    abv: 45,
   },
   {
     id: 1012,
@@ -915,6 +942,8 @@ const feedPosts: FeedPost[] = [
     categories: ["라거/필스너"],
     features: ["가벼운", "톡쏘는"],
     foods: ["치킨", "해물파전"],
+    priceWon: 16000,
+    abv: 5,
   },
 ]
 
@@ -937,8 +966,6 @@ export default function Community() {
     COMMUNITY_FOLLOWED_USERS_KEY,
     followedUsersMock.map((user) => user.id),
   )
-  const [hasWriteFabScrolled, setHasWriteFabScrolled] = useState(false)
-  const [isWriteFabVisible, setIsWriteFabVisible] = useState(false)
   const { value: likedById, toggle: toggleLike } = useStoredBooleanRecordFromIds(COMMUNITY_LIKED_POSTS_KEY)
   const [bookmarkListById, setBookmarkListById] = useState<Record<number, string | null>>({})
   const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(
@@ -949,6 +976,8 @@ export default function Community() {
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(() => new Set())
   const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(() => new Set())
   const [selectedFoods, setSelectedFoods] = useState<Set<string>>(() => new Set())
+  const [priceRange, setPriceRange] = useState<[number, number]>([PRICE_MIN_WON, PRICE_MAX_WON])
+  const [abvRange, setAbvRange] = useState<[number, number]>([ABV_MIN, ABV_MAX])
   const [feedSearchValue, setFeedSearchValue] = useState("")
   const [isFeedSearchConfirmed, setIsFeedSearchConfirmed] = useState(false)
   const feedSearchInputRef = useRef<HTMLInputElement | null>(null)
@@ -1068,7 +1097,11 @@ export default function Community() {
     Boolean(selectedDrinkType) ||
     selectedCategories.size > 0 ||
     selectedFeatures.size > 0 ||
-    selectedFoods.size > 0
+    selectedFoods.size > 0 ||
+    priceRange[0] !== PRICE_MIN_WON ||
+    priceRange[1] !== PRICE_MAX_WON ||
+    abvRange[0] !== ABV_MIN ||
+    abvRange[1] !== ABV_MAX
 
   const posts = useMemo(() => {
     const copy = [...feedPosts]
@@ -1123,9 +1156,14 @@ export default function Community() {
       const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
       const featureMatches =
         selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
+      const priceValue = typeof post.priceWon === "number" && Number.isFinite(post.priceWon) ? post.priceWon : 0
+      const priceMatches = priceValue >= priceRange[0] && (priceRange[1] >= PRICE_MAX_WON ? true : priceValue <= priceRange[1])
+      const abvValue = typeof post.abv === "number" && Number.isFinite(post.abv) ? post.abv : 0
+      const abvMatches =
+        abvValue >= abvRange[0] && (abvRange[1] >= ABV_MAX ? true : abvValue <= abvRange[1])
 
       return (
-        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
+        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches && priceMatches && abvMatches
       )
     })
   }, [
@@ -1136,6 +1174,8 @@ export default function Community() {
     selectedDrinkType,
     selectedFeatures,
     selectedFoods,
+    priceRange,
+    abvRange,
   ])
 
   const searchSuggestionTags = useMemo(() => {
@@ -1307,23 +1347,6 @@ export default function Community() {
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (topTab !== "feed" || (feedFilter !== "review" && feedFilter !== "free")) {
-        setIsWriteFabVisible(false)
-        return
-      }
-
-      setHasWriteFabScrolled(true)
-      const nextVisible = window.scrollY > 0
-      setIsWriteFabVisible((prev) => (prev === nextVisible ? prev : nextVisible))
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [feedFilter, topTab])
-
-  useEffect(() => {
     if (!isFeedFilterPopupOpen) {
       return
     }
@@ -1417,6 +1440,40 @@ export default function Community() {
     setIsFeedSearchConfirmed(true)
   }
 
+  const priceMinPct = useMemo(() => {
+    const denom = PRICE_MAX_WON - PRICE_MIN_WON
+    if (denom <= 0) return 0
+    return Math.round(((priceRange[0] - PRICE_MIN_WON) / denom) * 1000) / 10
+  }, [priceRange])
+
+  const priceMaxPct = useMemo(() => {
+    const denom = PRICE_MAX_WON - PRICE_MIN_WON
+    if (denom <= 0) return 100
+    return Math.round(((priceRange[1] - PRICE_MIN_WON) / denom) * 1000) / 10
+  }, [priceRange])
+
+  const abvMinPct = useMemo(() => {
+    const denom = ABV_MAX - ABV_MIN
+    if (denom <= 0) return 0
+    return Math.round(((abvRange[0] - ABV_MIN) / denom) * 1000) / 10
+  }, [abvRange])
+
+  const abvMaxPct = useMemo(() => {
+    const denom = ABV_MAX - ABV_MIN
+    if (denom <= 0) return 100
+    return Math.round(((abvRange[1] - ABV_MIN) / denom) * 1000) / 10
+  }, [abvRange])
+
+  const resetFilters = () => {
+    setSelectedDrinkType(null)
+    setSelectedCategories(new Set())
+    setSelectedFeatures(new Set())
+    setSelectedFoods(new Set())
+    setPriceRange([PRICE_MIN_WON, PRICE_MAX_WON])
+    setAbvRange([ABV_MIN, ABV_MAX])
+    setIsFeedSearchConfirmed(Boolean(feedSearchValue.trim()))
+  }
+
   const toggleCategory = (chip: string) => {
     setSelectedCategories((prev) => {
       const next = new Set(prev)
@@ -1493,8 +1550,6 @@ export default function Community() {
   }
 
   const changeFeedFilter = (nextFilter: FeedFilter) => {
-    setHasWriteFabScrolled(false)
-    setIsWriteFabVisible(false)
     setFeedFilter(nextFilter)
   }
 
@@ -1588,6 +1643,114 @@ export default function Community() {
                 setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
               }}
             />
+
+            <div className="feed_filter_range_group" aria-label="가격 필터">
+              <h3 className="feed_filter_group_title">가격</h3>
+              <p className="feed_filter_range_label">
+                {priceRange[0].toLocaleString()}원 ~ {priceRange[1] >= PRICE_MAX_WON ? `${PRICE_MAX_WON.toLocaleString()}원 이상` : `${priceRange[1].toLocaleString()}원`}
+              </p>
+              <div
+                className="dual_range"
+                style={
+                  {
+                    ["--min-pct" as string]: `${priceMinPct}%`,
+                    ["--max-pct" as string]: `${priceMaxPct}%`,
+                  } as CSSProperties
+                }
+              >
+                <input
+                  className="dual_range_input"
+                  type="range"
+                  min={PRICE_MIN_WON}
+                  max={PRICE_MAX_WON}
+                  step={1000}
+                  value={priceRange[0]}
+                  onChange={(e) => {
+                    const nextMin = Math.min(Number(e.target.value), priceRange[1])
+                    setPriceRange([nextMin, priceRange[1]])
+                  }}
+                  aria-label="최소 가격"
+                />
+                <input
+                  className="dual_range_input"
+                  type="range"
+                  min={PRICE_MIN_WON}
+                  max={PRICE_MAX_WON}
+                  step={1000}
+                  value={priceRange[1]}
+                  onChange={(e) => {
+                    const nextMax = Math.max(Number(e.target.value), priceRange[0])
+                    setPriceRange([priceRange[0], nextMax])
+                  }}
+                  aria-label="최대 가격"
+                />
+              </div>
+              <div className="feed_filter_quick_row">
+                <button type="button" onClick={() => setPriceRange([500000, PRICE_MAX_WON])}>50만원 이상</button>
+                <button type="button" onClick={() => setPriceRange([1000000, PRICE_MAX_WON])}>100만원 이상</button>
+              </div>
+            </div>
+
+            <div className="feed_filter_range_group" aria-label="도수 필터">
+              <h3 className="feed_filter_group_title">도수</h3>
+              <p className="feed_filter_range_label">
+                {abvRange[0]}% ~ {abvRange[1] >= ABV_MAX ? `${ABV_MAX}% 이상` : `${abvRange[1]}%`}
+              </p>
+              <div
+                className="dual_range"
+                style={
+                  {
+                    ["--min-pct" as string]: `${abvMinPct}%`,
+                    ["--max-pct" as string]: `${abvMaxPct}%`,
+                  } as CSSProperties
+                }
+              >
+                <input
+                  className="dual_range_input"
+                  type="range"
+                  min={ABV_MIN}
+                  max={ABV_MAX}
+                  step={1}
+                  value={abvRange[0]}
+                  onChange={(e) => {
+                    const nextMin = Math.min(Number(e.target.value), abvRange[1])
+                    setAbvRange([nextMin, abvRange[1]])
+                  }}
+                  aria-label="최소 도수"
+                />
+                <input
+                  className="dual_range_input"
+                  type="range"
+                  min={ABV_MIN}
+                  max={ABV_MAX}
+                  step={1}
+                  value={abvRange[1]}
+                  onChange={(e) => {
+                    const nextMax = Math.max(Number(e.target.value), abvRange[0])
+                    setAbvRange([abvRange[0], nextMax])
+                  }}
+                  aria-label="최대 도수"
+                />
+              </div>
+            </div>
+
+            <div className="feed_filter_footer">
+              <button type="button" className="feed_filter_reset" onClick={resetFilters}>
+                선택 초기화
+              </button>
+              <button
+                type="button"
+                className="feed_filter_apply"
+                onClick={() => {
+                  setIsFeedFilterPopupOpen(false)
+                  setIsFeedSearchConfirmed(true)
+                }}
+              >
+                선택 완료
+                <br />
+                검색하기
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -1724,11 +1887,15 @@ export default function Community() {
             />
           ) : null}
 
-          {feedFilter === "review" || feedFilter === "free" ? (
-            <FeedWriteFab ariaLabel="글 작성" isVisible={hasWriteFabScrolled && isWriteFabVisible} />
-          ) : null}
         </section>
       )}
     </section>
   )
 }
+
+
+
+
+
+
+

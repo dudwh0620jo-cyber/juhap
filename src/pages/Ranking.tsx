@@ -1135,6 +1135,7 @@ export default function CommunityRanking() {
     })
     setIsFeedSearchConfirmed(true)
   }
+  void toggleDetailCategory
 
   const toggleFeature = (chip: string) => {
     setSelectedFeatures((prev) => {
@@ -1244,7 +1245,6 @@ export default function CommunityRanking() {
               onToggleGroupExpanded={toggleChipGroupExpanded}
               selectedDrinkType={selectedDrinkType}
               selectedCategories={selectedCategories}
-              selectedDetailCategories={selectedDetailCategories}
               selectedFeatures={selectedFeatures}
               selectedFoods={selectedFoods}
               onChipClick={(groupTitle, chip) => {
@@ -1254,10 +1254,6 @@ export default function CommunityRanking() {
                 }
                 if (groupTitle === "카테고리") {
                   toggleCategory(chip)
-                  return
-                }
-                if (groupTitle === "상세카테고리") {
-                  toggleDetailCategory(chip)
                   return
                 }
                 if (groupTitle === "특징") {
