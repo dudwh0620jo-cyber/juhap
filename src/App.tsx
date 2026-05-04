@@ -4,6 +4,7 @@ import Category from "./pages/Category"
 import CategoryList from "./pages/CategoryList"
 import Chat from "./pages/Chat"
 import Community from "./pages/Community"
+import CommunityRanking from "./pages/Ranking"
 import Home from "./pages/Home"
 import MyPage from "./pages/MyPage"
 import ProductDetail from "./pages/ProductDetail"
@@ -71,7 +72,7 @@ export default function App() {
           <Route path="/category/list" element={<CategoryList />} />
           <Route path="/chat" element={<Navigate to="/home" replace />} />
           <Route path="/community" element={<Community />} />
-          <Route path="/community/ranking" element={<Community />} />
+          <Route path="/community/ranking" element={<CommunityRanking />} />
           <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />
