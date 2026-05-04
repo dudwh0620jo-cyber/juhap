@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react"
-import { useNavigate } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import CategorySearch from "../components/CategorySearch"
 import GroupNav from "../components/GroupNav"
 import SubcategoryCard from "../components/SubcategoryCard"
@@ -80,8 +80,17 @@ const foodGroups = [
 
 export default function Category() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const returnedGroupLabel = (location.state as { groupLabel?: string } | null)?.groupLabel
+
   const [activeTab, setActiveTab] = useState<CategoryTab>("alcohol")
-  const [activeAlcoholGroupId, setActiveAlcoholGroupId] = useState(alcoholGroups[0].id)
+  const [activeAlcoholGroupId, setActiveAlcoholGroupId] = useState(() => {
+    if (returnedGroupLabel) {
+      const found = alcoholGroups.find((g) => g.label === returnedGroupLabel)
+      if (found) return found.id
+    }
+    return alcoholGroups[0].id
+  })
   const [activeFoodGroupId, setActiveFoodGroupId] = useState(foodGroups[0].id)
   const [searchValue, setSearchValue] = useState("")
   const searchInputRef = useRef<HTMLInputElement | null>(null)

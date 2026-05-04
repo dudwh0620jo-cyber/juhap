@@ -33,6 +33,12 @@
   white-space: nowrap;
 }
 
+.category_list_title_row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .category_list_title {
   margin: 0;
   text-align: left;
