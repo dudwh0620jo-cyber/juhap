@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
@@ -9,7 +9,6 @@ import CommunitySearchInput from "../components/CommunitySearchInput"
 import CommunityRankingSection from "../components/CommunityRankingSection"
 import CommunityFeedFilterPopupBody from "../components/CommunityFeedFilterPopupBody"
 import FeedWriteRow from "../components/FeedWriteRow"
-import FeedWriteFab from "../components/FeedWriteFab"
 
 // NOTE: The contents of `src/pages/community/*` were inlined into this file so the `community` folder can be deleted.
 // This is intentionally a single-file bundle for the Community page (as requested).
@@ -67,9 +66,10 @@ type FeedPost = {
   searchTags?: string[]
   drinkType?: string
   categories?: string[]
-  detailCategories?: string[]
-  features?: Array<"부드러운" | "무거운" | "가벼운" | "톡쏘는" | "오크향" | "과일향">
+  features?: string[]
   foods?: string[]
+  priceWon?: number
+  abv?: number
 }
 
 type FollowUser = {
@@ -88,6 +88,10 @@ const COMMUNITY_SEARCH_RECENT_KEY = "community_search_recent_terms"
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
 const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
 const MAX_RECENT_TERMS = 10
+const PRICE_MIN_WON = 0
+const PRICE_MAX_WON = 1_000_000
+const ABV_MIN = 0
+const ABV_MAX = 65
 
 const pairingReviewGrades = ["테이스터", "셀렉터", "큐레이터", "소믈리에", "마스터"] as const
 
@@ -139,55 +143,127 @@ const bookmarkLists = [
 ] as const
 
 const popupCategoryByDrinkType: Record<string, string[]> = {
-  소주: ["증류주"],
-  맥주: ["라거/필스너", "IPA", "크래프트"],
-  와인: ["레드", "화이트", "스파클링"],
-  위스키: ["증류주"],
-  전통주: ["막걸리"],
-  사케: ["사케준마이"],
-  기타: ["하이볼", "칵테일", "논알콜"],
+  사케: ["준마이 다이긴죠", "다이긴죠", "준마이 긴죠", "긴죠", "준마이", "혼죠조", "후츠슈(일반주)"],
+  소주: ["데일리(희석식)", "프리미엄(증류식)", "플레이버"],
+  와인: ["레드", "화이트", "로제", "스파클링", "내추럴", "포트", "디저트"],
+  맥주: ["라거/필스너", "에일/IPA", "흑맥주(스타우트)", "과일맥주"],
+  위스키: ["싱글몰트", "블렌디드 몰트", "블렌디드", "아메리칸(버번/라이/테네시)", "그레인", "기타 국가 위스키"],
+  증류주: ["백주/고량주", "진", "보드카", "테킬라", "럼", "브랜디(꼬냑/아르마냑)"],
+  전통주: ["막걸리/탁주", "약주/청주", "전통 증류주", "과실주(한국 와인)"],
+  기타: ["리큐르", "하이볼", "칵테일", "논알콜/저도수"],
 }
 
-const popupDetailByCategory: Record<string, string[]> = {
-  "라거/필스너": ["클래식", "드라이"],
-  IPA: ["웨스트코스트", "뉴잉글랜드"],
-  크래프트: ["세션", "임페리얼"],
-  레드: ["오크숙성", "프루티"],
-  화이트: ["시트러스", "트로피컬"],
-  스파클링: ["브뤼", "스위트"],
-  증류주: ["싱글몰트", "블렌디드", "버번"],
-  하이볼: ["소주토닉", "버번", "블렌디드"],
-  막걸리: ["비살균", "살균"],
-  사케준마이: ["준마이", "긴죠"],
-  칵테일: ["시트러스", "트로피컬"],
-  논알콜: ["제로", "로우알콜"],
+const popupFeaturesByDrinkType: Record<string, string[]> = {
+  사케: [
+    "과일향(긴죠향)",
+    "쌀향",
+    "누룩향",
+    "꽃향",
+    "단맛(아마구치)",
+    "드라이(카라구치)",
+    "산미",
+    "감칠맛(우마미)",
+    "부드러움",
+    "깔끔함",
+    "무게감(바디)",
+  ],
+  소주: [
+    "곡물향",
+    "알코올향",
+    "무향(깔끔함)",
+    "과일향(플레이버)",
+    "단맛",
+    "쓴맛",
+    "고소함",
+    "가벼움",
+    "화함(알코올 타격감)",
+    "오일리함",
+  ],
+  와인: [
+    "레드과일",
+    "블랙과일",
+    "오크향",
+    "지구향(흙/가죽)",
+    "꽃향",
+    "산도",
+    "당도",
+    "탄닌(떫은맛)",
+    "과실미",
+    "라이트/풀바디",
+    "실키함",
+    "발포성(탄산)",
+  ],
+  맥주: [
+    "홉(시트러스/열대과일)",
+    "맥아(고소함/카라멜)",
+    "효모향",
+    "커피/초콜릿",
+    "쓴맛(IBU)",
+    "단맛",
+    "고소함",
+    "산미",
+    "탄산감",
+    "크리미함",
+    "바디감",
+  ],
+  위스키: [
+    "피트(스모키)",
+    "바닐라/카라멜",
+    "과일",
+    "스파이시",
+    "견과류",
+    "단맛",
+    "짠맛(해조류)",
+    "매운맛",
+    "오크맛",
+    "묵직함",
+    "오일리함",
+    "긴 여운(Finish)",
+  ],
+  증류주: [
+    "농향(화려함)",
+    "장향(진함)",
+    "청향(깨끗함)",
+    "미향(은은함)",
+    "파인애플",
+    "곡물",
+    "누룩",
+    "단맛",
+    "화한 매운맛",
+    "감칠맛",
+    "부드러움",
+    "강한 타격감",
+    "깔끔한 끝맛",
+  ],
+  전통주: [
+    "곡물향",
+    "누룩향",
+    "과실향",
+    "산뜻한 향",
+    "당도",
+    "산미(신맛)",
+    "구수함",
+    "떫은맛",
+    "걸쭉함(바디)",
+    "탄산감",
+    "청량감",
+  ],
+  기타: ["맥주향", "와인향", "과일", "허브", "커피", "크림", "견과류", "단맛", "쌉쌀함", "청량함", "탄산감"],
 }
 
-const popupFeaturesByDetail: Record<string, Array<"부드러운" | "무거운" | "가벼운" | "톡쏘는" | "오크향" | "과일향">> =
-  {
-    클래식: ["가벼운", "톡쏘는"],
-    드라이: ["가벼운"],
-    웨스트코스트: ["톡쏘는", "무거운"],
-    뉴잉글랜드: ["부드러운", "과일향"],
-    세션: ["가벼운", "톡쏘는"],
-    임페리얼: ["무거운"],
-    소주토닉: ["가벼운", "톡쏘는", "과일향"],
-    오크숙성: ["무거운", "오크향"],
-    프루티: ["가벼운", "과일향"],
-    시트러스: ["톡쏘는", "과일향"],
-    트로피컬: ["과일향", "가벼운"],
-    브뤼: ["톡쏘는", "가벼운"],
-    스위트: ["부드러운", "과일향"],
-    싱글몰트: ["무거운", "오크향", "부드러운"],
-    블렌디드: ["부드러운", "무거운"],
-    버번: ["부드러운", "오크향", "무거운"],
-    비살균: ["부드러운", "가벼운"],
-    살균: ["가벼운"],
-    준마이: ["부드러운", "가벼운"],
-    긴죠: ["과일향", "가벼운"],
-    제로: ["가벼운", "톡쏘는"],
-    로우알콜: ["가벼운"],
-  }
+const popupFoodCategories = [
+  "디저트",
+  "과일",
+  "치즈",
+  "육류",
+  "구이",
+  "해산물",
+  "튀김",
+  "국물/탕",
+  "면",
+  "과자",
+  "베지테리안",
+]
 
 const podiumVotesById: Record<number, number> = {
   101: 8122,
@@ -241,13 +317,23 @@ const getPodiumVotes = (podium: RankingPodium) => {
 
 const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim()
 
+// For typo-ish / adjacency matching like "블렌디드몰트" vs "블렌디드 몰트",
+// or "논알콜 저도수" vs "논알콜/저도수".
+const normalizeFuzzyText = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[\/()［］\[\],.\-·]/g, "")
+    .trim()
+
 const includesNormalized = (value: string, query: string) => {
   const normalizedValue = normalizeSearchText(value)
   const normalizedQuery = normalizeSearchText(query)
   if (!normalizedQuery) {
     return true
   }
-  return normalizedValue.includes(normalizedQuery)
+  if (normalizedValue.includes(normalizedQuery)) return true
+  return normalizeFuzzyText(value).includes(normalizeFuzzyText(query))
 }
 
 const createRankingFeatureTags = (category: RankingCategory, pairing: string) => {
@@ -629,9 +715,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["기타", "하이볼", "소주토닉", "삼겹살", "가벼운", "톡쏘는", "과일향"],
     drinkType: "기타",
     categories: ["하이볼"],
-    detailCategories: ["소주토닉"],
     features: ["가벼운", "톡쏘는", "과일향"],
     foods: ["삼겹살"],
+    priceWon: 15000,
+    abv: 9,
   },
   {
     id: 1002,
@@ -648,9 +735,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["전통주", "막걸리", "해물파전", "부드러운", "가벼운"],
     drinkType: "전통주",
     categories: ["막걸리"],
-    detailCategories: ["비살균"],
     features: ["부드러운", "가벼운"],
     foods: ["해물파전"],
+    priceWon: 12000,
+    abv: 6,
   },
   {
     id: 1003,
@@ -668,9 +756,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["위스키", "하이볼", "버번", "부드러운", "무거운", "오크향"],
     drinkType: "위스키",
     categories: ["하이볼"],
-    detailCategories: ["버번"],
     features: ["부드러운", "무거운", "오크향"],
     foods: ["치즈"],
+    priceWon: 79000,
+    abv: 40,
   },
   {
     id: 1004,
@@ -688,9 +777,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["사케", "사케준마이", "가라아게", "부드러운", "가벼운", "오뎅", "명란구이"],
     drinkType: "사케",
     categories: ["사케준마이"],
-    detailCategories: ["준마이"],
     features: ["부드러운", "가벼운"],
     foods: ["가라아게", "오뎅", "명란구이"],
+    priceWon: 33000,
+    abv: 15,
   },
   {
     id: 1005,
@@ -707,9 +797,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["와인", "레드", "스테이크", "오크숙성", "무거운", "오크향"],
     drinkType: "와인",
     categories: ["레드"],
-    detailCategories: ["오크숙성"],
     features: ["무거운", "오크향"],
     foods: ["스테이크"],
+    priceWon: 29000,
+    abv: 13,
   },
   {
     id: 1006,
@@ -726,9 +817,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["맥주", "IPA", "크래프트", "뉴잉글랜드", "부드러운", "과일향", "햄버거", "치즈"],
     drinkType: "맥주",
     categories: ["IPA", "크래프트"],
-    detailCategories: ["뉴잉글랜드"],
     features: ["부드러운", "과일향"],
     foods: ["햄버거", "치즈"],
+    priceWon: 9000,
+    abv: 6.5,
   },
   {
     id: 1007,
@@ -745,9 +837,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["소주", "증류주", "족발", "부드러운", "무거운"],
     drinkType: "소주",
     categories: ["증류주"],
-    detailCategories: ["블렌디드"],
     features: ["부드러운", "무거운"],
     foods: ["족발"],
+    priceWon: 10000,
+    abv: 17,
   },
   {
     id: 1008,
@@ -765,9 +858,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["사케", "사케준마이", "회", "부드러운", "가벼운"],
     drinkType: "사케",
     categories: ["사케준마이"],
-    detailCategories: ["긴죠"],
     features: ["과일향", "가벼운"],
     foods: ["회"],
+    priceWon: 28000,
+    abv: 15,
   },
   {
     id: 1009,
@@ -784,9 +878,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["기타", "칵테일", "시트러스", "톡쏘는", "과일향", "타코"],
     drinkType: "기타",
     categories: ["칵테일"],
-    detailCategories: ["시트러스"],
     features: ["톡쏘는", "과일향"],
     foods: ["타코"],
+    priceWon: 18000,
+    abv: 12,
   },
   {
     id: 1010,
@@ -803,9 +898,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["맥주", "라거/필스너", "드라이", "가벼운", "감자튀김"],
     drinkType: "맥주",
     categories: ["라거/필스너"],
-    detailCategories: ["드라이"],
     features: ["가벼운"],
     foods: ["감자튀김"],
+    priceWon: 8000,
+    abv: 5,
   },
   {
     id: 1011,
@@ -823,9 +919,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["위스키", "증류주", "싱글몰트", "무거운", "오크향", "부드러운", "다크초콜릿"],
     drinkType: "위스키",
     categories: ["증류주"],
-    detailCategories: ["싱글몰트"],
     features: ["무거운", "오크향", "부드러운"],
     foods: ["다크초콜릿"],
+    priceWon: 99000,
+    abv: 45,
   },
   {
     id: 1012,
@@ -843,9 +940,10 @@ const feedPosts: FeedPost[] = [
     searchTags: ["맥주", "라거/필스너", "치킨", "가벼운", "톡쏘는", "전통주", "막걸리", "해물파전"],
     drinkType: "맥주",
     categories: ["라거/필스너"],
-    detailCategories: ["클래식"],
     features: ["가벼운", "톡쏘는"],
     foods: ["치킨", "해물파전"],
+    priceWon: 16000,
+    abv: 5,
   },
 ]
 
@@ -868,8 +966,6 @@ export default function Community() {
     COMMUNITY_FOLLOWED_USERS_KEY,
     followedUsersMock.map((user) => user.id),
   )
-  const [hasWriteFabScrolled, setHasWriteFabScrolled] = useState(false)
-  const [isWriteFabVisible, setIsWriteFabVisible] = useState(false)
   const { value: likedById, toggle: toggleLike } = useStoredBooleanRecordFromIds(COMMUNITY_LIKED_POSTS_KEY)
   const [bookmarkListById, setBookmarkListById] = useState<Record<number, string | null>>({})
   const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(
@@ -878,9 +974,10 @@ export default function Community() {
   const [isFeedFilterPopupOpen, setIsFeedFilterPopupOpen] = useState(false)
   const [selectedDrinkType, setSelectedDrinkType] = useState<string | null>(null)
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(() => new Set())
-  const [selectedDetailCategories, setSelectedDetailCategories] = useState<Set<string>>(() => new Set())
   const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(() => new Set())
   const [selectedFoods, setSelectedFoods] = useState<Set<string>>(() => new Set())
+  const [priceRange, setPriceRange] = useState<[number, number]>([PRICE_MIN_WON, PRICE_MAX_WON])
+  const [abvRange, setAbvRange] = useState<[number, number]>([ABV_MIN, ABV_MAX])
   const [feedSearchValue, setFeedSearchValue] = useState("")
   const [isFeedSearchConfirmed, setIsFeedSearchConfirmed] = useState(false)
   const feedSearchInputRef = useRef<HTMLInputElement | null>(null)
@@ -914,48 +1011,20 @@ export default function Community() {
   ]
 
   const availableCategories = useMemo(() => {
-    if (!selectedDrinkType) {
-      const merged = new Set<string>()
-      for (const categories of Object.values(popupCategoryByDrinkType)) {
-        for (const category of categories) {
-          merged.add(category)
-        }
-      }
-      return Array.from(merged)
-    }
+    if (!selectedDrinkType) return []
     return popupCategoryByDrinkType[selectedDrinkType] ?? []
   }, [selectedDrinkType])
 
-  const availableDetailCategories = useMemo(() => {
-    if (selectedCategories.size === 0) {
-      return []
-    }
-    const merged = new Set<string>()
-    for (const category of selectedCategories) {
-      for (const detail of popupDetailByCategory[category] ?? []) {
-        merged.add(detail)
-      }
-    }
-    return Array.from(merged)
-  }, [selectedCategories])
-
   const availableFeatures = useMemo(() => {
-    if (selectedDetailCategories.size === 0) {
-      return []
-    }
-    const merged = new Set<string>()
-    for (const detail of selectedDetailCategories) {
-      for (const feature of popupFeaturesByDetail[detail] ?? []) {
-        merged.add(feature)
-      }
-    }
-    return Array.from(merged)
-  }, [selectedDetailCategories])
+    if (!selectedDrinkType) return []
+    if (selectedCategories.size === 0) return []
+    return popupFeaturesByDrinkType[selectedDrinkType] ?? []
+  }, [selectedCategories, selectedDrinkType])
 
-  useEffect(() => {
-    const valid = new Set(availableDetailCategories)
-    setSelectedDetailCategories((prev) => new Set(Array.from(prev).filter((item) => valid.has(item))))
-  }, [availableDetailCategories])
+  const availableFoods = useMemo(() => {
+    if (!selectedDrinkType) return []
+    return popupFoodCategories
+  }, [selectedDrinkType])
 
   useEffect(() => {
     const valid = new Set(availableFeatures)
@@ -966,60 +1035,58 @@ export default function Community() {
     const groups: PopupChipGroup[] = [
       { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
       { title: "카테고리", chips: availableCategories },
-      { title: "상세카테고리", chips: availableDetailCategories },
       { title: "특징", chips: availableFeatures },
       {
         title: "음식",
-        chips: [
-          "치킨",
-          "피자",
-          "삼겹살",
-          "회",
-          "굴",
-          "떡볶이",
-          "파스타",
-          "육회",
-          "치즈",
-          "족발",
-          "해물파전",
-          "스테이크",
-          "햄버거",
-          "감자튀김",
-          "다크초콜릿",
-          "타코",
-          "가라아게",
-          "오뎅",
-          "명란구이",
-        ],
+        chips: availableFoods,
       },
     ]
 
-    return groups.filter((group) => group.title === "주종" || group.chips.length > 0)
-  }, [availableCategories, availableDetailCategories, availableFeatures])
+    // Keep group titles visible even when chips are empty (step-by-step funnel UX).
+    return groups
+  }, [availableCategories, availableFeatures, availableFoods])
+
+  const searchAllChipGroups: PopupChipGroup[] = useMemo(() => {
+    const categorySet = new Set<string>()
+    for (const list of Object.values(popupCategoryByDrinkType)) {
+      for (const item of list) categorySet.add(item)
+    }
+    const featureSet = new Set<string>()
+    for (const list of Object.values(popupFeaturesByDrinkType)) {
+      for (const item of list) featureSet.add(item)
+    }
+
+    return [
+      { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
+      { title: "카테고리", chips: Array.from(categorySet) },
+      { title: "특징", chips: Array.from(featureSet) },
+      { title: "음식", chips: popupFoodCategories },
+    ]
+  }, [])
 
   void _legacyPopupChipGroups
 
   const filteredPopupChipGroups = useMemo(() => {
-    const query = feedSearchValue.trim().toLowerCase()
+      const query = feedSearchValue.trim().toLowerCase()
     if (!isFeedSearchConfirmed || !query) {
       return popupChipGroups
     }
 
     const results: PopupChipGroup[] = []
-    for (const group of popupChipGroups) {
+    for (const group of searchAllChipGroups) {
       if (group.title.toLowerCase().includes(query)) {
         results.push(group)
         continue
       }
 
-      const chips = group.chips.filter((chip) => chip.toLowerCase().includes(query))
+      const chips = group.chips.filter((chip) => includesNormalized(chip, query))
       if (chips.length > 0) {
         results.push({ title: group.title, chips })
       }
     }
 
     return results
-  }, [feedSearchValue, isFeedSearchConfirmed, popupChipGroups])
+  }, [feedSearchValue, isFeedSearchConfirmed, popupChipGroups, searchAllChipGroups])
 
   const isPopupSearchNoResults =
     isFeedSearchConfirmed && feedSearchValue.trim() && filteredPopupChipGroups.length === 0
@@ -1029,9 +1096,12 @@ export default function Community() {
     isFeedSearchConfirmed ||
     Boolean(selectedDrinkType) ||
     selectedCategories.size > 0 ||
-    selectedDetailCategories.size > 0 ||
     selectedFeatures.size > 0 ||
-    selectedFoods.size > 0
+    selectedFoods.size > 0 ||
+    priceRange[0] !== PRICE_MIN_WON ||
+    priceRange[1] !== PRICE_MAX_WON ||
+    abvRange[0] !== ABV_MIN ||
+    abvRange[1] !== ABV_MAX
 
   const posts = useMemo(() => {
     const copy = [...feedPosts]
@@ -1068,24 +1138,32 @@ export default function Community() {
 
     const query = feedSearchValue.trim()
     return posts.filter((post) => {
-      const targets = [post.title, post.body, post.profile ?? "", ...(post.searchTags ?? [])]
+      const targets = [
+        post.title,
+        post.body,
+        post.profile ?? "",
+        post.drinkType ?? "",
+        ...(post.categories ?? []),
+        ...(post.features ?? []),
+        ...(post.foods ?? []),
+        ...(post.searchTags ?? []),
+      ]
       const queryMatches = !query || includesNormalized(targets.join(" "), query)
 
-      const drinkTypeMatches =
-        !selectedDrinkType ||
-        post.drinkType === selectedDrinkType ||
-        (post.categories ?? []).some((item) => (popupCategoryByDrinkType[selectedDrinkType] ?? []).includes(item))
+      const drinkTypeMatches = !selectedDrinkType || post.drinkType === selectedDrinkType
       const categoryMatches =
         selectedCategories.size === 0 || (post.categories ?? []).some((item) => selectedCategories.has(item))
-      const detailMatches =
-        selectedDetailCategories.size === 0 ||
-        (post.detailCategories ?? []).some((item) => selectedDetailCategories.has(item))
       const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
       const featureMatches =
         selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
+      const priceValue = typeof post.priceWon === "number" && Number.isFinite(post.priceWon) ? post.priceWon : 0
+      const priceMatches = priceValue >= priceRange[0] && (priceRange[1] >= PRICE_MAX_WON ? true : priceValue <= priceRange[1])
+      const abvValue = typeof post.abv === "number" && Number.isFinite(post.abv) ? post.abv : 0
+      const abvMatches =
+        abvValue >= abvRange[0] && (abvRange[1] >= ABV_MAX ? true : abvValue <= abvRange[1])
 
       return (
-        queryMatches && drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
+        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches && priceMatches && abvMatches
       )
     })
   }, [
@@ -1093,10 +1171,11 @@ export default function Community() {
     isCommunitySearchActive,
     posts,
     selectedCategories,
-    selectedDetailCategories,
     selectedDrinkType,
     selectedFeatures,
     selectedFoods,
+    priceRange,
+    abvRange,
   ])
 
   const searchSuggestionTags = useMemo(() => {
@@ -1107,19 +1186,13 @@ export default function Community() {
 
     const normalizedQuery = normalizeSearchText(query)
     const filterPostWithoutQuery = (post: FeedPost) => {
-      const drinkTypeMatches =
-        !selectedDrinkType ||
-        post.drinkType === selectedDrinkType ||
-        (post.categories ?? []).some((item) => (popupCategoryByDrinkType[selectedDrinkType] ?? []).includes(item))
+      const drinkTypeMatches = !selectedDrinkType || post.drinkType === selectedDrinkType
       const categoryMatches =
         selectedCategories.size === 0 || (post.categories ?? []).some((item) => selectedCategories.has(item))
-      const detailMatches =
-        selectedDetailCategories.size === 0 ||
-        (post.detailCategories ?? []).some((item) => selectedDetailCategories.has(item))
       const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
       const featureMatches =
         selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
-      return drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
+      return drinkTypeMatches && categoryMatches && foodMatches && featureMatches
     }
 
     const candidates = new Map<string, number>()
@@ -1133,7 +1206,6 @@ export default function Community() {
       const tagPool = [
         post.drinkType ?? "",
         ...(post.categories ?? []),
-        ...(post.detailCategories ?? []),
         ...(post.features ?? []),
         ...(post.foods ?? []),
         ...(post.searchTags ?? []),
@@ -1154,7 +1226,7 @@ export default function Community() {
       }
     }
 
-    const hasResultsForTag = (tag: string) => {
+  const hasResultsForTag = (tag: string) => {
       for (const post of feedPosts) {
         if (!filterPostWithoutQuery(post)) continue
         const tagPool = [
@@ -1162,7 +1234,6 @@ export default function Community() {
           post.body,
           post.drinkType ?? "",
           ...(post.categories ?? []),
-          ...(post.detailCategories ?? []),
           ...(post.features ?? []),
           ...(post.foods ?? []),
           ...(post.searchTags ?? []),
@@ -1180,7 +1251,6 @@ export default function Community() {
       .filter(([tag]) => {
         if (selectedDrinkType && tag === selectedDrinkType) return false
         if (selectedCategories.has(tag)) return false
-        if (selectedDetailCategories.has(tag)) return false
         if (selectedFeatures.has(tag)) return false
         if (selectedFoods.has(tag)) return false
         return true
@@ -1191,7 +1261,6 @@ export default function Community() {
   }, [
     feedSearchValue,
     selectedCategories,
-    selectedDetailCategories,
     selectedDrinkType,
     selectedFeatures,
     selectedFoods,
@@ -1218,16 +1287,13 @@ export default function Community() {
       const drinkTypeMatches = !selectedDrinkType || includesNormalized(categoryLabel, selectedDrinkType)
       const categoryMatches =
         selectedCategories.size === 0 || Array.from(selectedCategories).some((item) => includesNormalized(targets.join(" "), item))
-      const detailMatches =
-        selectedDetailCategories.size === 0 ||
-        Array.from(selectedDetailCategories).some((item) => includesNormalized(targets.join(" "), item))
       const foodMatches =
         selectedFoods.size === 0 || Array.from(selectedFoods).some((item) => includesNormalized(row.pair, item))
       const featureMatches =
         selectedFeatures.size === 0 || featureTags.some((tag) => selectedFeatures.has(tag))
 
       return (
-        queryMatches && drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
+        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
       )
     })
   }, [
@@ -1235,7 +1301,6 @@ export default function Community() {
     isCommunitySearchActive,
     rankingRows,
     selectedCategories,
-    selectedDetailCategories,
     selectedDrinkType,
     selectedFeatures,
     selectedFoods,
@@ -1259,16 +1324,13 @@ export default function Community() {
       const drinkTypeMatches = !selectedDrinkType || includesNormalized(categoryLabel, selectedDrinkType)
       const categoryMatches =
         selectedCategories.size === 0 || Array.from(selectedCategories).some((item) => includesNormalized(targets.join(" "), item))
-      const detailMatches =
-        selectedDetailCategories.size === 0 ||
-        Array.from(selectedDetailCategories).some((item) => includesNormalized(targets.join(" "), item))
       const foodMatches =
         selectedFoods.size === 0 || Array.from(selectedFoods).some((item) => includesNormalized(podium.pair, item))
       const featureMatches =
         selectedFeatures.size === 0 || featureTags.some((tag) => selectedFeatures.has(tag))
 
       return (
-        queryMatches && drinkTypeMatches && categoryMatches && detailMatches && foodMatches && featureMatches
+        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
       )
     })
   }, [
@@ -1276,7 +1338,6 @@ export default function Community() {
     isCommunitySearchActive,
     rankingPodium,
     selectedCategories,
-    selectedDetailCategories,
     selectedDrinkType,
     selectedFeatures,
     selectedFoods,
@@ -1284,23 +1345,6 @@ export default function Community() {
 
   const isRankingNoResults = isCommunitySearchActive && filteredRankingRows.length === 0 && filteredRankingPodium.length === 0
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (topTab !== "feed" || (feedFilter !== "review" && feedFilter !== "free")) {
-        setIsWriteFabVisible(false)
-        return
-      }
-
-      setHasWriteFabScrolled(true)
-      const nextVisible = window.scrollY > 0
-      setIsWriteFabVisible((prev) => (prev === nextVisible ? prev : nextVisible))
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [feedFilter, topTab])
 
   useEffect(() => {
     if (!isFeedFilterPopupOpen) {
@@ -1392,26 +1436,46 @@ export default function Community() {
   const toggleDrinkType = (nextDrinkType: string) => {
     setSelectedDrinkType((prev) => (prev === nextDrinkType ? null : nextDrinkType))
     setSelectedCategories(new Set())
-    setSelectedDetailCategories(new Set())
     setSelectedFeatures(new Set())
     setIsFeedSearchConfirmed(true)
   }
 
-  const toggleCategory = (chip: string) => {
-    setSelectedCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(chip)) {
-        next.delete(chip)
-      } else {
-        next.add(chip)
-      }
-      return next
-    })
-    setIsFeedSearchConfirmed(true)
+  const priceMinPct = useMemo(() => {
+    const denom = PRICE_MAX_WON - PRICE_MIN_WON
+    if (denom <= 0) return 0
+    return Math.round(((priceRange[0] - PRICE_MIN_WON) / denom) * 1000) / 10
+  }, [priceRange])
+
+  const priceMaxPct = useMemo(() => {
+    const denom = PRICE_MAX_WON - PRICE_MIN_WON
+    if (denom <= 0) return 100
+    return Math.round(((priceRange[1] - PRICE_MIN_WON) / denom) * 1000) / 10
+  }, [priceRange])
+
+  const abvMinPct = useMemo(() => {
+    const denom = ABV_MAX - ABV_MIN
+    if (denom <= 0) return 0
+    return Math.round(((abvRange[0] - ABV_MIN) / denom) * 1000) / 10
+  }, [abvRange])
+
+  const abvMaxPct = useMemo(() => {
+    const denom = ABV_MAX - ABV_MIN
+    if (denom <= 0) return 100
+    return Math.round(((abvRange[1] - ABV_MIN) / denom) * 1000) / 10
+  }, [abvRange])
+
+  const resetFilters = () => {
+    setSelectedDrinkType(null)
+    setSelectedCategories(new Set())
+    setSelectedFeatures(new Set())
+    setSelectedFoods(new Set())
+    setPriceRange([PRICE_MIN_WON, PRICE_MAX_WON])
+    setAbvRange([ABV_MIN, ABV_MAX])
+    setIsFeedSearchConfirmed(Boolean(feedSearchValue.trim()))
   }
 
-  const toggleDetailCategory = (chip: string) => {
-    setSelectedDetailCategories((prev) => {
+  const toggleCategory = (chip: string) => {
+    setSelectedCategories((prev) => {
       const next = new Set(prev)
       if (next.has(chip)) {
         next.delete(chip)
@@ -1486,8 +1550,6 @@ export default function Community() {
   }
 
   const changeFeedFilter = (nextFilter: FeedFilter) => {
-    setHasWriteFabScrolled(false)
-    setIsWriteFabVisible(false)
     setFeedFilter(nextFilter)
   }
 
@@ -1556,7 +1618,6 @@ export default function Community() {
               onToggleGroupExpanded={toggleChipGroupExpanded}
               selectedDrinkType={selectedDrinkType}
               selectedCategories={selectedCategories}
-              selectedDetailCategories={selectedDetailCategories}
               selectedFeatures={selectedFeatures}
               selectedFoods={selectedFoods}
               onChipClick={(groupTitle, chip) => {
@@ -1566,10 +1627,6 @@ export default function Community() {
                 }
                 if (groupTitle === "카테고리") {
                   toggleCategory(chip)
-                  return
-                }
-                if (groupTitle === "상세카테고리") {
-                  toggleDetailCategory(chip)
                   return
                 }
                 if (groupTitle === "특징") {
@@ -1586,6 +1643,114 @@ export default function Community() {
                 setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
               }}
             />
+
+            <div className="feed_filter_range_group" aria-label="가격 필터">
+              <h3 className="feed_filter_group_title">가격</h3>
+              <p className="feed_filter_range_label">
+                {priceRange[0].toLocaleString()}원 ~ {priceRange[1] >= PRICE_MAX_WON ? `${PRICE_MAX_WON.toLocaleString()}원 이상` : `${priceRange[1].toLocaleString()}원`}
+              </p>
+              <div
+                className="dual_range"
+                style={
+                  {
+                    ["--min-pct" as string]: `${priceMinPct}%`,
+                    ["--max-pct" as string]: `${priceMaxPct}%`,
+                  } as CSSProperties
+                }
+              >
+                <input
+                  className="dual_range_input"
+                  type="range"
+                  min={PRICE_MIN_WON}
+                  max={PRICE_MAX_WON}
+                  step={1000}
+                  value={priceRange[0]}
+                  onChange={(e) => {
+                    const nextMin = Math.min(Number(e.target.value), priceRange[1])
+                    setPriceRange([nextMin, priceRange[1]])
+                  }}
+                  aria-label="최소 가격"
+                />
+                <input
+                  className="dual_range_input"
+                  type="range"
+                  min={PRICE_MIN_WON}
+                  max={PRICE_MAX_WON}
+                  step={1000}
+                  value={priceRange[1]}
+                  onChange={(e) => {
+                    const nextMax = Math.max(Number(e.target.value), priceRange[0])
+                    setPriceRange([priceRange[0], nextMax])
+                  }}
+                  aria-label="최대 가격"
+                />
+              </div>
+              <div className="feed_filter_quick_row">
+                <button type="button" onClick={() => setPriceRange([500000, PRICE_MAX_WON])}>50만원 이상</button>
+                <button type="button" onClick={() => setPriceRange([1000000, PRICE_MAX_WON])}>100만원 이상</button>
+              </div>
+            </div>
+
+            <div className="feed_filter_range_group" aria-label="도수 필터">
+              <h3 className="feed_filter_group_title">도수</h3>
+              <p className="feed_filter_range_label">
+                {abvRange[0]}% ~ {abvRange[1] >= ABV_MAX ? `${ABV_MAX}% 이상` : `${abvRange[1]}%`}
+              </p>
+              <div
+                className="dual_range"
+                style={
+                  {
+                    ["--min-pct" as string]: `${abvMinPct}%`,
+                    ["--max-pct" as string]: `${abvMaxPct}%`,
+                  } as CSSProperties
+                }
+              >
+                <input
+                  className="dual_range_input"
+                  type="range"
+                  min={ABV_MIN}
+                  max={ABV_MAX}
+                  step={1}
+                  value={abvRange[0]}
+                  onChange={(e) => {
+                    const nextMin = Math.min(Number(e.target.value), abvRange[1])
+                    setAbvRange([nextMin, abvRange[1]])
+                  }}
+                  aria-label="최소 도수"
+                />
+                <input
+                  className="dual_range_input"
+                  type="range"
+                  min={ABV_MIN}
+                  max={ABV_MAX}
+                  step={1}
+                  value={abvRange[1]}
+                  onChange={(e) => {
+                    const nextMax = Math.max(Number(e.target.value), abvRange[0])
+                    setAbvRange([abvRange[0], nextMax])
+                  }}
+                  aria-label="최대 도수"
+                />
+              </div>
+            </div>
+
+            <div className="feed_filter_footer">
+              <button type="button" className="feed_filter_reset" onClick={resetFilters}>
+                선택 초기화
+              </button>
+              <button
+                type="button"
+                className="feed_filter_apply"
+                onClick={() => {
+                  setIsFeedFilterPopupOpen(false)
+                  setIsFeedSearchConfirmed(true)
+                }}
+              >
+                선택 완료
+                <br />
+                검색하기
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -1722,11 +1887,15 @@ export default function Community() {
             />
           ) : null}
 
-          {feedFilter === "review" || feedFilter === "free" ? (
-            <FeedWriteFab ariaLabel="글 작성" isVisible={hasWriteFabScrolled && isWriteFabVisible} />
-          ) : null}
         </section>
       )}
     </section>
   )
 }
+
+
+
+
+
+
+

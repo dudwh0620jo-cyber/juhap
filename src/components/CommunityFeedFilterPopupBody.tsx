@@ -1,4 +1,4 @@
-import FeedFilterChip from "./FeedFilterChip"
+﻿import FeedFilterChip from "./FeedFilterChip"
 import FeedFilterGroup from "./FeedFilterGroup"
 import RecentSearchChips from "./RecentSearchChips"
 
@@ -16,7 +16,6 @@ type Props = {
 
   selectedDrinkType: string | null
   selectedCategories: ReadonlySet<string>
-  selectedDetailCategories: ReadonlySet<string>
   selectedFeatures: ReadonlySet<string>
   selectedFoods: ReadonlySet<string>
   onChipClick: (groupTitle: string, chip: string) => void
@@ -32,7 +31,6 @@ const getChipActiveState = (
   selected: {
     drinkType: string | null
     categories: ReadonlySet<string>
-    detailCategories: ReadonlySet<string>
     features: ReadonlySet<string>
     foods: ReadonlySet<string>
   },
@@ -42,9 +40,6 @@ const getChipActiveState = (
   }
   if (groupTitle === "카테고리") {
     return selected.categories.has(chip)
-  }
-  if (groupTitle === "상세카테고리") {
-    return selected.detailCategories.has(chip)
   }
   if (groupTitle === "특징") {
     return selected.features.has(chip)
@@ -63,7 +58,6 @@ export default function CommunityFeedFilterPopupBody({
   onToggleGroupExpanded,
   selectedDrinkType,
   selectedCategories,
-  selectedDetailCategories,
   selectedFeatures,
   selectedFoods,
   onChipClick,
@@ -93,7 +87,6 @@ export default function CommunityFeedFilterPopupBody({
                 isActive={getChipActiveState(group.title, chip, {
                   drinkType: selectedDrinkType,
                   categories: selectedCategories,
-                  detailCategories: selectedDetailCategories,
                   features: selectedFeatures,
                   foods: selectedFoods,
                 })}
@@ -108,4 +101,3 @@ export default function CommunityFeedFilterPopupBody({
     </div>
   )
 }
-

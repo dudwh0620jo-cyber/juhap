@@ -133,7 +133,7 @@ body {
 .chat_corner_slot {
   position: fixed;
   left: 50%;
-  bottom: 104px;
+  bottom: 84px;
   z-index: 11;
   width: min(100%, 430px);
   padding: 0 16px;
