@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
-import { useNavigate } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
@@ -10,6 +10,9 @@ import QuestionPostRow from "../components/QuestionPostRow"
 import CommunitySearchInput from "../components/CommunitySearchInput"
 import CommunityFeedFilterPopupBody from "../components/CommunityFeedFilterPopupBody"
 import FeedWriteRow from "../components/FeedWriteRow"
+import { extractPairingTitle, feedPosts as communityFeedPosts, type FeedPost } from "../hooks/communityPosts"
+import { includesNormalized, normalizeSearchText } from "../utils/text"
+import { useStoredBooleanRecordFromIds, useStoredNumberSet, useStoredStringArray } from "../utils/storage"
 
 // NOTE: The contents of `src/pages/community/*` were inlined into this file so the `community` folder can be deleted.
 // This is intentionally a single-file bundle for the Community page (as requested).
@@ -18,29 +21,7 @@ type FeedFilter = "review" | "free" | "follow"
 
 type GradeTier = 1 | 2 | 3 | 4 | 5
 
-type FeedPost = {
-  id: number
-  authorId: number
-  authorName: string
-  title: string
-  body: string
-  createdAt: string
-  likeCount: number
-  commentCount: number
-  popularityScore: number
-  profile?: string
-  locationLabel?: string
-  isQna?: boolean
-  answerPreview?: string
-  answerCount?: number
-  searchTags?: string[]
-  drinkType?: string
-  categories?: string[]
-  features?: string[]
-  foods?: string[]
-  priceWon?: number
-  abv?: number
-}
+// FeedPost is sourced from `src/hooks/communityPosts.ts` so list/detail stay consistent.
 
 type FollowUser = {
   id: number
@@ -216,376 +197,11 @@ const popupFoodCategories = [
   "베지테리안",
 ]
 
-const extractPairingTitle = (title: string) => {
-  const match = title.match(/([^\n+]{2,}?)\s*\+\s*([^\n+]{2,}?)(?=[,.\n]|$)/)
-  if (!match) {
-    return title
-  }
-  const left = match[1].trim()
-  const right = match[2].trim()
-  return `${left} + ${right}`
-}
+// Shared helpers live in `src/utils/*` and are imported above.
 
-const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim()
 
-// For typo-ish / adjacency matching like "블렌디드몰트" vs "블렌디드 몰트",
-// or "논알콜 저도수" vs "논알콜/저도수".
-const normalizeFuzzyText = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/[\/()［］\[\],.\-·]/g, "")
-    .trim()
-
-const includesNormalized = (value: string, query: string) => {
-  const normalizedValue = normalizeSearchText(value)
-  const normalizedQuery = normalizeSearchText(query)
-  if (!normalizedQuery) {
-    return true
-  }
-  if (normalizedValue.includes(normalizedQuery)) return true
-  return normalizeFuzzyText(value).includes(normalizeFuzzyText(query))
-}
-
-function useStoredNumberSet(key: string, defaultIds: readonly number[]) {
-  const [value, setValue] = useState<Set<number>>(() => {
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (!raw) {
-        return new Set(defaultIds)
-      }
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) {
-        return new Set(defaultIds)
-      }
-      const ids = parsed.filter((item): item is number => typeof item === "number" && Number.isFinite(item))
-      return new Set(ids)
-    } catch {
-      return new Set(defaultIds)
-    }
-  })
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (!raw) {
-        window.localStorage.setItem(key, JSON.stringify(Array.from(value)))
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, [key, value])
-
-  const toggle = (id: number) => {
-    setValue((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      try {
-        window.localStorage.setItem(key, JSON.stringify(Array.from(next)))
-      } catch {
-        // ignore storage errors
-      }
-      return next
-    })
-  }
-
-  return { value, setValue, toggle }
-}
-
-function useStoredBooleanRecordFromIds(key: string) {
-  const [value, setValue] = useState<Record<number, boolean>>(() => {
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (!raw) {
-        return {}
-      }
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) {
-        return {}
-      }
-      const record: Record<number, boolean> = {}
-      for (const item of parsed) {
-        if (typeof item === "number" && Number.isFinite(item)) {
-          record[item] = true
-        }
-      }
-      return record
-    } catch {
-      return {}
-    }
-  })
-
-  const toggle = (id: number) => {
-    setValue((prev) => {
-      const next = { ...prev, [id]: !prev[id] }
-      try {
-        const ids = Object.entries(next)
-          .filter(([, liked]) => liked)
-          .map(([entryKey]) => Number(entryKey))
-          .filter((num) => Number.isFinite(num))
-        window.localStorage.setItem(key, JSON.stringify(ids))
-      } catch {
-        // ignore storage errors
-      }
-      return next
-    })
-  }
-
-  return { value, setValue, toggle }
-}
-
-function useStoredStringArray(key: string, maxLength: number) {
-  const [value, setValue] = useState<string[]>(() => {
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (!raw) {
-        return []
-      }
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) {
-        return []
-      }
-      return parsed.filter((term): term is string => typeof term === "string" && term.trim().length > 0)
-    } catch {
-      return []
-    }
-  })
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(value.slice(0, maxLength)))
-    } catch {
-      // ignore storage errors
-    }
-  }, [key, maxLength, value])
-
-  return { value, setValue }
-}
-
-/* (removed) ranking data was moved to `src/pages/Ranking.tsx` */
-
+const feedPosts: FeedPost[] = communityFeedPosts
 /*
-const rankingDataByPeriod = {
-  weekly: {
-    podiumByCategory: {
-      all: [
-        { id: 101, rank: 1, pair: "진로 이즈백 + 삼겹살", category: "soju", score: 4.7, votes: 8122 },
-        { id: 102, rank: 2, pair: "막걸리 + 해물파전", category: "tradition", score: 4.7, votes: 8494 },
-        { id: 103, rank: 3, pair: "레드 와인 + 스테이크", category: "wine", score: 4.8, votes: 8494, thumbVariant: "bottle" },
-      ],
-      soju: [
-        { id: 111, rank: 1, pair: "진로 이즈백 + 삼겹살", category: "soju", score: 4.7, votes: 8122 },
-        { id: 112, rank: 2, pair: "참이슬 + 제육볶음", category: "soju", score: 4.6, votes: 6438 },
-        { id: 113, rank: 3, pair: "처음처럼 + 곱창", category: "soju", score: 4.5, votes: 5981 },
-      ],
-      wine: [
-        { id: 121, rank: 1, pair: "레드 와인 + 스테이크", category: "wine", score: 4.8, votes: 8494, thumbVariant: "bottle" },
-        { id: 122, rank: 2, pair: "샴페인 + 굴", category: "wine", score: 91.3, votes: 4218, thumbVariant: "bottle" },
-        { id: 123, rank: 3, pair: "화이트 와인 + 치즈", category: "wine", score: 4.7, votes: 4021, thumbVariant: "bottle" },
-      ],
-      beer: [
-        { id: 131, rank: 1, pair: "카스 맥주 + 치킨", category: "beer", score: 4.7, votes: 7621 },
-        { id: 132, rank: 2, pair: "테라 맥주 + 떡볶이", category: "beer", score: 4.6, votes: 3891 },
-        { id: 133, rank: 3, pair: "IPA + 버거", category: "beer", score: 4.5, votes: 3422 },
-      ],
-      whisky_spirit: [
-        { id: 141, rank: 1, pair: "발렌타인 + 다크초콜릿", category: "whisky_spirit", score: 4.6, votes: 3214 },
-        { id: 142, rank: 2, pair: "하이볼 + 나초", category: "whisky_spirit", score: 4.5, votes: 2981 },
-        { id: 143, rank: 3, pair: "진 + 토닉 + 올리브", category: "whisky_spirit", score: 4.4, votes: 2650 },
-      ],
-      tradition: [
-        { id: 151, rank: 1, pair: "막걸리 + 해물파전", category: "tradition", score: 4.7, votes: 8494 },
-        { id: 152, rank: 2, pair: "화요 25 + 회무침", category: "tradition", score: 4.7, votes: 5432 },
-        { id: 153, rank: 3, pair: "청주 + 모둠전", category: "tradition", score: 4.6, votes: 4108 },
-      ],
-      sake: [
-        { id: 161, rank: 1, pair: "사케 + 사시미", category: "sake", score: 4.6, votes: 3328 },
-        { id: 162, rank: 2, pair: "사케 + 가라아게", category: "sake", score: 4.5, votes: 2890 },
-        { id: 163, rank: 3, pair: "사케 + 오뎅", category: "sake", score: 4.4, votes: 2542 },
-      ],
-      etc: [
-        { id: 171, rank: 1, pair: "칵테일 + 타코", category: "etc", score: 4.6, votes: 3011 },
-        { id: 172, rank: 2, pair: "하드셀처 + 나초", category: "etc", score: 4.5, votes: 2740 },
-        { id: 173, rank: 3, pair: "무알콜 칵테일 + 샐러드", category: "etc", score: 4.4, votes: 2405 },
-      ],
-    },
-    rows: [
-      { id: 104, rank: 4, pair: "카스 맥주 + 치킨", category: "beer", score: 4.7, votes: 7621, delta: "-1" },
-      { id: 105, rank: 5, pair: "화요 25 + 회무침", category: "tradition", score: 4.7, votes: 5432, delta: "+5" },
-      { id: 106, rank: 6, pair: "샴페인 + 굴", category: "wine", score: 91.3, votes: 4218, delta: "+2" },
-      { id: 107, rank: 7, pair: "테라 맥주 + 떡볶이", category: "beer", score: 4.6, votes: 3891, delta: "-2" },
-      { id: 108, rank: 8, pair: "발렌타인 + 다크초콜릿", category: "whisky_spirit", score: 4.6, votes: 3214, delta: "–" },
-      { id: 109, rank: 9, pair: "사케 + 사시미", category: "sake", score: 4.6, votes: 3328, delta: "+1" },
-      { id: 110, rank: 10, pair: "진로 이즈백 + 삼겹살", category: "soju", score: 4.7, votes: 8122, delta: "+3" },
-    ],
-  },
-  daily: {
-    podiumByCategory: {
-      all: [
-        { id: 201, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 98.9 },
-        { id: 202, rank: 2, pair: "라거 맥주 + 감자튀김", category: "beer", score: 97.4 },
-        { id: 203, rank: 3, pair: "화이트 와인 + 치즈", category: "wine", score: 96.2, thumbVariant: "bottle" },
-      ],
-      soju: [
-        { id: 211, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 98.9 },
-        { id: 212, rank: 2, pair: "소주 + 곱창", category: "soju", score: 97.3 },
-        { id: 213, rank: 3, pair: "소주 + 제육볶음", category: "soju", score: 96.0 },
-      ],
-      wine: [
-        { id: 221, rank: 1, pair: "화이트 와인 + 치즈", category: "wine", score: 97.2, thumbVariant: "bottle" },
-        { id: 222, rank: 2, pair: "레드 와인 + 파스타", category: "wine", score: 96.6, thumbVariant: "bottle" },
-        { id: 223, rank: 3, pair: "샴페인 + 굴", category: "wine", score: 95.9, thumbVariant: "bottle" },
-      ],
-      beer: [
-        { id: 231, rank: 1, pair: "라거 맥주 + 감자튀김", category: "beer", score: 97.4 },
-        { id: 232, rank: 2, pair: "IPA + 버거", category: "beer", score: 96.5 },
-        { id: 233, rank: 3, pair: "밀맥주 + 피자", category: "beer", score: 95.6 },
-      ],
-      whisky_spirit: [
-        { id: 241, rank: 1, pair: "위스키 + 견과류", category: "whisky_spirit", score: 97.0 },
-        { id: 242, rank: 2, pair: "하이볼 + 나초", category: "whisky_spirit", score: 96.1 },
-        { id: 243, rank: 3, pair: "진 + 토닉 + 올리브", category: "whisky_spirit", score: 95.3 },
-      ],
-      tradition: [
-        { id: 251, rank: 1, pair: "막걸리 + 파전", category: "tradition", score: 96.8 },
-        { id: 252, rank: 2, pair: "청주 + 생선구이", category: "tradition", score: 95.9 },
-        { id: 253, rank: 3, pair: "약주 + 수육", category: "tradition", score: 95.0 },
-      ],
-      sake: [
-        { id: 261, rank: 1, pair: "사케 + 사시미", category: "sake", score: 96.7 },
-        { id: 262, rank: 2, pair: "사케 + 오뎅", category: "sake", score: 95.8 },
-        { id: 263, rank: 3, pair: "사케 + 스시", category: "sake", score: 95.1 },
-      ],
-      etc: [
-        { id: 271, rank: 1, pair: "칵테일 + 타코", category: "etc", score: 96.2 },
-        { id: 272, rank: 2, pair: "하드셀처 + 나초", category: "etc", score: 95.7 },
-        { id: 273, rank: 3, pair: "무알콜 칵테일 + 샐러드", category: "etc", score: 95.0 },
-      ],
-    },
-    rows: [
-      { id: 204, rank: 4, pair: "막걸리 + 파전", category: "tradition", score: 95.3, votes: 2210, delta: "+1" },
-      { id: 205, rank: 5, pair: "위스키 + 견과류", category: "whisky_spirit", score: 94.0, votes: 1982, delta: "-2" },
-      { id: 206, rank: 6, pair: "IPA + 버거", category: "beer", score: 93.2, votes: 1751, delta: "+4" },
-      { id: 207, rank: 7, pair: "소주 + 제육볶음", category: "soju", score: 92.1, votes: 1620, delta: "+2" },
-      { id: 208, rank: 8, pair: "레드 와인 + 파스타", category: "wine", score: 91.7, votes: 1496, delta: "-1" },
-      { id: 209, rank: 9, pair: "사케 + 오뎅", category: "sake", score: 90.9, votes: 1322, delta: "+6" },
-      { id: 210, rank: 10, pair: "칵테일 + 타코", category: "etc", score: 90.1, votes: 1210, delta: "-3" },
-    ],
-  },
-  monthly: {
-    podiumByCategory: {
-      all: [
-        { id: 301, rank: 1, pair: "레드 와인 + 스테이크", category: "wine", score: 99.1, thumbVariant: "bottle" },
-        { id: 302, rank: 2, pair: "소주 + 삼겹살", category: "soju", score: 98.3 },
-        { id: 303, rank: 3, pair: "막걸리 + 해물파전", category: "tradition", score: 97.7 },
-      ],
-      soju: [
-        { id: 311, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 98.5 },
-        { id: 312, rank: 2, pair: "소주 + 닭볶음탕", category: "soju", score: 97.2 },
-        { id: 313, rank: 3, pair: "소주 + 회", category: "soju", score: 96.8 },
-      ],
-      wine: [
-        { id: 321, rank: 1, pair: "레드 와인 + 스테이크", category: "wine", score: 99.1, thumbVariant: "bottle" },
-        { id: 322, rank: 2, pair: "화이트 와인 + 회", category: "wine", score: 98.2, thumbVariant: "bottle" },
-        { id: 323, rank: 3, pair: "로제 와인 + 샐러드", category: "wine", score: 97.4, thumbVariant: "bottle" },
-      ],
-      beer: [
-        { id: 331, rank: 1, pair: "IPA + 피자", category: "beer", score: 97.9 },
-        { id: 332, rank: 2, pair: "라거 맥주 + 치킨", category: "beer", score: 97.1 },
-        { id: 333, rank: 3, pair: "스타우트 + 디저트", category: "beer", score: 96.2 },
-      ],
-      whisky_spirit: [
-        { id: 341, rank: 1, pair: "버번 위스키 + 바비큐", category: "whisky_spirit", score: 98.0 },
-        { id: 342, rank: 2, pair: "위스키 + 다크초콜릿", category: "whisky_spirit", score: 97.1 },
-        { id: 343, rank: 3, pair: "진 + 토닉 + 올리브", category: "whisky_spirit", score: 96.5 },
-      ],
-      tradition: [
-        { id: 351, rank: 1, pair: "막걸리 + 해물파전", category: "tradition", score: 97.7 },
-        { id: 352, rank: 2, pair: "청주 + 생선구이", category: "tradition", score: 96.8 },
-        { id: 353, rank: 3, pair: "약주 + 수육", category: "tradition", score: 95.9 },
-      ],
-      sake: [
-        { id: 361, rank: 1, pair: "사케 + 스시", category: "sake", score: 97.2 },
-        { id: 362, rank: 2, pair: "사케 + 사시미", category: "sake", score: 96.6 },
-        { id: 363, rank: 3, pair: "사케 + 가라아게", category: "sake", score: 95.8 },
-      ],
-      etc: [
-        { id: 371, rank: 1, pair: "샴페인 + 굴", category: "etc", score: 97.0, thumbVariant: "bottle" },
-        { id: 372, rank: 2, pair: "칵테일 + 타코", category: "etc", score: 96.2 },
-        { id: 373, rank: 3, pair: "무알콜 칵테일 + 샐러드", category: "etc", score: 95.6 },
-      ],
-    },
-    rows: [
-      { id: 304, rank: 4, pair: "화이트 와인 + 회", category: "wine", score: 95.7, votes: 12480, delta: "+3" },
-      { id: 305, rank: 5, pair: "소주 + 닭볶음탕", category: "soju", score: 95.0, votes: 11302, delta: "-1" },
-      { id: 306, rank: 6, pair: "IPA + 피자", category: "beer", score: 94.2, votes: 9820, delta: "+2" },
-      { id: 307, rank: 7, pair: "청주 + 생선구이", category: "tradition", score: 93.8, votes: 9041, delta: "+1" },
-      { id: 308, rank: 8, pair: "버번 위스키 + 바비큐", category: "whisky_spirit", score: 93.0, votes: 8710, delta: "-2" },
-      { id: 309, rank: 9, pair: "사케 + 스시", category: "sake", score: 92.6, votes: 8444, delta: "+4" },
-      { id: 310, rank: 10, pair: "칵테일 + 타코", category: "etc", score: 92.1, votes: 8111, delta: "-3" },
-    ],
-  },
-  all: {
-    podiumByCategory: {
-      all: [
-        { id: 401, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 99.4 },
-        { id: 402, rank: 2, pair: "막걸리 + 해물파전", category: "tradition", score: 99.1 },
-        { id: 403, rank: 3, pair: "레드 와인 + 스테이크", category: "wine", score: 98.8, thumbVariant: "bottle" },
-      ],
-      soju: [
-        { id: 411, rank: 1, pair: "소주 + 삼겹살", category: "soju", score: 99.4 },
-        { id: 412, rank: 2, pair: "소주 + 회", category: "soju", score: 98.7 },
-        { id: 413, rank: 3, pair: "소주 + 곱창", category: "soju", score: 98.2 },
-      ],
-      wine: [
-        { id: 421, rank: 1, pair: "레드 와인 + 스테이크", category: "wine", score: 98.8, thumbVariant: "bottle" },
-        { id: 422, rank: 2, pair: "화이트 와인 + 치즈", category: "wine", score: 98.1, thumbVariant: "bottle" },
-        { id: 423, rank: 3, pair: "샴페인 + 굴", category: "wine", score: 97.8, thumbVariant: "bottle" },
-      ],
-      beer: [
-        { id: 431, rank: 1, pair: "라거 맥주 + 치킨", category: "beer", score: 98.1 },
-        { id: 432, rank: 2, pair: "IPA + 버거", category: "beer", score: 97.6 },
-        { id: 433, rank: 3, pair: "흑맥주 + 피자", category: "beer", score: 97.0 },
-      ],
-      whisky_spirit: [
-        { id: 441, rank: 1, pair: "위스키 + 다크초콜릿", category: "whisky_spirit", score: 98.3 },
-        { id: 442, rank: 2, pair: "버번 위스키 + 바비큐", category: "whisky_spirit", score: 97.9 },
-        { id: 443, rank: 3, pair: "하이볼 + 나초", category: "whisky_spirit", score: 97.4 },
-      ],
-      tradition: [
-        { id: 451, rank: 1, pair: "막걸리 + 해물파전", category: "tradition", score: 99.1 },
-        { id: 452, rank: 2, pair: "청주 + 모둠전", category: "tradition", score: 98.5 },
-        { id: 453, rank: 3, pair: "약주 + 수육", category: "tradition", score: 97.9 },
-      ],
-      sake: [
-        { id: 461, rank: 1, pair: "사케 + 사시미", category: "sake", score: 97.6 },
-        { id: 462, rank: 2, pair: "사케 + 스시", category: "sake", score: 97.1 },
-        { id: 463, rank: 3, pair: "사케 + 가라아게", category: "sake", score: 96.7 },
-      ],
-      etc: [
-        { id: 471, rank: 1, pair: "칵테일 + 타코", category: "etc", score: 97.3 },
-        { id: 472, rank: 2, pair: "하드셀처 + 나초", category: "etc", score: 96.9 },
-        { id: 473, rank: 3, pair: "무알콜 칵테일 + 샐러드", category: "etc", score: 96.5 },
-      ],
-    },
-    rows: [
-      { id: 404, rank: 4, pair: "위스키 + 다크초콜릿", category: "whisky_spirit", score: 98.1, votes: 62510, delta: "+2" },
-      { id: 405, rank: 5, pair: "IPA + 버거", category: "beer", score: 97.6, votes: 58922, delta: "+1" },
-      { id: 406, rank: 6, pair: "화이트 와인 + 치즈", category: "wine", score: 97.0, votes: 55201, delta: "-2" },
-      { id: 407, rank: 7, pair: "소주 + 회", category: "soju", score: 96.5, votes: 52418, delta: "+3" },
-      { id: 408, rank: 8, pair: "청주 + 모둠전", category: "tradition", score: 95.9, votes: 50110, delta: "-1" },
-      { id: 409, rank: 9, pair: "사케 + 사시미", category: "sake", score: 95.4, votes: 48102, delta: "+5" },
-      { id: 410, rank: 10, pair: "칵테일 + 타코", category: "etc", score: 94.8, votes: 46339, delta: "-4" },
-    ],
-  },
-}
-*/
-
-const feedPosts: FeedPost[] = [
   {
     id: 1001,
     authorId: 2003,
@@ -831,7 +447,7 @@ const feedPosts: FeedPost[] = [
     priceWon: 16000,
     abv: 5,
   },
-]
+*/
 
 const followedUsersMock: FollowUser[] = [
   { id: 2001, name: "민지", profile: "30대 / 서울 / 와인 선호", bio: "퇴근 후 와인 한 잔, 페어링 기록합니다." },
@@ -844,6 +460,7 @@ const followedUsersMock: FollowUser[] = [
 
 export default function Community() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("review")
   const { value: followedUserIds, toggle: toggleFollowUser } = useStoredNumberSet(
@@ -1341,7 +958,18 @@ export default function Community() {
 
   const changeFeedFilter = (nextFilter: FeedFilter) => {
     setFeedFilter(nextFilter)
+    window.scrollTo(0, 0)
   }
+
+  useEffect(() => {
+    const state = (location.state ?? {}) as { initialFilter?: FeedFilter; scrollToTop?: boolean }
+    if (state.initialFilter) {
+      setFeedFilter(state.initialFilter)
+    }
+    if (state.scrollToTop || state.initialFilter) {
+      window.scrollTo(0, 0)
+    }
+  }, [location.state])
 
   const hallOfFamePosts = useMemo(() => {
     const rankedSeeds: Array<{ postId: number; rank: number; liquor: string; situation: string }> = [
@@ -1609,15 +1237,16 @@ export default function Community() {
                   key={post.id}
                   postId={post.id}
                   linkTo={`/community/pairing/${post.id}`}
-                  linkState={{
-                    pairingTitle: extractPairingTitle(post.title),
-                    authorId: post.authorId,
-                    authorName: post.authorName,
-                    profile: post.profile ?? "",
-                    locationLabel: post.locationLabel?.trim() ?? "",
-                    drinkType: post.drinkType ?? "",
-                    source: "feed",
-                  }}
+               linkState={{
+                 pairingTitle: extractPairingTitle(post.title),
+                 body: post.body,
+                 authorId: post.authorId,
+                 authorName: post.authorName,
+                 profile: post.profile ?? "",
+                 locationLabel: post.locationLabel?.trim() ?? "",
+                 drinkType: post.drinkType ?? "",
+                 source: "free",
+               }}
                   chips={chips}
                   title={extractPairingTitle(post.title)}
                   body={post.body}

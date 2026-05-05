@@ -5,6 +5,8 @@ import CommunityHeader from "../components/CommunityHeader"
 import CommunityRankingSection from "../components/CommunityRankingSection"
 import CommunitySearchInput from "../components/CommunitySearchInput"
 import CommunityFeedFilterPopupBody from "../components/CommunityFeedFilterPopupBody"
+import { includesNormalized, normalizeSearchText } from "../utils/text"
+import { useStoredStringArray } from "../utils/storage"
 
 type RankingPeriod = "weekly" | "daily" | "monthly" | "all"
 type RankingCategory =
@@ -179,17 +181,6 @@ const getPodiumVotes = (podium: RankingPodium) => {
   return base + noise
 }
 
-const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim()
-
-const includesNormalized = (value: string, query: string) => {
-  const normalizedValue = normalizeSearchText(value)
-  const normalizedQuery = normalizeSearchText(query)
-  if (!normalizedQuery) {
-    return true
-  }
-  return normalizedValue.includes(normalizedQuery)
-}
-
 const createRankingFeatureTags = (category: RankingCategory, pairing: string) => {
   const tags: string[] = []
   const normalized = normalizeSearchText(pairing)
@@ -214,34 +205,6 @@ const createRankingFeatureTags = (category: RankingCategory, pairing: string) =>
   }
 
   return tags
-}
-
-function useStoredStringArray(key: string, maxLength: number) {
-  const [value, setValue] = useState<string[]>(() => {
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (!raw) {
-        return []
-      }
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) {
-        return []
-      }
-      return parsed.filter((term): term is string => typeof term === "string" && term.trim().length > 0)
-    } catch {
-      return []
-    }
-  })
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(value.slice(0, maxLength)))
-    } catch {
-      // ignore storage errors
-    }
-  }, [key, maxLength, value])
-
-  return { value, setValue }
 }
 
 const rankingDataByPeriod: Record<

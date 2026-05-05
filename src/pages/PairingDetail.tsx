@@ -1,10 +1,14 @@
 import { useLayoutEffect, useMemo, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
+import CategoryItemCard, { type CategoryListItem } from "../components/CategoryItemCard"
 import CommentSection from "../components/CommentSection"
-import DetailActions from "../components/DetailActions"
+import FeedActions from "../components/FeedActions"
 import PairingDetailHeader from "../components/PairingDetailHeader"
 import SimilarPairingList, { type SimilarPairingItem } from "../components/SimilarPairingList"
+import "../styles/category-list.css"
+import "../styles/community.css"
 import "../styles/pairing-detail.css"
+import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../hooks/communityPosts"
 
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
 const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
@@ -12,24 +16,14 @@ const getPairingCommentsStorageKey = (pairingId: string) => `pairing_detail_comm
 
 type PairingDetailNavState = {
   pairingTitle?: string
+  body?: string
   authorId?: number
   authorName?: string
   profile?: string
   locationLabel?: string
   drinkType?: string
-  source?: "feed" | "ranking"
+  source?: "feed" | "ranking" | "free"
 }
-
-const similarPairingsMock: SimilarPairingItem[] = [
-  { id: 1002, pairingTitle: "막걸리 + 해물파전", authorId: 2001, authorName: "민지", profile: "20대 / 부산 / 전통주 입문", locationLabel: "비 오는 베란다", drinkType: "전통주" },
-  { id: 1013, pairingTitle: "하이볼 + 치킨", authorId: 2002, authorName: "현우", profile: "20대 / 대전 / 맥주 러버", locationLabel: "자주가는 바", drinkType: "기타" },
-  { id: 1014, pairingTitle: "소주토닉 하이볼 + 피자", authorId: 2102, authorName: "도윤", profile: "30대 / 대구 / 위스키 · 칵테일", locationLabel: "게임 켜둔 거실", drinkType: "기타" },
-  { id: 1005, pairingTitle: "레드 와인 + 스테이크", authorId: 2001, authorName: "민지", profile: "30대 / 서울 / 와인 선호", locationLabel: "아늑한 우리집", drinkType: "와인" },
-  { id: 1006, pairingTitle: "IPA + 햄버거", authorId: 2002, authorName: "현우", profile: "20대 / 대전 / 맥주 러버", locationLabel: "햇살 드는 거실", drinkType: "맥주" },
-  { id: 1007, pairingTitle: "소주 + 족발", authorId: 2101, authorName: "유나", profile: "20대 / 서울 / 소주 · 전통주", locationLabel: "우리집 야식상", drinkType: "소주" },
-  { id: 1008, pairingTitle: "사케 + 회", authorId: 2104, authorName: "수빈", profile: "30대 / 제주 / 와인 · 사케", locationLabel: "작은 주방 테이블", drinkType: "사케" },
-  { id: 1010, pairingTitle: "라거 + 감자튀김", authorId: 2103, authorName: "지민", profile: "20대 / 광주 / 맥주 · 페어링", locationLabel: "퇴근 후 소파 앞", drinkType: "맥주" },
-]
 
 type RecommendedProduct = {
   id: string
@@ -37,17 +31,55 @@ type RecommendedProduct = {
   categoryLabel: string
   subLabel: string
   priceLabel: string
-  route: string
 }
 
+const similarPairingsMock: SimilarPairingItem[] = [
+  {
+    id: 1002,
+    pairingTitle: "막걸리 + 해물파전",
+    authorId: 2001,
+    authorName: "민지",
+    profile: "20대 / 부산 / 전통주 입문",
+    locationLabel: "비 오는 베란다",
+    drinkType: "전통주",
+  },
+  {
+    id: 1006,
+    pairingTitle: "IPA + 햄버거",
+    authorId: 2002,
+    authorName: "현우",
+    profile: "20대 / 대전 / 맥주 러버",
+    locationLabel: "햇살 드는 거실",
+    drinkType: "맥주",
+  },
+  {
+    id: 1005,
+    pairingTitle: "레드 와인 + 스테이크",
+    authorId: 2001,
+    authorName: "민지",
+    profile: "30대 / 서울 / 와인 선호",
+    locationLabel: "아늑한 우리집",
+    drinkType: "와인",
+  },
+  {
+    id: 1009,
+    pairingTitle: "칵테일 + 타코",
+    authorId: 2102,
+    authorName: "도윤",
+    profile: "30대 / 대구 / 위스키 · 칵테일",
+    locationLabel: "친구들과 홈파티",
+    drinkType: "기타",
+  },
+]
+
 const recommendedProductByDrinkType: Record<string, RecommendedProduct> = {
-  소주: { id: "soju-jinro-classic-1", name: "참이슬 후레쉬", categoryLabel: "소주", subLabel: "17.0%", priceLabel: "4,500원~", route: "/product/soju-jinro-classic-1" },
-  맥주: { id: "beer-cass-lager-1", name: "카스 프레시", categoryLabel: "맥주", subLabel: "라거", priceLabel: "3,900원~", route: "/product/beer-cass-lager-1" },
-  와인: { id: "wine-cabernet-1", name: "카베르네 소비뇽", categoryLabel: "와인", subLabel: "레드", priceLabel: "29,000원~", route: "/product/wine-cabernet-1" },
-  위스키: { id: "whisky-single-malt-1", name: "싱글몰트 위스키", categoryLabel: "위스키", subLabel: "싱글몰트", priceLabel: "79,000원~", route: "/product/whisky-single-malt-1" },
-  전통주: { id: "tradition-makgeolli-1", name: "프리미엄 막걸리", categoryLabel: "전통주", subLabel: "막걸리", priceLabel: "9,900원~", route: "/product/tradition-makgeolli-1" },
-  사케: { id: "sake-junmai-1", name: "준마이 사케", categoryLabel: "사케", subLabel: "준마이", priceLabel: "33,000원~", route: "/product/sake-junmai-1" },
-  기타: { id: "etc-highball-can-1", name: "소주 토닉 하이볼(캔)", categoryLabel: "하이볼", subLabel: "소주토닉", priceLabel: "12,000원~", route: "/product/etc-highball-can-1" },
+  소주: { id: "soju-jinro-classic-1", name: "참이슬 오리지널", categoryLabel: "소주", subLabel: "17.0%", priceLabel: "4,500원" },
+  맥주: { id: "beer-cass-lager-1", name: "카스 라거", categoryLabel: "맥주", subLabel: "라거", priceLabel: "3,900원" },
+  와인: { id: "wine-cabernet-1", name: "카베르네 소비뇽", categoryLabel: "와인", subLabel: "레드", priceLabel: "29,000원" },
+  위스키: { id: "whisky-single-malt-1", name: "싱글몰트 위스키", categoryLabel: "위스키", subLabel: "싱글몰트", priceLabel: "79,000원" },
+  전통주: { id: "tradition-makgeolli-1", name: "프리미엄 막걸리", categoryLabel: "전통주", subLabel: "막걸리", priceLabel: "9,900원" },
+  사케: { id: "sake-junmai-1", name: "준마이 사케", categoryLabel: "사케", subLabel: "준마이", priceLabel: "33,000원" },
+  기타: { id: "etc-highball-can-1", name: "하이볼 캔", categoryLabel: "기타", subLabel: "하이볼", priceLabel: "12,000원" },
 }
 
 const priceRangeTagByDrinkType: Record<string, string> = {
@@ -61,12 +93,25 @@ const priceRangeTagByDrinkType: Record<string, string> = {
 }
 
 const userPairingTiersById: Record<number, 1 | 2 | 3 | 4 | 5> = {
-  2001: 2, 2002: 3, 2003: 4, 2004: 2, 2019: 3, 2025: 2,
-  2101: 1, 2102: 2, 2103: 2, 2104: 3, 9999: 1,
+  2001: 2,
+  2002: 3,
+  2003: 4,
+  2004: 2,
+  2019: 3,
+  2025: 2,
+  2101: 1,
+  2102: 2,
+  2103: 2,
+  2104: 3,
+  9999: 1,
 }
 
 const pairingTierLabels: Record<1 | 2 | 3 | 4 | 5, string> = {
-  1: "테이스터", 2: "셀렉터", 3: "큐레이터", 4: "소믈리에", 5: "마스터",
+  1: "테이스터",
+  2: "셀렉터",
+  3: "큐레이터",
+  4: "소믈리에",
+  5: "마스터",
 }
 
 const getTierClassName = (tier: number | undefined) => {
@@ -94,13 +139,27 @@ export default function PairingDetail() {
   const { pairingId } = useParams()
 
   const navState = (location.state ?? {}) as PairingDetailNavState
-  const pairingTitle = navState.pairingTitle?.trim() || `페어링 #${pairingId ?? ""}`.trim()
+  const numericId = typeof pairingId === "string" ? Number(pairingId) : NaN
+  const post = useMemo(
+    () => (Number.isFinite(numericId) ? feedPosts.find((item) => item.id === numericId) : undefined),
+    [numericId],
+  )
+
+  const pairingTitle = useMemo(() => {
+    if (navState.pairingTitle?.trim()) return navState.pairingTitle.trim()
+    if (post?.title) return extractPairingTitle(post.title)
+    return `페어링 #${pairingId ?? ""}`.trim()
+  }, [navState.pairingTitle, pairingId, post?.title])
+
   const drinkTypeLabel =
     navState.drinkType?.trim() ||
+    post?.drinkType?.trim() ||
     (pairingTitle.includes("+") ? pairingTitle.split("+")[0]?.trim() : "")
-  const authorName = navState.authorName?.trim() || "익명"
-  const profile = navState.profile?.trim() || "20대 / 서울"
-  const locationLabel = navState.locationLabel?.trim() || "아늑한 내방"
+
+  const authorName = navState.authorName?.trim() || post?.authorName?.trim() || "익명"
+  const profile = navState.profile?.trim() || post?.profile?.trim() || "20대 / 서울"
+  const locationLabel = navState.locationLabel?.trim() || post?.locationLabel?.trim() || "어딘가"
+  const detailBodyText = navState.body?.trim() || post?.body?.trim() || ""
 
   const authorId = typeof navState.authorId === "number" ? navState.authorId : null
   const authorTier = authorId !== null ? userPairingTiersById[authorId] : undefined
@@ -126,8 +185,11 @@ export default function PairingDetail() {
       if (!raw) return false
       const parsed = JSON.parse(raw)
       return Array.isArray(parsed) ? parsed.includes(Number(pairingId)) : false
-    } catch { return false }
+    } catch {
+      return false
+    }
   })
+
   const [likeCount, setLikeCount] = useState(847)
   const [commentCount, setCommentCount] = useState(() => {
     if (!pairingId) return 4
@@ -136,7 +198,9 @@ export default function PairingDetail() {
       if (!raw) return 4
       const parsed = JSON.parse(raw)
       return Array.isArray(parsed) ? parsed.length : 4
-    } catch { return 4 }
+    } catch {
+      return 4
+    }
   })
 
   const similarItems = useMemo(() => {
@@ -146,11 +210,7 @@ export default function PairingDetail() {
     const candidates = similarPairingsMock
       .filter((item) => item.id !== currentId)
       .sort((a, b) => (a.drinkType === drinkTypeHint ? -1 : 0) - (b.drinkType === drinkTypeHint ? -1 : 0))
-    const prioritized = candidates.filter(
-      (item) => item.pairingTitle.includes(drinkHint) || item.drinkType === drinkTypeHint,
-    )
-    const fallback = candidates.filter((item) => !prioritized.includes(item))
-    return [...prioritized, ...fallback].slice(0, 2)
+    return candidates.slice(0, 2)
   }, [drinkTypeLabel, pairingId, pairingTitle])
 
   const recommendedProduct = useMemo(() => {
@@ -159,6 +219,25 @@ export default function PairingDetail() {
     }
     return recommendedProductByDrinkType.기타
   }, [drinkTypeLabel])
+
+  const { liquorTag, foodTag } = useMemo(() => {
+    if (post?.title) return getPairingTagsFromTitle(post.title)
+    return getPairingTagsFromTitle(pairingTitle)
+  }, [pairingTitle, post?.title])
+
+  const hasPairingTags = Boolean(liquorTag) && Boolean(foodTag)
+  const isQnaDetail = Boolean(post?.isQna) || navState.source === "free"
+
+  const recommendedCategoryItem: CategoryListItem = useMemo(
+    () => ({
+      id: recommendedProduct.id,
+      name: recommendedProduct.name,
+      subGroup: recommendedProduct.categoryLabel,
+      tags: [recommendedProduct.categoryLabel, recommendedProduct.subLabel, recommendedProduct.priceLabel],
+      keywords: [],
+    }),
+    [recommendedProduct],
+  )
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
@@ -222,49 +301,78 @@ export default function PairingDetail() {
         showTier={authorId !== null}
         isFollowing={isFollowing}
         followDisabled={authorId === null}
-        onBack={() => navigate(-1)}
+        onBack={() => {
+          if (isQnaDetail) {
+            navigate("/community", { state: { initialFilter: "free", scrollToTop: true } })
+            return
+          }
+          navigate(-1)
+        }}
         onToggleFollow={toggleFollow}
       />
 
       <div className="detail_images" aria-label="페어링 이미지(좌우 스와이프)">
-        <div className="detail_image_item" />
-        <div className="detail_image_item" />
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div className="detail_image_item" key={index} />
+        ))}
       </div>
 
       <h2>{pairingTitle}</h2>
+      {hasPairingTags ? (
+        <div className="detail_pairing_tag_row" aria-label="주류+음식 태그">
+          <button
+            type="button"
+            className="detail_pairing_tag"
+            onClick={() =>
+              navigate("/community/tag", {
+                state: { tagType: "liquor", tagValue: liquorTag },
+              })
+            }
+          >
+            {liquorTag}
+          </button>
+
+          <button
+            type="button"
+            className="detail_pairing_tag"
+            onClick={() =>
+              navigate("/community/tag", {
+                state: { tagType: "food", tagValue: foodTag },
+              })
+            }
+          >
+            {foodTag}
+          </button>
+        </div>
+      ) : null}
       <div className="detail_tags">
         <span>{priceRangeTagByDrinkType[drinkTypeLabel] ?? "1~3만원"}</span>
         <span>{drinkTypeLabel ? `${drinkTypeLabel} 추천` : "추천"}</span>
       </div>
 
       <p className="detail_text">
-        삼겹살을 맛있게 구워먹을 때는, 소주 토닉처럼 산뜻한 하이볼류랑 조합이 정말 좋아요. 기름지지만
-        깔끔하게 씻어줘서 계속 들어가는 페어링이에요.
+        {detailBodyText ||
+          "조합을 더 맛있게 즐기기 위한 팁을 공유하는 공간이에요. 좋아하는 조합을 저장하고, 댓글로 의견을 나눠보세요."}
       </p>
 
-      <article className="detail_product_card">
-        <div className="product_thumb" />
-        <div className="product_text">
-          <h3>{recommendedProduct.name}</h3>
-          <div>
-            <span>{recommendedProduct.categoryLabel}</span>
-            <span>{recommendedProduct.subLabel}</span>
-            <span>{recommendedProduct.priceLabel}</span>
-          </div>
-        </div>
-        <button type="button" aria-label="제품 보기" onClick={() => navigate(recommendedProduct.route)}>
-          →
-        </button>
-      </article>
+      <div className="detail_product_shell" aria-label="추천 상품">
+        <CategoryItemCard item={recommendedCategoryItem} />
+      </div>
 
-      <DetailActions
-        isLiked={isLiked}
-        likeCount={likeCount}
-        commentCount={commentCount}
+      <FeedActions
+        variant="detail"
+        likeActive={isLiked}
+        likeAriaLabel={isLiked ? "좋아요 취소" : "좋아요"}
+        likeText={String(likeCount)}
         onToggleLike={toggleLike}
-        onScrollToComments={() =>
+        commentAriaLabel="댓글 보기"
+        commentText={String(commentCount)}
+        onViewComments={() =>
           document.getElementById("comments")?.scrollIntoView({ behavior: "smooth", block: "start" })
         }
+        bookmarkActive={false}
+        bookmarkAriaLabel="북마크"
+        onBookmark={() => {}}
       />
 
       <SimilarPairingList

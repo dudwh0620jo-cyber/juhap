@@ -12,31 +12,43 @@ import ProductDetail from "./pages/ProductDetail"
 import Quiz from "./pages/Quiz"
 import PairingDetail from "./pages/PairingDetail"
 import VoteList from "./pages/VoteList"
+import PairingTagList from "./pages/PairingTagList"
 import "./styles/common.css"
 
 import iconchatscircle_w from "./imgs/svg/chatscircle_w.svg"
 import iconCirclesFour from "./imgs/svg/circlesfour.svg"
+import iconCirclesFourActive from "./imgs/svg/circlesfour_active.svg"
 import iconHouse from "./imgs/svg/house.svg"
+import iconHouseActive from "./imgs/svg/house_active.svg"
 import iconList from "./imgs/svg/list.svg"
+import iconListActive from "./imgs/svg/list_active.svg"
 import iconRanking from "./imgs/svg/ranking.svg"
+import iconRankingActive from "./imgs/svg/ranking_active.svg"
 import iconUser from "./imgs/svg/user.svg"
+import iconUserActive from "./imgs/svg/user_active.svg"
 
 type BottomNavItem = {
   label: string
   path: string
   icon: string
+  activeIcon: string
 }
 
 const leftNavItems = [
-  { label: "홈", path: "/home", icon: iconHouse },
-  { label: "카테고리", path: "/category", icon: iconList },
+  { label: "홈", path: "/home", icon: iconHouse, activeIcon: iconHouseActive },
+  { label: "카테고리", path: "/category", icon: iconList, activeIcon: iconListActive },
 ] satisfies BottomNavItem[]
 
-const centerNavItem = { label: "랭킹", path: "/community/ranking", icon: iconRanking } satisfies BottomNavItem
+const centerNavItem = {
+  label: "랭킹",
+  path: "/community/ranking",
+  icon: iconRanking,
+  activeIcon: iconRankingActive,
+} satisfies BottomNavItem
 
 const rightNavItems = [
-  { label: "커뮤니티", path: "/community", icon: iconCirclesFour },
-  { label: "MY", path: "/my", icon: iconUser },
+  { label: "커뮤니티", path: "/community", icon: iconCirclesFour, activeIcon: iconCirclesFourActive },
+  { label: "MY", path: "/my", icon: iconUser, activeIcon: iconUserActive },
 ] satisfies BottomNavItem[]
 
 export default function App() {
@@ -76,6 +88,7 @@ export default function App() {
           <Route path="/community/ranking" element={<CommunityRanking />} />
           <Route path="/community/write" element={<CommunityWrite />} />
           <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
+          <Route path="/community/tag" element={<PairingTagList />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/quiz" element={<Quiz />} />
@@ -94,12 +107,12 @@ export default function App() {
               key={item.path}
               to={item.path}
             >
-              <img
-                className="bottom_nav_icon"
-                src={item.icon}
-                alt={item.label}
-              />
-              <span className="bottom_nav_label">{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  <img className="bottom_nav_icon" src={isActive ? item.activeIcon : item.icon} alt={item.label} />
+                  <span className="bottom_nav_label">{item.label}</span>
+                </>
+              )}
             </NavLink>
           ))}
 
@@ -111,7 +124,7 @@ export default function App() {
           >
             <img
               className="bottom_nav_icon"
-              src={centerNavItem.icon}
+              src={isRankingActive ? centerNavItem.activeIcon : centerNavItem.icon}
               alt={centerNavItem.label}
             />
             <span className="bottom_nav_label">{centerNavItem.label}</span>
@@ -130,7 +143,11 @@ export default function App() {
             >
               <img
                 className="bottom_nav_icon"
-                src={item.icon}
+                src={
+                  (item.path === "/community" ? isCommunityActive : pathname.startsWith(item.path))
+                    ? item.activeIcon
+                    : item.icon
+                }
                 alt={item.label}
               />
               <span className="bottom_nav_label">{item.label}</span>

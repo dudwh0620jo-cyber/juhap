@@ -1,3 +1,5 @@
+import iconCaretLeft from "../imgs/svg/caretleft.svg"
+
 type Props = {
   authorName: string
   profile: string
@@ -31,7 +33,7 @@ export default function PairingDetailHeader({
         aria-label="이전 페이지로 이동"
         onClick={onBack}
       >
-        ←
+        <img src={iconCaretLeft} alt="" aria-hidden="true" />
       </button>
       <div className="avatar" aria-hidden="true" />
       <div>

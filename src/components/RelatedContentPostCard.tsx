@@ -1,10 +1,6 @@
-﻿import { Link } from "react-router"
+import { Link } from "react-router"
 import RelatedContentPostCardHeader from "./RelatedContentPostCardHeader"
-
-import iconBookmark from "../imgs/svg/bookmarksimple.svg"
-import iconChat from "../imgs/svg/chatcircle.svg"
-import iconHeart from "../imgs/svg/heart.svg"
-import iconShare from "../imgs/svg/sharenetwork.svg"
+import FeedActions from "./FeedActions"
 
 type Props = {
   postId: number
@@ -104,38 +100,19 @@ export default function RelatedContentPostCard({
         </Link>
       )}
 
-      <div className="feed_actions">
-        <div className="left_actions">
-        <button
-          type="button"
-          className={likeActive ? "feed_action_button is_active" : "feed_action_button"}
-          aria-label={likeAriaLabel}
-          onClick={onToggleLike}
-        >
-          <img className="feed_action_icon" src={iconHeart} alt="" aria-hidden="true" />
-          <span className="feed_action_text">{likeText}</span>
-        </button>
-
-        <button type="button" className="feed_action_button" aria-label="댓글 보기" onClick={onViewComments}>
-          <img className="feed_action_icon" src={iconChat} alt="" aria-hidden="true" />
-          <span className="feed_action_text">{commentText}</span>
-        </button>
-
-        <button type="button" className="feed_action_button" aria-label="공유">
-          <img className="feed_action_icon" src={iconShare} alt="" aria-hidden="true" />
-        </button>
-        </div>
-        <div className="right_actions">
-        <button
-          type="button"
-          className={bookmarkActive ? "feed_action_button is_active" : "feed_action_button"}
-          aria-label={bookmarkAriaLabel}
-          onClick={onOpenBookmarkPicker}
-        >
-          <img className="feed_action_icon" src={iconBookmark} alt="" aria-hidden="true" />
-        </button>
-        </div>
-      </div>
+      <FeedActions
+        likeActive={likeActive}
+        likeAriaLabel={likeAriaLabel}
+        likeText={likeText}
+        onToggleLike={onToggleLike}
+        commentAriaLabel="댓글 보기"
+        commentText={commentText}
+        onViewComments={onViewComments}
+        bookmarkActive={bookmarkActive}
+        bookmarkAriaLabel={bookmarkAriaLabel}
+        onBookmark={onOpenBookmarkPicker}
+      />
     </article>
   )
 }
+
