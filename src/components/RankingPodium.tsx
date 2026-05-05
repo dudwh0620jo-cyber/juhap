@@ -51,7 +51,7 @@ export default function RankingPodium<CategoryKey extends string>({ podiumRankOr
             <strong>{drink}</strong>
             <p>{food}</p>
             <em>{deltaLabel}</em>
-            <span className="podium_votes">{voteCount.toLocaleString()}명</span>
+            <span className="podium_votes">{voteCount.toLocaleString()}짠</span>
           </Link>
         )
       })}

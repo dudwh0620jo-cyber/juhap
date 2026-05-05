@@ -1,6 +1,5 @@
 import type { CSSProperties, RefObject } from "react"
-import CommunityFeedFilterPopupBody from "./CommunityFeedFilterPopupBody"
-import SearchFilterModalHeader from "./SearchFilterModalHeader"
+import SearchFilterChipsPanel from "./SearchFilterChipsPanel"
 
 type PopupChipGroup = {
   title: string
@@ -8,6 +7,11 @@ type PopupChipGroup = {
 }
 
 type Props = {
+  shellAriaLabel?: string
+  inputAriaLabel?: string
+  clearAriaLabel?: string
+  placeholder?: string
+
   searchValue: string
   inputRef: RefObject<HTMLInputElement | null>
   onChangeSearchValue: (next: string) => void
@@ -54,6 +58,10 @@ type Props = {
 }
 
 export default function CommunityFilterPanel({
+  shellAriaLabel = "커뮤니티 검색",
+  inputAriaLabel = "커뮤니티 검색어 입력",
+  clearAriaLabel = "검색어 지우기",
+  placeholder = "조합, 주류, 안주 검색",
   searchValue,
   inputRef,
   onChangeSearchValue,
@@ -94,27 +102,19 @@ export default function CommunityFilterPanel({
 }: Props) {
   return (
     <>
-      <SearchFilterModalHeader
-        shellAriaLabel="커뮤니티 검색"
-        inputAriaLabel="커뮤니티 검색어 입력"
-        clearAriaLabel="검색어 지우기"
-        placeholder="조합, 주류, 안주 검색"
-        value={searchValue}
+      <SearchFilterChipsPanel
+        shellAriaLabel={shellAriaLabel}
+        inputAriaLabel={inputAriaLabel}
+        clearAriaLabel={clearAriaLabel}
+        placeholder={placeholder}
+        searchValue={searchValue}
         inputRef={inputRef}
-        onChange={onChangeSearchValue}
-        onEnter={onConfirmSearch}
-        onClear={onClearSearch}
+        onChangeSearchValue={onChangeSearchValue}
+        onConfirmSearch={onConfirmSearch}
+        onClearSearch={onClearSearch}
         onClose={onClose}
-      />
-
-      {isNoResults ? (
-        <p className="feed_filter_no_results" role="status">
-          검색 결과가 없어요
-        </p>
-      ) : null}
-
-      <CommunityFeedFilterPopupBody
-        groups={chipGroups}
+        isNoResults={isNoResults}
+        chipGroups={chipGroups}
         collapsibleGroupTitles={collapsibleGroupTitles}
         expandedGroupTitles={expandedGroupTitles}
         setGroupRef={setGroupRef}
