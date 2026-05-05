@@ -3,11 +3,11 @@ import type { FormEvent } from "react"
 
 import AlertModal from "./AlertModal"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
+import iconCaretDoubleRight from "../assets/svg/caretdoubleright.svg"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
 import iconReplyArrow from "../assets/svg/arrowbenddownright.svg"
-
-const getPairingCommentsStorageKey = (pairingId: string) => `pairing_detail_comments_${pairingId}`
-const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
+import { COMMUNITY_FOLLOWED_USERS_KEY, getPairingCommentsStorageKey } from "../utils/communityStorage"
+import { mentionDirectoryMock } from "../utils/usersMock"
 
 type CommentItem = {
   id: number
@@ -37,17 +37,6 @@ const PAGE_SIZE = 5
 
 type MentionUser = { id: number; name: string; meta: string }
 type MentionContext = { start: number; end: number; query: string }
-
-const mentionDirectory: MentionUser[] = [
-  { id: 2001, name: "민지", meta: "서울 · 30대" },
-  { id: 2002, name: "현우", meta: "대전 · 20대" },
-  { id: 2003, name: "서연", meta: "경기 · 30대" },
-  { id: 2004, name: "지훈", meta: "인천 · 20대" },
-  { id: 2101, name: "유나", meta: "서울 · 20대" },
-  { id: 2102, name: "도윤", meta: "대구 · 30대" },
-  { id: 2103, name: "지민", meta: "광주 · 20대" },
-  { id: 2104, name: "수빈", meta: "제주 · 30대" },
-]
 
 export default function CommentSection({
   pairingId,
@@ -198,6 +187,8 @@ export default function CommentSection({
     return sortedComments.slice(start, start + PAGE_SIZE)
   }, [pageIndex, sortedComments])
 
+  const placeholderRowCount = Math.max(0, PAGE_SIZE - visibleComments.length)
+
   useLayoutEffect(() => {
     if (!commentsStorageKey) return
     try {
@@ -253,7 +244,7 @@ export default function CommentSection({
     const query = (mentionContext?.query ?? "").trim().toLowerCase()
 
     const userById = new Map<number, MentionUser>()
-    for (const user of mentionDirectory) userById.set(user.id, user)
+    for (const user of mentionDirectoryMock) userById.set(user.id, user)
     for (const item of commentItems) {
       if (!userById.has(item.userId)) {
         userById.set(item.userId, { id: item.userId, name: item.userName, meta: item.userMeta })
@@ -395,6 +386,7 @@ export default function CommentSection({
 
   const goToPrevPage = () => setPageIndex((prev) => Math.max(0, prev - 1))
   const goToNextPage = () => setPageIndex((prev) => Math.min(maxPageIndex, prev + 1))
+  const goToFirstPage = () => setPageIndex(0)
 
   const canGoPrev = pageIndex > 0
   const canGoNext = pageIndex < maxPageIndex
@@ -511,12 +503,16 @@ export default function CommentSection({
               ) : (
                 <>
                   {item.replyTo ? (
-                    <p className="comment_reply_meta" aria-label="대댓글 대상">
-                      <img className="comment_reply_icon" src={iconReplyArrow} alt="" aria-hidden="true" />@
-                      {item.replyTo.userName}
+                    <p className="comment_reply_line">
+                      <span className="comment_reply_meta" aria-label="대댓글 대상">
+                        <img className="comment_reply_icon" src={iconReplyArrow} alt="" aria-hidden="true" />@
+                        {item.replyTo.userName}
+                      </span>
+                      <span className="comment_reply_text">{item.text}</span>
                     </p>
-                  ) : null}
-                  <p>{item.text}</p>
+                  ) : (
+                    <p>{item.text}</p>
+                  )}
                 </>
               )}
 
@@ -573,8 +569,34 @@ export default function CommentSection({
           </div>
         ))}
 
+        {placeholderRowCount > 0
+          ? Array.from({ length: placeholderRowCount }).map((_, index) => (
+              <div className="comment_row is_placeholder" key={`comment-placeholder-${pageIndex}-${index}`} aria-hidden="true">
+                <div className="avatar" />
+                <div>
+                  <div className="comment_header_row">
+                    <h4>
+                      &nbsp;<span className="comment_meta">&nbsp;</span>
+                      <span className={getTierClassName(currentUser.id)}>{getTierLabel(currentUser.id)}</span>
+                    </h4>
+                  </div>
+                  <p>&nbsp;</p>
+                </div>
+              </div>
+            ))
+          : null}
+
         <div className="comment_pager comment_pager_bottom" aria-label="댓글 페이지 이동">
           <div className="comment_pager_left" aria-label="처음/이전 페이지">
+            <button
+              type="button"
+              className="comment_pager_button"
+              onClick={goToFirstPage}
+              disabled={!canGoPrev}
+              aria-label="처음 페이지"
+            >
+              <img className="comment_pager_icon is_flipped" src={iconCaretDoubleRight} alt="" aria-hidden="true" />
+            </button>
             <button
               type="button"
               className="comment_pager_button"

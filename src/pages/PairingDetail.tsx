@@ -9,12 +9,21 @@ import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
 import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../utils/communityPosts"
+import {
+  COMMUNITY_BOOKMARKED_POSTS_KEY,
+  COMMUNITY_FOLLOWED_USERS_KEY,
+  COMMUNITY_LIKED_POSTS_KEY,
+  getPairingCommentsStorageKey,
+} from "../utils/communityStorage"
+import {
+  getPairingTierByUserId,
+  getPairingTierLabel,
+  getPairingTierLabelByUserId,
+  getUserGradeBadgeClassNameByTier,
+  getUserGradeBadgeClassNameByUserId,
+} from "../utils/pairingTier"
 import { useStoredBooleanRecordFromIds } from "../utils/storage"
-
-const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
-const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
-const COMMUNITY_BOOKMARKED_POSTS_KEY = "community_bookmarked_post_ids"
-const getPairingCommentsStorageKey = (pairingId: string) => `pairing_detail_comments_${pairingId}`
+import { currentUserMock, usersMockById } from "../utils/usersMock"
 
 type PairingDetailNavState = {
   pairingTitle?: string
@@ -34,45 +43,6 @@ type RecommendedProduct = {
   subLabel: string
   priceLabel: string
 }
-
-const similarPairingsMock: SimilarPairingItem[] = [
-  {
-    id: 1002,
-    pairingTitle: "막걸리 + 해물파전",
-    authorId: 2001,
-    authorName: "민지",
-    profile: "20대 / 부산 / 전통주 입문",
-    locationLabel: "비 오는 베란다",
-    drinkType: "전통주",
-  },
-  {
-    id: 1006,
-    pairingTitle: "IPA + 햄버거",
-    authorId: 2002,
-    authorName: "현우",
-    profile: "20대 / 대전 / 맥주 러버",
-    locationLabel: "햇살 드는 거실",
-    drinkType: "맥주",
-  },
-  {
-    id: 1005,
-    pairingTitle: "레드 와인 + 스테이크",
-    authorId: 2001,
-    authorName: "민지",
-    profile: "30대 / 서울 / 와인 선호",
-    locationLabel: "아늑한 우리집",
-    drinkType: "와인",
-  },
-  {
-    id: 1009,
-    pairingTitle: "칵테일 + 타코",
-    authorId: 2102,
-    authorName: "도윤",
-    profile: "30대 / 대구 / 위스키 · 칵테일",
-    locationLabel: "친구들과 홈파티",
-    drinkType: "기타",
-  },
-]
 
 const recommendedProductByDrinkType: Record<string, RecommendedProduct> = {
   소주: { id: "soju-jinro-classic-1", name: "참이슬 오리지널", categoryLabel: "소주", subLabel: "17.0%", priceLabel: "4,500원" },
@@ -94,46 +64,7 @@ const priceRangeTagByDrinkType: Record<string, string> = {
   기타: "1~3만원",
 }
 
-const userPairingTiersById: Record<number, 1 | 2 | 3 | 4 | 5> = {
-  2001: 2,
-  2002: 3,
-  2003: 4,
-  2004: 2,
-  2019: 3,
-  2025: 2,
-  2101: 1,
-  2102: 2,
-  2103: 2,
-  2104: 3,
-  9999: 1,
-}
-
-const pairingTierLabels: Record<1 | 2 | 3 | 4 | 5, string> = {
-  1: "테이스터",
-  2: "셀렉터",
-  3: "큐레이터",
-  4: "소믈리에",
-  5: "마스터",
-}
-
-const getTierClassName = (tier: number | undefined) => {
-  if (tier === 5) return "user_grade_badge is_tier5"
-  if (tier === 4) return "user_grade_badge is_tier4"
-  if (tier === 3) return "user_grade_badge is_tier3"
-  if (tier === 2) return "user_grade_badge is_tier2"
-  if (tier === 1) return "user_grade_badge is_tier1"
-  return "user_grade_badge"
-}
-
-const getTierLabel = (tier: number | undefined) => {
-  if (tier === 1 || tier === 2 || tier === 3 || tier === 4 || tier === 5) return pairingTierLabels[tier]
-  return pairingTierLabels[1]
-}
-
-const getTierClassNameByUserId = (userId: number) => getTierClassName(userPairingTiersById[userId])
-const getTierLabelByUserId = (userId: number) => getTierLabel(userPairingTiersById[userId])
-
-const currentUser = { id: 9999, name: "나", meta: "서울 · 20대" }
+const currentUser = currentUserMock
 
 export default function PairingDetail() {
   const location = useLocation()
@@ -158,13 +89,14 @@ export default function PairingDetail() {
     post?.drinkType?.trim() ||
     (pairingTitle.includes("+") ? pairingTitle.split("+")[0]?.trim() : "")
 
-  const authorName = navState.authorName?.trim() || post?.authorName?.trim() || "익명"
-  const profile = navState.profile?.trim() || post?.profile?.trim() || "20대 / 서울"
+  const authorId =
+    typeof navState.authorId === "number" ? navState.authorId : typeof post?.authorId === "number" ? post.authorId : null
+  const authorMock = authorId !== null ? usersMockById[authorId] : undefined
+  const authorName = authorMock?.name || navState.authorName?.trim() || "익명"
+  const profile = authorMock?.profile || navState.profile?.trim() || "20대 / 서울"
   const locationLabel = navState.locationLabel?.trim() || post?.locationLabel?.trim() || "어딘가"
   const detailBodyText = navState.body?.trim() || post?.body?.trim() || ""
-
-  const authorId = typeof navState.authorId === "number" ? navState.authorId : null
-  const authorTier = authorId !== null ? userPairingTiersById[authorId] : undefined
+  const authorTier = authorId !== null ? getPairingTierByUserId(authorId) : undefined
 
   const [followedUserIds, setFollowedUserIds] = useState<Set<number>>(() => {
     try {
@@ -215,9 +147,23 @@ export default function PairingDetail() {
     const currentId = typeof pairingId === "string" ? Number(pairingId) : NaN
     const drinkHint = pairingTitle.split("+")[0]?.trim() ?? ""
     const drinkTypeHint = drinkTypeLabel || drinkHint
-    const candidates = similarPairingsMock
-      .filter((item) => item.id !== currentId)
+
+    const candidates = feedPosts
+      .filter((item) => item.id !== currentId && !item.isQna)
+      .map(
+        (item) =>
+          ({
+            id: item.id,
+            pairingTitle: extractPairingTitle(item.title),
+            authorId: item.authorId,
+            authorName: usersMockById[item.authorId]?.name ?? "익명",
+            profile: usersMockById[item.authorId]?.profile ?? "",
+            locationLabel: item.locationLabel ?? "",
+            drinkType: item.drinkType ?? "기타",
+          }) satisfies SimilarPairingItem,
+      )
       .sort((a, b) => (a.drinkType === drinkTypeHint ? -1 : 0) - (b.drinkType === drinkTypeHint ? -1 : 0))
+
     return candidates.slice(0, 2)
   }, [drinkTypeLabel, pairingId, pairingTitle])
 
@@ -304,8 +250,8 @@ export default function PairingDetail() {
         authorName={authorName}
         profile={profile}
         locationLabel={locationLabel}
-        tierClassName={getTierClassName(authorTier)}
-        tierLabel={getTierLabel(authorTier)}
+        tierClassName={getUserGradeBadgeClassNameByTier(authorTier)}
+        tierLabel={getPairingTierLabel(authorTier)}
         showTier={authorId !== null}
         isFollowing={isFollowing}
         followDisabled={authorId === null}
@@ -406,8 +352,8 @@ export default function PairingDetail() {
       <CommentSection
         pairingId={pairingId}
         currentUser={currentUser}
-        getTierClassName={getTierClassNameByUserId}
-        getTierLabel={getTierLabelByUserId}
+        getTierClassName={getUserGradeBadgeClassNameByUserId}
+        getTierLabel={getPairingTierLabelByUserId}
         onCountChange={setCommentCount}
       />
     </section>

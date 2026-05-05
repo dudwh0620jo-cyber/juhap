@@ -31,11 +31,7 @@ export const getPairingTierLabel = (tier: number | undefined) => {
 
 export const getPairingTierLabelByUserId = (userId: number) => getPairingTierLabel(getPairingTierByUserId(userId))
 
-export const getFeedPostBadgeClassNameByTier = (tier: number | undefined) => getTierClassName(tier, "feed_post_badge")
 export const getUserGradeBadgeClassNameByTier = (tier: number | undefined) => getTierClassName(tier, "user_grade_badge")
-
-export const getFeedPostBadgeClassNameByUserId = (userId: number) =>
-  getFeedPostBadgeClassNameByTier(getPairingTierByUserId(userId))
 
 export const getUserGradeBadgeClassNameByUserId = (userId: number) =>
   getUserGradeBadgeClassNameByTier(getPairingTierByUserId(userId))

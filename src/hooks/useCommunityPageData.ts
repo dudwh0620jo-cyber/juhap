@@ -1,42 +1,21 @@
+import { hallOfFameRankedSeeds, hallOfFameTitle } from "../utils/hallOfFame"
+import { COMMUNITY_FOLLOWED_USERS_KEY, COMMUNITY_LIKED_POSTS_KEY, COMMUNITY_SEARCH_RECENT_KEY } from "../utils/communityStorage"
+import { defaultFollowedUserIdsMock } from "../utils/usersMock"
+
 export type FeedFilter = "review" | "free" | "follow"
-
-type GradeTier = 1 | 2 | 3 | 4 | 5
-
-export type FollowUser = {
-  id: number
-  name: string
-  profile: string
-  bio: string
-}
 
 export type PopupChipGroup = {
   title: string
   chips: string[]
 }
 
-const COMMUNITY_SEARCH_RECENT_KEY = "community_search_recent_terms"
-const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
-const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
 const MAX_RECENT_TERMS = 10
 const PRICE_MIN_WON = 0
 const PRICE_MAX_WON = 1_000_000
 const ABV_MIN = 0
 const ABV_MAX = 65
 
-const pairingReviewGrades = ["테이스터", "셀렉터", "큐레이터", "소믈리에", "마스터"] as const
 
-const userGradesByAuthorId: Record<number, { alcoholReviewTier: GradeTier; pairingReviewTier: GradeTier }> = {
-  2001: { alcoholReviewTier: 3, pairingReviewTier: 2 },
-  2002: { alcoholReviewTier: 2, pairingReviewTier: 3 },
-  2003: { alcoholReviewTier: 4, pairingReviewTier: 4 },
-  2004: { alcoholReviewTier: 1, pairingReviewTier: 2 },
-  2019: { alcoholReviewTier: 3, pairingReviewTier: 3 },
-  2025: { alcoholReviewTier: 2, pairingReviewTier: 2 },
-  2101: { alcoholReviewTier: 2, pairingReviewTier: 1 },
-  2102: { alcoholReviewTier: 1, pairingReviewTier: 2 },
-  2103: { alcoholReviewTier: 1, pairingReviewTier: 2 },
-  2104: { alcoholReviewTier: 3, pairingReviewTier: 3 },
-}
 
 const feedFilterItems: Array<{ key: FeedFilter; label: string }> = [
   { key: "review", label: "후기" },
@@ -173,22 +152,6 @@ const popupFoodCategories = [
   "베지테리안",
 ]
 
-const followedUsersMock: FollowUser[] = [
-  { id: 2001, name: "민지", profile: "30대 / 서울 / 와인 선호", bio: "퇴근 후 와인 한 잔, 페어링 기록합니다." },
-  { id: 2002, name: "현우", profile: "20대 / 부산 / 맥주 러버", bio: "수제맥주, 안주 조합 찾는 중." },
-  { id: 2003, name: "서연", profile: "30대 / 경기 / 위스키 관심", bio: "하이볼 레시피랑 입문 위스키 정리해요." },
-  { id: 2004, name: "지훈", profile: "20대 / 인천 / 사케 입문", bio: "사케·일식 페어링 위주로 올립니다." },
-]
-
-const hallOfFameTitle = "명예의 전당"
-const hallOfFameRankedSeeds: Array<{ postId: number; rank: number; liquor: string; situation: string }> = [
-  { postId: 1002, rank: 2, liquor: "막걸리", situation: "비오는날" },
-  { postId: 1005, rank: 1, liquor: "와인", situation: "분위기" },
-  { postId: 1006, rank: 4, liquor: "맥주", situation: "캠핑" },
-  { postId: 1009, rank: 3, liquor: "칵테일", situation: "홈파티" },
-  { postId: 1010, rank: 5, liquor: "맥주", situation: "야식" },
-]
-
 export function useCommunityPageData() {
   return {
     COMMUNITY_SEARCH_RECENT_KEY,
@@ -199,14 +162,12 @@ export function useCommunityPageData() {
     PRICE_MAX_WON,
     ABV_MIN,
     ABV_MAX,
-    pairingReviewGrades,
-    userGradesByAuthorId,
     feedFilterItems,
     bookmarkLists,
     popupCategoryByDrinkType,
     popupFeaturesByDrinkType,
     popupFoodCategories,
-    followedUsersMock,
+    defaultFollowedUserIdsMock,
     hallOfFameTitle,
     hallOfFameRankedSeeds,
   }

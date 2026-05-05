@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
@@ -7,13 +7,16 @@ import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerM
 import RelatedContentPostCard from "../components/RelatedContentPostCard"
 import HallOfFamePostCard from "../components/HallOfFamePostCard"
 import QuestionPostRow from "../components/QuestionPostRow"
-import CommunitySearchInput from "../components/CommunitySearchInput"
-import CommunityFeedFilterPopupBody from "../components/CommunityFeedFilterPopupBody"
+import SearchFilterModal from "../components/SearchFilterModal"
+import CommunityFilterPanel from "../components/CommunityFilterPanel"
 import FeedWriteRow from "../components/FeedWriteRow"
 import { extractPairingTitle, feedPosts as communityFeedPosts, type FeedPost } from "../utils/communityPosts"
 import { type FeedFilter, type PopupChipGroup, useCommunityPageData } from "../hooks/useCommunityPageData"
 import { includesNormalized, normalizeSearchText } from "../utils/text"
+import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
+import { getTierClassName } from "../utils/tier"
 import { useStoredBooleanRecordFromIds, useStoredNumberSet, useStoredStringArray } from "../utils/storage"
+import { usersMockById } from "../utils/usersMock"
 
 // NOTE: The contents of `src/pages/community/*` were inlined into this file so the `community` folder can be deleted.
 // This is intentionally a single-file bundle for the Community page (as requested).
@@ -23,253 +26,6 @@ import { useStoredBooleanRecordFromIds, useStoredNumberSet, useStoredStringArray
 
 
 const feedPosts: FeedPost[] = communityFeedPosts
-/*
-  {
-    id: 1001,
-    authorId: 2003,
-    authorName: "서연",
-    title: "하이볼 + 삼겹살",
-    body: "집에서 해먹을 때는 기름기 있는 부위일수록 도수/탄산 선택이 달라지더라고요. 저만의 기준 공유합니다.",
-    createdAt: "2026-05-01T09:12:00+09:00",
-    likeCount: 320,
-    commentCount: 28,
-    popularityScore: 402,
-    profile: "30대 / 서울 / 소주 · 맥주 선호",
-    locationLabel: "아늑한 내방",
-    searchTags: ["기타", "하이볼", "소주토닉", "삼겹살", "가벼운", "톡쏘는", "과일향"],
-    drinkType: "기타",
-    categories: ["하이볼"],
-    features: ["가벼운", "톡쏘는", "과일향"],
-    foods: ["삼겹살"],
-    priceWon: 15000,
-    abv: 9,
-  },
-  {
-    id: 1002,
-    authorId: 2001,
-    authorName: "민지",
-    title: "막걸리 + 해물파전",
-    body: "바삭한 전이랑 산미 있는 막걸리 조합이 너무 좋아요. 추천 막걸리 있으면 알려주세요.",
-    createdAt: "2026-04-30T21:40:00+09:00",
-    likeCount: 188,
-    commentCount: 19,
-    popularityScore: 260,
-    profile: "20대 / 부산 / 전통주 입문",
-    locationLabel: "비 오는 베란다",
-    searchTags: ["전통주", "막걸리", "해물파전", "부드러운", "가벼운"],
-    drinkType: "전통주",
-    categories: ["막걸리"],
-    features: ["부드러운", "가벼운"],
-    foods: ["해물파전"],
-    priceWon: 12000,
-    abv: 6,
-  },
-  {
-    id: 1003,
-    authorId: 2003,
-    authorName: "서연",
-    title: "첫 위스키 입문 후기 공유해요",
-    body: "처음은 버번 하이볼로 시작했는데 생각보다 부담 없고 달달해서 좋았어요. 다음은 스카치도 도전해보려구요.",
-    createdAt: "2026-05-01T01:10:00+09:00",
-    likeCount: 96,
-    commentCount: 34,
-    popularityScore: 330,
-    profile: "30대 / 경기 / 위스키 관심",
-    locationLabel: "자주가는 바",
-    isQna: true,
-    searchTags: ["위스키", "하이볼", "버번", "부드러운", "무거운", "오크향"],
-    drinkType: "위스키",
-    categories: ["하이볼"],
-    features: ["부드러운", "무거운", "오크향"],
-    foods: ["치즈"],
-    priceWon: 79000,
-    abv: 40,
-  },
-  {
-    id: 1004,
-    authorId: 2004,
-    authorName: "지훈",
-    title: "사케에 잘 맞는 집안주 몇 개 추천",
-    body: "사시미 없을 때는 가라아게/오뎅/명란구이 조합이 제일 무난했어요. 차갑게 마시면 기름기도 잘 잡히더라구요.",
-    createdAt: "2026-04-29T18:05:00+09:00",
-    likeCount: 84,
-    commentCount: 21,
-    popularityScore: 210,
-    profile: "20대 / 인천 / 사케 입문",
-    locationLabel: "늦은 밤 식탁",
-    isQna: true,
-    searchTags: ["사케", "사케준마이", "가라아게", "부드러운", "가벼운", "오뎅", "명란구이"],
-    drinkType: "사케",
-    categories: ["사케준마이"],
-    features: ["부드러운", "가벼운"],
-    foods: ["가라아게", "오뎅", "명란구이"],
-    priceWon: 33000,
-    abv: 15,
-  },
-  {
-    id: 1005,
-    authorId: 2001,
-    authorName: "민지",
-    title: "레드 와인 + 스테이크",
-    body: "레어로 구웠을 때 탄닌이 기름을 잡아주는 느낌이 확실히 있어요. 소스는 과하지 않게!",
-    createdAt: "2026-04-28T22:15:00+09:00",
-    likeCount: 540,
-    commentCount: 63,
-    popularityScore: 720,
-    profile: "30대 / 서울 / 와인 선호",
-    locationLabel: "아늑한 우리집",
-    searchTags: ["와인", "레드", "스테이크", "오크숙성", "무거운", "오크향"],
-    drinkType: "와인",
-    categories: ["레드"],
-    features: ["무거운", "오크향"],
-    foods: ["스테이크"],
-    priceWon: 29000,
-    abv: 13,
-  },
-  {
-    id: 1006,
-    authorId: 2002,
-    authorName: "현우",
-    title: "IPA + 햄버거",
-    body: "홉의 씁쓸함이 느끼함을 잡아주고 향이 치즈랑 잘 맞아요. 추천 IPA도 남겨요.",
-    createdAt: "2026-04-27T20:33:00+09:00",
-    likeCount: 410,
-    commentCount: 40,
-    popularityScore: 590,
-    profile: "20대 / 대전 / 맥주 러버",
-    locationLabel: "햇살 드는 거실",
-    searchTags: ["맥주", "IPA", "크래프트", "뉴잉글랜드", "부드러운", "과일향", "햄버거", "치즈"],
-    drinkType: "맥주",
-    categories: ["IPA", "크래프트"],
-    features: ["부드러운", "과일향"],
-    foods: ["햄버거", "치즈"],
-    priceWon: 9000,
-    abv: 6.5,
-  },
-  {
-    id: 1007,
-    authorId: 2101,
-    authorName: "유나",
-    title: "소주 + 족발",
-    body: "족발은 기름질 것 같지만 새우젓/마늘이랑 같이 먹으면 소주가 느끼함을 잘 잡아줘요.",
-    createdAt: "2026-05-01T08:02:00+09:00",
-    likeCount: 66,
-    commentCount: 11,
-    popularityScore: 120,
-    profile: "20대 / 서울 / 소주 · 전통주",
-    locationLabel: "우리집 야식상",
-    searchTags: ["소주", "증류주", "족발", "부드러운", "무거운"],
-    drinkType: "소주",
-    categories: ["증류주"],
-    features: ["부드러운", "무거운"],
-    foods: ["족발"],
-    priceWon: 10000,
-    abv: 17,
-  },
-  {
-    id: 1008,
-    authorId: 2104,
-    authorName: "수빈",
-    title: "회 먹을 때는 전 사케파예요",
-    body: "간장/와사비가 강한 날엔 사케가 감칠맛이랑 잘 맞고, 산뜻하게 먹고 싶으면 화이트 와인도 좋아요. 저는 보통 사케로 갑니다.",
-    createdAt: "2026-04-30T23:55:00+09:00",
-    likeCount: 51,
-    commentCount: 17,
-    popularityScore: 160,
-    profile: "30대 / 제주 / 와인 · 사케",
-    locationLabel: "작은 주방 테이블",
-    isQna: true,
-    searchTags: ["사케", "사케준마이", "회", "부드러운", "가벼운"],
-    drinkType: "사케",
-    categories: ["사케준마이"],
-    features: ["과일향", "가벼운"],
-    foods: ["회"],
-    priceWon: 28000,
-    abv: 15,
-  },
-  {
-    id: 1009,
-    authorId: 2102,
-    authorName: "도윤",
-    title: "칵테일 + 타코",
-    body: "라임/시트러스 계열이 타코의 향신료랑 잘 붙는 느낌. 데킬라 베이스 추천!",
-    createdAt: "2026-04-30T12:20:00+09:00",
-    likeCount: 140,
-    commentCount: 22,
-    popularityScore: 310,
-    profile: "30대 / 대구 / 위스키 · 칵테일",
-    locationLabel: "친구들과 홈파티",
-    searchTags: ["기타", "칵테일", "시트러스", "톡쏘는", "과일향", "타코"],
-    drinkType: "기타",
-    categories: ["칵테일"],
-    features: ["톡쏘는", "과일향"],
-    foods: ["타코"],
-    priceWon: 18000,
-    abv: 12,
-  },
-  {
-    id: 1010,
-    authorId: 2103,
-    authorName: "지민",
-    title: "라거 + 감자튀김",
-    body: "짭짤함이랑 탄산/청량감 조합은 실패가 없네요. 소금 대신 시즈닝 바꿔도 좋고요.",
-    createdAt: "2026-04-29T20:10:00+09:00",
-    likeCount: 92,
-    commentCount: 9,
-    popularityScore: 180,
-    profile: "20대 / 광주 / 맥주 · 페어링",
-    locationLabel: "퇴근 후 소파 앞",
-    searchTags: ["맥주", "라거/필스너", "드라이", "가벼운", "감자튀김"],
-    drinkType: "맥주",
-    categories: ["라거/필스너"],
-    features: ["가벼운"],
-    foods: ["감자튀김"],
-    priceWon: 8000,
-    abv: 5,
-  },
-  {
-    id: 1011,
-    authorId: 2019,
-    authorName: "연훈",
-    title: "버번 + 다크초콜릿",
-    body: "달달한 버번이랑 쌉싸름한 다크초콜릿 같이 먹으니까 밸런스가 딱이었어요. 늦은 밤에 한 잔 하기 좋네요.",
-    createdAt: "2026-05-01T01:10:00+09:00",
-    likeCount: 97,
-    commentCount: 34,
-    popularityScore: 330,
-    profile: "30대 / 경기 / 위스키 관심",
-    locationLabel: "잔잔한 밤 방구석",
-    isQna: true,
-    searchTags: ["위스키", "증류주", "싱글몰트", "무거운", "오크향", "부드러운", "다크초콜릿"],
-    drinkType: "위스키",
-    categories: ["증류주"],
-    features: ["무거운", "오크향", "부드러운"],
-    foods: ["다크초콜릿"],
-    priceWon: 99000,
-    abv: 45,
-  },
-  {
-    id: 1012,
-    authorId: 2025,
-    authorName: "수연",
-    title: "주말 홈파티 페어링 기록",
-    body: "라거 + 치킨은 역시 실패가 없고, 막걸리 + 해물파전도 반응이 좋았어요. 다음엔 와인 쪽도 준비해보려구요.",
-    createdAt: "2026-05-01T01:10:00+09:00",
-    likeCount: 98,
-    commentCount: 34,
-    popularityScore: 330,
-    profile: "30대 / 경기 / 위스키 관심",
-    locationLabel: "주말 홈파티",
-    isQna: true,
-    searchTags: ["맥주", "라거/필스너", "치킨", "가벼운", "톡쏘는", "전통주", "막걸리", "해물파전"],
-    drinkType: "맥주",
-    categories: ["라거/필스너"],
-    features: ["가벼운", "톡쏘는"],
-    foods: ["치킨", "해물파전"],
-    priceWon: 16000,
-    abv: 5,
-  },
-*/
 
 export default function Community() {
   const navigate = useNavigate()
@@ -283,14 +39,12 @@ export default function Community() {
     PRICE_MAX_WON,
     ABV_MIN,
     ABV_MAX,
-    pairingReviewGrades,
-    userGradesByAuthorId,
     feedFilterItems,
     bookmarkLists,
     popupCategoryByDrinkType,
     popupFeaturesByDrinkType,
     popupFoodCategories,
-    followedUsersMock,
+    defaultFollowedUserIdsMock,
     hallOfFameTitle,
     hallOfFameRankedSeeds,
   } = useCommunityPageData()
@@ -298,7 +52,7 @@ export default function Community() {
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("review")
   const { value: followedUserIds, toggle: toggleFollowUser } = useStoredNumberSet(
     COMMUNITY_FOLLOWED_USERS_KEY,
-    followedUsersMock.map((user) => user.id),
+    defaultFollowedUserIdsMock,
   )
   const { value: likedById, toggle: toggleLike } = useStoredBooleanRecordFromIds(COMMUNITY_LIKED_POSTS_KEY)
   const [bookmarkListById, setBookmarkListById] = useState<Record<number, string | null>>({})
@@ -412,7 +166,7 @@ export default function Community() {
   }, [feedSearchValue, isFeedSearchConfirmed, popupChipGroups, searchAllChipGroups])
 
   const isPopupSearchNoResults =
-    isFeedSearchConfirmed && feedSearchValue.trim() && filteredPopupChipGroups.length === 0
+    isFeedSearchConfirmed && Boolean(feedSearchValue.trim()) && filteredPopupChipGroups.length === 0
 
   const isCommunitySearchActive =
     Boolean(feedSearchValue.trim()) ||
@@ -460,7 +214,7 @@ export default function Community() {
       const targets = [
         post.title,
         post.body,
-        post.profile ?? "",
+        usersMockById[post.authorId]?.profile ?? "",
         post.drinkType ?? "",
         ...(post.categories ?? []),
         ...(post.features ?? []),
@@ -663,8 +417,8 @@ export default function Community() {
         ? {
             pairingTitle,
             authorId: post.authorId,
-            authorName: post.authorName,
-            profile: post.profile ?? "",
+            authorName: usersMockById[post.authorId]?.name ?? "익명",
+            profile: usersMockById[post.authorId]?.profile ?? "",
             locationLabel,
             drinkType: post.drinkType ?? "",
             source: "feed",
@@ -834,198 +588,86 @@ export default function Community() {
         onOpenNotifications={() => {}}
       />
 
-      {isFeedFilterPopupOpen ? (
-        <div
-          className="feed_filter_overlay"
-          role="presentation"
-          onClick={() => setIsFeedFilterPopupOpen(false)}
-        >
-          <div
-            className="feed_filter_popup"
-            role="dialog"
-            aria-modal="true"
-            aria-label="커뮤니티 검색"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="feed_filter_popup_top">
-              
-              <CommunitySearchInput
-                shellAriaLabel="커뮤니티 검색"
-                inputAriaLabel="커뮤니티 검색어 입력"
-                clearAriaLabel="검색어 지우기"
-                placeholder="조합, 주류, 안주 검색"
-                value={feedSearchValue}
-                inputRef={feedSearchInputRef}
-                onChange={(nextValue) => {
-                  setFeedSearchValue(nextValue)
-                  setIsFeedSearchConfirmed(Boolean(nextValue.trim()))
-                }}
-                onEnter={confirmFeedSearch}
-                onClear={() => {
-                  setFeedSearchValue("")
-                  setIsFeedSearchConfirmed(false)
-                }}
-              />
-              <button
-                type="button"
-                className="feed_filter_close_button"
-                aria-label="취소"
-                onClick={() => setIsFeedFilterPopupOpen(false)}
-              >
-                취소
-              </button>
-            </div>
-
-            {isPopupSearchNoResults ? (
-              <p className="feed_filter_no_results" role="status">
-                검색 결과가 없어요
-              </p>
-            ) : null}
-
-            <CommunityFeedFilterPopupBody
-              groups={filteredPopupChipGroups}
-              collapsibleGroupTitles={collapsibleChipGroups}
-              expandedGroupTitles={expandedChipGroups}
-              setGroupRef={setChipGroupRef}
-              onToggleGroupExpanded={toggleChipGroupExpanded}
-              selectedDrinkType={selectedDrinkType}
-              selectedCategories={selectedCategories}
-              selectedFeatures={selectedFeatures}
-              selectedFoods={selectedFoods}
-              onChipClick={(groupTitle, chip) => {
-                if (groupTitle === "주종") {
-                  toggleDrinkType(chip)
-                  return
-                }
-                if (groupTitle === "카테고리") {
-                  toggleCategory(chip)
-                  return
-                }
-                if (groupTitle === "특징") {
-                  toggleFeature(chip)
-                  return
-                }
-                if (groupTitle === "음식") {
-                  toggleFood(chip)
-                }
-              }}
-              recentSearchTerms={recentSearchTerms}
-              onSelectRecentSearch={(term) => confirmFeedSearch(term)}
-              onDeleteRecentSearch={(term) => {
-                setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
-              }}
-            />
-
-            <div className="feed_filter_range_group" aria-label="가격 필터">
-              <h3 className="feed_filter_group_title">가격</h3>
-              <p className="feed_filter_range_label">
-                {priceRange[0].toLocaleString()}원 ~ {priceRange[1] >= PRICE_MAX_WON ? `${PRICE_MAX_WON.toLocaleString()}원 이상` : `${priceRange[1].toLocaleString()}원`}
-              </p>
-              <div
-                className="dual_range"
-                style={
-                  {
-                    ["--min-pct" as string]: `${priceMinPct}%`,
-                    ["--max-pct" as string]: `${priceMaxPct}%`,
-                  } as CSSProperties
-                }
-              >
-                <input
-                  className="dual_range_input"
-                  type="range"
-                  min={PRICE_MIN_WON}
-                  max={PRICE_MAX_WON}
-                  step={1000}
-                  value={priceRange[0]}
-                  onChange={(e) => {
-                    const nextMin = Math.min(Number(e.target.value), priceRange[1])
-                    setPriceRange([nextMin, priceRange[1]])
-                  }}
-                  aria-label="최소 가격"
-                />
-                <input
-                  className="dual_range_input"
-                  type="range"
-                  min={PRICE_MIN_WON}
-                  max={PRICE_MAX_WON}
-                  step={1000}
-                  value={priceRange[1]}
-                  onChange={(e) => {
-                    const nextMax = Math.max(Number(e.target.value), priceRange[0])
-                    setPriceRange([priceRange[0], nextMax])
-                  }}
-                  aria-label="최대 가격"
-                />
-              </div>
-              <div className="feed_filter_quick_row">
-                <button type="button" onClick={() => setPriceRange([500000, PRICE_MAX_WON])}>50만원 이상</button>
-                <button type="button" onClick={() => setPriceRange([1000000, PRICE_MAX_WON])}>100만원 이상</button>
-              </div>
-            </div>
-
-            <div className="feed_filter_range_group" aria-label="도수 필터">
-              <h3 className="feed_filter_group_title">도수</h3>
-              <p className="feed_filter_range_label">
-                {abvRange[0]}% ~ {abvRange[1] >= ABV_MAX ? `${ABV_MAX}% 이상` : `${abvRange[1]}%`}
-              </p>
-              <div
-                className="dual_range"
-                style={
-                  {
-                    ["--min-pct" as string]: `${abvMinPct}%`,
-                    ["--max-pct" as string]: `${abvMaxPct}%`,
-                  } as CSSProperties
-                }
-              >
-                <input
-                  className="dual_range_input"
-                  type="range"
-                  min={ABV_MIN}
-                  max={ABV_MAX}
-                  step={1}
-                  value={abvRange[0]}
-                  onChange={(e) => {
-                    const nextMin = Math.min(Number(e.target.value), abvRange[1])
-                    setAbvRange([nextMin, abvRange[1]])
-                  }}
-                  aria-label="최소 도수"
-                />
-                <input
-                  className="dual_range_input"
-                  type="range"
-                  min={ABV_MIN}
-                  max={ABV_MAX}
-                  step={1}
-                  value={abvRange[1]}
-                  onChange={(e) => {
-                    const nextMax = Math.max(Number(e.target.value), abvRange[0])
-                    setAbvRange([abvRange[0], nextMax])
-                  }}
-                  aria-label="최대 도수"
-                />
-              </div>
-            </div>
-
-            <div className="feed_filter_footer">
-              <button type="button" className="feed_filter_reset" onClick={resetFilters}>
-                선택 초기화
-              </button>
-              <button
-                type="button"
-                className="feed_filter_apply"
-                onClick={() => {
-                  setIsFeedFilterPopupOpen(false)
-                  setIsFeedSearchConfirmed(true)
-                }}
-              >
-                선택 완료
-                <br />
-                검색하기
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <SearchFilterModal
+        isOpen={isFeedFilterPopupOpen}
+        ariaLabel="커뮤니티 검색"
+        onClose={() => setIsFeedFilterPopupOpen(false)}
+      >
+        <CommunityFilterPanel
+          searchValue={feedSearchValue}
+          inputRef={feedSearchInputRef}
+          onChangeSearchValue={(nextValue) => {
+            setFeedSearchValue(nextValue)
+            setIsFeedSearchConfirmed(Boolean(nextValue.trim()))
+          }}
+          onConfirmSearch={confirmFeedSearch}
+          onClearSearch={() => {
+            setFeedSearchValue("")
+            setIsFeedSearchConfirmed(false)
+          }}
+          onClose={() => setIsFeedFilterPopupOpen(false)}
+          isNoResults={isPopupSearchNoResults}
+          chipGroups={filteredPopupChipGroups}
+          collapsibleGroupTitles={collapsibleChipGroups}
+          expandedGroupTitles={expandedChipGroups}
+          setGroupRef={setChipGroupRef}
+          onToggleGroupExpanded={toggleChipGroupExpanded}
+          selectedDrinkType={selectedDrinkType}
+          selectedCategories={selectedCategories}
+          selectedFeatures={selectedFeatures}
+          selectedFoods={selectedFoods}
+          onChipClick={(groupTitle, chip) => {
+            if (groupTitle === "주종") {
+              toggleDrinkType(chip)
+              return
+            }
+            if (groupTitle === "카테고리") {
+              toggleCategory(chip)
+              return
+            }
+            if (groupTitle === "특징") {
+              toggleFeature(chip)
+              return
+            }
+            if (groupTitle === "음식") {
+              toggleFood(chip)
+            }
+          }}
+          recentSearchTerms={recentSearchTerms}
+          onSelectRecentSearch={(term) => confirmFeedSearch(term)}
+          onDeleteRecentSearch={(term) => {
+            setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
+          }}
+          priceRange={priceRange}
+          priceMin={PRICE_MIN_WON}
+          priceMax={PRICE_MAX_WON}
+          priceMinPct={priceMinPct}
+          priceMaxPct={priceMaxPct}
+          onChangePriceMin={(nextMin) => {
+            setPriceRange((prev) => [Math.min(nextMin, prev[1]), prev[1]])
+          }}
+          onChangePriceMax={(nextMax) => {
+            setPriceRange((prev) => [prev[0], Math.max(nextMax, prev[0])])
+          }}
+          onSetPriceRange={(next) => setPriceRange(next)}
+          abvRange={abvRange}
+          abvMin={ABV_MIN}
+          abvMax={ABV_MAX}
+          abvMinPct={abvMinPct}
+          abvMaxPct={abvMaxPct}
+          onChangeAbvMin={(nextMin) => {
+            setAbvRange((prev) => [Math.min(nextMin, prev[1]), prev[1]])
+          }}
+          onChangeAbvMax={(nextMax) => {
+            setAbvRange((prev) => [prev[0], Math.max(nextMax, prev[0])])
+          }}
+          onReset={resetFilters}
+          onApply={() => {
+            setIsFeedFilterPopupOpen(false)
+            setIsFeedSearchConfirmed(true)
+          }}
+        />
+      </SearchFilterModal>
 
       <FeedSegmentTabs
         ariaLabel="커뮤니티 탭"
@@ -1065,8 +707,8 @@ export default function Community() {
                  pairingTitle: extractPairingTitle(post.title),
                  body: post.body,
                  authorId: post.authorId,
-                 authorName: post.authorName,
-                 profile: post.profile ?? "",
+                 authorName: usersMockById[post.authorId]?.name ?? "익명",
+                 profile: usersMockById[post.authorId]?.profile ?? "",
                  locationLabel: post.locationLabel?.trim() ?? "",
                  drinkType: post.drinkType ?? "",
                  source: "free",
@@ -1133,8 +775,8 @@ export default function Community() {
               linkState={{
                 pairingTitle: extractPairingTitle(post.title),
                 authorId: post.authorId,
-                authorName: post.authorName,
-                profile: post.profile ?? "",
+                authorName: usersMockById[post.authorId]?.name ?? "익명",
+                profile: usersMockById[post.authorId]?.profile ?? "",
                 locationLabel: post.locationLabel?.trim() ?? "",
                 drinkType: post.drinkType ?? "",
                 source: "feed",
@@ -1147,22 +789,12 @@ export default function Community() {
               key={post.id}
               postId={post.id}
               isQna={post.isQna}
-              authorName={post.authorName}
-              profile={post.profile}
+              authorName={usersMockById[post.authorId]?.name ?? "익명"}
+              profile={usersMockById[post.authorId]?.profile ?? ""}
               badgeClassName={
-                userGradesByAuthorId[post.authorId]?.pairingReviewTier === 5
-                  ? "feed_post_badge is_tier5"
-                  : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 4
-                    ? "feed_post_badge is_tier4"
-                    : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 3
-                      ? "feed_post_badge is_tier3"
-                      : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 2
-                        ? "feed_post_badge is_tier2"
-                        : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 1
-                          ? "feed_post_badge is_tier1"
-                          : "feed_post_badge"
+                getTierClassName(getPairingTierByUserId(post.authorId), "feed_post_badge")
               }
-              badgeText={pairingReviewGrades[(userGradesByAuthorId[post.authorId]?.pairingReviewTier ?? 1) - 1]}
+              badgeText={getPairingTierLabelByUserId(post.authorId)}
               followButtonClassName={
                 followedUserIds.has(post.authorId) ? "follow_toggle_button is_following" : "follow_toggle_button"
               }
@@ -1181,8 +813,8 @@ export default function Community() {
               linkState={{
                 pairingTitle: extractPairingTitle(post.title),
                 authorId: post.authorId,
-                authorName: post.authorName,
-                profile: post.profile ?? "",
+                authorName: usersMockById[post.authorId]?.name ?? "익명",
+                profile: usersMockById[post.authorId]?.profile ?? "",
                 locationLabel: post.locationLabel?.trim() ?? "",
                 drinkType: post.drinkType ?? "",
                 source: "feed",
