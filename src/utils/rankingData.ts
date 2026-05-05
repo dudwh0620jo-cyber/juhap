@@ -30,6 +30,26 @@ export type RankingPodium = {
   thumbVariant?: "default" | "bottle"
 }
 
+export type PairMeta = {
+  drink: string
+  drinkEmoji: string
+  food: string
+  foodEmoji: string
+}
+
+export const pairMetaById: Record<number, PairMeta> = {
+  1001: { drink: "하이볼", drinkEmoji: "🥃", food: "삼겹살", foodEmoji: "🥩" },
+  1002: { drink: "막걸리", drinkEmoji: "🍵", food: "해물파전", foodEmoji: "🥞" },
+  1004: { drink: "사케", drinkEmoji: "🍶", food: "집안주", foodEmoji: "🍱" },
+  1005: { drink: "레드 와인", drinkEmoji: "🍷", food: "스테이크", foodEmoji: "🥩" },
+  1006: { drink: "IPA", drinkEmoji: "🍺", food: "햄버거", foodEmoji: "🍔" },
+  1007: { drink: "소주", drinkEmoji: "🍶", food: "족발", foodEmoji: "🍖" },
+  1008: { drink: "사케", drinkEmoji: "🍶", food: "회", foodEmoji: "🐟" },
+  1009: { drink: "칵테일", drinkEmoji: "🍹", food: "타코", foodEmoji: "🌮" },
+  1010: { drink: "라거", drinkEmoji: "🍺", food: "감자튀김", foodEmoji: "🍟" },
+  1011: { drink: "버번", drinkEmoji: "🥃", food: "다크초콜릿", foodEmoji: "🍫" },
+}
+
 export const rankingPeriods: Array<{ key: RankingPeriod; label: string }> = [
   { key: "all", label: "전체" },
   { key: "daily", label: "일간" },
@@ -297,3 +317,16 @@ export const rankingDataByPeriod: Record<
     ],
   },
 }
+
+const weeklyAll = rankingDataByPeriod.weekly
+const weeklyTop5Entries = [
+  ...weeklyAll.podiumByCategory.all,
+  ...weeklyAll.rows.filter((r) => r.rank === 4 || r.rank === 5).sort((a, b) => a.rank - b.rank),
+]
+
+export type HomeRankingItem = PairMeta & { rating: number; count: number }
+
+export const weeklyAllTop5 = weeklyTop5Entries.map((entry) => {
+  const meta = pairMetaById[entry.id]
+  return { ...meta, rating: entry.score, count: entry.votes ?? 0 }
+}) as [HomeRankingItem, HomeRankingItem, HomeRankingItem, HomeRankingItem, HomeRankingItem]

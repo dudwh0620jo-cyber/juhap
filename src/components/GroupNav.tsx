@@ -1,7 +1,7 @@
 type Group = {
   id: string
   label: string
-  items: string[]
+  items: unknown[]
 }
 
 type Props = {
