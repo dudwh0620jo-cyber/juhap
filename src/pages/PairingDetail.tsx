@@ -8,7 +8,7 @@ import SimilarPairingList, { type SimilarPairingItem } from "../components/Simil
 import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
-import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../hooks/communityPosts"
+import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../utils/communityPosts"
 import { useStoredBooleanRecordFromIds } from "../utils/storage"
 
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
