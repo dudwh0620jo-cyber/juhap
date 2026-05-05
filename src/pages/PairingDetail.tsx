@@ -9,9 +9,11 @@ import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
 import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../hooks/communityPosts"
+import { useStoredBooleanRecordFromIds } from "../utils/storage"
 
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
 const COMMUNITY_LIKED_POSTS_KEY = "community_liked_post_ids"
+const COMMUNITY_BOOKMARKED_POSTS_KEY = "community_bookmarked_post_ids"
 const getPairingCommentsStorageKey = (pairingId: string) => `pairing_detail_comments_${pairingId}`
 
 type PairingDetailNavState = {
@@ -189,6 +191,12 @@ export default function PairingDetail() {
       return false
     }
   })
+
+  const numericPostId = typeof pairingId === "string" ? Number(pairingId) : NaN
+  const { value: bookmarkedById, toggle: toggleBookmark } = useStoredBooleanRecordFromIds(
+    COMMUNITY_BOOKMARKED_POSTS_KEY,
+  )
+  const isBookmarked = Number.isFinite(numericPostId) ? Boolean(bookmarkedById[numericPostId]) : false
 
   const [likeCount, setLikeCount] = useState(847)
   const [commentCount, setCommentCount] = useState(() => {
@@ -370,9 +378,12 @@ export default function PairingDetail() {
         onViewComments={() =>
           document.getElementById("comments")?.scrollIntoView({ behavior: "smooth", block: "start" })
         }
-        bookmarkActive={false}
-        bookmarkAriaLabel="북마크"
-        onBookmark={() => {}}
+        bookmarkActive={isBookmarked}
+        bookmarkAriaLabel={isBookmarked ? "북마크 취소" : "북마크"}
+        onBookmark={() => {
+          if (!Number.isFinite(numericPostId)) return
+          toggleBookmark(numericPostId)
+        }}
       />
 
       <SimilarPairingList

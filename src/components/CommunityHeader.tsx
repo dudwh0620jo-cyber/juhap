@@ -1,5 +1,5 @@
-import iconBell from "../imgs/svg/bell.svg"
-import iconSearch from "../imgs/svg/magnifyingglass.svg"
+import iconBell from "../assets/svg/bell.svg"
+import iconSearch from "../assets/svg/magnifyingglass.svg"
 
 type TopTabKey = "ranking" | "feed"
 

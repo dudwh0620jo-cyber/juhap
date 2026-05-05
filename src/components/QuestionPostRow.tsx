@@ -1,7 +1,7 @@
 import { Link } from "react-router"
 
-import iconChat from "../imgs/svg/chatcircle.svg"
-import iconHeart from "../imgs/svg/heart.svg"
+import iconChat from "../assets/svg/chatcircle.svg"
+import iconHeart from "../assets/svg/heart.svg"
 
 type Props = {
   postId: number

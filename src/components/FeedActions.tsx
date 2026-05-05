@@ -1,9 +1,9 @@
-import iconBookmark from "../imgs/svg/bookmarksimple.svg"
-import iconBookmarkActive from "../imgs/svg/bookmarksimple_active.svg"
-import iconChat from "../imgs/svg/chatcircle.svg"
-import iconBeerstein from "../imgs/svg/beerstein.svg"
-import iconBeersteinActive from "../imgs/svg/beerstein_active.svg"
-import iconShare from "../imgs/svg/sharenetwork.svg"
+import iconBookmark from "../assets/svg/bookmarksimple.svg"
+import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
+import iconChat from "../assets/svg/chatcircle.svg"
+import iconBeerstein from "../assets/svg/beerstein.svg"
+import iconBeersteinActive from "../assets/svg/beerstein_active.svg"
+import iconShare from "../assets/svg/sharenetwork.svg"
 
 type Props = {
   variant?: "compact" | "detail"

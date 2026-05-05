@@ -1539,19 +1539,10 @@
 .feed_actions.is_detail .feed_action_button {
   min-height: 44px;
   padding: 0 10px;
-  border: 1px solid rgba(0, 0, 0, 0.16);
-  border-radius: 14px;
-  background: var(--color-sub-01);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 500;
   gap: 6px;
 }
-
-.feed_actions.is_detail .feed_action_button.is_active {
-  border-color: var(--color-dark-05);
-  background: var(--color-sub-02);
-}
-
 
 .feed_action_icon {
   width: 18px;

@@ -1,4 +1,4 @@
-import iconCaretLeft from "../imgs/svg/caretleft.svg"
+import iconCaretLeft from "../assets/svg/caretleft.svg"
 
 type Props = {
   authorName: string

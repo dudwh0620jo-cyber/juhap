@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo } from "react"
 import { useLocation, useNavigate } from "react-router"
 
 import RelatedContentPostCard from "../components/RelatedContentPostCard"
-import iconCaretLeft from "../imgs/svg/caretleft.svg"
+import iconCaretLeft from "../assets/svg/caretleft.svg"
 import "../styles/community.css"
 
 type TagType = "liquor" | "food"

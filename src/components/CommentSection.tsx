@@ -2,9 +2,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
 
 import AlertModal from "./AlertModal"
-import iconCaretLeft from "../imgs/svg/caretleft.svg"
-import iconDots from "../imgs/svg/dotsthreevertical.svg"
-import iconReplyArrow from "../imgs/svg/arrowbenddownright.svg"
+import iconCaretLeft from "../assets/svg/caretleft.svg"
+import iconDots from "../assets/svg/dotsthreevertical.svg"
+import iconReplyArrow from "../assets/svg/arrowbenddownright.svg"
 
 const getPairingCommentsStorageKey = (pairingId: string) => `pairing_detail_comments_${pairingId}`
 const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"

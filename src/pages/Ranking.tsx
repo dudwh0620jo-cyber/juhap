@@ -1145,9 +1145,9 @@ export default function CommunityRanking() {
   }
 
   return (
-    <section className="community_page page_screen" aria-label="커뮤니티">
+    <section className="community_page page_screen" aria-label="랭킹">
       <CommunityHeader
-        title="커뮤니티"
+        title="랭킹"
         topTab="ranking"
         openFilterAriaLabel="검색 필터 열기"
         onOpenFilter={openFeedFilterPopup}
@@ -1163,13 +1163,13 @@ export default function CommunityRanking() {
             className="feed_filter_popup"
             role="dialog"
             aria-modal="true"
-            aria-label="커뮤니티 검색"
+            aria-label="랭킹 검색"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="feed_filter_popup_top">
               <CommunitySearchInput
-                shellAriaLabel="커뮤니티 검색"
-                inputAriaLabel="커뮤니티 검색어 입력"
+                shellAriaLabel="랭킹 검색"
+                inputAriaLabel="랭킹 검색어 입력"
                 clearAriaLabel="검색어 지우기"
                 placeholder="조합, 주류, 안주 검색"
                 value={feedSearchValue}

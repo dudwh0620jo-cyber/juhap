@@ -1,4 +1,4 @@
-import iconPencil from "../imgs/svg/pencil.svg"
+import iconPencil from "../assets/svg/pencil.svg"
 
 type Props = {
   mode: "review" | "free"
