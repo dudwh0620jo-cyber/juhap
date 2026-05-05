@@ -7,6 +7,7 @@ type Props = {
   followAriaLabel: string
   followText: string
   onToggleFollow: () => void
+  hideAvatar?: boolean
 }
 
 export default function RelatedContentPostCardHeader({
@@ -18,10 +19,11 @@ export default function RelatedContentPostCardHeader({
   followAriaLabel,
   followText,
   onToggleFollow,
+  hideAvatar,
 }: Props) {
   return (
     <header className="feed_card_header">
-      <div className="avatar" />
+      {hideAvatar ? null : <div className="avatar" />}
       <div className="feed_card_header_info">
         <div className="feed_author_row">
           <h3>{authorName}</h3>

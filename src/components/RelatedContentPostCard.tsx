@@ -17,6 +17,7 @@ type Props = {
   followAriaLabel: string
   followText: string
   onToggleFollow: () => void
+  hideAvatar?: boolean
   linkTo: string
   linkState: Record<string, unknown>
   title: string
@@ -45,6 +46,7 @@ export default function RelatedContentPostCard({
   followAriaLabel,
   followText,
   onToggleFollow,
+  hideAvatar,
   linkTo,
   linkState,
   title,
@@ -72,6 +74,7 @@ export default function RelatedContentPostCard({
         followAriaLabel={followAriaLabel}
         followText={followText}
         onToggleFollow={onToggleFollow}
+        hideAvatar={hideAvatar}
       />
 
       {isQna ? (
@@ -97,18 +100,12 @@ export default function RelatedContentPostCard({
             <div className="feed_image" />
           </div>
           <strong className="review_pair_title">{title}</strong>
-          <div className="review_pair_rating" aria-label="평점">
-            <span className="review_stars" aria-hidden="true">
-              ★★★★★
-            </span>
-            <span className="review_score">4.9</span>
-          </div>
           <p className="feed_body">{body}</p>
         </Link>
       )}
 
-      <hr />
       <div className="feed_actions">
+        <div className="left_actions">
         <button
           type="button"
           className={likeActive ? "feed_action_button is_active" : "feed_action_button"}
@@ -126,9 +123,9 @@ export default function RelatedContentPostCard({
 
         <button type="button" className="feed_action_button" aria-label="공유">
           <img className="feed_action_icon" src={iconShare} alt="" aria-hidden="true" />
-          <span className="feed_action_text">공유</span>
         </button>
-
+        </div>
+        <div className="right_actions">
         <button
           type="button"
           className={bookmarkActive ? "feed_action_button is_active" : "feed_action_button"}
@@ -136,8 +133,8 @@ export default function RelatedContentPostCard({
           onClick={onOpenBookmarkPicker}
         >
           <img className="feed_action_icon" src={iconBookmark} alt="" aria-hidden="true" />
-          <span className="feed_action_text">북마크</span>
         </button>
+        </div>
       </div>
     </article>
   )

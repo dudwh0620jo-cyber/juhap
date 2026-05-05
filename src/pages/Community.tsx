@@ -1,52 +1,22 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
-import { useLocation, useNavigate, useSearchParams } from "react-router"
+import { useNavigate } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import RelatedContentPostCard from "../components/RelatedContentPostCard"
+import HallOfFamePostCard from "../components/HallOfFamePostCard"
+import QuestionPostRow from "../components/QuestionPostRow"
 import CommunitySearchInput from "../components/CommunitySearchInput"
-import CommunityRankingSection from "../components/CommunityRankingSection"
 import CommunityFeedFilterPopupBody from "../components/CommunityFeedFilterPopupBody"
 import FeedWriteRow from "../components/FeedWriteRow"
 
 // NOTE: The contents of `src/pages/community/*` were inlined into this file so the `community` folder can be deleted.
 // This is intentionally a single-file bundle for the Community page (as requested).
 
-type FeedFilter = "review" | "free" | "popular" | "follow"
-
-type RankingPeriod = "weekly" | "daily" | "monthly" | "all"
-type RankingCategory =
-  | "all"
-  | "soju"
-  | "wine"
-  | "beer"
-  | "whisky_spirit"
-  | "tradition"
-  | "sake"
-  | "etc"
+type FeedFilter = "review" | "free" | "follow"
 
 type GradeTier = 1 | 2 | 3 | 4 | 5
-
-type RankingRow = {
-  id: number
-  rank: number
-  pair: string
-  category: RankingCategory
-  score: number
-  votes: number
-  delta: string
-}
-
-type RankingPodium = {
-  id: number
-  rank: 1 | 2 | 3
-  pair: string
-  category: RankingCategory
-  score: number
-  votes?: number
-  thumbVariant?: "default" | "bottle"
-}
 
 type FeedPost = {
   id: number
@@ -111,28 +81,9 @@ const userGradesByAuthorId: Record<
   2104: { alcoholReviewTier: 3, pairingReviewTier: 3 },
 }
 
-const rankingPeriods: Array<{ key: RankingPeriod; label: string }> = [
-  { key: "weekly", label: "주간" },
-  { key: "daily", label: "일간" },
-  { key: "monthly", label: "월간" },
-  { key: "all", label: "전체" },
-]
-
-const rankingCategories: Array<{ key: RankingCategory; label: string }> = [
-  { key: "all", label: "전체" },
-  { key: "soju", label: "소주" },
-  { key: "wine", label: "와인" },
-  { key: "beer", label: "맥주" },
-  { key: "whisky_spirit", label: "위스키/증류주" },
-  { key: "tradition", label: "전통주" },
-  { key: "sake", label: "사케" },
-  { key: "etc", label: "기타" },
-]
-
 const feedFilterItems: Array<{ key: FeedFilter; label: string }> = [
   { key: "review", label: "후기" },
-  { key: "free", label: "자유" },
-  { key: "popular", label: "인기" },
+  { key: "free", label: "질문" },
   { key: "follow", label: "팔로우" },
 ]
 
@@ -265,35 +216,6 @@ const popupFoodCategories = [
   "베지테리안",
 ]
 
-const podiumVotesById: Record<number, number> = {
-  101: 8122,
-  102: 8494,
-  103: 8494,
-}
-
-const normalizeRankingPeriod = (value: string | null): RankingPeriod | null => {
-  if (value === "weekly" || value === "daily" || value === "monthly" || value === "all") {
-    return value
-  }
-  return null
-}
-
-const normalizeRankingCategory = (value: string | null): RankingCategory | null => {
-  if (
-    value === "all" ||
-    value === "soju" ||
-    value === "wine" ||
-    value === "beer" ||
-    value === "whisky_spirit" ||
-    value === "tradition" ||
-    value === "sake" ||
-    value === "etc"
-  ) {
-    return value
-  }
-  return null
-}
-
 const extractPairingTitle = (title: string) => {
   const match = title.match(/([^\n+]{2,}?)\s*\+\s*([^\n+]{2,}?)(?=[,.\n]|$)/)
   if (!match) {
@@ -302,17 +224,6 @@ const extractPairingTitle = (title: string) => {
   const left = match[1].trim()
   const right = match[2].trim()
   return `${left} + ${right}`
-}
-
-const getPodiumVotes = (podium: RankingPodium) => {
-  const explicitVotes = podium.votes ?? podiumVotesById[podium.id]
-  if (typeof explicitVotes === "number" && Number.isFinite(explicitVotes)) {
-    return Math.max(0, Math.round(explicitVotes))
-  }
-
-  const base = 5200
-  const noise = (podium.id * 37 + podium.rank * 191) % 3600
-  return base + noise
 }
 
 const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim()
@@ -334,32 +245,6 @@ const includesNormalized = (value: string, query: string) => {
   }
   if (normalizedValue.includes(normalizedQuery)) return true
   return normalizeFuzzyText(value).includes(normalizeFuzzyText(query))
-}
-
-const createRankingFeatureTags = (category: RankingCategory, pairing: string) => {
-  const tags: string[] = []
-  const normalized = normalizeSearchText(pairing)
-
-  if (category === "beer") {
-    tags.push("가벼운", "톡쏘는")
-  } else if (category === "soju") {
-    tags.push("가벼운", "톡쏘는")
-  } else if (category === "wine") {
-    tags.push("무거운", "과일향")
-    if (normalized.includes("스테이크") || normalized.includes("치즈")) {
-      tags.push("오크향")
-    }
-  } else if (category === "whisky_spirit") {
-    tags.push("무거운", "오크향", "부드러운")
-  } else if (category === "tradition") {
-    tags.push("부드러운", "가벼운")
-  } else if (category === "sake") {
-    tags.push("부드러운", "가벼운")
-  } else {
-    tags.push("과일향", "톡쏘는")
-  }
-
-  return tags
 }
 
 function useStoredNumberSet(key: string, defaultIds: readonly number[]) {
@@ -481,10 +366,10 @@ function useStoredStringArray(key: string, maxLength: number) {
   return { value, setValue }
 }
 
-const rankingDataByPeriod: Record<
-  RankingPeriod,
-  { podiumByCategory: Record<RankingCategory, RankingPodium[]>; rows: RankingRow[] }
-> = {
+/* (removed) ranking data was moved to `src/pages/Ranking.tsx` */
+
+/*
+const rankingDataByPeriod = {
   weekly: {
     podiumByCategory: {
       all: [
@@ -698,6 +583,7 @@ const rankingDataByPeriod: Record<
     ],
   },
 }
+*/
 
 const feedPosts: FeedPost[] = [
   {
@@ -957,9 +843,7 @@ const followedUsersMock: FollowUser[] = [
 
 
 export default function Community() {
-  const location = useLocation()
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
 
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("review")
   const { value: followedUserIds, toggle: toggleFollowUser } = useStoredNumberSet(
@@ -988,17 +872,6 @@ export default function Community() {
     COMMUNITY_SEARCH_RECENT_KEY,
     MAX_RECENT_TERMS,
   )
-
-  const isRankingRoute = location.pathname === "/community/ranking"
-  const topTab = isRankingRoute ? "ranking" : "feed"
-  const rankingPeriod = normalizeRankingPeriod(searchParams.get("period")) ?? "weekly"
-  const rankingCategory = normalizeRankingCategory(searchParams.get("cat")) ?? "all"
-
-  const setQueryParam = (key: "period" | "cat", value: string) => {
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set(key, value)
-    setSearchParams(nextParams, { replace: true })
-  }
 
   const _legacyPopupChipGroups: PopupChipGroup[] = [
     { title: "상황", chips: ["혼술", "데이트", "파티/모임", "홈파티", "기타"] },
@@ -1116,10 +989,6 @@ export default function Community() {
       return copy
         .filter((post) => post.isQna)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }
-
-    if (feedFilter === "popular") {
-      return copy.sort((a, b) => b.popularityScore - a.popularityScore)
     }
 
     if (feedFilter === "follow") {
@@ -1265,85 +1134,6 @@ export default function Community() {
     selectedFeatures,
     selectedFoods,
   ])
-  const rankingData = rankingDataByPeriod[rankingPeriod]
-  const rankingRows = useMemo(() => {
-    return rankingCategory === "all"
-      ? rankingData.rows
-      : rankingData.rows.filter((row) => row.category === rankingCategory)
-  }, [rankingCategory, rankingData.rows])
-
-  const filteredRankingRows = useMemo(() => {
-    if (!isCommunitySearchActive) {
-      return rankingRows
-    }
-
-    const query = feedSearchValue.trim()
-    return rankingRows.filter((row) => {
-      const categoryLabel = rankingCategories.find((category) => category.key === row.category)?.label ?? ""
-      const featureTags = createRankingFeatureTags(row.category, row.pair)
-      const targets = [row.pair, categoryLabel, ...featureTags]
-      const queryMatches = !query || includesNormalized(targets.join(" "), query)
-
-      const drinkTypeMatches = !selectedDrinkType || includesNormalized(categoryLabel, selectedDrinkType)
-      const categoryMatches =
-        selectedCategories.size === 0 || Array.from(selectedCategories).some((item) => includesNormalized(targets.join(" "), item))
-      const foodMatches =
-        selectedFoods.size === 0 || Array.from(selectedFoods).some((item) => includesNormalized(row.pair, item))
-      const featureMatches =
-        selectedFeatures.size === 0 || featureTags.some((tag) => selectedFeatures.has(tag))
-
-      return (
-        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
-      )
-    })
-  }, [
-    feedSearchValue,
-    isCommunitySearchActive,
-    rankingRows,
-    selectedCategories,
-    selectedDrinkType,
-    selectedFeatures,
-    selectedFoods,
-  ])
-
-  const rankingPodium = rankingData.podiumByCategory[rankingCategory] ?? rankingData.podiumByCategory.all
-  const podiumRankOrder: Array<1 | 2 | 3> = [2, 1, 3]
-
-  const filteredRankingPodium = useMemo(() => {
-    if (!isCommunitySearchActive) {
-      return rankingPodium
-    }
-
-    const query = feedSearchValue.trim()
-    return rankingPodium.filter((podium) => {
-      const categoryLabel = rankingCategories.find((category) => category.key === podium.category)?.label ?? ""
-      const featureTags = createRankingFeatureTags(podium.category, podium.pair)
-      const targets = [podium.pair, categoryLabel, ...featureTags]
-      const queryMatches = !query || includesNormalized(targets.join(" "), query)
-
-      const drinkTypeMatches = !selectedDrinkType || includesNormalized(categoryLabel, selectedDrinkType)
-      const categoryMatches =
-        selectedCategories.size === 0 || Array.from(selectedCategories).some((item) => includesNormalized(targets.join(" "), item))
-      const foodMatches =
-        selectedFoods.size === 0 || Array.from(selectedFoods).some((item) => includesNormalized(podium.pair, item))
-      const featureMatches =
-        selectedFeatures.size === 0 || featureTags.some((tag) => selectedFeatures.has(tag))
-
-      return (
-        queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
-      )
-    })
-  }, [
-    feedSearchValue,
-    isCommunitySearchActive,
-    rankingPodium,
-    selectedCategories,
-    selectedDrinkType,
-    selectedFeatures,
-    selectedFoods,
-  ])
-
-  const isRankingNoResults = isCommunitySearchActive && filteredRankingRows.length === 0 && filteredRankingPodium.length === 0
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
 
   useEffect(() => {
@@ -1553,13 +1343,43 @@ export default function Community() {
     setFeedFilter(nextFilter)
   }
 
+  const hallOfFamePosts = useMemo(() => {
+    const rankedSeeds: Array<{ postId: number; rank: number; liquor: string; situation: string }> = [
+      { postId: 1002, rank: 2, liquor: "막걸리", situation: "비오는날" },
+      { postId: 1005, rank: 1, liquor: "와인", situation: "분위기" },
+      { postId: 1006, rank: 4, liquor: "맥주", situation: "캠핑" },
+      { postId: 1009, rank: 3, liquor: "칵테일", situation: "홈파티" },
+      { postId: 1010, rank: 5, liquor: "맥주", situation: "야식" },
+    ]
+
+    const rankedById = new Map(rankedSeeds.map((seed) => [seed.postId, seed]))
+    const candidates = feedPosts
+      .filter((post) => !post.isQna)
+      .filter((post) => rankedById.has(post.id))
+      .map((post) => ({ post, seed: rankedById.get(post.id)! }))
+
+    const shuffled = [...candidates]
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1))
+      const temp = shuffled[index]
+      shuffled[index] = shuffled[swapIndex]
+      shuffled[swapIndex] = temp
+    }
+
+    return shuffled.slice(0, 3).map((item) => item)
+  }, [])
+
+  const hallOfFameTitle = "명예의 전당"
+  const feedSectionTitle = feedFilter === "review" ? "페어링 후기" : feedFilter === "free" ? "질문" : "팔로우"
+
   return (
     <section className="community_page page_screen" aria-label="커뮤니티">
       <CommunityHeader
         title="커뮤니티"
-        topTab={topTab}
+        topTab="feed"
         openFilterAriaLabel="검색 필터 열기"
         onOpenFilter={openFeedFilterPopup}
+        onOpenNotifications={() => {}}
       />
 
       {isFeedFilterPopupOpen ? (
@@ -1755,140 +1575,199 @@ export default function Community() {
         </div>
       ) : null}
 
-      {topTab === "ranking" ? (
-        <CommunityRankingSection
-          periodItems={rankingPeriods}
-          activePeriod={rankingPeriod}
-          onChangePeriod={(period) => setQueryParam("period", period)}
-          categoryItems={rankingCategories}
-          activeCategory={rankingCategory}
-          onChangeCategory={(category) => setQueryParam("cat", category)}
-          podiumRankOrder={podiumRankOrder}
-          podiumItems={filteredRankingPodium}
-          getPodiumVotes={getPodiumVotes}
-          isNoResults={isRankingNoResults}
-          suggestionTags={searchSuggestionTags}
-          onSelectSuggestionTag={(tag) => {
-            setFeedSearchValue(tag)
-            setIsFeedSearchConfirmed(true)
+      <FeedSegmentTabs
+        ariaLabel="커뮤니티 탭"
+        items={feedFilterItems}
+        activeKey={feedFilter}
+        onChange={(key) => changeFeedFilter(key as FeedFilter)}
+      />
+
+      {feedFilter === "free" || feedFilter === "review" ? (
+        <FeedWriteRow
+          ariaLabel="글 작성"
+          mode={feedFilter}
+          onClick={() => {
+            const modeParam = feedFilter === "free" ? "free" : "review"
+            navigate(`/community/write?mode=${modeParam}`)
           }}
-          rows={filteredRankingRows}
         />
-      ) : (
-      <section className="feed_page" aria-label="커뮤니티 피드">
-          <FeedSegmentTabs
-            ariaLabel="피드 필터"
-            items={feedFilterItems}
-            activeKey={feedFilter}
-            onChange={(key) => changeFeedFilter(key as FeedFilter)}
-          />
-          <div className="feed_cards">
-            {isFeedNoResults ? (
-              <div className="search_no_results" role="status">
-                <p className="search_no_results_title">검색 결과가 없어요</p>
-                {searchSuggestionTags.length > 0 ? (
-                  <div className="search_suggestion_row" aria-label="추천 태그">
-                    {searchSuggestionTags.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        className="search_suggestion_chip"
-                        onClick={() => {
-                          setFeedSearchValue(tag)
-                          setIsFeedSearchConfirmed(true)
-                        }}
-                      >
-                        #{tag}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
+      ) : null}
+
+      {feedFilter === "review" ? (
+        <>
+          <h4 className="community_section_title">{hallOfFameTitle}</h4>
+          <div className="feed_cards" aria-label="명예의 전당 목록">
+            {hallOfFamePosts.map(({ post, seed }) => {
+              const chips = [
+                { key: `rank-${post.id}`, label: `랭킹 ${seed.rank}위`, variant: "rank" as const },
+                { key: `liquor-${post.id}`, label: seed.liquor },
+                { key: `situation-${post.id}`, label: seed.situation },
+              ]
+
+              return (
+                <HallOfFamePostCard
+                  key={post.id}
+                  postId={post.id}
+                  linkTo={`/community/pairing/${post.id}`}
+                  linkState={{
+                    pairingTitle: extractPairingTitle(post.title),
+                    authorId: post.authorId,
+                    authorName: post.authorName,
+                    profile: post.profile ?? "",
+                    locationLabel: post.locationLabel?.trim() ?? "",
+                    drinkType: post.drinkType ?? "",
+                    source: "feed",
+                  }}
+                  chips={chips}
+                  title={extractPairingTitle(post.title)}
+                  body={post.body}
+                  likeActive={Boolean(likedById[post.id])}
+                  likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
+                  likeText={`${getLikeCount(post)}`}
+                  onToggleLike={() => toggleLike(post.id)}
+                  commentText={`${getCommentCount(post)}`}
+                  onViewComments={() => goToComments(post.id)}
+                  bookmarkActive={Boolean(bookmarkListById[post.id])}
+                  bookmarkAriaLabel={bookmarkListById[post.id] ? "북마크 변경" : "북마크"}
+                  onOpenBookmarkPicker={() => openBookmarkPicker(post.id)}
+                />
+              )
+            })}
+          </div>
+        </>
+      ) : null}
+
+      <h4 className="community_section_title">{feedSectionTitle}</h4>
+      <div className={feedFilter === "free" ? "question_list" : "feed_cards"} aria-label="커뮤니티 글 목록">
+        {isFeedNoResults ? (
+          <div className="search_no_results" role="status">
+            <p className="search_no_results_title">검색 결과가 없어요</p>
+            {searchSuggestionTags.length > 0 ? (
+              <div className="search_suggestion_row" aria-label="추천 태그">
+                {searchSuggestionTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className="search_suggestion_chip"
+                    onClick={() => {
+                      setFeedSearchValue(tag)
+                      setIsFeedSearchConfirmed(true)
+                    }}
+                  >
+                    #{tag}
+                  </button>
+                ))}
               </div>
             ) : null}
-
-            {feedFilter === "free" || feedFilter === "review" ? <FeedWriteRow ariaLabel="글 작성" mode={feedFilter} /> : null}
-            {filteredPosts.map((post) => (
-              <RelatedContentPostCard
-                key={post.id}
-                postId={post.id}
-                isQna={post.isQna}
-                authorName={post.authorName}
-                profile={post.profile}
-                badgeClassName={
-                  userGradesByAuthorId[post.authorId]?.pairingReviewTier === 5
-                    ? "feed_post_badge is_tier5"
-                    : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 4
-                      ? "feed_post_badge is_tier4"
-                      : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 3
-                        ? "feed_post_badge is_tier3"
-                        : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 2
-                          ? "feed_post_badge is_tier2"
-                          : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 1
-                            ? "feed_post_badge is_tier1"
-                            : "feed_post_badge"
-                }
-                badgeText={pairingReviewGrades[(userGradesByAuthorId[post.authorId]?.pairingReviewTier ?? 1) - 1]}
-                followButtonClassName={
-                  followedUserIds.has(post.authorId) ? "follow_toggle_button is_following" : "follow_toggle_button"
-                }
-                followAriaLabel={
-                  feedFilter === "follow"
-                    ? "언팔로우"
-                    : followedUserIds.has(post.authorId)
-                      ? "언팔로잉"
-                      : "팔로우"
-                }
-                followText={
-                  feedFilter === "follow" ? "언팔로우" : followedUserIds.has(post.authorId) ? "언팔로잉" : "팔로우"
-                }
-                onToggleFollow={() => toggleFollowUser(post.authorId)}
-                linkTo={`/community/pairing/${post.id}`}
-                linkState={{
-                  pairingTitle: extractPairingTitle(post.title),
-                  authorId: post.authorId,
-                  authorName: post.authorName,
-                  profile: post.profile ?? "",
-                  locationLabel: post.locationLabel?.trim() ?? "",
-                  drinkType: post.drinkType ?? "",
-                  source: "feed",
-                }}
-                title={post.isQna ? post.title : extractPairingTitle(post.title)}
-                body={post.body}
-                answerCount={post.answerCount}
-                answerPreview={post.answerPreview}
-                likeActive={Boolean(likedById[post.id])}
-                likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
-                likeText={`${getLikeCount(post)}`}
-                onToggleLike={() => toggleLike(post.id)}
-                commentText={`${getCommentCount(post)}`}
-                onViewComments={() => goToComments(post.id)}
-                bookmarkActive={Boolean(bookmarkListById[post.id])}
-                bookmarkAriaLabel={bookmarkListById[post.id] ? "북마크 변경" : "북마크"}
-                onOpenBookmarkPicker={() => openBookmarkPicker(post.id)}
-              />
-            ))}
           </div>
+        ) : null}
 
-          {bookmarkPicker ? (
-            <CommunityBookmarkPickerModal
-              picker={bookmarkPicker}
-              lists={bookmarkLists}
-              ariaLabel="북마크 리스트 선택"
-              titleText={
-                bookmarkListById[bookmarkPicker.postId] ? "북마크를 어디로 옮길까요?" : "어느 리스트에 저장할까요?"
-              }
-              listPickerAriaLabel="북마크 리스트"
-              secondaryLabel={bookmarkListById[bookmarkPicker.postId] ? "해제" : "취소"}
-              primaryLabel="확인"
-              onDismiss={cancelBookmark}
-              onSelectList={(listId) => setBookmarkPicker({ ...bookmarkPicker, selectedListId: listId })}
-              onSecondary={bookmarkListById[bookmarkPicker.postId] ? removeBookmark : cancelBookmark}
-              onPrimary={confirmBookmark}
+        {feedFilter === "free"
+          ? filteredPosts.map((post, index) => (
+            <QuestionPostRow
+              key={post.id}
+              postId={post.id}
+              title={post.title}
+              body={post.body}
+              createdAt={post.createdAt}
+              likeCount={getLikeCount(post)}
+              commentCount={getCommentCount(post)}
+              likeActive={Boolean(likedById[post.id])}
+              likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
+              onToggleLike={() => toggleLike(post.id)}
+              onViewComments={() => goToComments(post.id)}
+              linkTo={`/community/pairing/${post.id}`}
+              linkState={{
+                pairingTitle: extractPairingTitle(post.title),
+                authorId: post.authorId,
+                authorName: post.authorName,
+                profile: post.profile ?? "",
+                locationLabel: post.locationLabel?.trim() ?? "",
+                drinkType: post.drinkType ?? "",
+                source: "feed",
+              }}
+              thumbVariant={index % 3 === 1 ? "bottle" : index % 3 === 2 ? "photo" : "none"}
             />
-          ) : null}
+          ))
+          : filteredPosts.map((post) => (
+            <RelatedContentPostCard
+              key={post.id}
+              postId={post.id}
+              isQna={post.isQna}
+              authorName={post.authorName}
+              profile={post.profile}
+              badgeClassName={
+                userGradesByAuthorId[post.authorId]?.pairingReviewTier === 5
+                  ? "feed_post_badge is_tier5"
+                  : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 4
+                    ? "feed_post_badge is_tier4"
+                    : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 3
+                      ? "feed_post_badge is_tier3"
+                      : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 2
+                        ? "feed_post_badge is_tier2"
+                        : userGradesByAuthorId[post.authorId]?.pairingReviewTier === 1
+                          ? "feed_post_badge is_tier1"
+                          : "feed_post_badge"
+              }
+              badgeText={pairingReviewGrades[(userGradesByAuthorId[post.authorId]?.pairingReviewTier ?? 1) - 1]}
+              followButtonClassName={
+                followedUserIds.has(post.authorId) ? "follow_toggle_button is_following" : "follow_toggle_button"
+              }
+              followAriaLabel={
+                feedFilter === "follow"
+                  ? "언팔로우"
+                  : followedUserIds.has(post.authorId)
+                    ? "언팔로잉"
+                    : "팔로우"
+              }
+              followText={
+                feedFilter === "follow" ? "언팔로우" : followedUserIds.has(post.authorId) ? "언팔로잉" : "팔로우"
+              }
+              onToggleFollow={() => toggleFollowUser(post.authorId)}
+              linkTo={`/community/pairing/${post.id}`}
+              linkState={{
+                pairingTitle: extractPairingTitle(post.title),
+                authorId: post.authorId,
+                authorName: post.authorName,
+                profile: post.profile ?? "",
+                locationLabel: post.locationLabel?.trim() ?? "",
+                drinkType: post.drinkType ?? "",
+                source: "feed",
+              }}
+              title={post.isQna ? post.title : extractPairingTitle(post.title)}
+              body={post.body}
+              answerCount={post.answerCount}
+              answerPreview={post.answerPreview}
+              likeActive={Boolean(likedById[post.id])}
+              likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
+              likeText={`${getLikeCount(post)}`}
+              onToggleLike={() => toggleLike(post.id)}
+              commentText={`${getCommentCount(post)}`}
+              onViewComments={() => goToComments(post.id)}
+              bookmarkActive={Boolean(bookmarkListById[post.id])}
+              bookmarkAriaLabel={bookmarkListById[post.id] ? "북마크 변경" : "북마크"}
+              onOpenBookmarkPicker={() => openBookmarkPicker(post.id)}
+            />
+          ))}
+      </div>
 
-        </section>
-      )}
+      {bookmarkPicker ? (
+        <CommunityBookmarkPickerModal
+          picker={bookmarkPicker}
+          lists={bookmarkLists}
+          ariaLabel="북마크 리스트 선택"
+          titleText={
+            bookmarkListById[bookmarkPicker.postId] ? "북마크를 어디로 옮길까요?" : "어느 리스트에 저장할까요?"
+          }
+          listPickerAriaLabel="북마크 리스트"
+          secondaryLabel={bookmarkListById[bookmarkPicker.postId] ? "해제" : "취소"}
+          primaryLabel="확인"
+          onDismiss={cancelBookmark}
+          onSelectList={(listId) => setBookmarkPicker({ ...bookmarkPicker, selectedListId: listId })}
+          onSecondary={bookmarkListById[bookmarkPicker.postId] ? removeBookmark : cancelBookmark}
+          onPrimary={confirmBookmark}
+        />
+      ) : null}
     </section>
   )
 }
