@@ -3,47 +3,11 @@ import { useLocation, useNavigate } from "react-router"
 import CategorySearch from "../components/CategorySearch"
 import GroupNav from "../components/GroupNav"
 import SubcategoryCard from "../components/SubcategoryCard"
+import { useCategoryPageData } from "../hooks/useCategoryPageData"
 import "../styles/category.css"
 
-const alcoholGroups = [
-  {
-    id: "soju",
-    label: "소주",
-    items: ["데일리(희석식)", "프리미엄(증류식)", "플레이버"],
-  },
-  {
-    id: "wine",
-    label: "와인",
-    items: ["레드", "화이트", "로제", "스파클링", "내추럴 와인"],
-  },
-  {
-    id: "beer",
-    label: "맥주",
-    items: ["라거/필스너", "에일/IPA", "흑맥주(스타우트)", "과일맥주"],
-  },
-  {
-    id: "spirits",
-    label: `위스키/증류주`,
-    items: ["싱글몰트", "블렌디드", "버번", "진/보드카", "테킬라", "럼"],
-  },
-  {
-    id: "traditional",
-    label: "전통주",
-    items: ["막걸리/탁주", "청주/약주", "과실주"],
-  },
-  {
-    id: "sake",
-    label: "사케",
-    items: ["다이긴죠 / 긴죠", "준마이", "혼죠조 / 일반주"],
-  },
-  {
-    id: "other",
-    label: "기타",
-    items: ["하이볼", "칵테일 (Mix)", "논알콜/저도수 (Sober)"],
-  },
-]
-
 export default function Category() {
+  const { alcoholGroups } = useCategoryPageData()
   const navigate = useNavigate()
   const location = useLocation()
   const returnedGroupLabel = (location.state as { groupLabel?: string } | null)?.groupLabel
@@ -63,7 +27,7 @@ export default function Category() {
   const filteredItems = useMemo(() => {
     const normalizedQuery = searchValue.trim().toLowerCase()
     if (!normalizedQuery) {
-      return activeGroup.items.map((itemLabel) => ({
+      return activeGroup.items.map(({ label: itemLabel }) => ({
         groupId: activeGroup.id,
         groupLabel: activeGroup.label,
         itemLabel,
@@ -75,7 +39,7 @@ export default function Category() {
       const uniqueKeySet = new Set<string>()
       return matchingGroups
         .flatMap((group) =>
-          group.items.map((itemLabel) => ({ groupId: group.id, groupLabel: group.label, itemLabel }))
+          group.items.map(({ label: itemLabel }) => ({ groupId: group.id, groupLabel: group.label, itemLabel }))
         )
         .filter((result) => {
           const key = `${result.groupId}::${result.itemLabel}`
@@ -86,9 +50,9 @@ export default function Category() {
     }
 
     return activeGroup.items
-      .filter((item) => item.toLowerCase().includes(normalizedQuery))
-      .map((itemLabel) => ({ groupId: activeGroup.id, groupLabel: activeGroup.label, itemLabel }))
-  }, [activeGroup, searchValue])
+      .filter(({ label }) => label.toLowerCase().includes(normalizedQuery))
+      .map(({ label: itemLabel }) => ({ groupId: activeGroup.id, groupLabel: activeGroup.label, itemLabel }))
+  }, [activeGroup, searchValue, alcoholGroups])
 
   const goToCategoryList = (groupLabel: string, subcategoryLabel: string) => {
     const params = new URLSearchParams()

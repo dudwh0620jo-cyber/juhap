@@ -1,0 +1,153 @@
+.ai_scan_page {
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  min-height: 100%;
+  padding: 28px 20px 40px;
+  gap: 24px;
+}
+
+.ai_scan_header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai_scan_title {
+  font-family: var(--font-title);
+  font-size: var(--fs-title-m);
+  font-weight: 700;
+  color: #000;
+}
+
+.ai_scan_subtitle {
+  font-size: var(--fs-small);
+  color: #aaa;
+}
+
+/* 탭 */
+.ai_scan_tabs {
+  display: flex;
+  gap: 8px;
+  background: #222;
+  border-radius: 14px;
+  padding: 4px;
+}
+
+.ai_scan_tab {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  background: transparent;
+  color: #888;
+}
+
+.ai_scan_tab.is_active {
+  background: #fff;
+  color: #111;
+}
+
+/* 뷰파인더 */
+.ai_scan_viewfinder {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: #1a1a1a;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.ai_scan_corner {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-color: var(--color-main-03);
+  border-style: solid;
+  border-width: 0;
+}
+
+.ai_scan_corner.top_left    { top: 16px; left: 16px;  border-top-width: 3px; border-left-width: 3px;  border-top-left-radius: 4px; }
+.ai_scan_corner.top_right   { top: 16px; right: 16px; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 4px; }
+.ai_scan_corner.bottom_left  { bottom: 16px; left: 16px;  border-bottom-width: 3px; border-left-width: 3px;  border-bottom-left-radius: 4px; }
+.ai_scan_corner.bottom_right { bottom: 16px; right: 16px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 4px; }
+
+.ai_scan_camera_circle {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: rgba(202, 158, 82, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.ai_scan_hint {
+  font-size: var(--fs-small);
+  color: #888;
+}
+
+/* 스캔 시작 버튼 */
+.ai_scan_start_button {
+  width: 100%;
+  padding: 18px 0;
+  border: none;
+  border-radius: 16px;
+  background: var(--color-main-03);
+  color: #1a1000;
+  font-size: var(--fs-h6);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ai_scan_start_button:active {
+  opacity: 0.85;
+}
+
+/* 최근 스캔 */
+.ai_scan_recent_title {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: #aaa;
+}
+
+.ai_scan_recent_chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.ai_scan_chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #222;
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+.ai_scan_chip:active {
+  background: #333;
+}
+
+.ai_scan_chip_emoji {
+  font-size: 20px;
+}

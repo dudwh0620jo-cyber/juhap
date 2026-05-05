@@ -12,6 +12,7 @@ import ProductDetail from "./pages/ProductDetail"
 import Quiz from "./pages/Quiz"
 import PairingDetail from "./pages/PairingDetail"
 import VoteList from "./pages/VoteList"
+import AiScan from "./pages/AiScan"
 import PairingTagList from "./pages/PairingTagList"
 import "./styles/common.css"
 
@@ -93,6 +94,7 @@ export default function App() {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/vote" element={<VoteList />} />
+          <Route path="/ai-scan" element={<AiScan />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
 
