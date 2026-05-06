@@ -31,6 +31,7 @@ type Props = {
   getTierClassName: (userId: number) => string
   getTierLabel: (userId: number) => string
   onCountChange: (count: number) => void
+  emptyByDefault?: boolean
 }
 
 const PAGE_SIZE = 5
@@ -44,6 +45,7 @@ export default function CommentSection({
   getTierClassName,
   getTierLabel,
   onCountChange,
+  emptyByDefault,
 }: Props) {
   const [commentValue, setCommentValue] = useState("")
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
@@ -77,12 +79,12 @@ export default function CommentSection({
   )
 
   const [commentItems, setCommentItems] = useState<CommentItem[]>(() => {
-    if (!pairingId) return initialComments
+    if (!pairingId) return emptyByDefault ? [] : initialComments
     try {
       const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
-      if (!raw) return initialComments
+      if (!raw) return emptyByDefault ? [] : initialComments
       const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return initialComments
+      if (!Array.isArray(parsed)) return emptyByDefault ? [] : initialComments
       return parsed.filter(
         (item): item is CommentItem =>
           item &&
@@ -475,7 +477,7 @@ export default function CommentSection({
                     {openMenuCommentId === item.id ? (
                       <div className="comment_menu" role="menu" aria-label="댓글 메뉴">
                         <button type="button" role="menuitem" onClick={() => mentionFromComment(item)}>
-                          멘션하기
+                          대댓글달기
                         </button>
                       </div>
                     ) : null}

@@ -1,6 +1,5 @@
-import { useLayoutEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
-import CategoryItemCard, { type CategoryListItem } from "../components/CategoryItemCard"
 import CommentSection from "../components/CommentSection"
 import FeedActions from "../components/FeedActions"
 import PairingDetailHeader from "../components/PairingDetailHeader"
@@ -13,6 +12,7 @@ import {
   COMMUNITY_BOOKMARKED_POSTS_KEY,
   COMMUNITY_FOLLOWED_USERS_KEY,
   COMMUNITY_LIKED_POSTS_KEY,
+  COMMUNITY_USER_POSTS_KEY,
   getPairingCommentsStorageKey,
 } from "../utils/communityStorage"
 import {
@@ -24,34 +24,19 @@ import {
 } from "../utils/pairingTier"
 import { useStoredBooleanRecordFromIds } from "../utils/storage"
 import { currentUserMock, usersMockById } from "../utils/usersMock"
+import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 
 type PairingDetailNavState = {
   pairingTitle?: string
+  pairingSummary?: string
   body?: string
   authorId?: number
   authorName?: string
   profile?: string
   locationLabel?: string
   drinkType?: string
+  features?: string[]
   source?: "feed" | "ranking" | "free"
-}
-
-type RecommendedProduct = {
-  id: string
-  name: string
-  categoryLabel: string
-  subLabel: string
-  priceLabel: string
-}
-
-const recommendedProductByDrinkType: Record<string, RecommendedProduct> = {
-  소주: { id: "soju-jinro-classic-1", name: "참이슬 오리지널", categoryLabel: "소주", subLabel: "17.0%", priceLabel: "4,500원" },
-  맥주: { id: "beer-cass-lager-1", name: "카스 라거", categoryLabel: "맥주", subLabel: "라거", priceLabel: "3,900원" },
-  와인: { id: "wine-cabernet-1", name: "카베르네 소비뇽", categoryLabel: "와인", subLabel: "레드", priceLabel: "29,000원" },
-  위스키: { id: "whisky-single-malt-1", name: "싱글몰트 위스키", categoryLabel: "위스키", subLabel: "싱글몰트", priceLabel: "79,000원" },
-  전통주: { id: "tradition-makgeolli-1", name: "프리미엄 막걸리", categoryLabel: "전통주", subLabel: "막걸리", priceLabel: "9,900원" },
-  사케: { id: "sake-junmai-1", name: "준마이 사케", categoryLabel: "사케", subLabel: "준마이", priceLabel: "33,000원" },
-  기타: { id: "etc-highball-can-1", name: "하이볼 캔", categoryLabel: "기타", subLabel: "하이볼", priceLabel: "12,000원" },
 }
 
 const priceRangeTagByDrinkType: Record<string, string> = {
@@ -64,8 +49,6 @@ const priceRangeTagByDrinkType: Record<string, string> = {
   기타: "1~3만원",
 }
 
-const currentUser = currentUserMock
-
 export default function PairingDetail() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -74,7 +57,20 @@ export default function PairingDetail() {
   const navState = (location.state ?? {}) as PairingDetailNavState
   const numericId = typeof pairingId === "string" ? Number(pairingId) : NaN
   const post = useMemo(
-    () => (Number.isFinite(numericId) ? feedPosts.find((item) => item.id === numericId) : undefined),
+    () => {
+      if (!Number.isFinite(numericId)) return undefined
+      const fromSeed = feedPosts.find((item) => item.id === numericId)
+      if (fromSeed) return fromSeed
+
+      try {
+        const raw = window.localStorage.getItem(COMMUNITY_USER_POSTS_KEY)
+        const parsed = raw ? JSON.parse(raw) : []
+        if (!Array.isArray(parsed)) return undefined
+        return parsed.find((item) => typeof item?.id === "number" && item.id === numericId)
+      } catch {
+        return undefined
+      }
+    },
     [numericId],
   )
 
@@ -84,6 +80,26 @@ export default function PairingDetail() {
     return `페어링 #${pairingId ?? ""}`.trim()
   }, [navState.pairingTitle, pairingId, post?.title])
 
+  const pairingSummary = useMemo(() => {
+    const fromNav = navState.pairingSummary?.trim()
+    if (fromNav) return fromNav
+    const fromPost = post?.pairingSummary?.trim()
+    if (fromPost) return fromPost
+    const firstLine = (navState.body ?? post?.body ?? "").split("\n")[0]?.trim()
+    return firstLine || ""
+  }, [navState.body, navState.pairingSummary, post?.body, post?.pairingSummary])
+
+  const pairingFeatures = useMemo(() => {
+    const fromNav: string[] = Array.isArray(navState.features) ? navState.features : []
+    const fromPostRaw: unknown = (post as { features?: unknown } | undefined)?.features
+    const fromPost: string[] = Array.isArray(fromPostRaw) ? (fromPostRaw.filter((v): v is string => typeof v === "string") as string[]) : []
+
+    const source = fromNav.length > 0 ? fromNav : fromPost
+    const cleaned = source.map((v) => v.trim()).filter(Boolean)
+    const unique = Array.from(new Set(cleaned))
+    return unique.slice(0, 2)
+  }, [navState.features, post?.features])
+
   const drinkTypeLabel =
     navState.drinkType?.trim() ||
     post?.drinkType?.trim() ||
@@ -92,11 +108,19 @@ export default function PairingDetail() {
   const authorId =
     typeof navState.authorId === "number" ? navState.authorId : typeof post?.authorId === "number" ? post.authorId : null
   const authorMock = authorId !== null ? usersMockById[authorId] : undefined
-  const authorName = authorMock?.name || navState.authorName?.trim() || "익명"
-  const profile = authorMock?.profile || navState.profile?.trim() || "20대 / 서울"
-  const locationLabel = navState.locationLabel?.trim() || post?.locationLabel?.trim() || "어딘가"
+  const authorName = navState.authorName?.trim() || post?.authorName?.trim() || authorMock?.name || "익명"
+  const profile = navState.profile?.trim() || authorMock?.profile || "20대 / 서울"
+  const locationLabel = navState.locationLabel?.trim() || post?.locationLabel?.trim() || ""
   const detailBodyText = navState.body?.trim() || post?.body?.trim() || ""
   const authorTier = authorId !== null ? getPairingTierByUserId(authorId) : undefined
+
+  const { metaLine: myMetaLine, nickname: myNickname } = useMyOnboardingMeta()
+  const isMyPost = authorId === 2001 && authorName === myNickname
+  const mySubProfile = isMyPost ? myMetaLine : profile
+  const currentUser = useMemo(
+    () => ({ ...currentUserMock, id: 2001, name: myNickname, meta: "작성자" }),
+    [myNickname],
+  )
 
   const [followedUserIds, setFollowedUserIds] = useState<Set<number>>(() => {
     try {
@@ -130,18 +154,36 @@ export default function PairingDetail() {
   )
   const isBookmarked = Number.isFinite(numericPostId) ? Boolean(bookmarkedById[numericPostId]) : false
 
-  const [likeCount, setLikeCount] = useState(847)
-  const [commentCount, setCommentCount] = useState(() => {
-    if (!pairingId) return 4
+  const initialLikeCount = useMemo(() => {
+    const value = (post as { likeCount?: unknown } | undefined)?.likeCount
+    return typeof value === "number" && Number.isFinite(value) ? value : 0
+  }, [post])
+
+  const [likeCount, setLikeCount] = useState(initialLikeCount)
+
+  const initialCommentCount = useMemo(() => {
+    const fromPost = (post as { commentCount?: unknown } | undefined)?.commentCount
+    if (typeof fromPost === "number" && Number.isFinite(fromPost)) return fromPost
+    if (!pairingId) return 0
     try {
       const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
-      if (!raw) return 4
+      if (!raw) return 0
       const parsed = JSON.parse(raw)
-      return Array.isArray(parsed) ? parsed.length : 4
+      return Array.isArray(parsed) ? parsed.length : 0
     } catch {
-      return 4
+      return 0
     }
-  })
+  }, [pairingId, post])
+
+  const [commentCount, setCommentCount] = useState(initialCommentCount)
+
+  useEffect(() => {
+    setLikeCount(initialLikeCount)
+  }, [initialLikeCount])
+
+  useEffect(() => {
+    setCommentCount(initialCommentCount)
+  }, [initialCommentCount])
 
   const similarItems = useMemo(() => {
     const currentId = typeof pairingId === "string" ? Number(pairingId) : NaN
@@ -167,13 +209,6 @@ export default function PairingDetail() {
     return candidates.slice(0, 2)
   }, [drinkTypeLabel, pairingId, pairingTitle])
 
-  const recommendedProduct = useMemo(() => {
-    if (drinkTypeLabel && recommendedProductByDrinkType[drinkTypeLabel]) {
-      return recommendedProductByDrinkType[drinkTypeLabel]
-    }
-    return recommendedProductByDrinkType.기타
-  }, [drinkTypeLabel])
-
   const { liquorTag, foodTag } = useMemo(() => {
     if (post?.title) return getPairingTagsFromTitle(post.title)
     return getPairingTagsFromTitle(pairingTitle)
@@ -181,17 +216,6 @@ export default function PairingDetail() {
 
   const hasPairingTags = Boolean(liquorTag) && Boolean(foodTag)
   const isQnaDetail = Boolean(post?.isQna) || navState.source === "free"
-
-  const recommendedCategoryItem: CategoryListItem = useMemo(
-    () => ({
-      id: recommendedProduct.id,
-      name: recommendedProduct.name,
-      subGroup: recommendedProduct.categoryLabel,
-      tags: [recommendedProduct.categoryLabel, recommendedProduct.subLabel, recommendedProduct.priceLabel],
-      keywords: [],
-    }),
-    [recommendedProduct],
-  )
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
@@ -248,13 +272,32 @@ export default function PairingDetail() {
     <section className="pairing_detail_page page_screen" aria-label="페어링 상세">
       <PairingDetailHeader
         authorName={authorName}
-        profile={profile}
+        profile={mySubProfile}
         locationLabel={locationLabel}
         tierClassName={getUserGradeBadgeClassNameByTier(authorTier)}
         tierLabel={getPairingTierLabel(authorTier)}
         showTier={authorId !== null}
         isFollowing={isFollowing}
-        followDisabled={authorId === null}
+        followDisabled={authorId === null || isMyPost}
+        menuAriaLabel={isMyPost ? "설정" : undefined}
+        onOpenMenu={
+          isMyPost && Number.isFinite(numericPostId)
+            ? () => {
+                const ok = window.confirm("이 글을 삭제할까요?")
+                if (!ok) return
+                try {
+                  const raw = window.localStorage.getItem(COMMUNITY_USER_POSTS_KEY)
+                  const parsed = raw ? JSON.parse(raw) : []
+                  if (!Array.isArray(parsed)) return
+                  const next = parsed.filter((item) => item?.id !== numericPostId)
+                  window.localStorage.setItem(COMMUNITY_USER_POSTS_KEY, JSON.stringify(next.slice(0, 50)))
+                } catch {
+                  // ignore storage errors
+                }
+                navigate("/community?filter=review")
+              }
+            : undefined
+        }
         onBack={() => {
           if (isQnaDetail) {
             navigate("/community", { state: { initialFilter: "free", scrollToTop: true } })
@@ -265,97 +308,123 @@ export default function PairingDetail() {
         onToggleFollow={toggleFollow}
       />
 
-      <div className="detail_images" aria-label="페어링 이미지(좌우 스와이프)">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div className="detail_image_item" key={index} />
-        ))}
-      </div>
+      {isQnaDetail ? (
+        <>
+          <h2>{pairingTitle}</h2>
+          {detailBodyText ? <p className="detail_text">{detailBodyText}</p> : null}
+          <CommentSection
+            pairingId={pairingId}
+            currentUser={currentUser}
+            getTierClassName={getUserGradeBadgeClassNameByUserId}
+            getTierLabel={getPairingTierLabelByUserId}
+            onCountChange={setCommentCount}
+            emptyByDefault={isMyPost}
+          />
+        </>
+      ) : (
+        <>
+          {Array.isArray(post?.photoIds) && post.photoIds.length > 0 ? (
+            <div className="detail_images" aria-label="페어링 이미지(좌우 스와이프)">
+              {post.photoIds.slice(0, 3).map((photoId: string) => (
+                <div className="detail_image_item" key={photoId} />
+              ))}
+            </div>
+          ) : null}
 
-      <h2>{pairingTitle}</h2>
-      {hasPairingTags ? (
-        <div className="detail_pairing_tag_row" aria-label="주류+음식 태그">
-          <button
-            type="button"
-            className="detail_pairing_tag"
-            onClick={() =>
-              navigate("/community/tag", {
-                state: { tagType: "liquor", tagValue: liquorTag },
+          <h2>{pairingSummary || pairingTitle}</h2>
+          {hasPairingTags ? (
+            <div className="detail_pairing_tag_row" aria-label="주류+음식 태그">
+              <button
+                type="button"
+                className="detail_pairing_tag"
+                onClick={() =>
+                  navigate("/community/tag", {
+                    state: { tagType: "liquor", tagValue: liquorTag },
+                  })
+                }
+              >
+                {liquorTag}
+              </button>
+
+              <button
+                type="button"
+                className="detail_pairing_tag"
+                onClick={() =>
+                  navigate("/community/tag", {
+                    state: { tagType: "food", tagValue: foodTag },
+                  })
+                }
+              >
+                {foodTag}
+              </button>
+            </div>
+          ) : null}
+          <div className="detail_tags">
+            <span>{priceRangeTagByDrinkType[drinkTypeLabel] ?? "1~3만원"}</span>
+            <span>{drinkTypeLabel ? `${drinkTypeLabel} 추천` : "추천"}</span>
+          </div>
+
+          <p className="detail_text">
+            {detailBodyText ||
+              "조합을 더 맛있게 즐기기 위한 팁을 공유하는 공간이에요. 좋아하는 조합을 저장하고, 댓글로 의견을 나눠보세요."}
+          </p>
+
+          {pairingFeatures.length > 0 ? (
+            <div className="detail_feature_row" aria-label="취향 키워드">
+              {pairingFeatures.map((chip) => (
+                <span className="detail_feature_chip" key={chip}>
+                  {chip}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          <FeedActions
+            variant="detail"
+            likeActive={isLiked}
+            likeAriaLabel={isLiked ? "좋아요 취소" : "좋아요"}
+            likeText={String(likeCount)}
+            onToggleLike={toggleLike}
+            commentAriaLabel="댓글 보기"
+            commentText={String(commentCount)}
+            onViewComments={() =>
+              document.getElementById("comments")?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+            bookmarkActive={isBookmarked}
+            bookmarkAriaLabel={isBookmarked ? "북마크 취소" : "북마크"}
+            onBookmark={() => {
+              if (!Number.isFinite(numericPostId)) return
+              toggleBookmark(numericPostId)
+            }}
+          />
+
+          <SimilarPairingList
+            items={similarItems}
+            onSelect={(item) =>
+              navigate(`/community/pairing/${item.id}`, {
+                state: {
+                  pairingTitle: item.pairingTitle,
+                  authorId: item.authorId,
+                  authorName: item.authorName,
+                  profile: item.profile,
+                  locationLabel: item.locationLabel,
+                  drinkType: item.drinkType,
+                  source: "feed",
+                } satisfies PairingDetailNavState,
               })
             }
-          >
-            {liquorTag}
-          </button>
+          />
 
-          <button
-            type="button"
-            className="detail_pairing_tag"
-            onClick={() =>
-              navigate("/community/tag", {
-                state: { tagType: "food", tagValue: foodTag },
-              })
-            }
-          >
-            {foodTag}
-          </button>
-        </div>
-      ) : null}
-      <div className="detail_tags">
-        <span>{priceRangeTagByDrinkType[drinkTypeLabel] ?? "1~3만원"}</span>
-        <span>{drinkTypeLabel ? `${drinkTypeLabel} 추천` : "추천"}</span>
-      </div>
-
-      <p className="detail_text">
-        {detailBodyText ||
-          "조합을 더 맛있게 즐기기 위한 팁을 공유하는 공간이에요. 좋아하는 조합을 저장하고, 댓글로 의견을 나눠보세요."}
-      </p>
-
-      <div className="detail_product_shell" aria-label="추천 상품">
-        <CategoryItemCard item={recommendedCategoryItem} />
-      </div>
-
-      <FeedActions
-        variant="detail"
-        likeActive={isLiked}
-        likeAriaLabel={isLiked ? "좋아요 취소" : "좋아요"}
-        likeText={String(likeCount)}
-        onToggleLike={toggleLike}
-        commentAriaLabel="댓글 보기"
-        commentText={String(commentCount)}
-        onViewComments={() =>
-          document.getElementById("comments")?.scrollIntoView({ behavior: "smooth", block: "start" })
-        }
-        bookmarkActive={isBookmarked}
-        bookmarkAriaLabel={isBookmarked ? "북마크 취소" : "북마크"}
-        onBookmark={() => {
-          if (!Number.isFinite(numericPostId)) return
-          toggleBookmark(numericPostId)
-        }}
-      />
-
-      <SimilarPairingList
-        items={similarItems}
-        onSelect={(item) =>
-          navigate(`/community/pairing/${item.id}`, {
-            state: {
-              pairingTitle: item.pairingTitle,
-              authorId: item.authorId,
-              authorName: item.authorName,
-              profile: item.profile,
-              locationLabel: item.locationLabel,
-              drinkType: item.drinkType,
-              source: "feed",
-            } satisfies PairingDetailNavState,
-          })
-        }
-      />
-
-      <CommentSection
-        pairingId={pairingId}
-        currentUser={currentUser}
-        getTierClassName={getUserGradeBadgeClassNameByUserId}
-        getTierLabel={getPairingTierLabelByUserId}
-        onCountChange={setCommentCount}
-      />
+          <CommentSection
+            pairingId={pairingId}
+            currentUser={currentUser}
+            getTierClassName={getUserGradeBadgeClassNameByUserId}
+            getTierLabel={getPairingTierLabelByUserId}
+            onCountChange={setCommentCount}
+            emptyByDefault={isMyPost}
+          />
+        </>
+      )}
     </section>
   )
 }

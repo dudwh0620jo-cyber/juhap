@@ -1,3 +1,5 @@
+import iconDots from "../assets/svg/dotsthreevertical.svg"
+
 type Props = {
   authorName: string
   profile?: string
@@ -8,6 +10,8 @@ type Props = {
   followText: string
   onToggleFollow: () => void
   hideAvatar?: boolean
+  menuAriaLabel?: string
+  onOpenMenu?: () => void
 }
 
 export default function RelatedContentPostCardHeader({
@@ -20,6 +24,8 @@ export default function RelatedContentPostCardHeader({
   followText,
   onToggleFollow,
   hideAvatar,
+  menuAriaLabel,
+  onOpenMenu,
 }: Props) {
   return (
     <header className="feed_card_header">
@@ -31,9 +37,20 @@ export default function RelatedContentPostCardHeader({
         </div>
         {profile ? <p>{profile}</p> : null}
       </div>
-      <button type="button" className={followButtonClassName} aria-label={followAriaLabel} onClick={onToggleFollow}>
-        {followText}
-      </button>
+      {typeof onOpenMenu === "function" ? (
+        <button
+          type="button"
+          className="feed_card_menu_button"
+          aria-label={menuAriaLabel ?? "설정"}
+          onClick={onOpenMenu}
+        >
+          <img className="feed_card_menu_icon" src={iconDots} alt="" aria-hidden="true" />
+        </button>
+      ) : (
+        <button type="button" className={followButtonClassName} aria-label={followAriaLabel} onClick={onToggleFollow}>
+          {followText}
+        </button>
+      )}
     </header>
   )
 }

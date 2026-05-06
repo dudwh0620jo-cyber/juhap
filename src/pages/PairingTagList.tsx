@@ -63,6 +63,8 @@ export default function PairingTagList() {
             <RelatedContentPostCard
               key={item.id}
               postId={item.id}
+              showImages={item.authorId === 2001 ? Boolean(item.photoIds?.length) : true}
+              imageCount={item.authorId === 2001 ? Math.min(3, item.photoIds?.length ?? 0) : 2}
               authorName={usersMockById[item.authorId]?.name ?? "익명"}
               profile={usersMockById[item.authorId]?.profile ?? ""}
               badgeClassName={getTierClassName(getPairingTierByUserId(item.authorId), "feed_post_badge")}
@@ -79,6 +81,7 @@ export default function PairingTagList() {
                 profile: usersMockById[item.authorId]?.profile ?? "",
                 locationLabel: item.locationLabel,
                 drinkType: item.drinkType,
+                features: item.features ?? [],
                 source: "feed",
               }}
               title={pairingTitle}

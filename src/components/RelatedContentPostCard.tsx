@@ -14,10 +14,14 @@ type Props = {
   followText: string
   onToggleFollow: () => void
   hideAvatar?: boolean
+  menuAriaLabel?: string
+  onOpenMenu?: () => void
   linkTo: string
   linkState: Record<string, unknown>
   title: string
   body: string
+  showImages?: boolean
+  imageCount?: number
   answerCount?: number
   answerPreview?: string
   likeActive: boolean
@@ -43,10 +47,14 @@ export default function RelatedContentPostCard({
   followText,
   onToggleFollow,
   hideAvatar,
+  menuAriaLabel,
+  onOpenMenu,
   linkTo,
   linkState,
   title,
   body,
+  showImages = true,
+  imageCount = 2,
   answerCount,
   answerPreview,
   likeActive,
@@ -71,6 +79,8 @@ export default function RelatedContentPostCard({
         followText={followText}
         onToggleFollow={onToggleFollow}
         hideAvatar={hideAvatar}
+        menuAriaLabel={menuAriaLabel}
+        onOpenMenu={onOpenMenu}
       />
 
       {isQna ? (
@@ -91,12 +101,15 @@ export default function RelatedContentPostCard({
         </Link>
       ) : (
         <Link className="feed_text_link" to={linkTo} state={linkState}>
-          <div className="feed_images" aria-label="사진">
-            <div className="feed_image" />
-            <div className="feed_image" />
-          </div>
+          {showImages ? (
+            <div className="feed_images" aria-label="사진">
+              {Array.from({ length: Math.max(1, Math.min(3, imageCount)) }).map((_, index) => (
+                <div className="feed_image" key={index} />
+              ))}
+            </div>
+          ) : null}
           <strong className="review_pair_title">{title}</strong>
-          <p className="feed_body">{body}</p>
+          <p className="feed_body is_one_line">{body}</p>
         </Link>
       )}
 

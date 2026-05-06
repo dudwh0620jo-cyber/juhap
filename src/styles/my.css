@@ -1,0 +1,115 @@
+.my_page {
+  display: grid;
+  gap: 12px;
+}
+
+.my_page_title {
+  margin: 0;
+  font-size: var(--fs-h4);
+  font-weight: 900;
+  color: var(--color-dark-05);
+}
+
+.my_grade_row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.my_grade_label {
+  font-size: var(--fs-small);
+  font-weight: 800;
+  color: var(--color-dark-03);
+}
+
+.user_grade_badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #e8e8e8;
+  color: #222;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.user_grade_badge.is_tier5 {
+  background: #f8d22b;
+}
+
+.user_grade_badge.is_tier4 {
+  background: #cfcfcf;
+}
+
+.user_grade_badge.is_tier3 {
+  background: #d9c7a2;
+}
+
+.user_grade_badge.is_tier2 {
+  background: #e6e6e6;
+}
+
+.user_grade_badge.is_tier1 {
+  background: #f1f1f1;
+}
+
+.my_profile_card {
+  border-radius: 20px;
+  background: var(--color-sub-01);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.my_profile_card_title {
+  margin: 0;
+  font-size: var(--fs-h6);
+  font-weight: 900;
+  color: var(--color-dark-05);
+}
+
+.my_profile_row {
+  display: grid;
+  gap: 6px;
+}
+
+.my_profile_label {
+  font-size: var(--fs-small);
+  font-weight: 800;
+  color: var(--color-dark-03);
+}
+
+.my_profile_value {
+  color: var(--color-dark-05);
+}
+
+.my_profile_empty {
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--color-dark-03);
+}
+
+.my_chip_row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.my_chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--color-gray-02);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-dark-05);
+}
