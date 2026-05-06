@@ -5,8 +5,11 @@ import ChatStepPanel from "../components/ChatStepPanel"
 import "../styles/chat.css"
 import {
   getTopRecommendations,
+  foodCategoryOptions,
   glossaryDefinitionByTopic,
+  glossaryOptions,
   introPromptOptions,
+  partyMoodOptions,
   wineCandidatesMock,
   type ChatMessage,
   type ChatSession,
@@ -42,6 +45,24 @@ type ChatAction =
 const scanPromptLabel = "주류 스캔하기" satisfies (typeof introPromptOptions)[number]
 const fastPromptLabel = "오늘의 추천 빠르게 받기" satisfies (typeof introPromptOptions)[number]
 const glossaryPromptLabel = "주류 문화 용어 알아보기" satisfies (typeof introPromptOptions)[number]
+
+function normalizeKeyword(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, "")
+}
+
+function findBestOptionMatch(options: readonly string[], rawInput: string) {
+  const input = normalizeKeyword(rawInput)
+  if (!input) return null
+
+  const exact = options.find((option) => normalizeKeyword(option) === input)
+  if (exact) return exact
+
+  return (
+    options.find((option) => normalizeKeyword(option).includes(input)) ??
+    options.find((option) => input.includes(normalizeKeyword(option))) ??
+    null
+  )
+}
 
 function buildGreetingMessage(userName: string) {
   return [
@@ -201,10 +222,33 @@ export default function Chat({ onClose, userName: userNameProp }: ChatProps) {
   }, [])
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
+    const bodyStyle = document.body.style
+    const scrollY = window.scrollY
+
+    const previous = {
+      position: bodyStyle.position,
+      top: bodyStyle.top,
+      left: bodyStyle.left,
+      right: bodyStyle.right,
+      width: bodyStyle.width,
+      overflow: bodyStyle.overflow,
+    }
+
+    bodyStyle.position = "fixed"
+    bodyStyle.top = `-${scrollY}px`
+    bodyStyle.left = "0"
+    bodyStyle.right = "0"
+    bodyStyle.width = "100%"
+    bodyStyle.overflow = "hidden"
+
     return () => {
-      document.body.style.overflow = previousOverflow
+      bodyStyle.position = previous.position
+      bodyStyle.top = previous.top
+      bodyStyle.left = previous.left
+      bodyStyle.right = previous.right
+      bodyStyle.width = previous.width
+      bodyStyle.overflow = previous.overflow
+      window.scrollTo(0, scrollY)
     }
   }, [])
 
@@ -332,11 +376,85 @@ export default function Chat({ onClose, userName: userNameProp }: ChatProps) {
       return
     }
 
+    if (state.step === "glossary") {
+      const matched = findBestOptionMatch(glossaryOptions, trimmedMessage)
+      if (matched) {
+        dispatchAfterSelectionEcho(matched, [
+          { type: "APPEND_USER_MESSAGE", text: matched },
+          { type: "SELECT_GLOSSARY_TOPIC", value: matched },
+        ])
+        setMessageValue("")
+        return
+      }
+    }
+
+    if (state.step === "party_mood") {
+      const matched = findBestOptionMatch(partyMoodOptions, trimmedMessage)
+      if (matched) {
+        dispatchAfterSelectionEcho(matched, [
+          { type: "APPEND_USER_MESSAGE", text: matched },
+          { type: "SELECT_PARTY_MOOD", value: matched },
+        ])
+        setMessageValue("")
+        return
+      }
+    }
+
+    if (state.step === "food") {
+      const matched = findBestOptionMatch(foodCategoryOptions, trimmedMessage)
+      if (matched) {
+        dispatchAfterSelectionEcho(matched, [
+          { type: "APPEND_USER_MESSAGE", text: matched },
+          { type: "SELECT_FOOD", value: matched },
+        ])
+        setMessageValue("")
+        return
+      }
+    }
+
+    if (state.step === "wine_style") {
+      const input = normalizeKeyword(trimmedMessage)
+      const sakeCandidates = wineCandidatesMock.filter((candidate) => candidate.tags.includes("사케"))
+      const matchedSakeProduct =
+        sakeCandidates.find((candidate) => normalizeKeyword(candidate.name).includes(input)) ??
+        sakeCandidates.find((candidate) => input.includes(normalizeKeyword(candidate.name))) ??
+        null
+
+      if (input.includes("사케") || matchedSakeProduct) {
+        dispatchAfterSelectionEcho("사케", [
+          { type: "APPEND_USER_MESSAGE", text: "사케" },
+          { type: "SELECT_WINE_STYLE", value: "사케" },
+        ])
+        setMessageValue("")
+        return
+      }
+    }
+
+    if (state.step === "recommend") {
+      const input = normalizeKeyword(trimmedMessage)
+      const sakeCandidates = wineCandidatesMock.filter((candidate) => candidate.tags.includes("사케"))
+      const matched =
+        recommendations.find((candidate) => normalizeKeyword(candidate.name).includes(input)) ??
+        recommendations.find((candidate) => input.includes(normalizeKeyword(candidate.name))) ??
+        sakeCandidates.find((candidate) => normalizeKeyword(candidate.name).includes(input)) ??
+        sakeCandidates.find((candidate) => input.includes(normalizeKeyword(candidate.name))) ??
+        null
+
+      if (matched) {
+        dispatchAfterSelectionEcho(matched.name, [
+          { type: "APPEND_USER_MESSAGE", text: matched.name },
+          { type: "OPEN_DETAIL", wineId: matched.id },
+        ])
+        setMessageValue("")
+        return
+      }
+    }
+
     dispatch({ type: "APPEND_USER_MESSAGE", text: trimmedMessage })
     setMessageValue("")
   }
 
-  const recommendations = useMemo(() => {
+  const recommendations: WineCandidate[] = (() => {
     if (state.step !== "recommend") return []
     const top = getTopRecommendations(state.session, 4)
     const seed = state.session.lastRecommendationSeed ?? 0
@@ -344,7 +462,7 @@ export default function Chat({ onClose, userName: userNameProp }: ChatProps) {
     const offset = seed % top.length
     const rotated = [...top.slice(offset), ...top.slice(0, offset)]
     return rotated.slice(0, 2)
-  }, [state.session, state.step])
+  })()
 
   return (
     <section className="chat_page" aria-label="AI 채팅" onClick={closeModal}>
