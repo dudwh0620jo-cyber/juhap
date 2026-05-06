@@ -49,7 +49,9 @@ function writeSession(voteId: number, index: 0 | 1) {
     const picks = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "{}")
     picks[String(voteId)] = index
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(picks))
-  } catch {}
+  } catch {
+    // Ignore session storage write failures.
+  }
 }
 
 export default function VoteSection({ voteId, question, options }: VoteSectionProps) {
