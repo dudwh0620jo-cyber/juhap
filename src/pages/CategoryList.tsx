@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
+import type { CategoryListItem } from "../components/CategoryItemCard"
 import CategoryItemCard from "../components/CategoryItemCard"
 import CategoryListSearch from "../components/CategoryListSearch"
 import { useCategoryListPageData, type SortKey } from "../hooks/useCategoryListPageData"
@@ -11,6 +12,9 @@ const sortLabels: Record<SortKey, string> = {
   lowPrice: "낮은가격순",
   highPrice: "높은가격순",
 }
+
+const READY_PRODUCT_ID = "sake-dassai-23"
+const PREPARING_MESSAGE = "아직 준비 중인 기능이에요, 곧 만나보실 수 있어요!"
 
 export default function CategoryList() {
   const { sakeDaiginjoItems, sortOptions } = useCategoryListPageData()
@@ -49,6 +53,15 @@ export default function CategoryList() {
     return nextItems
   }, [activeSortKey, filteredItems])
 
+  function handleOpenItem(item: CategoryListItem) {
+    if (item.id !== READY_PRODUCT_ID) {
+      alert(PREPARING_MESSAGE)
+      return
+    }
+
+    navigate(`/product/${item.id}`)
+  }
+
   return (
     <section className="category_list_page page_screen" aria-label="카테고리 리스트">
       <header className="category_list_header">
@@ -81,7 +94,7 @@ export default function CategoryList() {
       <div className="category_list_cards" aria-label="카테고리 상품 목록">
         {sortedItems.length === 0 ? <p className="category_list_empty">검색 결과가 없어요.</p> : null}
         {sortedItems.map((item) => (
-          <CategoryItemCard key={item.id} item={item} />
+          <CategoryItemCard key={item.id} item={item} onOpen={handleOpenItem} />
         ))}
       </div>
 
