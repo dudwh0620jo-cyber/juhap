@@ -113,6 +113,7 @@
   width: 210px;
   height: 210px;
   object-fit: cover;
+  cursor: pointer;
 }
 
 .onboarding_primary_button {
