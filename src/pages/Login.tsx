@@ -11,8 +11,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Login() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState(VALID_EMAIL)
+  const [password, setPassword] = useState(VALID_PASSWORD)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
 

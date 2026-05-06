@@ -95,7 +95,12 @@ export default function Onboarding() {
                 <p className="onboarding_start_subtitle">{startSlide.subtitle}</p>
               </div>
 
-              <img className="onboarding_mascot" src={mascotImage} alt="" />
+              <img
+                className="onboarding_mascot"
+                src={mascotImage}
+                alt=""
+                onDoubleClick={() => navigate("/home", { replace: true })}
+              />
 
               <button className="onboarding_primary_button" type="button" onClick={goNextSlide}>
                 완벽한 페어링을 위한 탐색 시작하기
