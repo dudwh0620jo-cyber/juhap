@@ -1,136 +1,58 @@
 import { useMemo } from "react"
-import type { ReviewCardData } from "../components/ReviewCard"
-import type { PurchaseShop } from "../components/SpecSection"
 
-export type ProductSpec = {
-  type: string
-  volume: string
-  abv: string
-  country: string
-  region: string
-  grape: string
-  case: string
-}
-
-export type TasteScore = {
-  label: string
-  value: number
-}
-
-export type TastingNote = {
-  title: string
-  items: Array<{ label: string; value: string }>
-}
-
-export type PairingChip = {
+export type ProductPurchaseShop = {
   id: string
-  label: string
+  name: string
+  delivery: string
+  price: string
+  url: string
 }
 
 export type ProductDetailData = {
+  id: string
   breadcrumb: string
   name: string
   price: string
-  spec: ProductSpec
-  taste: TasteScore[]
-  tastingNotes: TastingNote
-  descriptionTitle: string
-  descriptionBody: string
-  purchase: PurchaseShop[]
-  alcoholReviews: ReviewCardData[]
-  pairingReviews: ReviewCardData[]
-  pairingChips: PairingChip[]
+  basicInfo: Array<{ label: string; value: string }>
+  tasteNotes: Array<{ label: string; value: string; subValue: string }>
+  brandStory: string[]
+  onlineShops: ProductPurchaseShop[]
+}
+
+const dassai23: ProductDetailData = {
+  id: "sake-dassai-23",
+  breadcrumb: "사케 > 준마이 다이긴죠",
+  name: "닷사이 23",
+  price: "88,000원",
+  basicInfo: [
+    { label: "종류", value: "사케" },
+    { label: "용량", value: "720ml" },
+    { label: "도수", value: "15~16도" },
+    { label: "정미율", value: "23%" },
+    { label: "산도", value: "1.1" },
+    { label: "주도", value: "+4" },
+  ],
+  tasteNotes: [
+    { label: "Aroma", value: "온화한, 꽃, 끌, 은은한", subValue: "향" },
+    { label: "Taste", value: "경쾌한, 감칠맛, 섬세한", subValue: "맛" },
+    { label: "Finish", value: "부드러운, 시원한, 깔끔한", subValue: "피니쉬" },
+  ],
+  brandStory: [
+    `"닷사이"의 뜻은 "수달 축제"로 제조 지역인 야마구치현에서 가까운 강가에 수달이 많이 노니던 곳에서 사용했던 단어입니다.`,
+    `이는 수달들이 먼저 축제를 벌인 듯 작은 물고기를 해안가에 늘어놓은 모습이 마치 한자들이 시제들을 펼치고 연구하는 모습과 같아 술을 빚기 위한 자료를 찾고 연구하여 세계의 새로운 시대를 열겠다는 닷사이의 포부가 담긴 이름입니다.`,
+    `“취하기 위한, 판매하기 위한 술이 아니라 맛보는 술을 추구"를 신념으로 정성으로 맛있는 술을 만들고 있는 장인 정신의 브랜드입니다.`,
+  ],
+  onlineShops: [
+    { id: "shop-kihya-1", name: "키햐", delivery: "무료배송", price: "75,900원", url: "https://example.com/kihya" },
+    { id: "shop-majil-1", name: "마켓컬리", delivery: "무료배송", price: "139,000원", url: "https://example.com/majil" },
+    { id: "shop-kihya-2", name: "키햐", delivery: "무료배송", price: "158,500원", url: "https://example.com/kihya-2" },
+  ],
 }
 
 const mockProductById: Record<string, ProductDetailData> = {
-  "caymus-2023-1": {
-    breadcrumb: "와인 > 레드와인(미국)",
-    name: "케이머스 나파 밸리 카버네 소비뇽 2023",
-    price: "138,000원",
-    spec: {
-      type: "레드 와인",
-      volume: "750ml",
-      abv: "14.6%",
-      country: "미국",
-      region: "나파 밸리",
-      grape: "카버네 소비뇽(100%)",
-      case: "없음",
-    },
-    taste: [
-      { label: "바디", value: 5 },
-      { label: "타닌", value: 4 },
-      { label: "당도", value: 2 },
-      { label: "산미", value: 3 },
-    ],
-    tastingNotes: {
-      title: "Tasting Notes",
-      items: [
-        { label: "Aroma", value: "허브, 스파이스, 바이올렛, 바닐라, 오크" },
-        { label: "Taste", value: "블랙베리, 자두, 다크 체리, 블랙커런트" },
-        { label: "Finish", value: "코코아, 초콜릿, 타바코, 가죽" },
-      ],
-    },
-    descriptionTitle: "나파 밸리의 정수를 담은 기념비적 까베르네",
-    descriptionBody:
-      "'케이머스 나파 밸리 카버네 소비뇽 50주년 에디션'은 카버네 소비뇽 생산 50년을 기념해 출시된 한정 레드 와인입니다.\n\n나파 밸리의 8개 지역에서 수확한 포도를 블렌딩해 복합적인 구조와 활달같은 균형을 이룹니다.\n\n비옥한 토양, 무라카 층반, 낮은 수확량, 완전한 숙성까지의 기다림이 '케이머스 스타일'의 핵심을 이룹니다.",
-    purchase: [
-      { id: "shop-1", name: "데일리샷", delivery: "무료배송", price: "138,000원", badge: "와인", url: "https://example.com/dailyshot" },
-      { id: "shop-2", name: "와인나라", delivery: "오늘출발", price: "141,000원", badge: "와인", url: "https://example.com/winenara" },
-    ],
-    alcoholReviews: [
-      {
-        id: "r1",
-        userName: "A씨",
-        userMeta: "30대 / 여 / 위스키, 와인 / 탄닌감 선호",
-        titleLeft: "케이머스 나파 밸리 카버네 소비뇽",
-        titleRight: "스테이크",
-        body: "스테이크랑 케이머스 나파 밸리 카버네 소비뇽랑 먹었는데 맛있다. 어쩌고 저쩌고 산미가 어쩌고...",
-        likeCount: 847,
-        commentCount: 124,
-      },
-      {
-        id: "r2",
-        userName: "B씨",
-        userMeta: "20대 / 남 / 와인, 맥주 / 바디감 묵직한 편 선호",
-        titleLeft: "케이머스 나파 밸리 카버네 소비뇽",
-        titleRight: "파스타",
-        body: "홈데이트 어쩌고저쩌고 와인이 파스타랑 분위기 어쩌고 맛은 어쩌고 ~",
-        likeCount: 847,
-        commentCount: 124,
-      },
-    ],
-    pairingReviews: [
-      {
-        id: "pr1",
-        rankingId: "pairing-1",
-        userName: "A씨",
-        userMeta: "30대 / 여 / 위스키, 와인 / 탄닌감 선호",
-        titleLeft: "케이머스 나파 밸리 카버네 소비뇽",
-        titleRight: "스테이크",
-        body: "고기 지방의 고소함을 탄닌이 잡아줘서 밸런스가 좋았어요. 굽기나 소스에 따라 느낌이 달라져서 재밌습니다.",
-        likeCount: 421,
-        commentCount: 67,
-      },
-      {
-        id: "pr2",
-        rankingId: "pairing-2",
-        userName: "B씨",
-        userMeta: "20대 / 남 / 와인, 맥주 / 바디감 묵직한 편 선호",
-        titleLeft: "케이머스 나파 밸리 카버네 소비뇽",
-        titleRight: "파스타",
-        body: "토마토/크림 소스에 따라 어울림이 달랐는데, 산미 있는 소스일수록 더 깔끔하게 느껴졌어요.",
-        likeCount: 508,
-        commentCount: 92,
-      },
-    ],
-    pairingChips: [
-      { id: "meat", label: "고기" },
-      { id: "bbq", label: "바베큐" },
-      { id: "pasta", label: "파스타" },
-    ],
-  },
+  [dassai23.id]: dassai23,
 }
 
 export function useProductDetailPageData() {
-  return useMemo(() => ({ mockProductById }), [])
+  return useMemo(() => ({ mockProductById, defaultProduct: dassai23 }), [])
 }
