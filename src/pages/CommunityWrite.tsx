@@ -9,6 +9,26 @@ import { readUserProfile } from "../data/userProfile"
 
 type WriteMode = "review" | "free"
 type ReviewTab = "drink" | "pairing"
+type DraftPayload = {
+  mode: WriteMode
+  reviewTab: ReviewTab
+  selectedSituation: string | null
+  selectedDrinkType: string | null
+  selectedFoodCategory: string | null
+  drinkName: string
+  drinkRating: number
+  drinkTasteTags: string[]
+  photoIds: string[]
+  title: string
+  body: string
+  pairingLocationSearch: string
+  pairingLocationTags: string[]
+  pairingTasteTags: string[]
+  pairingPrice: string
+  pairingSummary: string
+  pairingBody: string
+  pairingPhotoIds: string[]
+}
 
 const locationSuggestions = [
   "산아래주막",
@@ -28,6 +48,7 @@ const locationSuggestions = [
 
 const situationChips = ["혼술", "파티/모임", "가족", "데이트", "캠핑/여행"] as const
 const SAKE_LABEL = "사케"
+const COMMUNITY_WRITE_DRAFT_KEY = "community_write_draft_v1"
 
 const getModeFromSearch = (value: string | null): WriteMode => {
   if (value === "free") return "free"
@@ -112,6 +133,7 @@ export default function CommunityWrite() {
   const mode = getModeFromSearch(searchParams.get("mode"))
   const { popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories } = useCommunityPageData()
   const isQuestionWrite = mode === "free"
+  const hasCheckedDraftRef = useRef(false)
 
   const [reviewTab, setReviewTab] = useState<ReviewTab>("drink")
 
@@ -137,6 +159,12 @@ export default function CommunityWrite() {
   const [pairingSummary, setPairingSummary] = useState("")
   const [pairingBody, setPairingBody] = useState("")
   const [pairingPhotoIds, setPairingPhotoIds] = useState<string[]>([])
+
+  const pairingPriceDisplay = useMemo(() => {
+    const digits = pairingPrice.replace(/[^\d]/g, "")
+    if (!digits) return ""
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  }, [pairingPrice])
 
   const headerTitle = "글쓰기"
 
@@ -174,6 +202,90 @@ export default function CommunityWrite() {
   const pairingHasPrice = Boolean(pairingPrice.trim())
   const pairingHasBodyInput = Boolean(pairingBody.trim())
 
+  function buildDraftPayload(): DraftPayload {
+    return {
+      mode,
+      reviewTab,
+      selectedSituation,
+      selectedDrinkType,
+      selectedFoodCategory,
+      drinkName,
+      drinkRating,
+      drinkTasteTags: Array.from(drinkTasteTags),
+      photoIds,
+      title,
+      body,
+      pairingLocationSearch,
+      pairingLocationTags,
+      pairingTasteTags: Array.from(pairingTasteTags),
+      pairingPrice,
+      pairingSummary,
+      pairingBody,
+      pairingPhotoIds,
+    }
+  }
+
+  function clearDraft() {
+    try {
+      window.localStorage.removeItem(COMMUNITY_WRITE_DRAFT_KEY)
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function handleTempSave() {
+    try {
+      const payload = buildDraftPayload()
+      window.localStorage.setItem(COMMUNITY_WRITE_DRAFT_KEY, JSON.stringify(payload))
+      window.alert("임시 저장되었습니다.")
+      navigate(mode === "free" ? "/community?filter=free" : "/community?filter=review")
+    } catch {
+      window.alert("임시 저장에 실패했습니다. 다시 시도해 주세요.")
+    }
+  }
+
+  useEffect(() => {
+    if (hasCheckedDraftRef.current) return
+    hasCheckedDraftRef.current = true
+
+    try {
+      const raw = window.localStorage.getItem(COMMUNITY_WRITE_DRAFT_KEY)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as Partial<DraftPayload>
+      while (true) {
+        const shouldRestore = window.confirm("임시저장된 글이 있습니다. 나머지 내용을 작성할까요?")
+        if (shouldRestore) {
+          setReviewTab(parsed.reviewTab === "pairing" ? "pairing" : "drink")
+          setSelectedSituation(parsed.selectedSituation ?? null)
+          setSelectedDrinkType(parsed.selectedDrinkType ?? null)
+          setSelectedFoodCategory(parsed.selectedFoodCategory ?? null)
+          setDrinkName(parsed.drinkName ?? "")
+          setDrinkRating(typeof parsed.drinkRating === "number" ? parsed.drinkRating : 0)
+          setDrinkTasteTags(new Set(Array.isArray(parsed.drinkTasteTags) ? parsed.drinkTasteTags : []))
+          setPhotoIds(Array.isArray(parsed.photoIds) ? parsed.photoIds : [])
+          setTitle(parsed.title ?? "")
+          setBody(parsed.body ?? "")
+          setPairingLocationSearch(parsed.pairingLocationSearch ?? "")
+          setPairingLocationTags(Array.isArray(parsed.pairingLocationTags) ? parsed.pairingLocationTags : [])
+          setPairingTasteTags(new Set(Array.isArray(parsed.pairingTasteTags) ? parsed.pairingTasteTags : []))
+          setPairingPrice((parsed.pairingPrice ?? "").replace(/[^\d]/g, ""))
+          setPairingSummary(parsed.pairingSummary ?? "")
+          setPairingBody(parsed.pairingBody ?? "")
+          setPairingPhotoIds(Array.isArray(parsed.pairingPhotoIds) ? parsed.pairingPhotoIds : [])
+          return
+        }
+
+        const shouldDelete = window.confirm("정말 취소하시겠어요?")
+        if (!shouldDelete) continue
+        clearDraft()
+        window.alert("임시저장글을 삭제했습니다.")
+        return
+      }
+    } catch {
+      // ignore parse/storage errors
+    }
+  }, [mode, navigate])
+
   function handleShare() {
     const now = new Date()
     const nickname = readUserProfile().personalInfo.nickname.trim() || "익명"
@@ -193,12 +305,6 @@ export default function CommunityWrite() {
         popularityScore: 0,
         locationLabel: undefined,
         isQna: true,
-        drinkType: selectedDrinkType ?? undefined,
-        categories: selectedDrinkType ? [selectedDrinkType] : undefined,
-        foods: selectedFoodCategory ? [selectedFoodCategory] : undefined,
-        searchTags: [selectedDrinkType, selectedFoodCategory, selectedSituation, "질문"].filter(
-          (v): v is string => Boolean(v),
-        ),
       }
 
       try {
@@ -211,6 +317,7 @@ export default function CommunityWrite() {
       }
 
       navigate("/community?filter=free")
+      clearDraft()
       return
     }
 
@@ -270,6 +377,7 @@ export default function CommunityWrite() {
       }
 
       navigate("/community?filter=review")
+      clearDraft()
       return
     }
 
@@ -334,6 +442,7 @@ export default function CommunityWrite() {
     }
 
     navigate("/community?filter=review")
+    clearDraft()
   }
 
   // Keep feature selection consistent in event handlers (avoid setState in effects).
@@ -403,7 +512,7 @@ export default function CommunityWrite() {
               >
                 공유하기
               </button>
-              <button type="button" className="write_secondary_button" onClick={() => navigate(-1)}>
+              <button type="button" className="write_secondary_button" onClick={handleTempSave}>
                 임시 저장
               </button>
             </div>
@@ -764,7 +873,7 @@ export default function CommunityWrite() {
                     <input
                       className="write_input"
                       inputMode="numeric"
-                      value={pairingPrice}
+                      value={pairingPriceDisplay}
                       placeholder="가격을 입력하세요"
                       onChange={(e) => setPairingPrice(e.target.value.replace(/[^\d]/g, ""))}
                     />
@@ -870,7 +979,7 @@ export default function CommunityWrite() {
             >
               공유하기
             </button>
-            <button type="button" className="write_secondary_button" onClick={() => navigate("/community")}>
+            <button type="button" className="write_secondary_button" onClick={handleTempSave}>
               임시 저장
             </button>
           </div>

@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router"
+import { useLocation, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
@@ -32,8 +32,10 @@ import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 
 
 const feedPosts: FeedPost[] = communityFeedPosts
+const USER_POSTS_UPDATED_EVENT = "community:user-posts-updated"
 
 export default function Community() {
+  const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { metaLine: myHeaderProfile } = useMyOnboardingMeta()
@@ -55,7 +57,10 @@ export default function Community() {
   } = useCommunityPageData()
 
   const filterParam = searchParams.get("filter")
-  const initialFilter = filterParam === "free" || filterParam === "review" || filterParam === "follow" ? filterParam : null
+  const stateFilterRaw = (location.state as { initialFilter?: string } | null)?.initialFilter
+  const stateFilter = stateFilterRaw === "free" || stateFilterRaw === "review" || stateFilterRaw === "follow" ? stateFilterRaw : null
+  const initialFilter =
+    filterParam === "free" || filterParam === "review" || filterParam === "follow" ? filterParam : stateFilter
   const [feedFilter, setFeedFilter] = useState<FeedFilter>(initialFilter ?? "review")
   const { value: followedUserIds, toggle: toggleFollowUser } = useStoredNumberSet(
     COMMUNITY_FOLLOWED_USERS_KEY,
@@ -83,7 +88,7 @@ export default function Community() {
     MAX_RECENT_TERMS,
   )
 
-  const [userPosts, setUserPosts] = useState<FeedPost[]>(() => {
+  const readStoredUserPosts = useCallback((): FeedPost[] => {
     try {
       const raw = window.localStorage.getItem(COMMUNITY_USER_POSTS_KEY)
       const parsed = raw ? JSON.parse(raw) : []
@@ -91,7 +96,9 @@ export default function Community() {
     } catch {
       return []
     }
-  })
+  }, [])
+
+  const [userPosts, setUserPosts] = useState<FeedPost[]>(() => readStoredUserPosts())
 
 
 
@@ -101,6 +108,7 @@ export default function Community() {
     setUserPosts(next)
     try {
       window.localStorage.setItem(COMMUNITY_USER_POSTS_KEY, JSON.stringify(next.slice(0, 50)))
+      window.dispatchEvent(new Event(USER_POSTS_UPDATED_EVENT))
     } catch {
       // ignore storage errors
     }
@@ -125,19 +133,29 @@ export default function Community() {
   )
 
   useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== COMMUNITY_USER_POSTS_KEY) return
-      try {
-        const parsed = event.newValue ? JSON.parse(event.newValue) : []
-        setUserPosts(Array.isArray(parsed) ? (parsed as FeedPost[]) : [])
-      } catch {
-        setUserPosts([])
-      }
+    const nextFilter =
+      filterParam === "free" || filterParam === "review" || filterParam === "follow" ? filterParam : stateFilter
+    if (!nextFilter) return
+    setFeedFilter(nextFilter)
+  }, [filterParam, stateFilter])
+
+  useEffect(() => {
+    const syncFromStorage = () => {
+      setUserPosts(readStoredUserPosts())
     }
 
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== COMMUNITY_USER_POSTS_KEY) return
+      syncFromStorage()
+    }
+
+    window.addEventListener(USER_POSTS_UPDATED_EVENT, syncFromStorage)
     window.addEventListener("storage", handleStorage)
-    return () => window.removeEventListener("storage", handleStorage)
-  }, [])
+    return () => {
+      window.removeEventListener(USER_POSTS_UPDATED_EVENT, syncFromStorage)
+      window.removeEventListener("storage", handleStorage)
+    }
+  }, [readStoredUserPosts])
 
   // No effect needed: userPosts are initialized from localStorage and updated via storage events.
 

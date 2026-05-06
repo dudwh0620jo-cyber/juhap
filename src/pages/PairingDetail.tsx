@@ -202,6 +202,8 @@ export default function PairingDetail() {
           {
             id: 90001,
             pairingTitle: "준마이 다이긴죠 + 사시미 플레이트",
+            label:
+              "부드럽고 깔끔한 준마이 다이긴죠에 사시미 플레이트로 입안 정리까지. 와사비/생강 곁들이면 향이 더 또렷해요.",
             authorId: 2104,
             authorName: usersMockById[2104]?.name ?? "익명",
             profile: usersMockById[2104]?.profile ?? "",
@@ -211,6 +213,8 @@ export default function PairingDetail() {
           {
             id: 90002,
             pairingTitle: "다이긴죠 + 치즈 플래터",
+            label:
+              "다이긴죠의 은은한 향이랑 치즈 플래터 조합으로 진하게 한 잔. 크래커나 견과류 같이 두면 질감이 더 좋아져요.",
             authorId: 2102,
             authorName: usersMockById[2102]?.name ?? "익명",
             profile: usersMockById[2102]?.profile ?? "",
@@ -220,6 +224,8 @@ export default function PairingDetail() {
           {
             id: 90003,
             pairingTitle: "준마이 다이긴죠 + 굴 초회",
+            label:
+              "초회로 산뜻하게 시작하고 준마이 다이긴죠로 이어가면 궁합 좋아요. 레몬 한 방울로 비린 향 잡아주면 더 깔끔합니다.",
             authorId: 2004,
             authorName: usersMockById[2004]?.name ?? "익명",
             profile: usersMockById[2004]?.profile ?? "",
@@ -236,6 +242,7 @@ export default function PairingDetail() {
           ({
             id: item.id,
             pairingTitle: extractPairingTitle(item.title),
+            label: getPairingDetailBodyText(item, getPairingSummaryText(item)),
             authorId: item.authorId,
             authorName: usersMockById[item.authorId]?.name ?? "익명",
             profile: usersMockById[item.authorId]?.profile ?? "",
@@ -319,7 +326,7 @@ export default function PairingDetail() {
       <PairingDetailHeader
         authorName={authorName}
         profile={mySubProfile}
-        locationLabel={locationLabel}
+        locationLabel={isQnaDetail ? "" : locationLabel}
         tierClassName={getUserGradeBadgeClassNameByTier(authorTier)}
         tierLabel={getPairingTierLabel(authorTier)}
         showTier={authorId !== null}
@@ -337,6 +344,7 @@ export default function PairingDetail() {
                   if (!Array.isArray(parsed)) return
                   const next = parsed.filter((item) => item?.id !== numericPostId)
                   window.localStorage.setItem(COMMUNITY_USER_POSTS_KEY, JSON.stringify(next.slice(0, 50)))
+                  window.dispatchEvent(new Event("community:user-posts-updated"))
                 } catch {
                   // ignore storage errors
                 }
@@ -358,6 +366,24 @@ export default function PairingDetail() {
         <>
           <h2>{pairingTitle}</h2>
           {detailBodyText ? <p className="detail_text">{detailBodyText}</p> : null}
+          <FeedActions
+            variant="detail"
+            likeActive={isLiked}
+            likeAriaLabel={isLiked ? "좋아요 취소" : "좋아요"}
+            likeText={String(likeCount)}
+            onToggleLike={toggleLike}
+            commentAriaLabel="댓글 보기"
+            commentText={String(commentCount)}
+            onViewComments={() =>
+              document.getElementById("comments")?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+            bookmarkActive={isBookmarked}
+            bookmarkAriaLabel={isBookmarked ? "북마크 취소" : "북마크"}
+            onBookmark={() => {
+              if (!Number.isFinite(numericPostId)) return
+              toggleBookmark(numericPostId)
+            }}
+          />
           <CommentSection
             pairingId={pairingId}
             currentUser={currentUser}
