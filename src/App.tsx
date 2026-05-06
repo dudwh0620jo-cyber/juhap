@@ -7,13 +7,17 @@ import Community from "./pages/Community"
 import CommunityRanking from "./pages/Ranking"
 import CommunityWrite from "./pages/CommunityWrite"
 import Home from "./pages/Home"
+import Login from "./pages/Login"
 import MyPage from "./pages/MyPage"
+import Onboarding from "./pages/Onboarding"
 import ProductDetail from "./pages/ProductDetail"
 import Quiz from "./pages/Quiz"
 import PairingDetail from "./pages/PairingDetail"
+import ProfileSetup from "./pages/ProfileSetup"
 import VoteList from "./pages/VoteList"
 import AiScan from "./pages/AiScan"
 import PairingTagList from "./pages/PairingTagList"
+import TasteSetup from "./pages/TasteSetup"
 import "./styles/common.css"
 
 import iconchatscircle_w from "./assets/svg/chatscircle_w.svg"
@@ -59,12 +63,18 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
+  const isAuthPage =
+    pathname === "/onboarding" ||
+    pathname === "/login" ||
+    pathname === "/profile-setup" ||
+    pathname === "/taste-setup"
   const isRankingActive = pathname === "/community/ranking"
   const isCommunityActive = pathname.startsWith("/community") && !isRankingActive
 
   return (
     <main className="app_root">
       <div className="app_viewport">
+        {!isAuthPage && (
         <div className="chat_corner_slot">
           <button
             type="button"
@@ -78,9 +88,14 @@ export default function App() {
             <span className="chat_corner_label">AI챗봇</span>
           </button>
         </div>
+        )}
 
         <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/" element={<Navigate to="/onboarding" replace />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile-setup" element={<ProfileSetup />} />
+          <Route path="/taste-setup" element={<TasteSetup />} />
           <Route path="/home" element={<Home />} />
           <Route path="/category" element={<Category />} />
           <Route path="/category/list" element={<CategoryList />} />
@@ -98,8 +113,9 @@ export default function App() {
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
 
-        {isChatOpen ? <Chat onClose={() => setIsChatOpen(false)} /> : null}
+        {!isAuthPage && isChatOpen ? <Chat onClose={() => setIsChatOpen(false)} /> : null}
 
+        {!isAuthPage && (
         <nav className="bottom_nav" aria-label="주요 메뉴">
           {leftNavItems.map((item) => (
             <NavLink
@@ -156,6 +172,7 @@ export default function App() {
             </NavLink>
           ))}
         </nav>
+        )}
       </div>
     </main>
   )

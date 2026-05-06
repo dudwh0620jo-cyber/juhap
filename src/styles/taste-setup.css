@@ -1,0 +1,128 @@
+.taste_setup_page {
+  min-height: 100vh;
+  padding: 118px 20px 60px;
+  background: #f8f2e9;
+  color: #111111;
+  font-family: var(--font-main);
+}
+
+.taste_setup_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.taste_setup_header h1 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+.taste_setup_header p {
+  margin: 7px 0 0;
+  color: #89847e;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.taste_setup_header img {
+  width: 118px;
+  height: 118px;
+  object-fit: cover;
+}
+
+.taste_setup_groups {
+  display: grid;
+  gap: 35px;
+}
+
+.taste_setup_group h2 {
+  margin: 0 0 9px;
+  color: #111111;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.taste_setup_group h2 em {
+  color: #d48652;
+  font-style: normal;
+}
+
+.taste_chip_grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 4px;
+}
+
+.taste_setup_group[data-selection-type="multi"] .taste_chip_grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.taste_chip {
+  min-height: 32px;
+  border: 1px solid #4f473b;
+  border-radius: 9px;
+  padding: 0 12px;
+  background: transparent;
+  color: #4f473b;
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.taste_setup_group[data-selection-type="multi"] .taste_chip {
+  min-height: 29px;
+  border-radius: 999px;
+  padding: 0 13px;
+}
+
+.taste_chip.is_selected {
+  background: #ead7a8;
+}
+
+.taste_setup_warning {
+  margin: 7px 2px 0;
+  color: #c24b3a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.taste_setup_submit {
+  width: 100%;
+  height: 60px;
+  margin-top: 116px;
+  border: 1px solid #4f473b;
+  border-radius: 14px;
+  background: #ead7a8;
+  color: #111111;
+  font-family: var(--font-main);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 360px) {
+  .taste_setup_page {
+    padding-top: 84px;
+  }
+
+  .taste_setup_header img {
+    width: 104px;
+    height: 104px;
+  }
+
+  .taste_setup_submit {
+    margin-top: 72px;
+  }
+}
