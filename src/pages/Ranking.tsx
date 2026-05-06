@@ -88,18 +88,13 @@ export default function CommunityRanking() {
   const availableCategories = useMemo(() => {
     if (!selectedDrinkType) return []
     return popupCategoryByDrinkType[selectedDrinkType] ?? []
-  }, [selectedDrinkType])
+  }, [popupCategoryByDrinkType, selectedDrinkType])
 
   const availableFeatures = useMemo(() => {
     if (!selectedDrinkType) return []
     if (selectedCategories.size === 0) return []
     return popupFeaturesByDrinkType[selectedDrinkType] ?? []
   }, [popupFeaturesByDrinkType, selectedCategories, selectedDrinkType])
-
-  useEffect(() => {
-    const valid = new Set(availableFeatures)
-    setSelectedFeatures((prev) => new Set(Array.from(prev).filter((item) => valid.has(item))))
-  }, [availableFeatures])
 
   const availableFoods = useMemo(() => {
     if (!selectedDrinkType) return []
@@ -285,6 +280,7 @@ export default function CommunityRanking() {
       .slice(0, 8)
   }, [
     feedSearchValue,
+    popupCategoryByDrinkType,
     selectedCategories,
     selectedDrinkType,
     selectedFeatures,
@@ -428,7 +424,6 @@ export default function CommunityRanking() {
       return
     }
 
-    setIsFeedSearchConfirmed(false)
     window.setTimeout(() => feedSearchInputRef.current?.focus(), 0)
   }, [isFeedFilterPopupOpen])
 
@@ -445,10 +440,17 @@ export default function CommunityRanking() {
       }
     }
 
-    setCollapsibleChipGroups(next)
+    const frameId = window.requestAnimationFrame(() => {
+      setCollapsibleChipGroups(next)
+    })
+
+    return () => window.cancelAnimationFrame(frameId)
   }, [filteredPopupChipGroups, expandedChipGroups])
 
-  const openFeedFilterPopup = () => setIsFeedFilterPopupOpen(true)
+  const openFeedFilterPopup = () => {
+    setIsFeedSearchConfirmed(false)
+    setIsFeedFilterPopupOpen(true)
+  }
 
   const confirmFeedSearch = (term?: string) => {
     const query = (term ?? feedSearchValue).trim()
@@ -492,6 +494,7 @@ export default function CommunityRanking() {
       }
       return next
     })
+    setSelectedFeatures(new Set())
     setIsFeedSearchConfirmed(true)
   }
 

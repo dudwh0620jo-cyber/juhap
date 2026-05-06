@@ -3,6 +3,7 @@ import { useNavigate } from "react-router"
 import mascotImage from "../assets/onboarding-mascot.png"
 import eyeIcon from "../assets/svg/Eye.svg"
 import eyeSlashIcon from "../assets/svg/EyeSlash.svg"
+import { updateUserAccount } from "../data/userProfile"
 import "../styles/login.css"
 
 const VALID_EMAIL = "juhap@gmail.com"
@@ -29,6 +30,7 @@ export default function Login() {
 
     if (trimmedEmail === VALID_EMAIL && password === VALID_PASSWORD) {
       setErrorMessage("")
+      updateUserAccount({ email: trimmedEmail, password })
       navigate("/profile-setup", { replace: true })
       return
     }

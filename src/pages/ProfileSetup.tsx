@@ -1,13 +1,18 @@
 import { type FormEvent, useState } from "react"
 import { useNavigate } from "react-router"
 import mascotImage from "../assets/onboarding-mascot.png"
+import { profileSetupCopy } from "../data/setupContent"
+import { readUserProfile, updateUserPersonalInfo } from "../data/userProfile"
 import "../styles/profile-setup.css"
 
 export default function ProfileSetup() {
   const navigate = useNavigate()
-  const [nickname, setNickname] = useState("")
-  const [phone, setPhone] = useState("")
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false)
+  const savedProfile = readUserProfile()
+  const [nickname, setNickname] = useState(savedProfile.personalInfo.nickname)
+  const [phone, setPhone] = useState(savedProfile.personalInfo.phone)
+  const [address, setAddress] = useState(savedProfile.personalInfo.address)
+  const [detailAddress, setDetailAddress] = useState(savedProfile.personalInfo.detailAddress)
+  const [isPhoneVerified, setIsPhoneVerified] = useState(savedProfile.personalInfo.isPhoneVerified)
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false)
 
   const phoneDigits = phone.replace(/\D/g, "")
@@ -20,10 +25,15 @@ export default function ProfileSetup() {
     event.preventDefault()
     setHasTriedSubmit(true)
 
-    if (nickname.trim().length === 0 || phoneDigits.length !== 11 || !isPhoneVerified) {
-      return
-    }
+    if (nickname.trim().length === 0 || phoneDigits.length !== 11 || !isPhoneVerified) return
 
+    updateUserPersonalInfo({
+      nickname: nickname.trim(),
+      phone,
+      address,
+      detailAddress,
+      isPhoneVerified,
+    })
     navigate("/taste-setup")
   }
 
@@ -41,8 +51,8 @@ export default function ProfileSetup() {
     <section className="profile_setup_page" aria-label="개인정보 입력">
       <header className="profile_setup_header">
         <div>
-          <h1>개인정보를 입력해주세요</h1>
-          <p>당신의 취향을 찾기 위한<br />첫 걸음이에요</p>
+          <h1>{profileSetupCopy.title}</h1>
+          <p>{profileSetupCopy.subtitle}</p>
         </div>
         <img src={mascotImage} alt="" />
       </header>
@@ -81,8 +91,18 @@ export default function ProfileSetup() {
 
         <fieldset className="profile_setup_address">
           <legend>주소</legend>
-          <input type="text" placeholder="건물, 지번 또는 도로명 검색" />
-          <input type="text" placeholder="상세주소" />
+          <input
+            type="text"
+            placeholder="건물, 지번 또는 도로명 검색"
+            value={address}
+            onChange={(event) => setAddress(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="상세주소"
+            value={detailAddress}
+            onChange={(event) => setDetailAddress(event.target.value)}
+          />
         </fieldset>
 
         <button className="profile_setup_next" type="submit">
