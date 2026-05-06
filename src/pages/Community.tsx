@@ -285,7 +285,7 @@ export default function Community() {
     }
 
     return []
-  }, [feedFilter, followedUserIds])
+  }, [feedFilter, followedUserIds, userPosts])
 
   const filteredPosts = useMemo(() => {
     if (!isCommunitySearchActive) {

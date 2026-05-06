@@ -48,7 +48,10 @@ const locationSuggestions = [
 
 const situationChips = ["혼술", "파티/모임", "가족", "데이트", "캠핑/여행"] as const
 const SAKE_LABEL = "사케"
-const COMMUNITY_WRITE_DRAFT_KEY = "community_write_draft_v1"
+const COMMUNITY_WRITE_DRAFT_KEY_BY_MODE: Record<WriteMode, string> = {
+  review: "community_write_draft_v1_review",
+  free: "community_write_draft_v1_free",
+}
 
 const getModeFromSearch = (value: string | null): WriteMode => {
   if (value === "free") return "free"
@@ -201,6 +204,7 @@ export default function CommunityWrite() {
   const pairingHasTasteTags = pairingTasteTags.size > 0
   const pairingHasPrice = Boolean(pairingPrice.trim())
   const pairingHasBodyInput = Boolean(pairingBody.trim())
+  const draftStorageKey = COMMUNITY_WRITE_DRAFT_KEY_BY_MODE[mode]
 
   function buildDraftPayload(): DraftPayload {
     return {
@@ -227,7 +231,7 @@ export default function CommunityWrite() {
 
   function clearDraft() {
     try {
-      window.localStorage.removeItem(COMMUNITY_WRITE_DRAFT_KEY)
+      window.localStorage.removeItem(draftStorageKey)
     } catch {
       // ignore storage errors
     }
@@ -236,7 +240,7 @@ export default function CommunityWrite() {
   function handleTempSave() {
     try {
       const payload = buildDraftPayload()
-      window.localStorage.setItem(COMMUNITY_WRITE_DRAFT_KEY, JSON.stringify(payload))
+      window.localStorage.setItem(draftStorageKey, JSON.stringify(payload))
       window.alert("임시 저장되었습니다.")
       navigate(mode === "free" ? "/community?filter=free" : "/community?filter=review")
     } catch {
@@ -249,9 +253,10 @@ export default function CommunityWrite() {
     hasCheckedDraftRef.current = true
 
     try {
-      const raw = window.localStorage.getItem(COMMUNITY_WRITE_DRAFT_KEY)
+      const raw = window.localStorage.getItem(draftStorageKey)
       if (!raw) return
       const parsed = JSON.parse(raw) as Partial<DraftPayload>
+      if (parsed.mode !== mode) return
       while (true) {
         const shouldRestore = window.confirm("임시저장된 글이 있습니다. 나머지 내용을 작성할까요?")
         if (shouldRestore) {
@@ -284,7 +289,7 @@ export default function CommunityWrite() {
     } catch {
       // ignore parse/storage errors
     }
-  }, [mode, navigate])
+  }, [draftStorageKey, mode, navigate])
 
   function handleShare() {
     const now = new Date()
