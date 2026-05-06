@@ -12,9 +12,10 @@ export type CategoryListItem = {
 
 type Props = {
   item: CategoryListItem
+  onOpen?: (item: CategoryListItem) => void
 }
 
-export default function CategoryItemCard({ item }: Props) {
+export default function CategoryItemCard({ item, onOpen }: Props) {
   const priceText = item.price !== undefined ? `${item.price.toLocaleString()}원` : item.priceLabel
 
   return (
@@ -31,9 +32,15 @@ export default function CategoryItemCard({ item }: Props) {
           ))}
         </div>
       </div>
-      <Link className="category_item_link" to={`/product/${item.id}`} aria-label={`${item.name} 상세 보기`}>
-        →
-      </Link>
+      {onOpen ? (
+        <button className="category_item_link" type="button" aria-label={`${item.name} 상세 보기`} onClick={() => onOpen(item)}>
+          →
+        </button>
+      ) : (
+        <Link className="category_item_link" to={`/product/${item.id}`} aria-label={`${item.name} 상세 보기`}>
+          →
+        </Link>
+      )}
     </article>
   )
 }

@@ -183,9 +183,11 @@
   background: #ffffff;
   color: #111111;
   text-decoration: none;
+  font-family: var(--font-main);
   font-size: 27px;
   font-weight: 500;
   line-height: 1;
+  cursor: pointer;
 }
 
 .category_sort_overlay {
