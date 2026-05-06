@@ -5,7 +5,7 @@ import CommunityHeader from "../components/CommunityHeader"
 import iconX from "../assets/svg/x.svg"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
 import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
-import { loadUserProfile } from "../utils/userProfile"
+import { readUserProfile } from "../data/userProfile"
 
 type WriteMode = "review" | "free"
 type ReviewTab = "drink" | "pairing"
@@ -155,14 +155,12 @@ export default function CommunityWrite() {
   }, [popupFeaturesByDrinkType, selectedDrinkType])
 
   // 술만 후기: 술 선택은 세부 카테고리(사케)만 허용 → 주종 자동 선택
-  useEffect(() => {
-    if (mode !== "review") return
-    if (reviewTab !== "drink") return
-    const normalized = drinkName.trim()
-    if (!normalized) return
-    if (!sakeItems.includes(normalized)) return
+  function handleDrinkNameChange(nextDrinkName: string) {
+    setDrinkName(nextDrinkName)
+    if (mode !== "review" || reviewTab !== "drink") return
+    if (!sakeItems.includes(nextDrinkName.trim())) return
     if (selectedDrinkType !== SAKE_LABEL) setSelectedDrinkType(SAKE_LABEL)
-  }, [drinkName, mode, reviewTab, sakeItems, selectedDrinkType])
+  }
 
   const filteredPairingLocationSuggestions = useMemo(() => {
     const query = pairingLocationSearch.trim().toLowerCase()
@@ -178,7 +176,7 @@ export default function CommunityWrite() {
 
   function handleShare() {
     const now = new Date()
-    const nickname = loadUserProfile()?.nickname?.trim() || "익명"
+    const nickname = readUserProfile().personalInfo.nickname.trim() || "익명"
 
     if (mode === "free") {
       if (!canSubmit) return
@@ -475,7 +473,7 @@ export default function CommunityWrite() {
                     className="write_input"
                     value={drinkName}
                     placeholder="술 이름을 검색하거나 태그를 선택하세요"
-                    onChange={(e) => setDrinkName(e.target.value)}
+                    onChange={(e) => handleDrinkNameChange(e.target.value)}
                   />
                 </label>
 
@@ -485,7 +483,7 @@ export default function CommunityWrite() {
                         key={chip}
                         type="button"
                         className={drinkName === chip ? "write_chip is_active" : "write_chip"}
-                        onClick={() => setDrinkName(chip)}
+                        onClick={() => handleDrinkNameChange(chip)}
                       >
                         {chip}
                       </button>

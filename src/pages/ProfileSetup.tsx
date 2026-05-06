@@ -4,7 +4,6 @@ import mascotImage from "../assets/onboarding-mascot.png"
 import { profileSetupCopy } from "../data/setupContent"
 import { readUserProfile, updateUserPersonalInfo } from "../data/userProfile"
 import "../styles/profile-setup.css"
-import { saveUserProfile } from "../utils/userProfile"
 
 export default function ProfileSetup() {
   const navigate = useNavigate()
@@ -28,7 +27,6 @@ export default function ProfileSetup() {
 
     if (nickname.trim().length === 0 || phoneDigits.length !== 11 || !isPhoneVerified) return
 
-<<<<<<< Updated upstream
     updateUserPersonalInfo({
       nickname: nickname.trim(),
       phone,
@@ -36,9 +34,6 @@ export default function ProfileSetup() {
       detailAddress,
       isPhoneVerified,
     })
-=======
-    saveUserProfile({ nickname: nickname.trim() })
->>>>>>> Stashed changes
     navigate("/taste-setup")
   }
 

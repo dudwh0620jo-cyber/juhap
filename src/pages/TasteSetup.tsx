@@ -10,7 +10,6 @@ import {
 } from "../data/setupContent"
 import { readUserProfile, updateUserTastePreferences, type UserTastePreferences } from "../data/userProfile"
 import "../styles/taste-setup.css"
-import { saveUserTasteProfile } from "../utils/userTasteProfile"
 
 export default function TasteSetup() {
   const navigate = useNavigate()
@@ -31,13 +30,7 @@ export default function TasteSetup() {
       return
     }
 
-<<<<<<< Updated upstream
     updateUserTastePreferences(selectedByGroup)
-=======
-    const drinkTypes = (selectedByGroup["drinkType"] ?? []).filter((value) => value !== NONE_OPTION)
-    const traits = (selectedByGroup["trait"] ?? []).filter((value) => value !== NONE_OPTION)
-    saveUserTasteProfile({ drinkTypes, traits })
->>>>>>> Stashed changes
     navigate("/home", { replace: true })
   }
 
