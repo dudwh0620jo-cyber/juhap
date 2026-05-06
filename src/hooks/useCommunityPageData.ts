@@ -1,4 +1,3 @@
-import { hallOfFameRankedSeeds, hallOfFameTitle } from "../utils/hallOfFame"
 import { COMMUNITY_FOLLOWED_USERS_KEY, COMMUNITY_LIKED_POSTS_KEY, COMMUNITY_SEARCH_RECENT_KEY } from "../utils/communityStorage"
 import { defaultFollowedUserIdsMock } from "../utils/usersMock"
 
@@ -168,8 +167,6 @@ export function useCommunityPageData() {
     popupFeaturesByDrinkType,
     popupFoodCategories,
     defaultFollowedUserIdsMock,
-    hallOfFameTitle,
-    hallOfFameRankedSeeds,
   }
 }
 

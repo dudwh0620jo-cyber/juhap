@@ -52,6 +52,16 @@
   font-weight: 700;
 }
 
+.feed_write_split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.feed_write_split .feed_write_button {
+  justify-content: center;
+}
+
 .community_header_actions {
   display: flex;
   align-items: center;
@@ -903,6 +913,25 @@
   gap: 10px;
 }
 
+.write_reveal {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 200ms ease,
+    max-height 260ms ease,
+    transform 200ms ease;
+}
+
+.write_reveal.is_visible {
+  opacity: 1;
+  max-height: 800px;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
 .write_section_header {
   display: flex;
   align-items: center;
@@ -930,6 +959,79 @@
 .write_section_title {
   margin: 0;
   font-size: 13px;
+  font-weight: 800;
+  color: var(--color-dark-04);
+}
+
+.write_review_tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border-radius: 14px;
+  background: var(--color-sub-03);
+  padding: 2px;
+}
+
+.write_review_tab {
+  min-height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--color-dark-04);
+}
+
+.write_review_tab.is_active {
+  background: var(--color-main-05);
+  color: var(--color-main-01);
+}
+
+.write_rating_row {
+  display: grid;
+  gap: 10px;
+}
+
+.write_star_bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-sub-03);
+  border-radius: 14px;
+  background: var(--color-sub-01);
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.write_star_bar.is_dragging {
+  cursor: ew-resize;
+}
+
+.write_star_unit {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  font-size: 20px;
+  line-height: 22px;
+  display: block;
+}
+
+.write_star_base {
+  color: var(--color-sub-04);
+  display: block;
+}
+
+.write_star_fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  color: #f0b429;
+  display: block;
+}
+
+.write_rating_value {
+  font-size: 12px;
   font-weight: 800;
   color: var(--color-dark-04);
 }
@@ -994,6 +1096,11 @@
   font-size: 12px;
   font-weight: 800;
   color: var(--color-dark-04);
+}
+
+.write_chip.is_disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .write_chip.is_active {
@@ -1080,6 +1187,49 @@
   text-align: left;
 }
 
+.write_pick_card.is_compact {
+  grid-template-columns: 1fr;
+  place-items: center;
+  gap: 8px;
+  min-height: 140px;
+  text-align: center;
+}
+
+.write_pick_card.is_compact.is_selected {
+  border-color: var(--color-main-04);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.write_pick_card_selected {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  place-items: center;
+}
+
+.write_pick_card_selected_badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-main-04);
+  color: var(--color-sub-01);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.write_pick_card_plus {
+  width: 86px;
+  height: 86px;
+  border-radius: 16px;
+  border: 1px solid var(--color-sub-03);
+  background: var(--color-sub-01);
+  display: grid;
+  place-items: center;
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--color-dark-03);
+}
+
 .write_pick_card_media {
   width: 64px;
   height: 64px;
@@ -1155,6 +1305,10 @@
   flex: 0 0 auto;
 }
 
+.write_photo_add.is_disabled {
+  opacity: 0.4;
+}
+
 .write_field {
   display: grid;
   gap: 8px;
@@ -1173,6 +1327,20 @@
   border: 1px solid var(--color-sub-03);
   border-radius: 14px;
   background: var(--color-sub-01);
+}
+
+.write_input_suffix_row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.write_input_suffix {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--color-dark-03);
+  padding-right: 2px;
 }
 
 .write_textarea {
@@ -1487,6 +1655,28 @@
   color: #111;
 }
 
+.feed_card_menu_button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.feed_card_menu_button:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.feed_card_menu_icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 .avatar {
   width: 40px;
   height: 40px;
@@ -1592,6 +1782,12 @@
 .feed_body {
   margin: 0;
   font-size: 13px;
+}
+
+.feed_body.is_one_line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .feed_actions {

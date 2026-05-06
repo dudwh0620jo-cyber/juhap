@@ -54,6 +54,24 @@
   opacity: 0.5;
 }
 
+.detail_menu_button {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+.detail_menu_button:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.detail_menu_icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 .detail_location {
   display: inline-block;
   padding: 4px 10px;
@@ -134,6 +152,26 @@
   display: flex;
   gap: 18px;
   margin: 0 0 12px;
+}
+
+.detail_feature_row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.detail_feature_chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  color: #2d2d2d;
 }
 
 .detail_text {

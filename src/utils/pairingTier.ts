@@ -1,7 +1,7 @@
 import { getTierClassName, type Tier } from "./tier"
 
 export const pairingTiersByAuthorId: Record<number, Tier> = {
-  2001: 2,
+  2001: 1,
   2002: 3,
   2003: 4,
   2004: 2,
