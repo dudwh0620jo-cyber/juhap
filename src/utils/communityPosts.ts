@@ -41,6 +41,37 @@ export const getPairingTagsFromTitle = (title: string) => {
   return { liquorTag: left ?? "", foodTag: right ?? "" }
 }
 
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+export const getPairingSummaryText = (post: Pick<FeedPost, "pairingSummary" | "body" | "title">) => {
+  const summary = post.pairingSummary?.trim()
+  if (summary) return summary
+
+  const body = post.body?.trim()
+  if (!body) return ""
+
+  const firstSentence = body.split(/[.!?]\s+/)[0]?.trim()
+  if (firstSentence) return firstSentence
+
+  return body.split("\n")[0]?.trim() ?? ""
+}
+
+export const getPairingDetailBodyText = (post: Pick<FeedPost, "pairingSummary" | "body" | "title">, summaryText = "") => {
+  const body = post.body?.trim() ?? ""
+  if (!body) return ""
+
+  const summary = summaryText.trim() || post.pairingSummary?.trim() || ""
+  const title = post.title?.trim() ?? ""
+
+  for (const prefix of [summary, title]) {
+    if (!prefix) continue
+    const stripped = body.replace(new RegExp(`^${escapeRegExp(prefix)}[\\s.。!?…-]*`, "u"), "").trim()
+    if (stripped && stripped !== body) return stripped
+  }
+
+  return body
+}
+
 export const feedPosts: FeedPost[] = [
   {
     id: 1001,

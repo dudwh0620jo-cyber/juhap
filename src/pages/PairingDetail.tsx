@@ -7,7 +7,13 @@ import SimilarPairingList, { type SimilarPairingItem } from "../components/Simil
 import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
-import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../utils/communityPosts"
+import {
+  extractPairingTitle,
+  feedPosts,
+  getPairingDetailBodyText,
+  getPairingSummaryText,
+  getPairingTagsFromTitle,
+} from "../utils/communityPosts"
 import {
   COMMUNITY_BOOKMARKED_POSTS_KEY,
   COMMUNITY_FOLLOWED_USERS_KEY,
@@ -83,11 +89,8 @@ export default function PairingDetail() {
   const pairingSummary = useMemo(() => {
     const fromNav = navState.pairingSummary?.trim()
     if (fromNav) return fromNav
-    const fromPost = post?.pairingSummary?.trim()
-    if (fromPost) return fromPost
-    const firstLine = (navState.body ?? post?.body ?? "").split("\n")[0]?.trim()
-    return firstLine || ""
-  }, [navState.body, navState.pairingSummary, post?.body, post?.pairingSummary])
+    return getPairingSummaryText(post ?? { title: pairingTitle, body: navState.body ?? "", pairingSummary: "" })
+  }, [navState.body, navState.pairingSummary, pairingTitle, post])
 
   const pairingFeatures = useMemo(() => {
     const fromNav: string[] = Array.isArray(navState.features) ? navState.features : []
@@ -111,7 +114,10 @@ export default function PairingDetail() {
   const authorName = navState.authorName?.trim() || post?.authorName?.trim() || authorMock?.name || "익명"
   const profile = navState.profile?.trim() || authorMock?.profile || "20대 / 서울"
   const locationLabel = navState.locationLabel?.trim() || post?.locationLabel?.trim() || ""
-  const detailBodyText = navState.body?.trim() || post?.body?.trim() || ""
+  const detailBodyText = getPairingDetailBodyText(
+    post ?? { title: pairingTitle, body: navState.body ?? "", pairingSummary: pairingSummary },
+    pairingSummary || pairingTitle,
+  )
   const authorTier = authorId !== null ? getPairingTierByUserId(authorId) : undefined
 
   const { metaLine: myMetaLine, nickname: myNickname } = useMyOnboardingMeta()
@@ -189,9 +195,42 @@ export default function PairingDetail() {
     const currentId = typeof pairingId === "string" ? Number(pairingId) : NaN
     const drinkHint = pairingTitle.split("+")[0]?.trim() ?? ""
     const drinkTypeHint = drinkTypeLabel || drinkHint
+    const isSakeDetail = drinkTypeHint === "사케"
+
+    const sakeFallbackItems: SimilarPairingItem[] = isSakeDetail
+      ? [
+          {
+            id: 90001,
+            pairingTitle: "준마이 다이긴죠 + 사시미 플레이트",
+            authorId: 2104,
+            authorName: usersMockById[2104]?.name ?? "익명",
+            profile: usersMockById[2104]?.profile ?? "",
+            locationLabel: "작은 주방 테이블",
+            drinkType: "사케",
+          },
+          {
+            id: 90002,
+            pairingTitle: "다이긴죠 + 치즈 플래터",
+            authorId: 2102,
+            authorName: usersMockById[2102]?.name ?? "익명",
+            profile: usersMockById[2102]?.profile ?? "",
+            locationLabel: "아늑한 우리집",
+            drinkType: "사케",
+          },
+          {
+            id: 90003,
+            pairingTitle: "준마이 다이긴죠 + 굴 초회",
+            authorId: 2004,
+            authorName: usersMockById[2004]?.name ?? "익명",
+            profile: usersMockById[2004]?.profile ?? "",
+            locationLabel: "늦은 밤 식탁",
+            drinkType: "사케",
+          },
+        ]
+      : []
 
     const candidates = feedPosts
-      .filter((item) => item.id !== currentId && !item.isQna)
+      .filter((item) => item.id !== currentId && !item.isQna && (!isSakeDetail || item.drinkType === "사케"))
       .map(
         (item) =>
           ({
@@ -206,7 +245,14 @@ export default function PairingDetail() {
       )
       .sort((a, b) => (a.drinkType === drinkTypeHint ? -1 : 0) - (b.drinkType === drinkTypeHint ? -1 : 0))
 
-    return candidates.slice(0, 2)
+    const merged = [...candidates]
+    for (const fallback of sakeFallbackItems) {
+      if (merged.length >= 2) break
+      if (merged.some((item) => item.id === fallback.id)) continue
+      merged.push(fallback)
+    }
+
+    return merged.slice(0, 2)
   }, [drinkTypeLabel, pairingId, pairingTitle])
 
   const { liquorTag, foodTag } = useMemo(() => {
@@ -361,23 +407,19 @@ export default function PairingDetail() {
           ) : null}
           <div className="detail_tags">
             <span>{priceRangeTagByDrinkType[drinkTypeLabel] ?? "1~3만원"}</span>
-            <span>{drinkTypeLabel ? `${drinkTypeLabel} 추천` : "추천"}</span>
+            {pairingFeatures.length > 0
+              ? pairingFeatures.map((chip) => (
+                  <span className="detail_feature_chip" key={chip}>
+                    {chip}
+                  </span>
+                ))
+              : null}
           </div>
 
           <p className="detail_text">
             {detailBodyText ||
               "조합을 더 맛있게 즐기기 위한 팁을 공유하는 공간이에요. 좋아하는 조합을 저장하고, 댓글로 의견을 나눠보세요."}
           </p>
-
-          {pairingFeatures.length > 0 ? (
-            <div className="detail_feature_row" aria-label="취향 키워드">
-              {pairingFeatures.map((chip) => (
-                <span className="detail_feature_chip" key={chip}>
-                  {chip}
-                </span>
-              ))}
-            </div>
-          ) : null}
 
           <FeedActions
             variant="detail"
@@ -400,6 +442,7 @@ export default function PairingDetail() {
 
           <SimilarPairingList
             items={similarItems}
+            title={drinkTypeLabel === "사케" ? "사케와 어울리는 조합 둘러보기" : undefined}
             onSelect={(item) =>
               navigate(`/community/pairing/${item.id}`, {
                 state: {
@@ -413,7 +456,7 @@ export default function PairingDetail() {
                 } satisfies PairingDetailNavState,
               })
             }
-          />
+            />
 
           <CommentSection
             pairingId={pairingId}

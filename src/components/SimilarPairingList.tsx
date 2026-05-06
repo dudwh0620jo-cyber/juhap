@@ -11,12 +11,13 @@ export type SimilarPairingItem = {
 type Props = {
   items: SimilarPairingItem[]
   onSelect: (item: SimilarPairingItem) => void
+  title?: string
 }
 
-export default function SimilarPairingList({ items, onSelect }: Props) {
+export default function SimilarPairingList({ items, onSelect, title }: Props) {
   return (
     <>
-      <h3 className="similar_title">유사한 분위기 조합 둘러보기</h3>
+      <h3 className="similar_title">{title ?? "유사한 분위기 조합 둘러보기"}</h3>
       <div className="similar_list" aria-label="유사한 페어링 추천">
         {items.map((item) => (
           <button

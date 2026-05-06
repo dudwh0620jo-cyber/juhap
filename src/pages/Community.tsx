@@ -9,7 +9,12 @@ import QuestionPostRow from "../components/QuestionPostRow"
 import SearchFilterModal from "../components/SearchFilterModal"
 import CommunityFilterPanel from "../components/CommunityFilterPanel"
 import FeedWriteRow from "../components/FeedWriteRow"
-import { extractPairingTitle, feedPosts as communityFeedPosts, type FeedPost } from "../utils/communityPosts"
+import {
+  extractPairingTitle,
+  feedPosts as communityFeedPosts,
+  getPairingSummaryText,
+  type FeedPost,
+} from "../utils/communityPosts"
 import { type FeedFilter, type PopupChipGroup, useCommunityPageData } from "../hooks/useCommunityPageData"
 import { includesNormalized, normalizeSearchText } from "../utils/text"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
@@ -801,7 +806,7 @@ export default function Community() {
                 source: "feed",
               }}
               title={post.isQna ? post.title : extractPairingTitle(post.title)}
-              body={(post.pairingSummary?.trim() ? post.pairingSummary.trim() : post.body.split("\n")[0] ?? post.body) || ""}
+              body={getPairingSummaryText(post)}
               answerCount={post.answerCount}
               answerPreview={post.answerPreview}
               likeActive={Boolean(likedById[post.id])}
