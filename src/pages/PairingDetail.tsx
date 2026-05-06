@@ -43,6 +43,7 @@ type PairingDetailNavState = {
   drinkType?: string
   features?: string[]
   source?: "feed" | "ranking" | "free"
+  feedFilter?: "review" | "follow" | "free"
 }
 
 const priceRangeTagByDrinkType: Record<string, string> = {
@@ -353,10 +354,22 @@ export default function PairingDetail() {
             : undefined
         }
         onBack={() => {
-          if (isQnaDetail) {
-            navigate("/community", { state: { initialFilter: "free", scrollToTop: true } })
+          if (navState.source === "ranking") {
+            navigate("/community/ranking")
             return
           }
+
+          if (navState.source === "feed") {
+            const filter = navState.feedFilter ?? (isQnaDetail ? "free" : "review")
+            navigate(`/community?filter=${filter}`)
+            return
+          }
+
+          if (isQnaDetail) {
+            navigate("/community?filter=free")
+            return
+          }
+
           navigate(-1)
         }}
         onToggleFollow={toggleFollow}
@@ -479,6 +492,7 @@ export default function PairingDetail() {
                   locationLabel: item.locationLabel,
                   drinkType: item.drinkType,
                   source: "feed",
+                  feedFilter: navState.feedFilter,
                 } satisfies PairingDetailNavState,
               })
             }

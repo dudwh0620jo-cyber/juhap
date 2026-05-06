@@ -777,6 +777,7 @@ export default function Community() {
                 drinkType: post.drinkType ?? "",
                 features: post.features ?? [],
                 source: "feed",
+                feedFilter: "free",
               }}
               thumbVariant={index % 3 === 1 ? "bottle" : index % 3 === 2 ? "photo" : "none"}
             />
@@ -786,8 +787,8 @@ export default function Community() {
               key={post.id}
               postId={post.id}
               isQna={post.isQna}
-              showImages={post.authorId === 2001 ? Boolean(post.photoIds?.length) : true}
-              imageCount={post.authorId === 2001 ? Math.min(3, post.photoIds?.length ?? 0) : 2}
+              showImages={Boolean(post.photoIds?.length)}
+              imageCount={post.photoIds?.length ?? 0}
               authorName={post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명"}
               profile={post.authorId === 2001 ? myHeaderProfile : usersMockById[post.authorId]?.profile ?? ""}
               badgeClassName={
@@ -822,6 +823,7 @@ export default function Community() {
                 drinkType: post.drinkType ?? "",
                 features: post.features ?? [],
                 source: "feed",
+                feedFilter: feedFilter,
               }}
               title={post.isQna ? post.title : extractPairingTitle(post.title)}
               body={getPairingSummaryText(post)}

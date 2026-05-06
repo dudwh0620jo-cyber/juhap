@@ -72,7 +72,13 @@ export const getPairingDetailBodyText = (post: Pick<FeedPost, "pairingSummary" |
   return body
 }
 
-export const feedPosts: FeedPost[] = [
+const getMockPhotoIds = (postId: number) => {
+  const count = Math.abs(postId) % 4 // 0~3
+  if (count === 0) return undefined
+  return Array.from({ length: count }).map((_, index) => `mock-photo-${postId}-${index + 1}`)
+}
+
+const rawFeedPosts: FeedPost[] = [
   {
     id: 1001,
     authorId: 2003,
@@ -367,4 +373,12 @@ export const feedPosts: FeedPost[] = [
     abv: 15,
   },
 ]
+
+export const feedPosts: FeedPost[] = rawFeedPosts.map((post) => {
+  if (post.isQna) return post
+  if (post.photoIds) return post
+  const photoIds = getMockPhotoIds(post.id)
+  if (!photoIds) return post
+  return { ...post, photoIds }
+})
 
