@@ -78,7 +78,7 @@ export default function Community() {
   )
 
   const _legacyPopupChipGroups: PopupChipGroup[] = [
-    { title: "상황", chips: ["혼술", "데이트", "파티/모임", "홈파티", "기타"] },
+    { title: "상황", chips: ["혼술", "파티/모임",  "가족", "데이트", "캠핑/여행"] },
     { title: "음식", chips: ["고기류", "튀김", "매운음식", "해산물", "가벼운 안주"] },
     { title: "스타일", chips: ["가볍게", "진하게", "분위기용", "가성비"] },
     { title: "주종", chips: ["소주", "맥주", "와인", "위스키", "전통주", "기타"] },

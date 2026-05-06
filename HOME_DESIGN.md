@@ -202,6 +202,29 @@
 - Starts with large AI mascot and suggestion buttons.
 - Switches to compact chat state when suggestion is chosen or input gains focus.
 
+### Chatbot Flow Rules
+
+- Source of truth: `src/pages/Chat.tsx`, `src/utils/chatBotFlow.ts`, `src/components/ChatStepPanel.tsx`.
+- Flow steps:
+  - `intro`: greeting + 3 quick actions.
+  - `glossary`: term pick → definition → repeat.
+  - `party_mood` → `food` → `wine_style` → `recommend` → `detail` → `pairing` → `done`.
+- Branching:
+  - `주류 스캔하기`: closes modal and navigates to `/ai-scan`.
+  - `오늘의 추천 빠르게 받기`: enters `party_mood` directly (no party-size step).
+  - `주류 문화 용어 알아보기`: stays in `glossary` loop (does not ask party/food questions).
+- Message rules:
+  - Any chip/button selection is echoed as a **user bubble** on the right.
+  - While loading the next AI message, show a left typing bubble `. . .` **before** the next AI question and chips appear.
+  - While `. . .` is visible, hide the option panel (`chat_step_panel`), then reveal options shortly after the AI question is appended.
+  - Lock interactions after a choice is made so the same choice cannot be tapped multiple times during loading.
+- Sake-only mode:
+  - `wine_style` step allows selecting only `사케` and disables other options.
+  - When `사케` is selected, recommendations are filtered to `사케` products only.
+- Done screen:
+  - `done` renders as a full-screen sheet view (chat input hidden).
+  - `최저가 구매처` and `준비하면 좋은 것` are banner buttons; tapping shows a confirm dialog before opening an external site.
+
 ## Product Detail Screen
 
 - Route: `/product/:id`

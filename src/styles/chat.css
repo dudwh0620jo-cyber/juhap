@@ -2,6 +2,8 @@
   position: fixed;
   inset: 0;
   z-index: 20;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .chat_overlay {
@@ -10,6 +12,7 @@
   margin: 0 auto;
   display: flex;
   align-items: flex-end;
+  overscroll-behavior: contain;
 }
 
 .chat_sheet {
@@ -27,39 +30,67 @@
   transform: translateY(0);
 }
 
+.chat_sheet.is_done {
+  height: 100vh;
+}
+
 .chat_header {
   display: flex;
   justify-content: flex-end;
 }
 
 .chat_header button {
-  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 36px;
   height: 36px;
   border: 0;
   background: transparent;
+  color: #222222;
 }
 
-.chat_header button span {
-  position: absolute;
-  left: 8px;
-  top: 17px;
-  width: 20px;
-  height: 2px;
-  background: #222222;
-}
-
-.chat_header button span:first-child {
-  transform: rotate(45deg);
-}
-
-.chat_header button span:last-child {
-  transform: rotate(-45deg);
+.chat_header button svg {
+  display: block;
 }
 
 .chat_intro {
   display: grid;
   gap: 12px;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transform-origin: top center;
+  transition: opacity 180ms ease, transform 180ms ease;
+  will-change: opacity, transform;
+}
+
+.chat_intro.is_closing {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.985);
+  pointer-events: none;
+}
+
+.chat_stage {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+}
+
+.chat_panel {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(10px) scale(0.995);
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+  will-change: opacity, transform;
+}
+
+.chat_panel.is_active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 
 .chat_hero {
@@ -105,6 +136,263 @@
   gap: 10px;
   margin-top: 4px;
   min-height: 0;
+  animation: chat_thread_enter 220ms ease-out;
+}
+
+.chat_step_panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.chat_choice_row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.chat_choice_row .chat_chip_group {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.chat_choice_echo {
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.chat_choice_echo p {
+  max-width: 180px;
+}
+
+.chat_chip_group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chat_chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #b6b6b6;
+  color: #222;
+  font-size: 14px;
+}
+
+.chat_chip_static {
+  pointer-events: none;
+  background: #e4e4e4;
+}
+
+.chat_recommend_list {
+  display: grid;
+  gap: 8px;
+}
+
+.chat_recommend_card {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  background: #b6b6b6;
+  text-align: left;
+  padding: 12px 14px;
+  color: #222;
+}
+
+.chat_recommend_card_title {
+  font-weight: 700;
+}
+
+.chat_recommend_card_subtitle {
+  opacity: 0.7;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.chat_recommend_card_price {
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+.chat_action_row {
+  display: flex;
+  gap: 8px;
+}
+
+.chat_action_button {
+  border: 0;
+  border-radius: 12px;
+  min-height: 40px;
+  padding: 0 12px;
+  background: #222;
+  color: #fff;
+  flex: 1 1 auto;
+}
+
+.chat_action_button_secondary {
+  background: #b6b6b6;
+  color: #222;
+}
+
+.chat_detail_panel,
+.chat_pairing_panel,
+.chat_done_panel {
+  border-radius: 16px;
+  background: #e4e4e4;
+  padding: 12px 14px;
+}
+
+/* Spacing rule: option panels match message spacing */
+.chat_step_panel > .chat_detail_panel,
+.chat_step_panel > .chat_pairing_panel,
+.chat_step_panel > .chat_done_panel,
+.chat_step_panel > .chat_recommend_panel {
+  margin-top: 0;
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat_detail_header,
+.chat_done_product {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chat_detail_title,
+.chat_done_name {
+  font-weight: 700;
+}
+
+.chat_detail_price,
+.chat_done_price {
+  font-weight: 700;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.chat_detail_list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.chat_pairing_title {
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.chat_pairing_title:first-child {
+  margin-top: 0;
+}
+
+.chat_done_title {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.chat_done_panel_full {
+  min-height: calc(100vh - 160px);
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.chat_done_hero {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+}
+
+.chat_done_photo {
+  width: 140px;
+  height: 220px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #e8d8a9 0%, #c6ae72 100%);
+}
+
+.chat_done_section_title {
+  font-weight: 700;
+}
+
+.chat_done_banner_list {
+  display: grid;
+  gap: 8px;
+}
+
+.chat_done_banner_button {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 14px;
+  background: #f2f2f2;
+  color: #222;
+  text-align: left;
+}
+
+.chat_link_confirm_overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.chat_link_confirm_modal {
+  width: min(90vw, 320px);
+  border-radius: 16px;
+  background: #fff;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.chat_link_confirm_text {
+  margin: 0;
+  color: #111;
+}
+
+.chat_link_confirm_actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.chat_link_confirm_button {
+  min-width: 72px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: #222;
+  color: #fff;
+}
+
+.chat_link_confirm_button_secondary {
+  background: #d8d8d8;
+  color: #222;
+}
+
+@keyframes chat_thread_enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .selected_chip {
@@ -128,6 +416,11 @@
   background: #e4e4e4;
 }
 
+.chat_typing_bubble {
+  text-align: left;
+  letter-spacing: 2px;
+}
+
 .chat_messages {
   display: grid;
   align-content: start;
@@ -136,6 +429,17 @@
   min-height: 0;
   overflow-y: auto;
   padding-right: 2px;
+}
+
+/* Render options inline with the chat flow (near the latest AI bubble). */
+.chat_step_panel {
+  padding: 0 0 6px;
+}
+
+/* Hide scrollbar while keeping scroll functionality (WebKit/Chromium). */
+.chat_messages::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .user_bubble_row {
@@ -184,6 +488,24 @@
   transition: width 160ms ease, opacity 120ms ease, padding 160ms ease;
 }
 
+.chat_input_bar .input_clear_button {
+  min-width: 0;
+  width: 0;
+  padding: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: #555;
+  background: #d0d0d0;
+  transition: width 160ms ease, opacity 120ms ease, padding 160ms ease;
+}
+
+.chat_input_bar .input_clear_button.is_visible {
+  width: 40px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .chat_input_bar .confirm_button.is_visible {
   width: 52px;
   padding: 0 10px;
@@ -197,4 +519,19 @@
   width: 40px;
   padding: 0;
   font-size: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat_sheet,
+  .chat_intro,
+  .chat_input_bar .confirm_button,
+  .chat_input_bar .input_clear_button,
+  .chat_thread,
+  .chat_chip,
+  .chat_recommend_card,
+  .chat_panel,
+  .chat_step_panel {
+    transition: none !important;
+    animation: none !important;
+  }
 }
