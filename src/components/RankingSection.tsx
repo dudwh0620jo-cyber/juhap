@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react"
+import { Link } from "react-router"
 
 export type RankingItem = {
   drink: string
@@ -83,7 +84,7 @@ export default function RankingSection({ title, items }: RankingSectionProps) {
     <section className="home_block">
       <div className="ranking_header">
         <h3>{title}</h3>
-        <button className="more_button" type="button">더보기</button>
+        <Link to="/community/ranking" className="more_button">더보기</Link>
       </div>
       <div className="ranking_carousel" ref={containerRef}>
         <div className="ranking_track" ref={trackRef}>

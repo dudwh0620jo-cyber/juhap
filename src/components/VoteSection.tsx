@@ -1,26 +1,6 @@
 import { useState } from "react"
 import { Link } from "react-router"
 
-const STORAGE_KEY = "vote_picks"
-
-function getStoredPicks(): Record<string, 0 | 1> {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
-  } catch {
-    return {}
-  }
-}
-
-function storePick(voteId: number, index: 0 | 1 | null) {
-  const picks = getStoredPicks()
-  if (index === null) {
-    delete picks[String(voteId)]
-  } else {
-    picks[String(voteId)] = index
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(picks))
-}
-
 type VoteOption = {
   id: number
   title: string
@@ -52,27 +32,34 @@ function VoteCard({ title, percent, voted, isSelected, onVote }: VoteCardProps) 
   )
 }
 
+const SESSION_KEY = "vote_picks"
+
+function readSession(voteId: number): 0 | 1 | null {
+  try {
+    const picks = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "{}")
+    const val = picks[String(voteId)]
+    return val === 0 || val === 1 ? val : null
+  } catch {
+    return null
+  }
+}
+
+function writeSession(voteId: number, index: 0 | 1) {
+  try {
+    const picks = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "{}")
+    picks[String(voteId)] = index
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(picks))
+  } catch {}
+}
+
 export default function VoteSection({ voteId, question, options }: VoteSectionProps) {
-  const [selectedIndex, setSelectedIndex] = useState<0 | 1 | null>(() => {
-    try {
-      const picks = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}")
-      const val = picks[String(voteId)]
-      return val !== undefined ? val : null
-    } catch {
-      return null
-    }
-  })
+  const [selectedIndex, setSelectedIndex] = useState<0 | 1 | null>(() => readSession(voteId))
 
   const voted = selectedIndex !== null
 
   function handleVote(index: 0 | 1) {
     setSelectedIndex(index)
-    storePick(voteId, index)
-    try {
-      const picks = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}")
-      picks[String(voteId)] = index
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(picks))
-    } catch {}
+    writeSession(voteId, index)
   }
 
   return (
