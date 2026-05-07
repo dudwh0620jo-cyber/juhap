@@ -1,3 +1,5 @@
+import { sakeProductsMock } from "../data/sakeProductsMock"
+
 export type ChatStep =
   | "intro"
   | "glossary"
@@ -25,7 +27,8 @@ export type ChatSession = {
   foodCategory?: string
   wineStyle?: string
   selectedWineId?: string
-  lastRecommendationSeed?: number
+  recommendationCursor?: number
+  lastRecommendationIds?: string[]
 }
 
 export type WineCandidate = {
@@ -60,21 +63,18 @@ export const foodCategoryOptions = ["해산물", "고기 요리", "파스타/면
 export const wineStyleOptions = ["가벼운 화이트", "드라이한 화이트", "레드 와인", "스파클링/샴페인", "사케"] as const
 
 export const wineCandidatesMock: WineCandidate[] = [
-  {
-    id: "dassai-45-junmai-daiginjo",
-    name: "닷사이 45 준마이 다이긴죠",
-    subtitle: "Dassai 45 Junmai Daiginjo",
-    priceWon: 36000,
-    tags: ["사케", "드라이", "해산물", "캐주얼", "격식", "기념일"],
-    notes: [
-      "깔끔하고 은은한 과실향으로 음식과 함께 즐기기 좋은 사케예요.",
-      "처음 사케를 고를 때도 부담이 적고, 페어링 폭이 넓어요.",
-    ],
-    tastingNotes: ["배, 멜론, 흰꽃", "부드러운 질감, 깨끗한 피니시"],
-    awards: [],
-    pairingFoods: ["회/해산물", "구운 생선", "담백한 치즈"],
-    tips: ["서빙 온도: 8~12℃ 권장", "잔을 살짝 차갑게 하면 향이 또렷해져요."],
-  },
+  ...sakeProductsMock.map<WineCandidate>((product) => ({
+    id: product.id,
+    name: product.name,
+    subtitle: product.subtitle,
+    priceWon: product.priceWon,
+    tags: product.tags,
+    notes: product.chat.notes,
+    tastingNotes: product.chat.tastingNotes,
+    awards: product.chat.awards,
+    pairingFoods: product.chat.pairingFoods,
+    tips: product.chat.tips,
+  })),
   {
     id: "cloudy-bay-sb-2022",
     name: "클라우디 베이 소비뇽 블랑 2022",

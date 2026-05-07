@@ -13,9 +13,6 @@ const sortLabels: Record<SortKey, string> = {
   highPrice: "높은가격순",
 }
 
-const READY_PRODUCT_ID = "sake-dassai-23"
-const PREPARING_MESSAGE = "아직 준비 중인 기능이에요, 곧 만나보실 수 있어요!"
-
 export default function CategoryList() {
   const { sakeDaiginjoItems, sortOptions } = useCategoryListPageData()
   const navigate = useNavigate()
@@ -54,11 +51,6 @@ export default function CategoryList() {
   }, [activeSortKey, filteredItems])
 
   function handleOpenItem(item: CategoryListItem) {
-    if (item.id !== READY_PRODUCT_ID) {
-      alert(PREPARING_MESSAGE)
-      return
-    }
-
     navigate(`/product/${item.id}`)
   }
 

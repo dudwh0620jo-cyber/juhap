@@ -35,16 +35,20 @@ type ChatAction =
   | { type: "SELECT_PARTY_MOOD"; value: string }
   | { type: "SELECT_FOOD"; value: string }
   | { type: "SELECT_WINE_STYLE"; value: string }
+  | { type: "SELECT_RECOMMENDATION"; wineId: string }
   | { type: "OPEN_DETAIL"; wineId: string }
   | { type: "OPEN_PAIRING" }
   | { type: "BACK_TO_RECOMMEND" }
-  | { type: "SHOW_MORE_RECOMMENDATIONS" }
+  | { type: "SHOW_MORE_RECOMMENDATIONS"; currentIds: string[] }
   | { type: "CONFIRM_SELECTION" }
   | { type: "APPEND_USER_MESSAGE"; text: string }
 
 const scanPromptLabel = "주류 스캔하기" satisfies (typeof introPromptOptions)[number]
 const fastPromptLabel = "오늘의 추천 빠르게 받기" satisfies (typeof introPromptOptions)[number]
 const glossaryPromptLabel = "주류 문화 용어 알아보기" satisfies (typeof introPromptOptions)[number]
+const PANEL_TRANSITION_MS = 120
+const AI_TYPING_BUBBLE_MS = 260
+const STEP_PANEL_APPEAR_MS = 80
 
 function normalizeKeyword(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, "")
@@ -151,14 +155,32 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
 
     case "SELECT_WINE_STYLE": {
-      const session: ChatSession = { ...state.session, wineStyle: action.value, lastRecommendationSeed: Date.now() }
+      const session: ChatSession = {
+        ...state.session,
+        wineStyle: action.value,
+        recommendationCursor: 0,
+        lastRecommendationIds: [],
+      }
       const messages = pushAi(state.messages, getNextAiPrompt("recommend"))
       return { ...state, step: "recommend", session, messages }
     }
 
     case "SHOW_MORE_RECOMMENDATIONS": {
-      const session = { ...state.session, lastRecommendationSeed: Date.now() }
-      return { ...state, session }
+      const currentCursor = state.session.recommendationCursor ?? 0
+      const session = {
+        ...state.session,
+        recommendationCursor: currentCursor + 2,
+        lastRecommendationIds: action.currentIds,
+        selectedWineId: undefined,
+      }
+      return { ...state, session, selectedWine: null }
+    }
+
+    case "SELECT_RECOMMENDATION": {
+      const selectedWine = getWineById(action.wineId)
+      if (!selectedWine) return state
+      const session = { ...state.session, selectedWineId: selectedWine.id }
+      return { ...state, session, selectedWine }
     }
 
     case "OPEN_DETAIL": {
@@ -309,10 +331,10 @@ export default function Chat({ onClose, userName: userNameProp }: ChatProps) {
           setIsStepPanelVisible(true)
           actionLockRef.current = false
           stepPanelTimeoutRef.current = null
-        }, 120)
+        }, STEP_PANEL_APPEAR_MS)
         introTransitionTimeoutRef.current = null
-      }, 1000)
-    }, 180)
+      }, AI_TYPING_BUBBLE_MS)
+    }, PANEL_TRANSITION_MS)
   }
 
   function dispatchAfterSelectionEcho(text: string, actions: ChatAction[]) {
@@ -345,10 +367,10 @@ export default function Chat({ onClose, userName: userNameProp }: ChatProps) {
           setIsStepPanelVisible(true)
           actionLockRef.current = false
           stepPanelTimeoutRef.current = null
-        }, 120)
+        }, STEP_PANEL_APPEAR_MS)
         selectionEchoTimeoutRef.current = null
-      }, 1000)
-    }, 180)
+      }, AI_TYPING_BUBBLE_MS)
+    }, PANEL_TRANSITION_MS)
   }
 
   function handleIntroPromptClick(item: (typeof introPromptOptions)[number]) {
@@ -456,12 +478,20 @@ export default function Chat({ onClose, userName: userNameProp }: ChatProps) {
 
   const recommendations: WineCandidate[] = (() => {
     if (state.step !== "recommend") return []
-    const top = getTopRecommendations(state.session, 4)
-    const seed = state.session.lastRecommendationSeed ?? 0
-    if (!seed) return top.slice(0, 2)
-    const offset = seed % top.length
-    const rotated = [...top.slice(offset), ...top.slice(0, offset)]
-    return rotated.slice(0, 2)
+
+    const pool = getTopRecommendations(state.session, 20)
+    if (pool.length <= 2) return pool.slice(0, 2)
+
+    const cursor = (state.session.recommendationCursor ?? 0) % pool.length
+    const slice = [...pool.slice(cursor), ...pool.slice(0, cursor)].slice(0, 2)
+
+    const lastIds = state.session.lastRecommendationIds ?? []
+    if (lastIds.length === 2 && slice.some((item) => lastIds.includes(item.id))) {
+      const nextCursor = (cursor + 2) % pool.length
+      return [...pool.slice(nextCursor), ...pool.slice(0, nextCursor)].slice(0, 2)
+    }
+
+    return slice
   })()
 
   return (
@@ -554,16 +584,15 @@ export default function Chat({ onClose, userName: userNameProp }: ChatProps) {
                       { type: "SELECT_WINE_STYLE", value },
                     ])
                   }
-                  onOpenDetail={(wineId, label) =>
+                  onSelectRecommendation={(wineId) => dispatch({ type: "SELECT_RECOMMENDATION", wineId })}
+                  onGoProductDetail={(wineId) => {
+                    closeModal()
+                    navigate(`/product/${wineId}`)
+                  }}
+                  onAskMore={(wineId, label) =>
                     dispatchAfterSelectionEcho(label, [
                       { type: "APPEND_USER_MESSAGE", text: label },
                       { type: "OPEN_DETAIL", wineId },
-                    ])
-                  }
-                  onOpenPairing={() =>
-                    dispatchAfterSelectionEcho("페어링/팁 보기", [
-                      { type: "APPEND_USER_MESSAGE", text: "페어링/팁 보기" },
-                      { type: "OPEN_PAIRING" },
                     ])
                   }
                   onBackToRecommend={() =>
@@ -575,7 +604,7 @@ export default function Chat({ onClose, userName: userNameProp }: ChatProps) {
                   onMoreRecommendations={() =>
                     dispatchAfterSelectionEcho("다른 추천 보기", [
                       { type: "APPEND_USER_MESSAGE", text: "다른 추천 보기" },
-                      { type: "SHOW_MORE_RECOMMENDATIONS" },
+                      { type: "SHOW_MORE_RECOMMENDATIONS", currentIds: recommendations.map((item) => item.id) },
                     ])
                   }
                   onConfirmSelection={() =>

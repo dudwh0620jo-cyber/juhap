@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { sakeProductsMock } from "../data/sakeProductsMock"
 
 export type ProductPurchaseShop = {
   id: string
@@ -51,6 +52,40 @@ const dassai23: ProductDetailData = {
 
 const mockProductById: Record<string, ProductDetailData> = {
   [dassai23.id]: dassai23,
+  ...Object.fromEntries(
+    sakeProductsMock
+      .filter((product) => product.id !== dassai23.id)
+      .map((product) => [
+        product.id,
+        {
+          id: product.id,
+          breadcrumb: "사케 > 준마이 다이긴죠",
+          name: product.name,
+          price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+          basicInfo: [
+            { label: "종류", value: "사케" },
+            { label: "용량", value: "720ml" },
+            { label: "도수", value: product.tags.find((tag) => tag.includes("도")) ?? "15~16도" },
+            { label: "정미율", value: "-" },
+            { label: "산도", value: "-" },
+            { label: "주도", value: "-" },
+          ],
+          tasteNotes: [
+            { label: "Aroma", value: product.chat.tastingNotes[0] ?? "은은한 향", subValue: "향" },
+            { label: "Taste", value: product.chat.notes[0] ?? "균형감 있는 맛", subValue: "맛" },
+            { label: "Finish", value: product.chat.tastingNotes[1] ?? "깔끔한 피니시", subValue: "피니시" },
+          ],
+          brandStory: [
+            `${product.name}에 대한 브랜드/스토리는 아직 목업이에요.`,
+            "현재는 상세 페이지 레이아웃 확인을 위한 더미데이터로 제공하고 있어요.",
+          ],
+          onlineShops: [
+            { id: `${product.id}-shop-1`, name: "키햐", delivery: "무료배송", price: product.priceWon.toLocaleString("ko-KR") + "원", url: "https://example.com/kihya" },
+            { id: `${product.id}-shop-2`, name: "마켓컬리", delivery: "무료배송", price: product.priceWon.toLocaleString("ko-KR") + "원", url: "https://example.com/marketkurly" },
+          ],
+        } satisfies ProductDetailData,
+      ]),
+  ),
 }
 
 export function useProductDetailPageData() {
