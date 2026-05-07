@@ -401,8 +401,17 @@ export default function CommunityRanking() {
     PRICE_MAX_WON,
   ])
 
+  const visibleRankingRows = useMemo(() => {
+    const rankOffset = filteredRankingPodium.length
+
+    return filteredRankingRows.map((row, index) => ({
+      ...row,
+      rank: rankOffset + index + 1,
+    }))
+  }, [filteredRankingPodium, filteredRankingRows])
+
   const isRankingNoResults =
-    isCommunitySearchActive && filteredRankingRows.length === 0 && filteredRankingPodium.length === 0
+    isCommunitySearchActive && visibleRankingRows.length === 0 && filteredRankingPodium.length === 0
 
   useEffect(() => {
     if (!isFeedFilterPopupOpen) {
@@ -652,7 +661,7 @@ export default function CommunityRanking() {
           setFeedSearchValue(tag)
           setIsFeedSearchConfirmed(true)
         }}
-        rows={filteredRankingRows}
+        rows={visibleRankingRows}
       />
     </section>
   )

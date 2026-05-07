@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
@@ -229,13 +229,13 @@ export default function CommunityWrite() {
     }
   }
 
-  function clearDraft() {
+  const clearDraft = useCallback(() => {
     try {
       window.localStorage.removeItem(draftStorageKey)
     } catch {
       // ignore storage errors
     }
-  }
+  }, [draftStorageKey])
 
   function handleTempSave() {
     try {
@@ -260,23 +260,25 @@ export default function CommunityWrite() {
       while (true) {
         const shouldRestore = window.confirm("임시저장된 글이 있습니다. 나머지 내용을 작성할까요?")
         if (shouldRestore) {
-          setReviewTab(parsed.reviewTab === "pairing" ? "pairing" : "drink")
-          setSelectedSituation(parsed.selectedSituation ?? null)
-          setSelectedDrinkType(parsed.selectedDrinkType ?? null)
-          setSelectedFoodCategory(parsed.selectedFoodCategory ?? null)
-          setDrinkName(parsed.drinkName ?? "")
-          setDrinkRating(typeof parsed.drinkRating === "number" ? parsed.drinkRating : 0)
-          setDrinkTasteTags(new Set(Array.isArray(parsed.drinkTasteTags) ? parsed.drinkTasteTags : []))
-          setPhotoIds(Array.isArray(parsed.photoIds) ? parsed.photoIds : [])
-          setTitle(parsed.title ?? "")
-          setBody(parsed.body ?? "")
-          setPairingLocationSearch(parsed.pairingLocationSearch ?? "")
-          setPairingLocationTags(Array.isArray(parsed.pairingLocationTags) ? parsed.pairingLocationTags : [])
-          setPairingTasteTags(new Set(Array.isArray(parsed.pairingTasteTags) ? parsed.pairingTasteTags : []))
-          setPairingPrice((parsed.pairingPrice ?? "").replace(/[^\d]/g, ""))
-          setPairingSummary(parsed.pairingSummary ?? "")
-          setPairingBody(parsed.pairingBody ?? "")
-          setPairingPhotoIds(Array.isArray(parsed.pairingPhotoIds) ? parsed.pairingPhotoIds : [])
+          window.setTimeout(() => {
+            setReviewTab(parsed.reviewTab === "pairing" ? "pairing" : "drink")
+            setSelectedSituation(parsed.selectedSituation ?? null)
+            setSelectedDrinkType(parsed.selectedDrinkType ?? null)
+            setSelectedFoodCategory(parsed.selectedFoodCategory ?? null)
+            setDrinkName(parsed.drinkName ?? "")
+            setDrinkRating(typeof parsed.drinkRating === "number" ? parsed.drinkRating : 0)
+            setDrinkTasteTags(new Set(Array.isArray(parsed.drinkTasteTags) ? parsed.drinkTasteTags : []))
+            setPhotoIds(Array.isArray(parsed.photoIds) ? parsed.photoIds : [])
+            setTitle(parsed.title ?? "")
+            setBody(parsed.body ?? "")
+            setPairingLocationSearch(parsed.pairingLocationSearch ?? "")
+            setPairingLocationTags(Array.isArray(parsed.pairingLocationTags) ? parsed.pairingLocationTags : [])
+            setPairingTasteTags(new Set(Array.isArray(parsed.pairingTasteTags) ? parsed.pairingTasteTags : []))
+            setPairingPrice((parsed.pairingPrice ?? "").replace(/[^\d]/g, ""))
+            setPairingSummary(parsed.pairingSummary ?? "")
+            setPairingBody(parsed.pairingBody ?? "")
+            setPairingPhotoIds(Array.isArray(parsed.pairingPhotoIds) ? parsed.pairingPhotoIds : [])
+          }, 0)
           return
         }
 
@@ -289,7 +291,7 @@ export default function CommunityWrite() {
     } catch {
       // ignore parse/storage errors
     }
-  }, [draftStorageKey, mode, navigate])
+  }, [clearDraft, draftStorageKey, mode, navigate])
 
   function handleShare() {
     const now = new Date()
@@ -621,8 +623,8 @@ export default function CommunityWrite() {
                             : "write_chip"
                       }
                       onClick={() => {
-                        setSelectedDrinkType(drinkType)
-                        setDrinkTasteTags((prev) => {
+                          setSelectedDrinkType(drinkType)
+                          setDrinkTasteTags((prev) => {
                           if (prev.size === 0) return prev
                           const valid = new Set(popupFeaturesByDrinkType[drinkType] ?? [])
                           const next = new Set(Array.from(prev).filter((item) => valid.has(item)))
@@ -653,7 +655,7 @@ export default function CommunityWrite() {
                           type="button"
                           className={active ? "write_chip is_active" : "write_chip"}
                           onClick={() =>
-                            setDrinkTasteTags((prev) => {
+                              setDrinkTasteTags((prev) => {
                               const next = new Set(prev)
                               if (next.has(chip)) {
                                 next.delete(chip)
@@ -749,7 +751,7 @@ export default function CommunityWrite() {
                         type="button"
                         className={active ? "write_chip is_active" : "write_chip"}
                         onClick={() =>
-                          setPairingLocationTags((prev) => {
+                            setPairingLocationTags((prev) => {
                             if (prev.includes(chip)) return prev.filter((item) => item !== chip)
                             return [...prev, chip]
                           })
@@ -840,7 +842,7 @@ export default function CommunityWrite() {
                           type="button"
                           className={active ? "write_chip is_active" : "write_chip"}
                           onClick={() =>
-                            setPairingTasteTags((prev) => {
+                              setPairingTasteTags((prev) => {
                               const next = new Set(prev)
                               if (next.has(chip)) {
                                 next.delete(chip)
@@ -1028,13 +1030,13 @@ export default function CommunityWrite() {
                           : "write_chip"
                     }
                     onClick={() => {
-                      setSelectedDrinkType(drinkType)
-                      setDrinkTasteTags((prev) => {
+                        setSelectedDrinkType(drinkType)
+                        setDrinkTasteTags((prev) => {
                         if (prev.size === 0) return prev
                         const valid = new Set(popupFeaturesByDrinkType[drinkType] ?? [])
                         return new Set(Array.from(prev).filter((item) => valid.has(item)))
                       })
-                      setPairingTasteTags((prev) => {
+                        setPairingTasteTags((prev) => {
                         if (prev.size === 0) return prev
                         const valid = new Set(popupFeaturesByDrinkType[drinkType] ?? [])
                         return new Set(Array.from(prev).filter((item) => valid.has(item)))
@@ -1081,7 +1083,7 @@ export default function CommunityWrite() {
                     type="button"
                     className={selectedFoodCategory === food ? "write_chip is_active" : "write_chip"}
                     onClick={() => {
-                      setSelectedFoodCategory(food)
+                        setSelectedFoodCategory(food)
                       setIsFoodPickerOpen(false)
                     }}
                   >
@@ -1096,3 +1098,4 @@ export default function CommunityWrite() {
     </section>
   )
 }
+
