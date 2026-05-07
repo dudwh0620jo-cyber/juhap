@@ -12,7 +12,6 @@ import FeedWriteRow from "../components/FeedWriteRow"
 import {
   extractPairingTitle,
   feedPosts as communityFeedPosts,
-  getPairingSummaryText,
   type FeedPost,
 } from "../utils/communityPosts"
 import { type FeedFilter, type PopupChipGroup, useCommunityPageData } from "../hooks/useCommunityPageData"
@@ -133,13 +132,6 @@ export default function Community() {
   )
 
   useEffect(() => {
-    const nextFilter =
-      filterParam === "free" || filterParam === "review" || filterParam === "follow" ? filterParam : stateFilter
-    if (!nextFilter) return
-    setFeedFilter(nextFilter)
-  }, [filterParam, stateFilter])
-
-  useEffect(() => {
     const syncFromStorage = () => {
       setUserPosts(readStoredUserPosts())
     }
@@ -172,18 +164,18 @@ export default function Community() {
   const availableCategories = useMemo(() => {
     if (!selectedDrinkType) return []
     return popupCategoryByDrinkType[selectedDrinkType] ?? []
-  }, [selectedDrinkType])
+  }, [popupCategoryByDrinkType, selectedDrinkType])
 
   const availableFeatures = useMemo(() => {
     if (!selectedDrinkType) return []
     if (selectedCategories.size === 0) return []
     return popupFeaturesByDrinkType[selectedDrinkType] ?? []
-  }, [selectedCategories, selectedDrinkType])
+  }, [popupFeaturesByDrinkType, selectedCategories, selectedDrinkType])
 
   const availableFoods = useMemo(() => {
     if (!selectedDrinkType) return []
     return popupFoodCategories
-  }, [selectedDrinkType])
+  }, [popupFoodCategories, selectedDrinkType])
 
   const effectiveSelectedFeatures = useMemo(() => {
     if (selectedFeatures.size === 0) return selectedFeatures
@@ -204,7 +196,7 @@ export default function Community() {
 
     // Keep group titles visible even when chips are empty (step-by-step funnel UX).
     return groups
-  }, [availableCategories, availableFeatures, availableFoods])
+  }, [availableCategories, availableFeatures, availableFoods, popupCategoryByDrinkType])
 
   const searchAllChipGroups: PopupChipGroup[] = useMemo(() => {
     const categorySet = new Set<string>()
@@ -222,7 +214,7 @@ export default function Community() {
       { title: "특징", chips: Array.from(featureSet) },
       { title: "음식", chips: popupFoodCategories },
     ]
-  }, [])
+  }, [popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories])
 
   void _legacyPopupChipGroups
 
@@ -333,6 +325,8 @@ export default function Community() {
     selectedFoods,
     priceRange,
     abvRange,
+    ABV_MAX,
+    PRICE_MAX_WON,
   ])
 
   const searchSuggestionTags = useMemo(() => {
@@ -498,25 +492,25 @@ export default function Community() {
     const denom = PRICE_MAX_WON - PRICE_MIN_WON
     if (denom <= 0) return 0
     return Math.round(((priceRange[0] - PRICE_MIN_WON) / denom) * 1000) / 10
-  }, [priceRange])
+  }, [PRICE_MAX_WON, PRICE_MIN_WON, priceRange])
 
   const priceMaxPct = useMemo(() => {
     const denom = PRICE_MAX_WON - PRICE_MIN_WON
     if (denom <= 0) return 100
     return Math.round(((priceRange[1] - PRICE_MIN_WON) / denom) * 1000) / 10
-  }, [priceRange])
+  }, [PRICE_MAX_WON, PRICE_MIN_WON, priceRange])
 
   const abvMinPct = useMemo(() => {
     const denom = ABV_MAX - ABV_MIN
     if (denom <= 0) return 0
     return Math.round(((abvRange[0] - ABV_MIN) / denom) * 1000) / 10
-  }, [abvRange])
+  }, [ABV_MAX, ABV_MIN, abvRange])
 
   const abvMaxPct = useMemo(() => {
     const denom = ABV_MAX - ABV_MIN
     if (denom <= 0) return 100
     return Math.round(((abvRange[1] - ABV_MIN) / denom) * 1000) / 10
-  }, [abvRange])
+  }, [ABV_MAX, ABV_MIN, abvRange])
 
   const resetFilters = () => {
     setSelectedDrinkType(null)
@@ -826,7 +820,7 @@ export default function Community() {
                 feedFilter: feedFilter,
               }}
               title={post.isQna ? post.title : extractPairingTitle(post.title)}
-              body={getPairingSummaryText(post)}
+              body={post.body}
               answerCount={post.answerCount}
               answerPreview={post.answerPreview}
               likeActive={Boolean(likedById[post.id])}
