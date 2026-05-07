@@ -107,7 +107,11 @@ export default function Onboarding() {
               ))}
             </div>
 
-            {activeIndex === onboardingInfoSlides.length && (
+            {activeIndex < onboardingInfoSlides.length ? (
+              <button className="onboarding_start_button" type="button" onClick={goNextSlide}>
+                다음으로
+              </button>
+            ) : (
               <button className="onboarding_start_button" type="button" onClick={skipOnboarding}>
                 시작하기
               </button>
