@@ -1,4 +1,4 @@
-export const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim()
+﻿export const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim()
 
 // For typo-ish / adjacency matching like "블렌디드몰트" vs "블렌디드 몰트",
 // or "논알콜 저도수" vs "논알콜/저도수".
@@ -6,7 +6,17 @@ const normalizeFuzzyText = (value: string) =>
   value
     .toLowerCase()
     .replace(/\s+/g, "")
-    .replace(/[\/()［］\[\],.\-·]/g, "")
+    .replaceAll("/", "")
+    .replaceAll("(", "")
+    .replaceAll(")", "")
+    .replaceAll("［", "")
+    .replaceAll("］", "")
+    .replaceAll("[", "")
+    .replaceAll("]", "")
+    .replaceAll(",", "")
+    .replaceAll(".", "")
+    .replaceAll("-", "")
+    .replaceAll("·", "")
     .trim()
 
 export const includesNormalized = (value: string, query: string) => {
@@ -20,4 +30,5 @@ export const includesNormalized = (value: string, query: string) => {
   }
   return normalizeFuzzyText(value).includes(normalizeFuzzyText(query))
 }
+
 

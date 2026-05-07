@@ -275,10 +275,7 @@ export default function CommentSection({
     () => Math.max(0, Math.ceil(sortedComments.length / PAGE_SIZE) - 1),
     [sortedComments.length],
   )
-
-  useEffect(() => {
-    setPageIndex((prev) => Math.min(prev, maxPageIndex))
-  }, [pageIndex, maxPageIndex])
+  const safePageIndex = Math.min(pageIndex, maxPageIndex)
 
   useEffect(() => {
     // keep in sync when other screens change follow list
@@ -298,17 +295,10 @@ export default function CommentSection({
     return () => window.removeEventListener("storage", handleStorage)
   }, [])
 
-  useEffect(() => {
-    setOpenMenuCommentId(null)
-    setEditingCommentId(null)
-    setEditingCommentValue("")
-    setInlineReplyCommentId(null)
-  }, [pageIndex])
-
   const visibleComments = useMemo(() => {
-    const start = pageIndex * PAGE_SIZE
+    const start = safePageIndex * PAGE_SIZE
     return sortedComments.slice(start, start + PAGE_SIZE)
-  }, [pageIndex, sortedComments])
+  }, [safePageIndex, sortedComments])
 
   const placeholderRowCount = Math.max(0, PAGE_SIZE - visibleComments.length)
 
@@ -507,12 +497,28 @@ export default function CommentSection({
     if (openMenuCommentId === commentId) setOpenMenuCommentId(null)
   }
 
-  const goToPrevPage = () => setPageIndex((prev) => Math.max(0, prev - 1))
-  const goToNextPage = () => setPageIndex((prev) => Math.min(maxPageIndex, prev + 1))
-  const goToFirstPage = () => setPageIndex(0)
+  const closeCommentOverlays = () => {
+    setOpenMenuCommentId(null)
+    setEditingCommentId(null)
+    setEditingCommentValue("")
+    setInlineReplyCommentId(null)
+  }
 
-  const canGoPrev = pageIndex > 0
-  const canGoNext = pageIndex < maxPageIndex
+  const goToPrevPage = () => {
+    closeCommentOverlays()
+    setPageIndex((prev) => Math.max(0, Math.min(prev, maxPageIndex) - 1))
+  }
+  const goToNextPage = () => {
+    closeCommentOverlays()
+    setPageIndex((prev) => Math.min(maxPageIndex, Math.min(prev, maxPageIndex) + 1))
+  }
+  const goToFirstPage = () => {
+    closeCommentOverlays()
+    setPageIndex(0)
+  }
+
+  const canGoPrev = safePageIndex > 0
+  const canGoNext = safePageIndex < maxPageIndex
 
   return (
     <>
@@ -694,7 +700,7 @@ export default function CommentSection({
 
         {placeholderRowCount > 0
           ? Array.from({ length: placeholderRowCount }).map((_, index) => (
-              <div className="comment_row is_placeholder" key={`comment-placeholder-${pageIndex}-${index}`} aria-hidden="true">
+              <div className="comment_row is_placeholder" key={`comment-placeholder-${safePageIndex}-${index}`} aria-hidden="true">
                 <div className="avatar" />
                 <div>
                   <div className="comment_header_row">
@@ -732,7 +738,7 @@ export default function CommentSection({
           </div>
 
           <span className="comment_pager_label" aria-label="현재 페이지">
-            {sortedComments.length === 0 ? "0/0" : `${pageIndex + 1}/${maxPageIndex + 1}`}
+            {sortedComments.length === 0 ? "0/0" : `${safePageIndex + 1}/${maxPageIndex + 1}`}
           </span>
 
           <button
