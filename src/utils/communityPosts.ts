@@ -514,7 +514,98 @@ const pairPostSeeds: PairPostSeed[] = [
   },
 ]
 
-const rawFeedPosts: FeedPost[] = pairPostSeeds.map((seed) => {
+const questionFeedPosts: FeedPost[] = [
+  {
+    id: 91001,
+    authorId: 2003,
+    title: "버번 입문, 메이커스 마크 다음으로 뭐가 좋을까요?",
+    body: "메이커스 마크를 맛있게 마셨는데 다음 병을 고르려니 고민돼요. 너무 맵지 않고 바닐라 향이 있는 버번 추천 부탁드려요.",
+    createdAt: "2026-05-05T21:20:00+09:00",
+    likeCount: 42,
+    commentCount: 7,
+    popularityScore: 118,
+    locationLabel: "자주가는 바",
+    isQna: true,
+    answerCount: 7,
+    answerPreview: "와일드 터키 101은 힘이 있고, 버팔로 트레이스는 더 부드러워서 입문 다음 단계로 좋아요.",
+    searchTags: ["위스키", "버번", "입문", "메이커스 마크", "와일드 터키", "버팔로 트레이스"],
+    drinkType: "위스키",
+    categories: ["버번"],
+    detailCategories: ["켄터키 버번"],
+    features: ["부드러운", "바닐라", "오크향"],
+    foods: ["다크초콜릿", "견과류"],
+    priceWon: 60000,
+    abv: 45,
+  },
+  {
+    id: 91002,
+    authorId: 2104,
+    title: "사케랑 집에서 먹기 좋은 안주 뭐가 있을까요?",
+    body: "회 말고 집에서 간단히 준비할 수 있는 사케 안주를 찾고 있어요. 너무 무겁지 않고 만들기 쉬운 조합이면 좋겠습니다.",
+    createdAt: "2026-05-04T22:05:00+09:00",
+    likeCount: 38,
+    commentCount: 6,
+    popularityScore: 104,
+    locationLabel: "집 안주 테스트",
+    isQna: true,
+    answerCount: 6,
+    answerPreview: "가라아게, 명란구이, 오뎅탕처럼 짭짤하고 따뜻한 안주가 사케랑 잘 맞아요.",
+    searchTags: ["사케", "집안주", "가라아게", "명란구이", "오뎅탕"],
+    drinkType: "사케",
+    categories: ["준마이", "사케"],
+    detailCategories: ["준마이"],
+    features: ["담백한", "깔끔한", "가벼운"],
+    foods: ["가라아게", "명란구이", "오뎅탕"],
+    priceWon: 30000,
+    abv: 15,
+  },
+  {
+    id: 91003,
+    authorId: 2102,
+    title: "홈파티에 와인 한 병만 고르면 레드가 나을까요?",
+    body: "음식이 파스타, 치즈, 간단한 고기류로 섞여 있어요. 한 병만 산다면 무난한 레드 와인이 좋을지 추천 받고 싶어요.",
+    createdAt: "2026-05-03T19:40:00+09:00",
+    likeCount: 31,
+    commentCount: 5,
+    popularityScore: 92,
+    locationLabel: "친구들과 홈파티",
+    isQna: true,
+    answerCount: 5,
+    answerPreview: "몬테스 클래식이나 옐로우 테일 카베르네 소비뇽처럼 너무 무겁지 않은 레드가 무난해요.",
+    searchTags: ["와인", "레드와인", "홈파티", "치즈", "파스타"],
+    drinkType: "와인",
+    categories: ["레드와인"],
+    detailCategories: ["카베르네 소비뇽"],
+    features: ["과일향", "드라이한", "부드러운"],
+    foods: ["치즈", "라구 파스타", "스테이크"],
+    priceWon: 25000,
+    abv: 13,
+  },
+  {
+    id: 91004,
+    authorId: 2002,
+    title: "치킨에는 라거랑 IPA 중에 뭐가 더 잘 맞나요?",
+    body: "후라이드 치킨을 먹을 예정인데 하이네켄 같은 라거가 나을지, 브루독 펑크 IPA처럼 향 있는 맥주가 나을지 고민입니다.",
+    createdAt: "2026-05-02T20:15:00+09:00",
+    likeCount: 27,
+    commentCount: 4,
+    popularityScore: 84,
+    locationLabel: "치킨 포장한 밤",
+    isQna: true,
+    answerCount: 4,
+    answerPreview: "깔끔하게 먹고 싶으면 라거, 튀김 향을 더 산뜻하게 잡고 싶으면 IPA가 좋아요.",
+    searchTags: ["맥주", "라거", "IPA", "치킨", "하이네켄", "브루독"],
+    drinkType: "맥주",
+    categories: ["라거", "IPA"],
+    detailCategories: ["크래프트"],
+    features: ["청량한", "쌉쌀한", "향긋한"],
+    foods: ["치킨", "감자튀김"],
+    priceWon: 9000,
+    abv: 5.5,
+  },
+]
+
+const pairingFeedPosts: FeedPost[] = pairPostSeeds.map((seed) => {
   const meta = pairMetaById[seed.id]
 
   return {
@@ -545,6 +636,8 @@ const rawFeedPosts: FeedPost[] = pairPostSeeds.map((seed) => {
     abv: seed.abv,
   }
 })
+
+const rawFeedPosts: FeedPost[] = [...pairingFeedPosts, ...questionFeedPosts]
 
 export const feedPosts: FeedPost[] = rawFeedPosts.map((post) => {
   if (post.isQna) return post
