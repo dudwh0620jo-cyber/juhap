@@ -67,6 +67,8 @@ export default function RelatedContentPostCard({
   bookmarkAriaLabel,
   onOpenBookmarkPicker,
 }: Props) {
+  const safeImageCount = Math.max(0, Math.min(3, imageCount))
+
   return (
     <article className={isQna ? "feed_card is_free" : "feed_card"} key={postId}>
       <RelatedContentPostCardHeader
@@ -101,9 +103,9 @@ export default function RelatedContentPostCard({
         </Link>
       ) : (
         <Link className="feed_text_link" to={linkTo} state={linkState}>
-          {showImages ? (
+          {showImages && safeImageCount > 0 ? (
             <div className="feed_images" aria-label="사진">
-              {Array.from({ length: Math.max(1, Math.min(3, imageCount)) }).map((_, index) => (
+              {Array.from({ length: safeImageCount }).map((_, index) => (
                 <div className="feed_image" key={index} />
               ))}
             </div>

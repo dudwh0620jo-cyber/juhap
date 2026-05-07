@@ -25,6 +25,124 @@ const initialComments: CommentItem[] = [
   { id: 4, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "오늘 저녁에 바로 실천합니다." },
 ]
 
+const isLegacyInitialComments = (items: unknown): items is CommentItem[] => {
+  if (!Array.isArray(items)) return false
+  if (items.length !== initialComments.length) return false
+  return items.every((item, index) => {
+    const base = initialComments[index]
+    return (
+      item &&
+      typeof item === "object" &&
+      typeof (item as CommentItem).id === "number" &&
+      typeof (item as CommentItem).userId === "number" &&
+      typeof (item as CommentItem).userName === "string" &&
+      typeof (item as CommentItem).userMeta === "string" &&
+      typeof (item as CommentItem).text === "string" &&
+      (item as CommentItem).userName === base.userName &&
+      (item as CommentItem).text === base.text
+    )
+  })
+}
+
+const mockCommentsByPairingId: Record<string, CommentItem[]> = {
+  "1001": [
+    { id: 1, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "하이볼에 새우깡은 진짜 인정입니다." },
+    { id: 2, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "얼음 크게 넣으면 더 깔끔하게 마셔져요." },
+  ],
+  "1002": [
+    { id: 1, userId: 2003, userName: "민지", userMeta: "서울 · 30대", text: "막걸리 향이 해물파전 기름짐 잡아줘요." },
+    { id: 2, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "비 오는 날에 이 조합이면 끝이죠." },
+    { id: 3, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "김치전으로 바꿔도 잘 어울릴까요?" },
+  ],
+  "1005": [
+    { id: 1, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "스테이크 굽기 미디움으로 맞추면 최고예요." },
+    { id: 2, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "탄닌 있는 레드 추천도 부탁해요." },
+    { id: 3, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "감자퓨레랑 같이 먹으면 더 맛있더라구요." },
+    { id: 4, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "가격대 비슷한 대체 와인도 궁금합니다." },
+    { id: 5, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "고기 시즈닝 강하면 와인도 묵직한 게 맞아요." },
+  ],
+  "1006": [
+    { id: 1, userId: 2001, userName: "민지", userMeta: "서울 · 30대", text: "IPA 쓴맛이 치즈 느끼함 잡아주는 게 포인트죠." },
+  ],
+  "1007": [
+    { id: 1, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "족발은 마늘이랑 같이 먹어야 진짜죠." },
+    { id: 2, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "새우젓 찍고 소주 한잔하면 밸런스 좋아요." },
+    { id: 3, userId: 2003, userName: "민지", userMeta: "서울 · 30대", text: "매운 무침 곁들이면 더 잘 어울립니다." },
+    { id: 4, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "야식으로 이만한 조합이 없어요." },
+  ],
+  "1009": [
+    { id: 1, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "타코엔 라임 계열 칵테일이 제일 깔끔해요." },
+    { id: 2, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "데킬라 베이스에 소금 테두리도 추천합니다." },
+    { id: 3, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "살사 매운맛이 강하면 단맛 있는 칵테일도 좋아요." },
+    { id: 4, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "홈파티 메뉴로 바로 가져갈게요." },
+    { id: 5, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "무알콜 버전도 하나 있으면 좋겠네요." },
+    { id: 6, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "타코 종류별 추천도 올려주세요." },
+  ],
+  "1003": [
+    { id: 1, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "버번 다음이면 블렌디드부터 가는 게 편해요." },
+    { id: 2, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "피트향 약한 싱글몰트로 넘어가도 괜찮습니다." },
+    { id: 3, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "하이볼 위주면 산뜻한 스타일 먼저 드셔보세요." },
+    { id: 4, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "입문이면 도수 40도 안팎 제품이 무난했어요." },
+    { id: 5, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "예산대 알려주시면 더 구체적으로 추천 가능해요." },
+  ],
+  "1004": [
+    { id: 1, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "명란구이+오이는 준비도 쉽고 사케랑 잘 맞아요." },
+    { id: 2, userId: 2003, userName: "민지", userMeta: "서울 · 30대", text: "두부김치도 의외로 괜찮았어요. 너무 맵지만 않게요." },
+    { id: 3, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "연어구이 소량으로 곁들이는 것도 추천합니다." },
+    { id: 4, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "전자레인지 가능한 안주면 계란찜도 좋아요." },
+  ],
+  "1008": [
+    { id: 1, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "기름진 회면 사케, 담백한 흰살생선이면 화이트와인 추천해요." },
+    { id: 2, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "와사비 강하면 사케 쪽이 더 부드럽게 잡아주더라구요." },
+    { id: 3, userId: 2001, userName: "민지", userMeta: "서울 · 30대", text: "산미 원하는 날은 화이트, 감칠맛 원하면 사케로 고릅니다." },
+    { id: 4, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "둘 다 두고 회 종류별로 번갈아 마셔도 재밌어요." },
+    { id: 5, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "가격 맞추기 쉬운 건 사케 쪽이었어요." },
+    { id: 6, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "광어/도미는 화이트, 참치 뱃살은 사케가 좋았습니다." },
+  ],
+  "1011": [
+    { id: 1, userId: 2003, userName: "민지", userMeta: "서울 · 30대", text: "입문이면 40~43도 버번이 가장 무난했어요." },
+    { id: 2, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "다크초콜릿은 카카오 70% 전후가 잘 맞더라구요." },
+    { id: 3, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "버번이 달면 초콜릿은 너무 달지 않은 걸 추천합니다." },
+    { id: 4, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "소량씩 번갈아 먹으면 밸런스 잡기 쉬워요." },
+    { id: 5, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "초콜릿 먼저 한 입 먹고 버번 마시면 좋았어요." },
+    { id: 6, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "입문용으로는 바닐라 향 나는 버번도 괜찮습니다." },
+    { id: 7, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "도수 부담되면 큰 얼음 한 개 넣어서 드셔보세요." },
+  ],
+  "1012": [
+    { id: 1, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "맥주는 라거/IPA 반반 준비하면 대부분 좋아해요." },
+    { id: 2, userId: 2001, userName: "민지", userMeta: "서울 · 30대", text: "전통주는 막걸리+전 조합이 실패가 적었습니다." },
+    { id: 3, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "와인은 화이트 1, 레드 1 정도가 안전해요." },
+    { id: 4, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "안주는 짠맛/담백한 맛 둘 다 준비하면 좋아요." },
+    { id: 5, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "처음엔 도수 낮은 술부터 내는 순서 추천합니다." },
+    { id: 6, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "예산 정해두고 병 수를 먼저 계산하면 편해요." },
+    { id: 7, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "무알콜 음료 1~2개 같이 두면 만족도 높아요." },
+  ],
+  "90001": [
+    { id: 1, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "사시미랑 준마이 다이긴죠 조합은 진짜 깔끔하네요." },
+    { id: 2, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "레몬 한 방울 팁 좋습니다." },
+    { id: 3, userId: 2003, userName: "민지", userMeta: "서울 · 30대", text: "간장보다 소금 쪽이 더 어울린다는 말 공감해요." },
+    { id: 4, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "다음 모임 메뉴로 그대로 해볼게요." },
+    { id: 5, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "사케 온도는 어느 정도가 좋았나요?" },
+    { id: 6, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "너무 차갑지 않게 마시면 향이 더 살아요." },
+    { id: 7, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "플레이팅 팁도 공유해주셔서 좋네요." },
+  ],
+  "90002": [
+    { id: 1, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "치즈 플래터랑 사케 조합 의외로 잘 맞네요." },
+    { id: 2, userId: 2001, userName: "민지", userMeta: "서울 · 30대", text: "브리 치즈 추천 완전 동의합니다." },
+    { id: 3, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "견과류 추가하면 식감이 확실히 살아나요." },
+    { id: 4, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "홈파티 메뉴로 딱이에요." },
+    { id: 5, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "가격대 비슷한 대체 사케도 궁금합니다." },
+    { id: 6, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "짠 치즈보다 순한 치즈가 더 낫더라구요." },
+    { id: 7, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "저도 다음엔 이 조합으로 준비해볼게요." },
+    { id: 8, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "크래커랑 과일도 같이 두면 더 좋아요." },
+  ],
+  "90003": [
+    { id: 1, userId: 2003, userName: "민지", userMeta: "서울 · 30대", text: "굴 초회랑 사케는 산뜻해서 좋네요." },
+    { id: 2, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "비린 향 잡는 팁 덕분에 따라하기 쉬워요." },
+    { id: 3, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "차갑게 칠링해서 마셔봐야겠어요." },
+  ],
+}
+
 type Props = {
   pairingId: string | undefined
   currentUser: { id: number; name: string; meta: string }
@@ -82,9 +200,12 @@ export default function CommentSection({
     if (!pairingId) return emptyByDefault ? [] : initialComments
     try {
       const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
-      if (!raw) return emptyByDefault ? [] : initialComments
+      if (!raw) return emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments
       const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return emptyByDefault ? [] : initialComments
+      if (isLegacyInitialComments(parsed)) {
+        return emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments
+      }
+      if (!Array.isArray(parsed)) return emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments
       return parsed.filter(
         (item): item is CommentItem =>
           item &&
@@ -96,7 +217,7 @@ export default function CommentSection({
           typeof item.text === "string",
       )
     } catch {
-      return initialComments
+      return emptyByDefault ? [] : (pairingId ? mockCommentsByPairingId[pairingId] ?? initialComments : initialComments)
     }
   })
 

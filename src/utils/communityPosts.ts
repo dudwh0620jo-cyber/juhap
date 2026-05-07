@@ -41,7 +41,44 @@ export const getPairingTagsFromTitle = (title: string) => {
   return { liquorTag: left ?? "", foodTag: right ?? "" }
 }
 
-export const feedPosts: FeedPost[] = [
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+export const getPairingSummaryText = (post: Pick<FeedPost, "pairingSummary" | "body" | "title">) => {
+  const summary = post.pairingSummary?.trim()
+  if (summary) return summary
+
+  const body = post.body?.trim()
+  if (!body) return ""
+
+  const firstSentence = body.split(/[.!?]\s+/)[0]?.trim()
+  if (firstSentence) return firstSentence
+
+  return body.split("\n")[0]?.trim() ?? ""
+}
+
+export const getPairingDetailBodyText = (post: Pick<FeedPost, "pairingSummary" | "body" | "title">, summaryText = "") => {
+  const body = post.body?.trim() ?? ""
+  if (!body) return ""
+
+  const summary = summaryText.trim() || post.pairingSummary?.trim() || ""
+  const title = post.title?.trim() ?? ""
+
+  for (const prefix of [summary, title]) {
+    if (!prefix) continue
+    const stripped = body.replace(new RegExp(`^${escapeRegExp(prefix)}[\\s.。!?…-]*`, "u"), "").trim()
+    if (stripped && stripped !== body) return stripped
+  }
+
+  return body
+}
+
+const getMockPhotoIds = (postId: number) => {
+  const count = Math.abs(postId) % 4 // 0~3
+  if (count === 0) return undefined
+  return Array.from({ length: count }).map((_, index) => `mock-photo-${postId}-${index + 1}`)
+}
+
+const rawFeedPosts: FeedPost[] = [
   {
     id: 1001,
     authorId: 2003,
@@ -83,8 +120,8 @@ export const feedPosts: FeedPost[] = [
   {
     id: 1003,
     authorId: 2003,
-    title: "첫 위스키 입문 후기 공유해요",
-    body: "처음은 버번 하이볼로 시작했는데 생각보다 부담 없고 달달해서 좋았어요. 다음은 스카치도 도전해보려구요.",
+    title: "위스키 입문, 버번 다음엔 뭘 마셔보면 좋을까요?",
+    body: "버번 하이볼로 시작해보니 생각보다 부담이 없어서 좋았어요. 다음 단계로 싱글몰트/블렌디드 중 뭐가 더 무난할지 추천 부탁드려요.",
     createdAt: "2026-05-01T01:10:00+09:00",
     likeCount: 96,
     commentCount: 34,
@@ -103,8 +140,8 @@ export const feedPosts: FeedPost[] = [
   {
     id: 1004,
     authorId: 2004,
-    title: "사케에 잘 맞는 집안주 몇 개 추천",
-    body: "사시미 없을 때는 가라아게/오뎅/명란구이 조합이 제일 무난했어요. 차갑게 마시면 기름기도 잘 잡히더라구요.",
+    title: "사케랑 잘 맞는 집안주, 뭐부터 해보면 좋을까요?",
+    body: "회 없이도 사케랑 잘 어울리는 안주를 찾고 있어요. 가라아게/오뎅 외에 초보도 만들기 쉬운 조합 있으면 추천 부탁드려요.",
     createdAt: "2026-04-29T18:05:00+09:00",
     likeCount: 84,
     commentCount: 21,
@@ -180,8 +217,8 @@ export const feedPosts: FeedPost[] = [
   {
     id: 1008,
     authorId: 2104,
-    title: "회 먹을 때는 전 사케파예요",
-    body: "간장/와사비가 강한 날엔 사케가 감칠맛이랑 잘 맞고, 산뜻하게 먹고 싶으면 화이트 와인도 좋아요. 저는 보통 사케로 갑니다.",
+    title: "회 먹을 때 사케 vs 화이트와인, 뭐가 더 잘 맞나요?",
+    body: "같은 회라도 간장/와사비 세기에 따라 술이 달라지는 느낌이라 고민돼요. 보통 어떤 기준으로 사케나 화이트와인을 고르는지 궁금해요.",
     createdAt: "2026-04-30T23:55:00+09:00",
     likeCount: 51,
     commentCount: 17,
@@ -238,8 +275,8 @@ export const feedPosts: FeedPost[] = [
   {
     id: 1011,
     authorId: 2019,
-    title: "버번 + 다크초콜릿",
-    body: "달달한 버번이랑 쌉싸름한 다크초콜릿 같이 먹으니까 밸런스가 딱이었어요. 늦은 밤에 한 잔 하기 좋네요.",
+    title: "버번이랑 다크초콜릿, 도수 어느 정도가 좋을까요?",
+    body: "버번이 너무 세면 초콜릿 맛이 묻고, 너무 약하면 밋밋하더라구요. 입문자 기준으로 무난한 도수대나 브랜드 추천 부탁드립니다.",
     createdAt: "2026-05-01T01:10:00+09:00",
     likeCount: 97,
     commentCount: 34,
@@ -258,8 +295,8 @@ export const feedPosts: FeedPost[] = [
   {
     id: 1012,
     authorId: 2025,
-    title: "주말 홈파티 페어링 기록",
-    body: "라거 + 치킨은 역시 실패가 없고, 막걸리 + 해물파전도 반응이 좋았어요. 다음엔 와인 쪽도 준비해보려구요.",
+    title: "홈파티용 페어링, 실패 적은 조합 추천해주실 수 있나요?",
+    body: "이번 주말에 4~5명 홈파티 예정인데 술 취향이 다 달라서 고민이에요. 맥주/전통주/와인 중에서 무난하게 먹히는 조합 추천 부탁드려요.",
     createdAt: "2026-05-01T01:10:00+09:00",
     likeCount: 98,
     commentCount: 34,
@@ -275,5 +312,73 @@ export const feedPosts: FeedPost[] = [
     priceWon: 16000,
     abv: 5,
   },
+  {
+    id: 90001,
+    authorId: 2104,
+    title: "준마이 다이긴죠 + 사시미 플레이트",
+    body: "첫 향이 깔끔해서 사시미의 단맛을 해치지 않아요. 간장보다 소금이나 레몬 한 방울과 같이 먹으면 향이 더 또렷하게 살아납니다.",
+    pairingSummary: "깔끔한 준마이 다이긴죠와 사시미 조합은 담백하게 오래 마시기 좋아요.",
+    createdAt: "2026-05-02T20:15:00+09:00",
+    likeCount: 73,
+    commentCount: 12,
+    popularityScore: 185,
+    locationLabel: "작은 주방 테이블",
+    searchTags: ["사케", "준마이 다이긴죠", "사시미", "가벼운", "과일향"],
+    drinkType: "사케",
+    categories: ["준마이 다이긴죠"],
+    detailCategories: ["긴죠"],
+    features: ["가벼운", "과일향"],
+    foods: ["사시미"],
+    priceWon: 42000,
+    abv: 15,
+  },
+  {
+    id: 90002,
+    authorId: 2102,
+    title: "다이긴죠 + 치즈 플래터",
+    body: "브리 치즈처럼 부드러운 치즈를 먼저 먹고 사케를 마시면 고소한 끝맛이 길게 남아요. 견과류를 곁들이면 질감이 더 풍부해집니다.",
+    pairingSummary: "은은한 향의 다이긴죠와 치즈 플래터는 홈파티에서 실패 없는 선택이에요.",
+    createdAt: "2026-05-03T19:05:00+09:00",
+    likeCount: 68,
+    commentCount: 10,
+    popularityScore: 172,
+    locationLabel: "아늑한 우리집",
+    searchTags: ["사케", "다이긴죠", "치즈", "부드러운", "가벼운"],
+    drinkType: "사케",
+    categories: ["다이긴죠"],
+    detailCategories: ["긴죠"],
+    features: ["부드러운", "가벼운"],
+    foods: ["치즈 플래터"],
+    priceWon: 38000,
+    abv: 15,
+  },
+  {
+    id: 90003,
+    authorId: 2004,
+    title: "준마이 다이긴죠 + 굴 초회",
+    body: "굴 초회의 산미가 사케의 깔끔함을 더 살려줘서 입안이 무겁지 않아요. 차갑게 칠링해서 마시면 바다향이 더 선명하게 느껴집니다.",
+    pairingSummary: "굴 초회와 준마이 다이긴죠는 산뜻한 해산물 페어링으로 추천해요.",
+    createdAt: "2026-05-04T21:30:00+09:00",
+    likeCount: 81,
+    commentCount: 14,
+    popularityScore: 198,
+    locationLabel: "늦은 밤 식탁",
+    searchTags: ["사케", "준마이 다이긴죠", "굴 초회", "가벼운", "부드러운"],
+    drinkType: "사케",
+    categories: ["준마이 다이긴죠"],
+    detailCategories: ["준마이"],
+    features: ["가벼운", "부드러운"],
+    foods: ["굴 초회"],
+    priceWon: 36000,
+    abv: 15,
+  },
 ]
+
+export const feedPosts: FeedPost[] = rawFeedPosts.map((post) => {
+  if (post.isQna) return post
+  if (post.photoIds) return post
+  const photoIds = getMockPhotoIds(post.id)
+  if (!photoIds) return post
+  return { ...post, photoIds }
+})
 
