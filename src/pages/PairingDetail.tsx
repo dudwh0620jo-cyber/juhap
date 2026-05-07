@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useCallback, useLayoutEffect, useMemo, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import CommentSection from "../components/CommentSection"
 import FeedActions from "../components/FeedActions"
@@ -46,6 +46,18 @@ type PairingDetailNavState = {
   feedFilter?: "review" | "follow" | "free"
 }
 
+const readStoredLikedPostIds = () => {
+  try {
+    const raw = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return new Set<number>(
+      Array.isArray(parsed) ? parsed.filter((value): value is number => typeof value === "number") : [],
+    )
+  } catch {
+    return new Set<number>()
+  }
+}
+
 const priceRangeTagByDrinkType: Record<string, string> = {
   소주: "1만원 이하",
   맥주: "1만원 이하",
@@ -85,7 +97,7 @@ export default function PairingDetail() {
     if (navState.pairingTitle?.trim()) return navState.pairingTitle.trim()
     if (post?.title) return extractPairingTitle(post.title)
     return `페어링 #${pairingId ?? ""}`.trim()
-  }, [navState.pairingTitle, pairingId, post?.title])
+  }, [navState.pairingTitle, pairingId, post])
 
   const pairingSummary = useMemo(() => {
     const fromNav = navState.pairingSummary?.trim()
@@ -102,7 +114,7 @@ export default function PairingDetail() {
     const cleaned = source.map((v) => v.trim()).filter(Boolean)
     const unique = Array.from(new Set(cleaned))
     return unique.slice(0, 2)
-  }, [navState.features, post?.features])
+  }, [navState.features, post])
 
   const drinkTypeLabel =
     navState.drinkType?.trim() ||
@@ -143,19 +155,14 @@ export default function PairingDetail() {
 
   const isFollowing = authorId !== null && followedUserIds.has(authorId)
 
-  const [isLiked, setIsLiked] = useState(() => {
-    if (!pairingId) return false
-    try {
-      const raw = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
-      if (!raw) return false
-      const parsed = JSON.parse(raw)
-      return Array.isArray(parsed) ? parsed.includes(Number(pairingId)) : false
-    } catch {
-      return false
-    }
-  })
-
   const numericPostId = typeof pairingId === "string" ? Number(pairingId) : NaN
+  const [likedByPostId, setLikedByPostId] = useState<Record<number, boolean>>(() => {
+    if (!Number.isFinite(numericPostId)) return {}
+    return { [numericPostId]: readStoredLikedPostIds().has(numericPostId) }
+  })
+  const isLiked = Number.isFinite(numericPostId)
+    ? likedByPostId[numericPostId] ?? readStoredLikedPostIds().has(numericPostId)
+    : false
   const { value: bookmarkedById, toggle: toggleBookmark } = useStoredBooleanRecordFromIds(
     COMMUNITY_BOOKMARKED_POSTS_KEY,
   )
@@ -166,7 +173,8 @@ export default function PairingDetail() {
     return typeof value === "number" && Number.isFinite(value) ? value : 0
   }, [post])
 
-  const [likeCount, setLikeCount] = useState(initialLikeCount)
+  const [likeCountByPostId, setLikeCountByPostId] = useState<Record<number, number>>({})
+  const likeCount = Number.isFinite(numericPostId) ? likeCountByPostId[numericPostId] ?? initialLikeCount : initialLikeCount
 
   const initialCommentCount = useMemo(() => {
     const fromPost = (post as { commentCount?: unknown } | undefined)?.commentCount
@@ -182,15 +190,18 @@ export default function PairingDetail() {
     }
   }, [pairingId, post])
 
-  const [commentCount, setCommentCount] = useState(initialCommentCount)
-
-  useEffect(() => {
-    setLikeCount(initialLikeCount)
-  }, [initialLikeCount])
-
-  useEffect(() => {
-    setCommentCount(initialCommentCount)
-  }, [initialCommentCount])
+  const [commentCountByPairingId, setCommentCountByPairingId] = useState<Record<string, number>>({})
+  const commentCount = pairingId ? commentCountByPairingId[pairingId] ?? initialCommentCount : initialCommentCount
+  const handleCommentCountChange = useCallback(
+    (nextCount: number) => {
+      if (!pairingId) return
+      setCommentCountByPairingId((prev) => {
+        if (prev[pairingId] === nextCount) return prev
+        return { ...prev, [pairingId]: nextCount }
+      })
+    },
+    [pairingId],
+  )
 
   const similarItems = useMemo(() => {
     const currentId = typeof pairingId === "string" ? Number(pairingId) : NaN
@@ -236,7 +247,7 @@ export default function PairingDetail() {
         ]
       : []
 
-    const candidates = feedPosts
+    const candidates: SimilarPairingItem[] = feedPosts
       .filter((item) => item.id !== currentId && !item.isQna && (!isSakeDetail || item.drinkType === "사케"))
       .map(
         (item) =>
@@ -253,7 +264,7 @@ export default function PairingDetail() {
       )
       .sort((a, b) => (a.drinkType === drinkTypeHint ? -1 : 0) - (b.drinkType === drinkTypeHint ? -1 : 0))
 
-    const merged = [...candidates]
+    const merged: SimilarPairingItem[] = [...candidates]
     for (const fallback of sakeFallbackItems) {
       if (merged.length >= 2) break
       if (merged.some((item) => item.id === fallback.id)) continue
@@ -266,7 +277,7 @@ export default function PairingDetail() {
   const { liquorTag, foodTag } = useMemo(() => {
     if (post?.title) return getPairingTagsFromTitle(post.title)
     return getPairingTagsFromTitle(pairingTitle)
-  }, [pairingTitle, post?.title])
+  }, [pairingTitle, post])
 
   const hasPairingTags = Boolean(liquorTag) && Boolean(foodTag)
   const isQnaDetail = Boolean(post?.isQna) || navState.source === "free"
@@ -305,8 +316,11 @@ export default function PairingDetail() {
     const numericId = Number(pairingId)
     if (!Number.isFinite(numericId)) return
     const nextLiked = !isLiked
-    setIsLiked(nextLiked)
-    setLikeCount((countPrev) => Math.max(0, countPrev + (nextLiked ? 1 : -1)))
+    setLikedByPostId((prev) => ({ ...prev, [numericId]: nextLiked }))
+    setLikeCountByPostId((prev) => ({
+      ...prev,
+      [numericId]: Math.max(0, (prev[numericId] ?? initialLikeCount) + (nextLiked ? 1 : -1)),
+    }))
     try {
       const raw = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
       const parsed = raw ? JSON.parse(raw) : []
@@ -402,7 +416,7 @@ export default function PairingDetail() {
             currentUser={currentUser}
             getTierClassName={getUserGradeBadgeClassNameByUserId}
             getTierLabel={getPairingTierLabelByUserId}
-            onCountChange={setCommentCount}
+            onCountChange={handleCommentCountChange}
             emptyByDefault={isMyPost}
           />
         </>
@@ -503,7 +517,7 @@ export default function PairingDetail() {
             currentUser={currentUser}
             getTierClassName={getUserGradeBadgeClassNameByUserId}
             getTierLabel={getPairingTierLabelByUserId}
-            onCountChange={setCommentCount}
+            onCountChange={handleCommentCountChange}
             emptyByDefault={isMyPost}
           />
         </>

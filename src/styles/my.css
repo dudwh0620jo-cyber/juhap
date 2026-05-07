@@ -1,25 +1,53 @@
 .my_page {
+  min-height: 100vh;
+  padding-bottom: 120px;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(112, 59, 38, 0.34), transparent 34%),
+    linear-gradient(180deg, #1b0710 0%, #17050c 54%, #12040a 100%);
+  color: #efe7d6;
+}
+
+.my_profile_header {
   display: grid;
-  gap: 12px;
+  grid-template-columns: 86px 1fr auto;
+  grid-template-areas:
+    "avatar identity edit"
+    "avatar social edit";
+  align-items: center;
+  gap: 8px 20px;
+  min-height: 150px;
+  padding: 18px 20px;
+  background: #d9ceb9;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.75);
+  color: #050505;
 }
 
-.my_page_title {
-  margin: 0;
-  font-size: var(--fs-h4);
+.my_profile_avatar {
+  grid-area: avatar;
+  width: 86px;
+  height: 86px;
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+.my_profile_identity {
+  grid-area: identity;
+  min-width: 0;
+}
+
+.my_profile_identity h1 {
+  margin: 0 0 10px;
+  font-size: 26px;
   font-weight: 900;
-  color: var(--color-dark-05);
+  line-height: 1.05;
 }
 
-.my_grade_row {
+.my_grade_line {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.my_grade_label {
-  font-size: var(--fs-small);
-  font-weight: 800;
-  color: var(--color-dark-03);
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 900;
 }
 
 .user_grade_badge {
@@ -33,83 +61,426 @@
   background: #e8e8e8;
   color: #222;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 18px;
   white-space: nowrap;
-}
-
-.user_grade_badge.is_tier5 {
-  background: #f8d22b;
-}
-
-.user_grade_badge.is_tier4 {
-  background: #cfcfcf;
 }
 
 .user_grade_badge.is_tier3 {
   background: #d9c7a2;
 }
 
-.user_grade_badge.is_tier2 {
-  background: #e6e6e6;
-}
-
-.user_grade_badge.is_tier1 {
-  background: #f1f1f1;
-}
-
-.my_profile_card {
-  border-radius: 20px;
-  background: var(--color-sub-01);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-}
-
-.my_profile_card_title {
-  margin: 0;
-  font-size: var(--fs-h6);
-  font-weight: 900;
-  color: var(--color-dark-05);
-}
-
-.my_profile_row {
-  display: grid;
-  gap: 6px;
-}
-
-.my_profile_label {
-  font-size: var(--fs-small);
-  font-weight: 800;
-  color: var(--color-dark-03);
-}
-
-.my_profile_value {
-  color: var(--color-dark-05);
-}
-
-.my_profile_empty {
-  font-size: var(--fs-small);
-  font-weight: 700;
-  color: var(--color-dark-03);
-}
-
-.my_chip_row {
+.my_social_summary {
+  grid-area: social;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.my_social_summary span {
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.my_edit_button {
+  grid-area: edit;
+  align-self: start;
+  padding: 16px 0 0;
+  border: 0;
+  background: transparent;
+  color: #050505;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.my_page_body {
+  display: grid;
+  gap: 20px;
+  padding: 28px 20px 0;
+}
+
+.my_activity_section,
+.my_taste_profile,
+.my_points_section {
+  display: grid;
+  gap: 14px;
+}
+
+.my_activity_section h2,
+.my_section_header h2 {
+  margin: 0;
+  color: #f4ead8;
+  font-family: var(--font-title);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.my_activity_grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
-.my_chip {
+.my_activity_card {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  min-height: 84px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(66, 53, 60, 0.88), rgba(43, 30, 38, 0.94));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.my_activity_card strong {
+  color: #d0aa37;
+  font-family: var(--font-title);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.my_activity_card span {
+  color: rgba(239, 231, 214, 0.66);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.my_taste_summary {
+  display: grid;
+  grid-template-columns: auto 1fr 34px;
+  align-items: center;
+  gap: 8px;
+  margin-inline: -20px;
+  padding: 18px 20px;
+  border: 1px solid rgba(140, 91, 25, 0.45);
+  border-radius: 18px;
+  background: rgba(64, 34, 25, 0.92);
+  box-shadow: 0 0 0 1px rgba(87, 55, 24, 0.26);
+}
+
+.my_taste_drop {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.my_taste_summary p {
+  margin: 0;
+  color: #dfd2bf;
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.my_taste_summary strong {
+  color: #cfa738;
+}
+
+.my_taste_summary span:not(.my_taste_drop) {
+  color: #efe3d1;
+}
+
+.my_taste_toggle {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  position: relative;
+}
+
+.my_taste_toggle::before {
+  content: "";
+  position: absolute;
+  inset: 8px 6px;
+  border-right: 6px solid #ffffff;
+  border-bottom: 6px solid #ffffff;
+  transform: rotate(45deg) translateY(-4px);
+}
+
+.my_taste_toggle.is_open::before {
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+
+.my_section_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.my_outline_button,
+.my_link_button {
+  border: 1px solid rgba(177, 111, 16, 0.75);
+  border-radius: 999px;
+  background: rgba(72, 39, 19, 0.58);
+  color: #d19a24;
+  font-size: 13px;
+  font-weight: 900;
+  min-height: 32px;
+  padding: 0 16px;
+}
+
+.my_link_button {
+  border: 0;
+  background: transparent;
+  color: rgba(239, 231, 214, 0.72);
+  padding-right: 0;
+}
+
+.my_link_button::after {
+  content: "›";
+  margin-left: 8px;
+  font-size: 24px;
+  vertical-align: -2px;
+}
+
+.my_taste_card,
+.my_point_card,
+.my_setting_list a {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(54, 42, 50, 0.96), rgba(34, 22, 30, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.my_taste_card {
+  display: grid;
+  gap: 16px;
+  padding: 20px 18px 22px;
+}
+
+.my_taste_bars {
+  display: grid;
+  gap: 14px;
+}
+
+.my_taste_bar_row {
+  display: grid;
+  grid-template-columns: 48px 1fr 46px;
+  align-items: center;
+  gap: 10px;
+  color: rgba(239, 231, 214, 0.58);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.my_taste_bar_row strong {
+  color: #d19a24;
+  text-align: right;
+  font-size: 13px;
+}
+
+.my_taste_bar_track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(239, 231, 214, 0.11);
+}
+
+.my_taste_bar_fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.my_taste_bar_fill.body {
+  background: #7bb9df;
+}
+
+.my_taste_bar_fill.bitter {
+  background: #d69a1d;
+}
+
+.my_taste_bar_fill.sweet {
+  background: #b979c2;
+}
+
+.my_taste_bar_fill.sparkle {
+  background: #66b88d;
+}
+
+.my_tag_group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.my_tag_group.is_muted {
+  padding-bottom: 2px;
+}
+
+.my_tag {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: 999px;
-  background: var(--color-gray-02);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(239, 231, 214, 0.68);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.my_tag.is_active {
+  border-color: rgba(180, 111, 16, 0.7);
+  background: rgba(102, 58, 18, 0.4);
+  color: #d7a32f;
+}
+
+.my_ai_note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e7dcca;
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.my_ai_note span {
+  flex: 0 0 auto;
+  border: 1px solid rgba(209, 69, 102, 0.42);
+  border-radius: 7px;
+  padding: 3px 8px;
+  color: #d37b99;
+  font-family: var(--font-main);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.my_point_card {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  min-height: 150px;
+}
+
+.my_point_card > span {
+  color: rgba(239, 231, 214, 0.62);
+  font-size: 14px;
   font-weight: 800;
-  color: var(--color-dark-05);
+}
+
+.my_point_card > strong {
+  color: #d1b94d;
+  font-family: var(--font-title);
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.my_point_progress {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.my_point_progress span {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: #d5bb51;
+}
+
+.my_point_progress .is_empty {
+  background: rgba(239, 231, 214, 0.13);
+}
+
+.my_point_card p {
+  margin: 0;
+  color: rgba(239, 231, 214, 0.66);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.my_point_card p strong {
+  color: #d59b24;
+  font-size: 14px;
+}
+
+.my_setting_list {
+  display: grid;
+  gap: 16px;
+}
+
+.my_setting_list a {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  min-height: 82px;
+  padding: 20px 54px 18px 54px;
+  color: #efe7d6;
+  text-decoration: none;
+}
+
+.my_setting_list a::after {
+  content: "›";
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  color: rgba(239, 231, 214, 0.42);
+  font-size: 34px;
+  transform: translateY(-50%);
+}
+
+.my_setting_list span {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.my_setting_list small {
+  color: rgba(239, 231, 214, 0.52);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+@media (max-width: 390px) {
+  .my_profile_header {
+    grid-template-columns: 74px 1fr auto;
+    gap: 8px 14px;
+    padding-inline: 18px;
+  }
+
+  .my_profile_avatar {
+    width: 74px;
+    height: 74px;
+    border-radius: 22px;
+  }
+
+  .my_profile_identity h1 {
+    font-size: 24px;
+  }
+
+  .my_grade_line {
+    font-size: 16px;
+  }
+
+  .my_social_summary {
+    font-size: 13px;
+  }
+
+  .my_activity_grid {
+    gap: 7px;
+  }
+
+  .my_activity_card {
+    min-height: 76px;
+  }
+
+  .my_activity_card strong {
+    font-size: 27px;
+  }
+
+  .my_taste_summary p {
+    font-size: 14px;
+  }
 }
