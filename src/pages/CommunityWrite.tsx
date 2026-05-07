@@ -682,6 +682,14 @@ export default function CommunityWrite() {
 
               <div className="write_section">
                 <h4 className="write_section_title">포토후기 (선택, 최대3장)</h4>
+                <button
+                  type="button"
+                  className="write_photo_browse"
+                  disabled={photoIds.length >= 3}
+                  onClick={() => setPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))}
+                >
+                  테스트용 이미지로 둘러보기
+                </button>
                 <div className="write_photo_row" aria-label="사진 추가">
                   {photoIds.slice(0, 3).map((photoId, index) => (
                     <button
@@ -699,9 +707,8 @@ export default function CommunityWrite() {
                   <button
                     type="button"
                     className={photoIds.length >= 3 ? "write_photo_add is_disabled" : "write_photo_add"}
-                    aria-label="사진 추가"
+                    aria-label="사진 추가 자리"
                     disabled={photoIds.length >= 3}
-                    onClick={() => setPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))}
                   >
                     +
                   </button>
@@ -723,9 +730,10 @@ export default function CommunityWrite() {
                     className="write_textarea"
                     value={body}
                     placeholder="30자 이상 입력해 주세요."
+                    maxLength={1000}
                     onChange={(e) => setBody(e.target.value)}
                   />
-                  <span className="write_field_counter">{Math.min(300, body.length)}/300</span>
+                  <span className="write_field_counter">{Math.min(1000, body.length)}/1000</span>
                 </label>
               </div>
             </>
@@ -945,6 +953,18 @@ export default function CommunityWrite() {
                 }
               >
                 <h4 className="write_section_title">포토후기 (선택, 최대3장)</h4>
+                <button
+                  type="button"
+                  className="write_photo_browse"
+                  disabled={pairingPhotoIds.length >= 3}
+                  onClick={() =>
+                    setPairingPhotoIds((prev) =>
+                      prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`],
+                    )
+                  }
+                >
+                  테스트용 이미지로 둘러보기
+                </button>
                 <div className="write_photo_row" aria-label="사진 추가">
                   {pairingPhotoIds.slice(0, 3).map((photoId, index) => (
                     <button
@@ -962,13 +982,8 @@ export default function CommunityWrite() {
                   <button
                     type="button"
                     className={pairingPhotoIds.length >= 3 ? "write_photo_add is_disabled" : "write_photo_add"}
-                    aria-label="사진 추가"
+                    aria-label="사진 추가 자리"
                     disabled={pairingPhotoIds.length >= 3}
-                    onClick={() =>
-                      setPairingPhotoIds((prev) =>
-                        prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`],
-                      )
-                    }
                   >
                     +
                   </button>
