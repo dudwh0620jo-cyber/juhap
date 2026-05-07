@@ -2,20 +2,20 @@
   min-height: 100vh;
   padding-bottom: 120px;
   background:
-    radial-gradient(circle at 50% 14%, rgba(112, 59, 38, 0.34), transparent 34%),
+    radial-gradient(circle at 50% 14%, rgba(112, 59, 38, 0.3), transparent 34%),
     linear-gradient(180deg, #1b0710 0%, #17050c 54%, #12040a 100%);
   color: #efe7d6;
 }
 
 .my_profile_header {
   display: grid;
-  grid-template-columns: 86px 1fr auto;
+  grid-template-columns: 82px 1fr auto;
   grid-template-areas:
     "avatar identity edit"
     "avatar social edit";
   align-items: center;
-  gap: 8px 20px;
-  min-height: 150px;
+  gap: 7px 16px;
+  min-height: 142px;
   padding: 18px 20px;
   background: #d9ceb9;
   border-bottom: 1px solid rgba(0, 0, 0, 0.75);
@@ -24,8 +24,8 @@
 
 .my_profile_avatar {
   grid-area: avatar;
-  width: 86px;
-  height: 86px;
+  width: 82px;
+  height: 82px;
   border-radius: 24px;
   background: #ffffff;
 }
@@ -36,18 +36,16 @@
 }
 
 .my_profile_identity h1 {
-  margin: 0 0 10px;
-  font-size: 26px;
-  font-weight: 900;
-  line-height: 1.05;
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
 }
 
 .my_grade_line {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 18px;
-  font-weight: 900;
 }
 
 .user_grade_badge {
@@ -56,12 +54,12 @@
   justify-content: center;
   min-width: 18px;
   height: 18px;
-  padding: 0 6px;
+  padding: 0 7px;
   border-radius: 999px;
   background: #e8e8e8;
   color: #222;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 600;
   line-height: 18px;
   white-space: nowrap;
 }
@@ -76,36 +74,36 @@
   align-items: center;
   gap: 5px;
   white-space: nowrap;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .my_social_summary span {
-  color: rgba(0, 0, 0, 0.62);
+  color: rgba(0, 0, 0, 0.55);
 }
 
 .my_edit_button {
   grid-area: edit;
   align-self: start;
-  padding: 16px 0 0;
+  padding: 14px 0 0;
   border: 0;
   background: transparent;
   color: #050505;
-  font-size: 16px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .my_page_body {
   display: grid;
-  gap: 20px;
-  padding: 28px 20px 0;
+  gap: 18px;
+  padding: 26px 20px 0;
 }
 
 .my_activity_section,
 .my_taste_profile,
 .my_points_section {
   display: grid;
-  gap: 14px;
+  gap: 13px;
 }
 
 .my_activity_section h2,
@@ -113,8 +111,8 @@
   margin: 0;
   color: #f4ead8;
   font-family: var(--font-title);
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
   letter-spacing: 0;
 }
 
@@ -128,9 +126,9 @@
   display: grid;
   place-items: center;
   gap: 4px;
-  min-height: 84px;
+  min-height: 78px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 18px;
+  border-radius: 16px;
   background: linear-gradient(145deg, rgba(66, 53, 60, 0.88), rgba(43, 30, 38, 0.94));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -138,24 +136,24 @@
 .my_activity_card strong {
   color: #d0aa37;
   font-family: var(--font-title);
-  font-size: 30px;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 400;
   line-height: 1;
 }
 
 .my_activity_card span {
   color: rgba(239, 231, 214, 0.66);
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .my_taste_summary {
   display: grid;
-  grid-template-columns: auto 1fr 34px;
+  grid-template-columns: auto 1fr 30px;
   align-items: center;
   gap: 8px;
   margin-inline: -20px;
-  padding: 18px 20px;
+  padding: 16px 20px;
   border: 1px solid rgba(140, 91, 25, 0.45);
   border-radius: 18px;
   background: rgba(64, 34, 25, 0.92);
@@ -163,20 +161,21 @@
 }
 
 .my_taste_drop {
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
 }
 
 .my_taste_summary p {
   margin: 0;
   color: #dfd2bf;
-  font-size: 15px;
-  font-weight: 850;
-  line-height: 1.55;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .my_taste_summary strong {
   color: #cfa738;
+  font-weight: 600;
 }
 
 .my_taste_summary span:not(.my_taste_drop) {
@@ -184,24 +183,24 @@
 }
 
 .my_taste_toggle {
-  width: 34px;
-  height: 34px;
+  position: relative;
+  width: 30px;
+  height: 30px;
   border: 0;
   background: transparent;
-  position: relative;
 }
 
 .my_taste_toggle::before {
   content: "";
   position: absolute;
-  inset: 8px 6px;
-  border-right: 6px solid #ffffff;
-  border-bottom: 6px solid #ffffff;
-  transform: rotate(45deg) translateY(-4px);
+  inset: 4px;
+  background: url("../assets/svg/caretleft.svg") center / 22px 22px no-repeat;
+  filter: invert(1);
+  transform: rotate(-90deg);
 }
 
 .my_taste_toggle.is_open::before {
-  transform: rotate(225deg) translate(-2px, -2px);
+  transform: rotate(90deg);
 }
 
 .my_section_header {
@@ -213,14 +212,14 @@
 
 .my_outline_button,
 .my_link_button {
+  min-height: 30px;
+  padding: 0 14px;
   border: 1px solid rgba(177, 111, 16, 0.75);
   border-radius: 999px;
   background: rgba(72, 39, 19, 0.58);
   color: #d19a24;
-  font-size: 13px;
-  font-weight: 900;
-  min-height: 32px;
-  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .my_link_button {
@@ -231,10 +230,16 @@
 }
 
 .my_link_button::after {
-  content: "›";
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
   margin-left: 8px;
-  font-size: 24px;
-  vertical-align: -2px;
+  background: url("../assets/svg/caretleft.svg") center / 16px 16px no-repeat;
+  filter: invert(1);
+  opacity: 0.72;
+  transform: rotate(180deg);
+  vertical-align: -3px;
 }
 
 .my_taste_card,
@@ -248,29 +253,30 @@
 
 .my_taste_card {
   display: grid;
-  gap: 16px;
-  padding: 20px 18px 22px;
+  gap: 15px;
+  padding: 18px 17px 20px;
 }
 
 .my_taste_bars {
   display: grid;
-  gap: 14px;
+  gap: 13px;
 }
 
 .my_taste_bar_row {
   display: grid;
-  grid-template-columns: 48px 1fr 46px;
+  grid-template-columns: 44px 1fr 42px;
   align-items: center;
   gap: 10px;
   color: rgba(239, 231, 214, 0.58);
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .my_taste_bar_row strong {
   color: #d19a24;
   text-align: right;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .my_taste_bar_track {
@@ -317,14 +323,14 @@
 .my_tag {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
+  min-height: 30px;
+  padding: 0 11px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   background: rgba(255, 255, 255, 0.07);
   color: rgba(239, 231, 214, 0.68);
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .my_tag.is_active {
@@ -341,9 +347,9 @@
   padding-top: 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   color: #e7dcca;
-  font-size: 15px;
-  font-weight: 850;
-  line-height: 1.55;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .my_ai_note span {
@@ -353,28 +359,216 @@
   padding: 3px 8px;
   color: #d37b99;
   font-family: var(--font-main);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0;
+}
+
+.my_taste_sheet_overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: min(100%, 430px);
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.54);
+  animation: my_taste_sheet_fade 180ms ease-out;
+}
+
+.my_taste_sheet_overlay.is_closing {
+  animation: my_taste_sheet_fade_out 220ms ease-in forwards;
+}
+
+.my_taste_sheet {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 20px;
+  width: 100%;
+  max-height: 82vh;
+  padding: 24px 24px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 28px 28px 0 0;
+  background: #1b0d13;
+  color: #efe7d6;
+  box-shadow: 0 -18px 38px rgba(0, 0, 0, 0.42);
+  animation: my_taste_sheet_slide_up 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.my_taste_sheet_overlay.is_closing .my_taste_sheet {
+  animation: my_taste_sheet_slide_down 220ms ease-in forwards;
+}
+
+@keyframes my_taste_sheet_fade {
+  from {
+    background: rgba(0, 0, 0, 0);
+  }
+
+  to {
+    background: rgba(0, 0, 0, 0.54);
+  }
+}
+
+@keyframes my_taste_sheet_slide_up {
+  from {
+    opacity: 0;
+    transform: translateY(36px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes my_taste_sheet_fade_out {
+  from {
+    background: rgba(0, 0, 0, 0.54);
+  }
+
+  to {
+    background: rgba(0, 0, 0, 0);
+  }
+}
+
+@keyframes my_taste_sheet_slide_down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(36px);
+  }
+}
+
+.my_taste_sheet_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.my_taste_sheet_header h2 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.my_taste_sheet_header button {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.my_taste_sheet_header button::before,
+.my_taste_sheet_header button::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(239, 231, 214, 0.72);
+}
+
+.my_taste_sheet_header button::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.my_taste_sheet_header button::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.my_taste_sheet_groups {
+  display: grid;
+  gap: 28px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.my_taste_sheet .taste_setup_group h2 {
+  margin: 0 0 14px;
+  color: rgba(239, 231, 214, 0.72);
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.my_taste_sheet .taste_setup_group h2 em {
+  color: rgba(239, 231, 214, 0.48);
+  font-style: normal;
+}
+
+.my_taste_sheet .taste_chip_grid,
+.my_taste_sheet .taste_setup_group[data-selection-type="multi"] .taste_chip_grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.my_taste_sheet .taste_chip {
+  min-height: 40px;
+  padding: 0 17px;
+  border: 1px solid rgba(239, 231, 214, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(239, 231, 214, 0.62);
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.my_taste_sheet .taste_chip.is_selected {
+  border-color: rgba(184, 111, 19, 0.8);
+  background: rgba(83, 48, 17, 0.78);
+  color: #d59b24;
+}
+
+.my_taste_sheet .taste_setup_warning {
+  margin: 9px 2px 0;
+  color: #d37b99;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.my_taste_sheet_save {
+  min-height: 48px;
+  border: 1px solid rgba(184, 111, 19, 0.82);
+  border-radius: 14px;
+  background: rgba(83, 48, 17, 0.88);
+  color: #d9ab3a;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .my_point_card {
   display: grid;
   gap: 12px;
-  padding: 22px;
-  min-height: 150px;
+  min-height: 138px;
+  padding: 20px;
 }
 
 .my_point_card > span {
   color: rgba(239, 231, 214, 0.62);
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .my_point_card > strong {
   color: #d1b94d;
   font-family: var(--font-title);
-  font-size: 38px;
-  font-weight: 500;
+  font-size: 28px;
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -398,55 +592,362 @@
 .my_point_card p {
   margin: 0;
   color: rgba(239, 231, 214, 0.66);
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .my_point_card p strong {
   color: #d59b24;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .my_setting_list {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .my_setting_list a {
   position: relative;
   display: grid;
-  gap: 8px;
-  min-height: 82px;
-  padding: 20px 54px 18px 54px;
+  gap: 7px;
+  min-height: 78px;
+  padding: 19px 52px 17px;
   color: #efe7d6;
   text-decoration: none;
 }
 
 .my_setting_list a::after {
-  content: "›";
+  content: "";
   position: absolute;
   right: 22px;
   top: 50%;
-  color: rgba(239, 231, 214, 0.42);
-  font-size: 34px;
-  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: url("../assets/svg/caretleft.svg") center / 20px 20px no-repeat;
+  filter: invert(1);
+  opacity: 0.42;
+  transform: translateY(-50%) rotate(180deg);
 }
 
 .my_setting_list span {
-  font-size: 16px;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .my_setting_list small {
   color: rgba(239, 231, 214, 0.52);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.my_exchange_page {
+  min-height: 100vh;
+  padding: 28px 20px 128px;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(112, 59, 38, 0.3), transparent 35%),
+    linear-gradient(180deg, #1b0710 0%, #17050c 54%, #12040a 100%);
+  color: #efe7d6;
+}
+
+.my_exchange_header {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.my_exchange_header h1 {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-title);
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.my_exchange_back {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.my_exchange_back::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  background: url("../assets/svg/caretleft.svg") center / 24px 24px no-repeat;
+  filter: invert(1);
+}
+
+.my_exchange_history {
+  min-height: 38px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #efe7d6;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.my_exchange_balance {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding: 18px 22px;
+  border: 1px solid rgba(177, 111, 16, 0.6);
+  border-radius: 22px;
+  background: linear-gradient(100deg, rgba(63, 33, 19, 0.92), rgba(31, 19, 27, 0.96));
+}
+
+.my_exchange_balance span {
+  display: block;
+  margin-bottom: 12px;
+  color: rgba(239, 231, 214, 0.6);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.my_exchange_balance strong {
+  color: #d1b94d;
+  font-family: var(--font-title);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.my_exchange_balance small {
+  font-size: 14px;
+}
+
+.my_exchange_balance p {
+  margin: 0 0 4px;
+  color: rgba(239, 231, 214, 0.48);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.my_exchange_tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.my_exchange_tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.my_exchange_tabs button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(239, 231, 214, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(239, 231, 214, 0.56);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.my_exchange_tabs button.is_active {
+  border-color: #b52545;
+  background: #b52545;
+  color: #ffffff;
+}
+
+.my_exchange_sections {
+  display: grid;
+  gap: 32px;
+}
+
+.my_exchange_section {
+  display: grid;
+  gap: 14px;
+}
+
+.my_exchange_section h2 {
+  margin: 0 4px;
+  color: rgba(239, 231, 214, 0.66);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 500;
+}
+
+.my_exchange_item_list {
+  display: grid;
+  gap: 12px;
+}
+
+.my_exchange_item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 104px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(54, 42, 50, 0.96), rgba(34, 22, 30, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.my_exchange_item_icon {
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.my_exchange_item_body {
+  min-width: 0;
+}
+
+.my_exchange_item_body h3 {
+  margin: 0 0 8px;
+  color: #efe7d6;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.my_exchange_item_body p {
+  margin: 0 0 10px;
+  color: rgba(239, 231, 214, 0.55);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.my_exchange_item_tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.my_exchange_item_tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border: 1px solid rgba(239, 231, 214, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(239, 231, 214, 0.72);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.my_exchange_item_action {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+
+.my_exchange_item_action strong {
+  color: #d1b94d;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.my_exchange_item_action button {
+  min-width: 56px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 14px;
+  background: #b52545;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.my_exchange_more_button {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(177, 111, 16, 0.55);
+  border-radius: 14px;
+  background: rgba(72, 39, 19, 0.42);
+  color: #d19a24;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.my_exchange_empty {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(54, 42, 50, 0.72), rgba(34, 22, 30, 0.82));
+}
+
+.my_exchange_empty p {
+  margin: 0;
+  color: rgba(239, 231, 214, 0.72);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.my_exchange_missions {
+  margin-top: 34px;
+  padding: 0 0 10px;
+}
+
+.my_exchange_missions h2 {
+  margin: 0 0 18px;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.my_exchange_mission_list {
+  display: grid;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.my_exchange_mission {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 48px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.my_exchange_mission span {
+  color: #efe7d6;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.my_exchange_mission strong {
+  color: #4ebb72;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.my_exchange_mission button {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #efe7d6;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 @media (max-width: 390px) {
   .my_profile_header {
     grid-template-columns: 74px 1fr auto;
-    gap: 8px 14px;
+    gap: 7px 13px;
     padding-inline: 18px;
   }
 
@@ -457,15 +958,11 @@
   }
 
   .my_profile_identity h1 {
-    font-size: 24px;
-  }
-
-  .my_grade_line {
-    font-size: 16px;
+    font-size: 20px;
   }
 
   .my_social_summary {
-    font-size: 13px;
+    font-size: 11px;
   }
 
   .my_activity_grid {
@@ -473,14 +970,14 @@
   }
 
   .my_activity_card {
-    min-height: 76px;
+    min-height: 74px;
   }
 
   .my_activity_card strong {
-    font-size: 27px;
+    font-size: 22px;
   }
 
   .my_taste_summary p {
-    font-size: 14px;
+    font-size: 12px;
   }
 }
