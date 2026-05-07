@@ -22,8 +22,9 @@ type ChatStepPanelProps = {
   onSelectPartyMood: (value: string) => void
   onSelectFood: (value: string) => void
   onSelectWineStyle: (value: string) => void
-  onOpenDetail: (wineId: string, label: string) => void
-  onOpenPairing: () => void
+  onSelectRecommendation: (wineId: string) => void
+  onGoProductDetail: (wineId: string) => void
+  onAskMore: (wineId: string, label: string) => void
   onBackToRecommend: () => void
   onMoreRecommendations: () => void
   onConfirmSelection: () => void
@@ -40,8 +41,9 @@ export default function ChatStepPanel({
   onSelectPartyMood,
   onSelectFood,
   onSelectWineStyle,
-  onOpenDetail,
-  onOpenPairing,
+  onSelectRecommendation,
+  onGoProductDetail,
+  onAskMore,
   onBackToRecommend,
   onMoreRecommendations,
   onConfirmSelection,
@@ -100,13 +102,16 @@ export default function ChatStepPanel({
       {step === "recommend" ? (
         <ChatRecommendPanel
           recommendations={recommendations}
-          onOpenDetail={(wineId, label) => onOpenDetail(wineId, label)}
+          selectedWineId={selectedWine?.id ?? null}
+          onSelect={(wineId) => onSelectRecommendation(wineId)}
+          onGoProductDetail={(wineId) => onGoProductDetail(wineId)}
+          onAskMore={(wineId) => onAskMore(wineId, "술 정보 더보기")}
           onMore={onMoreRecommendations}
         />
       ) : null}
 
       {step === "detail" && selectedWine ? (
-        <ChatDetailPanel wine={selectedWine} onOpenPairing={onOpenPairing} onBack={onBackToRecommend} />
+        <ChatDetailPanel wine={selectedWine} onBack={onBackToRecommend} onConfirm={onConfirmSelection} />
       ) : null}
 
       {step === "pairing" && selectedWine ? (
