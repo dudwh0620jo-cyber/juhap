@@ -1,12 +1,55 @@
-import { type FormEvent, useState } from "react"
+import { type FormEvent, useRef, useState } from "react"
 import { useNavigate } from "react-router"
 import mascotImage from "../assets/onboarding-mascot.png"
+import mapPinIcon from "../assets/svg/mappin.svg"
 import { profileSetupCopy } from "../data/setupContent"
 import { readUserProfile, updateUserPersonalInfo } from "../data/userProfile"
 import "../styles/profile-setup.css"
 
+const DAUM_POSTCODE_SCRIPT_URL = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
+
+let daumPostcodeScriptPromise: Promise<void> | null = null
+
+type DaumPostcodeData = {
+  address: string
+  jibunAddress: string
+  roadAddress: string
+}
+
+type DaumPostcode = {
+  open: () => void
+}
+
+declare global {
+  interface Window {
+    daum?: {
+      Postcode: new (options: { oncomplete: (data: DaumPostcodeData) => void }) => DaumPostcode
+    }
+  }
+}
+
+function loadDaumPostcode() {
+  if (window.daum?.Postcode) return Promise.resolve()
+  if (daumPostcodeScriptPromise) return daumPostcodeScriptPromise
+
+  daumPostcodeScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script")
+    script.src = DAUM_POSTCODE_SCRIPT_URL
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => {
+      daumPostcodeScriptPromise = null
+      reject(new Error("주소 검색을 불러오지 못했습니다."))
+    }
+    document.head.appendChild(script)
+  })
+
+  return daumPostcodeScriptPromise
+}
+
 export default function ProfileSetup() {
   const navigate = useNavigate()
+  const detailAddressInputRef = useRef<HTMLInputElement>(null)
   const savedProfile = readUserProfile()
   const [nickname, setNickname] = useState(savedProfile.personalInfo.nickname)
   const [phone, setPhone] = useState(savedProfile.personalInfo.phone)
@@ -14,6 +57,7 @@ export default function ProfileSetup() {
   const [detailAddress, setDetailAddress] = useState(savedProfile.personalInfo.detailAddress)
   const [isPhoneVerified, setIsPhoneVerified] = useState(savedProfile.personalInfo.isPhoneVerified)
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false)
+  const [isAddressSearchLoading, setIsAddressSearchLoading] = useState(false)
 
   const phoneDigits = phone.replace(/\D/g, "")
   const isPhoneIncomplete = phoneDigits.length > 0 && phoneDigits.length < 11
@@ -45,6 +89,30 @@ export default function ProfileSetup() {
 
     setIsPhoneVerified(true)
     alert("인증되었습니다.")
+  }
+
+  function openAddressSearch() {
+    if (isAddressSearchLoading) return
+
+    setIsAddressSearchLoading(true)
+    loadDaumPostcode()
+      .then(() => {
+        const Postcode = window.daum?.Postcode
+        if (!Postcode) throw new Error("주소 검색을 불러오지 못했습니다.")
+
+        new Postcode({
+          oncomplete: (data) => {
+            setAddress(data.roadAddress || data.jibunAddress || data.address)
+            window.setTimeout(() => detailAddressInputRef.current?.focus(), 0)
+          },
+        }).open()
+      })
+      .catch(() => {
+        alert("주소 검색을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")
+      })
+      .finally(() => {
+        setIsAddressSearchLoading(false)
+      })
   }
 
   return (
@@ -91,13 +159,20 @@ export default function ProfileSetup() {
 
         <fieldset className="profile_setup_address">
           <legend>주소</legend>
+          <span className="profile_address_search">
+            <button type="button" aria-label="주소 검색" onClick={openAddressSearch}>
+              <img src={mapPinIcon} alt="" aria-hidden="true" />
+            </button>
+            <input
+              type="text"
+              placeholder="건물, 지번 또는 도로명 검색"
+              value={address}
+              readOnly
+              onClick={openAddressSearch}
+            />
+          </span>
           <input
-            type="text"
-            placeholder="건물, 지번 또는 도로명 검색"
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-          />
-          <input
+            ref={detailAddressInputRef}
             type="text"
             placeholder="상세주소"
             value={detailAddress}

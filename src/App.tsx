@@ -18,6 +18,7 @@ import VoteList from "./pages/VoteList"
 import AiScan from "./pages/AiScan"
 import PairingTagList from "./pages/PairingTagList"
 import TasteSetup from "./pages/TasteSetup"
+import StatusBar from "./components/StatusBar"
 import "./styles/common.css"
 
 import iconchatscircle_w from "./assets/svg/chatscircle_w.svg"
@@ -74,6 +75,7 @@ export default function App() {
   return (
     <main className="app_root">
       <div className="app_viewport">
+        <StatusBar />
         {!isAuthPage && (
         <div className="chat_corner_slot">
           <button
