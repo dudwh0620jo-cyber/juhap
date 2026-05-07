@@ -14,7 +14,7 @@
 ## CSS Rules
 
 - Always import `src/styles/reset.css` in `src/main.tsx` before any other style.
-- Shared tokens (font family, font size, color) are registered as CSS variables in `src/styles/common.css` `:root`.
+- Shared tokens (font family, color) are registered as CSS variables in `src/styles/common.css` `:root`.
 - Use a registered variable whenever the value exists in `:root`. Do not hardcode the raw value.
 - If a value is not registered in `:root` (e.g. `#000000`), use the raw value as-is. Do not add new variables to `:root` just to use them.
 
@@ -22,47 +22,30 @@
 
 | Variable | Value |
 |---|---|
-| `--font-title` | "Noto Serif KR", serif |
+| `--font-title` | "Chiron Sung HK", serif |
 | `--font-main` | "Pretendard Variable", sans-serif |
-
-### Registered font sizes
-
-| Variable | px |
-|---|---|
-| `--fs-display` | 32px |
-| `--fs-title-l` | 28px |
-| `--fs-title-m` | 24px |
-| `--fs-h2` | 28px |
-| `--fs-h3` | 24px |
-| `--fs-h4` | 20px |
-| `--fs-h5` | 18px |
-| `--fs-h6` | 16px |
-| `--fs-small` | 14px |
 
 ### Registered colors
 
-| Variable | Hex |
-|---|---|
-| `--color-main-01` | #F6ECD9 |
-| `--color-main-02` | #E4D2A7 |
-| `--color-main-03` | #CA9E52 |
-| `--color-main-04` | #A17C3B |
-| `--color-main-05` | #7A5C2B |
-| `--color-sub-01` | #FFFFFF |
-| `--color-sub-02` | #F7F3EC |
-| `--color-sub-03` | #E5DED3 |
-| `--color-sub-04` | #CFC6B8 |
-| `--color-sub-05` | #B5AA99 |
-| `--color-gray-01` | #FFFFFF |
-| `--color-gray-02` | #F2F2F2 |
-| `--color-gray-03` | #D9D9D9 |
-| `--color-gray-04` | #BFBFBF |
-| `--color-gray-05` | #8C8C8C |
-| `--color-dark-01` | #F5F5F5 |
-| `--color-dark-02` | #BDBDBD |
-| `--color-dark-03` | #757575 |
-| `--color-dark-04` | #424242 |
-| `--color-dark-05` | #212121 |
+| Variable | Hex | 설명 |
+|---|---|---|
+| `--color-primary` | #CA804F | 브랜드 핵심 컬러 |
+| `--color-bg-base` | #FBFAF9 | 기본 배경 |
+| `--color-bg-white` | #FDFDFD | 카드·서페이스 배경 |
+| `--color-text-primary` | #44413F | 주요 텍스트 |
+| `--color-gray-00` | #F2F2F2 | |
+| `--color-gray-01` | #E5E5E5 | |
+| `--color-gray-02` | #D9D9D9 | |
+| `--color-gray-03` | #BFBFBF | |
+| `--color-gray-04` | #8C8C8C | |
+| `--color-gray-05` | #757575 | |
+| `--color-gray-06` | #4A4A4A | |
+| `--color-point-01` | #D4956B | |
+| `--color-point-02` | #EAC9B1 | |
+| `--color-point-03` | #F6E4BA | |
+| `--color-point-04` | #F1D39F | |
+| `--color-point-05` | #E9F0F5 | |
+| `--color-point-06` | #477396 | |
 
 ## Naming Convention
 
