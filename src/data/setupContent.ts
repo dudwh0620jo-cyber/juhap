@@ -7,6 +7,7 @@ export type PreferenceGroup = {
   key: string
   title: string
   type: "single" | "multi"
+  maxSelections?: number
   options: string[]
 }
 
@@ -33,7 +34,7 @@ export const onboardingInfoSlides: OnboardingInfoSlide[] = [
 
 export const profileSetupCopy = {
   title: "개인정보를 입력해주세요",
-  subtitle: "당신의 취향을 찾기 위한\n첫 걸음이에요",
+  subtitle: "당신의 취향을 찾기 위한\n첫 걸음이에요.",
 }
 
 export const MAX_MULTI_SELECTIONS = 3
@@ -56,13 +57,14 @@ export const preferenceGroups: PreferenceGroup[] = [
   {
     key: "drinkType",
     title: "어떤 주종을 가장 선호하시나요?",
-    type: "multi",
+    type: "single",
     options: ["맥주", "소주", "와인", "하이볼", "전통주", "위스키", "사케", "기타", NONE_OPTION],
   },
   {
     key: "trait",
     title: "좋아하는 술의 특징은 어떤 건가요?",
     type: "multi",
+    maxSelections: 2,
     options: ["달콤한", "깔끔한", "상큼한", "묵직한", "탄산감 있는", "드라이한", "기타", NONE_OPTION],
   },
   {

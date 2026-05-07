@@ -11,17 +11,38 @@ import {
 import { readUserProfile, updateUserTastePreferences, type UserTastePreferences } from "../data/userProfile"
 import "../styles/taste-setup.css"
 
+function normalizeTastePreferences(tastePreferences: UserTastePreferences) {
+  return preferenceGroups.reduce<UserTastePreferences>((nextPreferences, group) => {
+    const selectedOptions = tastePreferences[group.key] ?? []
+
+    if (group.type === "single") {
+      nextPreferences[group.key] = selectedOptions.slice(0, 1)
+      return nextPreferences
+    }
+
+    if (selectedOptions.includes(NONE_OPTION)) {
+      nextPreferences[group.key] = [NONE_OPTION]
+      return nextPreferences
+    }
+
+    nextPreferences[group.key] = selectedOptions.slice(0, group.maxSelections ?? MAX_MULTI_SELECTIONS)
+    return nextPreferences
+  }, {})
+}
+
 export default function TasteSetup() {
   const navigate = useNavigate()
   const savedProfile = readUserProfile()
-  const [selectedByGroup, setSelectedByGroup] = useState<UserTastePreferences>(savedProfile.tastePreferences)
+  const [selectedByGroup, setSelectedByGroup] = useState<UserTastePreferences>(() =>
+    normalizeTastePreferences(savedProfile.tastePreferences),
+  )
   const [warningByGroup, setWarningByGroup] = useState<Record<string, string>>({})
 
   function handleSubmit() {
     const nextWarnings: Record<string, string> = {}
     preferenceGroups.forEach((group) => {
       if ((selectedByGroup[group.key] ?? []).length === 0) {
-        nextWarnings[group.key] = "답변을 선택해 주세요."
+        nextWarnings[group.key] = "답변을 선택해 주세요"
       }
     })
 
@@ -56,10 +77,11 @@ export default function TasteSetup() {
         }
       }
 
-      if (selectedWithoutNone.length >= MAX_MULTI_SELECTIONS) {
+      const maxSelections = group.maxSelections ?? MAX_MULTI_SELECTIONS
+      if (selectedWithoutNone.length >= maxSelections) {
         setWarningByGroup((warning) => ({
           ...warning,
-          [group.key]: "최대 3개까지 선택할 수 있어요.",
+          [group.key]: `최대 ${maxSelections}개까지 선택할 수 있어요`,
         }))
         return current
       }
@@ -72,8 +94,15 @@ export default function TasteSetup() {
     <section className="taste_setup_page" aria-label="취향 선택">
       <header className="taste_setup_header">
         <div>
-          <h1>당신에게 맞는 한 잔을 찾기 위해<br />몇 가지만 알려주세요</h1>
-          <p>취향을 입력해주세요<br />쿠폰으로 교환 가능한 포인트를 지급해요</p>
+          <h1>
+            당신에게 맞는 한 잔을 찾기 위해
+            <br />몇 가지만 알려주세요
+          </h1>
+          <p>
+            취향을 입력해주세요
+            <br />
+            쿠폰으로 교환 가능한 포인트를 지급해요
+          </p>
         </div>
         <img src={mascotImage} alt="" />
       </header>

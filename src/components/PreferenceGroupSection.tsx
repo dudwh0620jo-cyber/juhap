@@ -10,7 +10,9 @@ type Props = {
 export default function PreferenceGroupSection({ group, selectedOptions, warning, onToggleOption }: Props) {
   return (
     <section className="taste_setup_group" data-selection-type={group.type}>
-      <h2>{group.title} <em aria-label="필수">*</em></h2>
+      <h2>
+        {group.title} <em aria-label="필수">*</em>
+      </h2>
       <div className="taste_chip_grid">
         {group.options.map((option) => (
           <button
