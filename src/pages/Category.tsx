@@ -1,11 +1,13 @@
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import CategorySearch from "../components/CategorySearch"
+import iconInfo from "../assets/svg/Info.svg"
 import {
   CATEGORY_PREPARING_MESSAGE,
   READY_CATEGORY_ID,
   READY_SUBCATEGORY,
   drinkCategories,
+  subcategoryInfoByCategoryId,
   type DrinkCategory,
 } from "../data/categoryData"
 import "../styles/category.css"
@@ -21,6 +23,17 @@ export default function Category() {
     return returnedCategory?.id ?? drinkCategories[0].id
   })
   const [searchValue, setSearchValue] = useState("")
+  const [openInfoKey, setOpenInfoKey] = useState<string | null>(null)
+  const [isInfoFadingOut, setIsInfoFadingOut] = useState(false)
+  const infoTimeoutRef = useRef<number | null>(null)
+  const infoFadeTimeoutRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (infoTimeoutRef.current) window.clearTimeout(infoTimeoutRef.current)
+      if (infoFadeTimeoutRef.current) window.clearTimeout(infoFadeTimeoutRef.current)
+    }
+  }, [])
 
   const activeCategory = drinkCategories.find((category) => category.id === activeCategoryId) ?? drinkCategories[0]
 
@@ -98,16 +111,66 @@ export default function Category() {
 
           <div className="category_subcategory_list">
             {visibleSubcategories.length === 0 ? <p className="category_empty">검색 결과가 없어요.</p> : null}
-            {visibleSubcategories.map((subcategory) => (
-              <button
-                className="category_subcategory_button"
-                key={subcategory}
-                type="button"
-                onClick={() => handleSubcategoryClick(selectedCategory, subcategory)}
-              >
-                {subcategory}
-              </button>
-            ))}
+            {visibleSubcategories.map((subcategory) => {
+              const infoKey = `${selectedCategory.id}:${subcategory}`
+              const infoText = subcategoryInfoByCategoryId[selectedCategory.id]?.[subcategory]
+              const isInfoOpen = openInfoKey === infoKey
+
+              return (
+                <div className="category_subcategory_item" key={subcategory}>
+                  <div className="category_subcategory_button_row">
+                    <button
+                      className="category_subcategory_button"
+                      type="button"
+                      onClick={() => handleSubcategoryClick(selectedCategory, subcategory)}
+                    >
+                      <span>{subcategory}</span>
+                    </button>
+                    {infoText ? (
+                      <button
+                        type="button"
+                        className="category_subcategory_info_button"
+                        aria-label={`${subcategory} 용어 설명 보기`}
+                        onClick={() => {
+                          if (infoTimeoutRef.current) window.clearTimeout(infoTimeoutRef.current)
+                          if (infoFadeTimeoutRef.current) window.clearTimeout(infoFadeTimeoutRef.current)
+
+                          if (openInfoKey === infoKey && !isInfoFadingOut) {
+                            setOpenInfoKey(null)
+                            return
+                          }
+
+                          setOpenInfoKey(infoKey)
+                          setIsInfoFadingOut(false)
+                          infoTimeoutRef.current = window.setTimeout(() => {
+                            setIsInfoFadingOut(true)
+                            infoFadeTimeoutRef.current = window.setTimeout(() => {
+                              setOpenInfoKey(null)
+                              setIsInfoFadingOut(false)
+                            }, 220)
+                          }, 3000)
+                        }}
+                      >
+                        <img src={iconInfo} alt="" aria-hidden="true" />
+                      </button>
+                    ) : null}
+                  </div>
+                  {infoText && isInfoOpen ? (
+                    <div
+                      className={
+                        isInfoFadingOut
+                          ? "category_subcategory_info_bubble is_fading"
+                          : "category_subcategory_info_bubble"
+                      }
+                      role="status"
+                      aria-live="polite"
+                    >
+                      {infoText}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })}
           </div>
         </section>
       </div>
