@@ -4,6 +4,7 @@ import type { CategoryListItem } from "../components/CategoryItemCard"
 import CategoryItemCard from "../components/CategoryItemCard"
 import CategoryListSearch from "../components/CategoryListSearch"
 import { useCategoryListPageData, type SortKey } from "../hooks/useCategoryListPageData"
+import { READY_SUBCATEGORY } from "../data/categoryData"
 import "../styles/category-list.css"
 
 const sortLabels: Record<SortKey, string> = {
@@ -18,8 +19,10 @@ export default function CategoryList() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
+
   const group = searchParams.get("group") ?? "사케"
-  const sub = searchParams.get("sub") ?? "준마이 다이긴죠"
+  const sub = searchParams.get("sub") ?? READY_SUBCATEGORY
+
   const [searchValue, setSearchValue] = useState("")
   const [activeSortKey, setActiveSortKey] = useState<SortKey>("default")
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false)
@@ -37,29 +40,21 @@ export default function CategoryList() {
 
   const sortedItems = useMemo(() => {
     const nextItems = [...filteredItems]
-
-    if (activeSortKey === "lowPrice") {
-      return nextItems.sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
-    }
-    if (activeSortKey === "highPrice") {
-      return nextItems.sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
-    }
-    if (activeSortKey === "default") {
-      return nextItems.sort((a, b) => a.name.localeCompare(b.name))
-    }
-
+    if (activeSortKey === "lowPrice") return nextItems.sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
+    if (activeSortKey === "highPrice") return nextItems.sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
+    if (activeSortKey === "default") return nextItems.sort((a, b) => a.name.localeCompare(b.name))
     return nextItems
   }, [activeSortKey, filteredItems])
-
-  function handleOpenItem(item: CategoryListItem) {
-    navigate(`/product/${item.id}`)
-  }
 
   const returnState = location.state as { returnCategoryId?: string; returnScrollTop?: number } | null
   const handleBack = () => {
     navigate("/category", {
       state: { groupLabel: group, categoryId: returnState?.returnCategoryId, scrollTop: returnState?.returnScrollTop },
     })
+  }
+
+  function handleOpenItem(item: CategoryListItem) {
+    navigate(`/product/${item.id}`)
   }
 
   return (
@@ -73,7 +68,7 @@ export default function CategoryList() {
 
       <div className="category_list_meta_row">
         <button type="button" className="category_list_title" onClick={handleBack}>
-          {group} &gt; {sub.replace(" / ", " ")}
+          {group} &gt; {sub}
         </button>
         <button className="category_sort_button" type="button" onClick={() => setIsSortSheetOpen(true)}>
           {sortLabels[activeSortKey]}

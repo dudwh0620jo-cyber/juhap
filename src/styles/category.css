@@ -291,11 +291,7 @@
 .category_group_list_v2 .category_group_text strong {
   font-size: 16px;
   font-weight: 400;
-  color: var(--font-main);
-}
-.category_group_list_v2 .category_group_button.is_selected .category_group_text strong {
-  font-size: 20px;
-  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 
@@ -340,16 +336,7 @@
 
 .category_section_header .category_section_title strong,
 .category_section_header .category_section_title small {
-  color: #8c8c8c;
-}
-
-.category_section_header[data-category-id="sake"]{
-  border: 1px solid var(--color-primary);
-  background: #F4E9DF;
-}
-.category_section_header[data-category-id="sake"] .category_section_title small,
-.category_section_header[data-category-id="sake"] .category_section_title strong {
-  color: var(--color-primary);
+  color: var(--color-gray-03);
 }
 
 .category_section_title {
@@ -403,7 +390,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.25;
-  color: #8c8c8c;
+  color: var(--color-gray-03);
 }
 
 .category_subcategory_row.is_ready .category_subcategory_row_title {
@@ -415,7 +402,8 @@
 }
 
 .category_subcategory_row.is_disabled .category_subcategory_row_desc {
-  color: rgba(140, 140, 140, 0.7);
+  color: var(--color-gray-03);
+  opacity: 0.8;
 }
 
 .category_subcategory_row_desc {

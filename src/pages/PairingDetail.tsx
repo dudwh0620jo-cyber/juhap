@@ -275,9 +275,17 @@ export default function PairingDetail() {
   }, [drinkTypeLabel, pairingId, pairingTitle])
 
   const { liquorTag, foodTag } = useMemo(() => {
-    if (post?.title) return getPairingTagsFromTitle(post.title)
-    return getPairingTagsFromTitle(pairingTitle)
-  }, [pairingTitle, post])
+    const fromPostTitle = post?.title ? getPairingTagsFromTitle(post.title) : { liquorTag: "", foodTag: "" }
+    if (fromPostTitle.liquorTag && fromPostTitle.foodTag) return fromPostTitle
+
+    const fromTitle = getPairingTagsFromTitle(pairingTitle)
+    if (fromTitle.liquorTag && fromTitle.foodTag) return fromTitle
+
+    const liquorFallback = drinkTypeLabel?.trim() ?? ""
+    const foodFallback = Array.isArray(post?.foods) ? (post?.foods[0] ?? "") : ""
+
+    return { liquorTag: liquorFallback, foodTag: foodFallback }
+  }, [drinkTypeLabel, pairingTitle, post])
 
   const hasPairingTags = Boolean(liquorTag) && Boolean(foodTag)
   const isQnaDetail = Boolean(post?.isQna) || navState.source === "free"

@@ -194,6 +194,10 @@ body {
   line-height: 1;
 }
 
+.bottom_nav_item.is_active .bottom_nav_label {
+  color: var(--color-point-01);
+}
+
 .chat_corner_slot {
   position: fixed;
   left: 50%;

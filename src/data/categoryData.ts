@@ -13,6 +13,12 @@ export const CATEGORY_PREPARING_MESSAGE = "아직 준비 중인 기능이에요,
 
 export const drinkCategories: DrinkCategory[] = [
   {
+    id: "sake",
+    label: "사케",
+    englishLabel: "Sake",
+    subcategories: ["준마이 다이긴죠 / 다이긴죠", "준마이 긴죠 / 긴죠", "준마이", "혼죠조 / 후츠슈"],
+  },
+  {
     id: "soju",
     label: "소주",
     englishLabel: "Soju",
@@ -29,12 +35,6 @@ export const drinkCategories: DrinkCategory[] = [
     label: "와인",
     englishLabel: "Wine",
     subcategories: ["레드", "화이트", "로제", "스파클링", "내추럴", "포트", "디저트"],
-  },
-  {
-    id: "sake",
-    label: "사케",
-    englishLabel: "Sake",
-    subcategories: ["준마이 다이긴죠 / 다이긴죠", "준마이 긴죠 / 긴죠", "준마이", "혼죠조 / 후츠슈"],
   },
   {
     id: "whisky",
