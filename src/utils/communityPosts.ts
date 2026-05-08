@@ -80,10 +80,6 @@ const getMockPhotoIds = (postId: number) => {
   return Array.from({ length: count }).map((_, index) => `mock-photo-${postId}-${index + 1}`)
 }
 
-const pairTitle = (id: number) => {
-  const meta = pairMetaById[id]
-  return `${meta.drink} + ${meta.food}`
-}
 
 type PairPostSeed = {
   id: number
@@ -118,7 +114,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["청량한", "가벼운", "달콤한"],
     priceWon: 4500,
     abv: 5,
-    summary: "짐빔 하이볼 + 삼겹살",
+    summary: "삼겹살엔 맥주 말고 하이볼, 생각보다 훨씬 잘 맞아요",
     body: "삼겹살을 굽는 날에는 맥주보다 짐빔 하이볼 캔이 더 잘 맞았어요. 탄산감이 살아 있어서 느끼함이 덜하고, 캔이라 준비가 편한 것도 장점입니다.",
   },
   {
@@ -135,7 +131,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["부드러운", "고소한", "가벼운"],
     priceWon: 2200,
     abv: 6,
-    summary: "서울 장수 막걸리 + 해물파전",
+    summary: "비 오는 날 베란다에서 파전이랑 막걸리, 역시 진리",
     body: "파전 가장자리를 바삭하게 부치고 차갑게 식힌 서울 장수 막걸리를 곁들이면 부담 없이 오래 먹기 좋아요.",
   },
   {
@@ -152,7 +148,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["강한", "상큼한", "드라이한"],
     priceWon: 35000,
     abv: 38,
-    summary: "호세 쿠엘보 에스페셜 + 타코",
+    summary: "데킬라랑 타코 먹었는데 생각보다 훨씬 잘 맞더라고요",
     body: "소금과 라임을 곁들이면 타코의 매콤함이 더 선명해집니다. 과하게 차갑게 하기보다 살짝 시원한 정도가 좋았어요.",
   },
   {
@@ -169,7 +165,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["부드러운", "담백한", "깔끔한"],
     priceWon: 33000,
     abv: 15,
-    summary: "하쿠츠루 준마이 사케 + 가라아게",
+    summary: "집에서도 이자카야 느낌, 가라아게에 차가운 사케",
     body: "가라아게에 레몬을 살짝 뿌리고 차갑게 식힌 사케를 곁들이면 집에서도 이자카야 느낌이 납니다.",
   },
   {
@@ -186,7 +182,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["묵직한", "드라이한", "오크향"],
     priceWon: 29000,
     abv: 13,
-    summary: "몬테스 클래식 카베르네 소비뇽 + 스테이크",
+    summary: "스테이크엔 역시 카베르네, 탄닌이 고기 풍미를 확 살려줘요",
     body: "후추를 넉넉히 뿌린 스테이크와 함께 마시면 탄닌감이 고기의 풍미를 받쳐줍니다. 소스는 너무 달지 않은 쪽이 좋아요.",
   },
   {
@@ -203,7 +199,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["쌉쌀한", "향긋한", "청량한"],
     priceWon: 9000,
     abv: 5.9,
-    summary: "구스 아일랜드 IPA + 햄버거",
+    summary: "햄버거 먹을 때 IPA 쌉쌀함이 소스를 딱 잡아줘요",
     body: "진한 소스가 들어간 햄버거일수록 IPA의 쌉쌀함이 잘 맞습니다. 감자튀김까지 있으면 더 안정적인 조합이에요.",
   },
   {
@@ -220,7 +216,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["깔끔한", "드라이한", "묵직한"],
     priceWon: 1800,
     abv: 20.1,
-    summary: "참이슬 오리지널 + 족발",
+    summary: "족발집에서 클래식 소주 시켰는데 역시 이게 제일 편해요",
     body: "마늘, 새우젓, 쌈장까지 같이 먹을 때도 맛이 흐트러지지 않아서 족발에는 역시 클래식 소주가 편합니다.",
   },
   {
@@ -237,7 +233,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["향긋한", "깔끔한", "가벼운"],
     priceWon: 65000,
     abv: 16,
-    summary: "닷사이 45 사케 + 명란구이",
+    summary: "명란구이에 닷사이, 짠맛이 사케 향을 더 살려주는 조합",
     body: "명란구이를 너무 짜지 않게 굽고 마요네즈를 조금 곁들이면 닷사이 45의 향이 더 잘 살아납니다.",
   },
   {
@@ -254,7 +250,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["상큼한", "달콤한", "청량한"],
     priceWon: 18000,
     abv: 12,
-    summary: "모히토 (바카디) + 타코",
+    summary: "민트 가득 모히토에 타코, 홈파티에서 제일 인기 많았어요",
     body: "민트와 라임을 넉넉히 넣으면 타코의 향신료와 잘 붙습니다. 맵게 먹는 날에는 얼음을 충분히 넣어주세요.",
   },
   {
@@ -271,7 +267,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["청량한", "가벼운", "깔끔한"],
     priceWon: 3500,
     abv: 5,
-    summary: "하이네켄 + 감자튀김",
+    summary: "감자튀김 바삭할 때 라거 한 잔, 탄산이 기름기를 싹 씻어줘요",
     body: "튀김이 식기 전에 차갑게 마시면 탄산감이 기름기를 잘 씻어줍니다. 케첩보다 아이올리 소스와도 잘 맞았어요.",
   },
   {
@@ -288,7 +284,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["달콤한", "오크향", "묵직한"],
     priceWon: 59000,
     abv: 45,
-    summary: "메이커스 마크 + 다크초콜릿",
+    summary: "버번에 다크초콜릿, 생각보다 진지하게 맛있었어요",
     body: "초콜릿은 너무 단 것보다 카카오 함량이 높은 쪽이 좋습니다. 작은 잔에 천천히 마시면 향이 길게 남아요.",
   },
   {
@@ -305,7 +301,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["부드러운", "가벼운", "담백한"],
     priceWon: 16000,
     abv: 14.5,
-    summary: "간바레 오토상 사케 + 오뎅탕",
+    summary: "따뜻한 오뎅탕에 사케 한 잔, 집이 이자카야가 됐어요",
     body: "따뜻한 오뎅탕에 차갑거나 미지근한 사케를 곁들이면 국물의 감칠맛이 더 편하게 느껴집니다.",
   },
   {
@@ -322,7 +318,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["향긋한", "드라이한", "깔끔한"],
     priceWon: 32000,
     abv: 47,
-    summary: "봄베이 사파이어 + 올리브",
+    summary: "봄베이 진에 올리브, 마티니 스타일로 마셔봤어요",
     body: "진토닉으로 마셔도 좋고, 아주 차갑게 만든 마티니 스타일로 올리브를 곁들여도 잘 어울립니다.",
   },
   {
@@ -339,7 +335,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["깔끔한", "가벼운", "드라이한"],
     priceWon: 1900,
     abv: 16,
-    summary: "참이슬 새로 + 삼겹살",
+    summary: "새로 소주로 삼겹살 먹어봤는데 담백하게 잘 맞더라고요",
     body: "쌈채소와 마늘을 곁들인 삼겹살에는 깔끔한 소주가 잘 맞습니다. 부담이 적어서 식사 자리에도 편해요.",
   },
   {
@@ -356,7 +352,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["깔끔한", "부드러운", "드라이한"],
     priceWon: 1900,
     abv: 16.5,
-    summary: "진로 이즈 백 + 김치찌개",
+    summary: "진한 김치찌개에 진로 한 잔, 오래된 조합인데 역시 편해요",
     body: "김치찌개가 조금 진할수록 소주의 깔끔함이 살아납니다. 두부와 돼지고기를 넉넉히 넣으면 더 좋았어요.",
   },
   {
@@ -373,7 +369,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["과일향", "부드러운", "드라이한"],
     priceWon: 17000,
     abv: 13.5,
-    summary: "옐로우 테일 카베르네 소비뇽 + 치즈",
+    summary: "치즈 플레이트에 레드 와인, 가성비 좋은 조합으로도 충분해요",
     body: "체다나 고다처럼 너무 강하지 않은 치즈와 잘 맞습니다. 차갑지 않게 살짝 온도를 올려 마시면 과일 향이 살아나요.",
   },
   {
@@ -390,7 +386,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["달콤한", "묵직한", "과일향"],
     priceWon: 22000,
     abv: 13.5,
-    summary: "19 크라임스 레드 와인 + 라구 파스타",
+    summary: "진한 라구 파스타엔 과일향 레드 와인이 딱이에요",
     body: "진한 라구 소스에는 과일 향이 있는 레드 와인이 안정적입니다. 파마산을 올리면 와인의 단맛이 더 둥글게 느껴져요.",
   },
   {
@@ -407,7 +403,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["쌉쌀한", "향긋한", "청량한"],
     priceWon: 7500,
     abv: 5.6,
-    summary: "브루독 펑크 IPA + 치킨",
+    summary: "치킨 포장해서 IPA 열었는데 후라이드랑 최고 조합이에요",
     body: "후라이드 치킨과 가장 잘 맞고, 양념치킨과 먹을 때는 맥주의 쌉쌀함이 단맛을 눌러줍니다.",
   },
   {
@@ -424,7 +420,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["묵직한", "스모키한", "달콤한"],
     priceWon: 68000,
     abv: 50.5,
-    summary: "와일드 터키 101 + 훈제 바비큐",
+    summary: "바비큐에 도수 높은 버번, 스모키한 것끼리 잘 어울려요",
     body: "고기 맛이 진한 바비큐에는 도수가 있는 버번이 잘 버팁니다. 얼음을 조금 넣으면 단맛이 부드럽게 열려요.",
   },
   {
@@ -441,7 +437,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["부드러운", "바닐라", "오크향"],
     priceWon: 52000,
     abv: 45,
-    summary: "버팔로 트레이스 + 견과류",
+    summary: "버팔로 트레이스 니트에 견과류, 혼술하기 딱 좋은 조합",
     body: "아몬드나 캐슈넛처럼 짠맛이 과하지 않은 견과류가 좋습니다. 니트로 마셔도 부담이 덜했어요.",
   },
   {
@@ -458,7 +454,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["고소한", "부드러운", "가벼운"],
     priceWon: 2600,
     abv: 5,
-    summary: "지평 막걸리 + 두부김치",
+    summary: "두부김치 따뜻하게 내고 막걸리 한 사발, 이게 진짜 홈술",
     body: "김치를 너무 달게 볶지 않고 두부를 따뜻하게 내면 막걸리의 고소함이 잘 살아납니다.",
   },
   {
@@ -475,7 +471,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["부드러운", "고소한", "산뜻한"],
     priceWon: 3500,
     abv: 6,
-    summary: "느린마을 막걸리 + 감자전",
+    summary: "감자전 바삭하게 부치고 막걸리, 비 오는 날 완벽한 조합",
     body: "감자전을 얇게 부쳐 바삭하게 먹으면 막걸리의 부드러운 질감과 대비가 좋아집니다.",
   },
   {
@@ -492,7 +488,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["청량한", "가벼운", "깔끔한"],
     priceWon: 4500,
     abv: 7,
-    summary: "산토리 하이볼 캔 + 가라아게",
+    summary: "가라아게에 산토리 하이볼, 집이 이자카야가 되는 순간",
     body: "레몬을 곁들인 가라아게와 마시면 탄산감이 기름기를 씻어줘서 다음 한 입이 편합니다.",
   },
   {
@@ -509,7 +505,7 @@ const pairPostSeeds: PairPostSeed[] = [
     features: ["깔끔한", "드라이한", "청량한"],
     priceWon: 28000,
     abv: 40,
-    summary: "앱솔루트 보드카 + 훈제연어",
+    summary: "훈제연어 카나페에 보드카, 홈파티 분위기 확 올려줘요",
     body: "토닉이나 탄산수와 가볍게 섞으면 훈제연어 카나페와 잘 맞습니다. 딜이나 레몬을 조금 더하면 더 산뜻해요.",
   },
 ]
@@ -611,7 +607,7 @@ const pairingFeedPosts: FeedPost[] = pairPostSeeds.map((seed) => {
   return {
     id: seed.id,
     authorId: seed.authorId,
-    title: pairTitle(seed.id),
+    title: seed.summary,
     body: seed.body,
     pairingSummary: seed.summary,
     createdAt: seed.createdAt,
