@@ -2,10 +2,12 @@
 import { useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
+import iconSearch from "../assets/svg/magnifyingglass.svg"
 import iconX from "../assets/svg/x.svg"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
 import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
 import { readUserProfile } from "../data/userProfile"
+import { sakeProductsMock } from "../data/sakeProductsMock"
 
 type WriteMode = "review" | "free"
 type ReviewTab = "drink" | "pairing"
@@ -46,7 +48,8 @@ const locationSuggestions = [
   "작은 주방 테이블",
 ] as const
 
-const situationChips = ["혼술", "파티/모임", "가족", "데이트", "캠핑/여행"] as const
+const situationChips = ["혼술", "가족", "데이트", "친구/파티", "모임/단체"] as const
+const pairingFeatureFallbackChips = ["상큼", "달콤", "묵직", "깔끔", "탄산감", "드라이", "기타"] as const
 const SAKE_LABEL = "사케"
 const COMMUNITY_WRITE_DRAFT_KEY_BY_MODE: Record<WriteMode, string> = {
   review: "community_write_draft_v1_review",
@@ -56,6 +59,21 @@ const COMMUNITY_WRITE_DRAFT_KEY_BY_MODE: Record<WriteMode, string> = {
 const getModeFromSearch = (value: string | null): WriteMode => {
   if (value === "free") return "free"
   return "review"
+}
+
+function readImageFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result)
+        return
+      }
+      reject(new Error("이미지를 불러오지 못했습니다."))
+    }
+    reader.onerror = () => reject(new Error("이미지를 불러오지 못했습니다."))
+    reader.readAsDataURL(file)
+  })
 }
 
 function StarRating({ value, onChange }: { value: number; onChange: (next: number) => void }) {
@@ -134,17 +152,26 @@ export default function CommunityWrite() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const mode = getModeFromSearch(searchParams.get("mode"))
-  const { popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories } = useCommunityPageData()
+  const { popupCategoryByDrinkType, popupFeaturesByDrinkType } = useCommunityPageData()
   const isQuestionWrite = mode === "free"
   const hasCheckedDraftRef = useRef(false)
+  const photoUploadInputRef = useRef<HTMLInputElement | null>(null)
+  const cameraVideoRef = useRef<HTMLVideoElement | null>(null)
+  const pairingDrinkNameSnapshotRef = useRef("")
 
-  const [reviewTab, setReviewTab] = useState<ReviewTab>("drink")
+  const [reviewTab, setReviewTab] = useState<ReviewTab>("pairing")
 
   const [selectedSituation, setSelectedSituation] = useState<string | null>(null)
-  const [selectedDrinkType, setSelectedDrinkType] = useState<string | null>(null)
+  const [selectedDrinkType, setSelectedDrinkType] = useState<string | null>(SAKE_LABEL)
   const [selectedFoodCategory, setSelectedFoodCategory] = useState<string | null>(null)
   const [isDrinkPickerOpen, setIsDrinkPickerOpen] = useState(false)
-  const [isFoodPickerOpen, setIsFoodPickerOpen] = useState(false)
+const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
+  const [isPairingDrinkEditing, setIsPairingDrinkEditing] = useState(false)
+  const [pairingDrinkSuggestionsOpen, setPairingDrinkSuggestionsOpen] = useState(false)
+  const [isPairingFoodEditing, setIsPairingFoodEditing] = useState(false)
+  const [pairingFoodSearch, setPairingFoodSearch] = useState("")
+  const [isPhotoActionSheetOpen, setIsPhotoActionSheetOpen] = useState(false)
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
 
   // 술만 후기 쓰기(또는 질문 글쓰기 공용)
   const [drinkName, setDrinkName] = useState("")
@@ -155,6 +182,7 @@ export default function CommunityWrite() {
   const [body, setBody] = useState("")
 
   // 페어링 후기 쓰기
+  const [pairingDrinkName, setPairingDrinkName] = useState("")
   const [pairingLocationSearch, setPairingLocationSearch] = useState("")
   const [pairingLocationTags, setPairingLocationTags] = useState<string[]>([])
   const [pairingTasteTags, setPairingTasteTags] = useState<Set<string>>(() => new Set())
@@ -163,19 +191,21 @@ export default function CommunityWrite() {
   const [pairingBody, setPairingBody] = useState("")
   const [pairingPhotoIds, setPairingPhotoIds] = useState<string[]>([])
 
-  const pairingPriceDisplay = useMemo(() => {
-    const digits = pairingPrice.replace(/[^\d]/g, "")
-    if (!digits) return ""
-    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-  }, [pairingPrice])
-
   const headerTitle = "글쓰기"
 
   const canSubmit = useMemo(() => {
     if (mode === "free") return Boolean(title.trim()) && Boolean(body.trim())
-    if (reviewTab === "pairing") return Boolean(pairingSummary.trim()) && Boolean(pairingBody.trim())
+    if (reviewTab === "pairing")
+      return (
+        Boolean(pairingDrinkName.trim()) &&
+        Boolean(selectedFoodCategory?.trim()) &&
+        pairingTasteTags.size > 0 &&
+        Boolean(selectedSituation?.trim()) &&
+        Boolean(pairingSummary.trim()) &&
+        pairingBody.trim().length >= 30
+      )
     return Boolean(title.trim()) && Boolean(body.trim())
-  }, [body, mode, pairingBody, pairingSummary, reviewTab, title])
+  }, [body, mode, pairingBody, pairingDrinkName, pairingSummary, pairingTasteTags, reviewTab, selectedFoodCategory, selectedSituation, title])
 
   const drinkTypeItems = useMemo(() => Object.keys(popupCategoryByDrinkType), [popupCategoryByDrinkType])
   const sakeItems = useMemo(() => popupCategoryByDrinkType[SAKE_LABEL] ?? [], [popupCategoryByDrinkType])
@@ -184,6 +214,7 @@ export default function CommunityWrite() {
     if (!selectedDrinkType) return []
     return popupFeaturesByDrinkType[selectedDrinkType] ?? []
   }, [popupFeaturesByDrinkType, selectedDrinkType])
+  const pairingFeatureChips = [...pairingFeatureFallbackChips]
 
   // 술만 후기: 술 선택은 세부 카테고리(사케)만 허용 → 주종 자동 선택
   function handleDrinkNameChange(nextDrinkName: string) {
@@ -193,17 +224,126 @@ export default function CommunityWrite() {
     if (selectedDrinkType !== SAKE_LABEL) setSelectedDrinkType(SAKE_LABEL)
   }
 
+  async function handleUploadPhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"))
+    if (files.length === 0) return
+
+    try {
+      const remainingSlots = Math.max(0, 3 - pairingPhotoIds.length)
+      const nextImages = await Promise.all(files.slice(0, remainingSlots).map(readImageFileAsDataUrl))
+      setPairingPhotoIds((prev) => [...prev, ...nextImages].slice(0, 3))
+    } catch {
+      window.alert("이미지를 불러오지 못했습니다. 다시 시도해 주세요.")
+    }
+
+    setIsPhotoActionSheetOpen(false)
+    event.target.value = ""
+  }
+
+  function stopCameraStream(stream: MediaStream | null) {
+    stream?.getTracks().forEach((track) => track.stop())
+  }
+
+  function closeCameraPreview() {
+    stopCameraStream(cameraStream)
+    setCameraStream(null)
+  }
+
+  async function openCameraCapture() {
+    if (pairingPhotoIds.length >= 3) return
+    setIsPhotoActionSheetOpen(false)
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      window.alert("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
+      return
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      setCameraStream(stream)
+    } catch {
+      window.alert("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
+    }
+  }
+
+  function handleTakeCameraPhoto() {
+    setPairingPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))
+    closeCameraPreview()
+  }
+
+  useEffect(() => {
+    if (!cameraStream || !cameraVideoRef.current) return
+    cameraVideoRef.current.srcObject = cameraStream
+    void cameraVideoRef.current.play().catch(() => {
+      window.alert("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
+      closeCameraPreview()
+    })
+  }, [cameraStream])
+
+  useEffect(() => {
+    return () => {
+      stopCameraStream(cameraStream)
+    }
+  }, [cameraStream])
+
+  const allDrinkSuggestions = useMemo(
+    () =>
+      sakeProductsMock.map((product) => ({
+        label: product.name,
+        type: SAKE_LABEL,
+        subCategory: product.subcategory,
+      })),
+    []
+  )
+
+  const filteredDrinkSuggestions = useMemo(() => {
+    const query = drinkName.trim().toLowerCase()
+    if (!query) return []
+    return allDrinkSuggestions.filter(({ label, subCategory }) =>
+      label.toLowerCase().includes(query) || subCategory.toLowerCase().includes(query)
+    )
+  }, [drinkName, allDrinkSuggestions])
+
+  function handleDrinkSuggestionSelect(label: string, type: string) {
+    setDrinkName(label)
+    if (type !== selectedDrinkType) {
+      setSelectedDrinkType(type)
+      setDrinkTasteTags((prev) => {
+        if (prev.size === 0) return prev
+        const valid = new Set(popupFeaturesByDrinkType[type] ?? [])
+        return new Set(Array.from(prev).filter((item) => valid.has(item)))
+      })
+    }
+    setDrinkSuggestionsOpen(false)
+  }
+
+  const filteredPairingDrinkSuggestions = useMemo(() => {
+    const query = pairingDrinkName.trim().toLowerCase()
+    if (!query) return []
+    return allDrinkSuggestions.filter(({ label, subCategory }) =>
+      label.toLowerCase().includes(query) || subCategory.toLowerCase().includes(query)
+    )
+  }, [pairingDrinkName, allDrinkSuggestions])
+
+  const pairingDrinkSubCategory = useMemo(() => {
+    const found = allDrinkSuggestions.find(({ label }) => label === pairingDrinkName)
+    return found?.subCategory ?? null
+  }, [allDrinkSuggestions, pairingDrinkName])
+
+  function handlePairingDrinkSuggestionSelect(label: string, type: string) {
+    setPairingDrinkName(label)
+    if (type !== selectedDrinkType) setSelectedDrinkType(type)
+    setPairingDrinkSuggestionsOpen(false)
+    setIsPairingDrinkEditing(false)
+  }
+
+
   const filteredPairingLocationSuggestions = useMemo(() => {
     const query = pairingLocationSearch.trim().toLowerCase()
     if (!query) return locationSuggestions as unknown as string[]
     return (locationSuggestions as unknown as string[]).filter((item) => item.toLowerCase().includes(query))
   }, [pairingLocationSearch])
 
-  const pairingHasSituation = Boolean(selectedSituation?.trim())
-  const pairingHasDrinkAndFood = Boolean(selectedDrinkType?.trim() && selectedFoodCategory?.trim())
-  const pairingHasTasteTags = pairingTasteTags.size > 0
-  const pairingHasPrice = Boolean(pairingPrice.trim())
-  const pairingHasBodyInput = Boolean(pairingBody.trim())
   const draftStorageKey = COMMUNITY_WRITE_DRAFT_KEY_BY_MODE[mode]
 
   function buildDraftPayload(): DraftPayload {
@@ -397,27 +537,21 @@ export default function CommunityWrite() {
       window.alert("술 & 음식(필수)을 선택해 주세요.")
       return
     }
-    if (!pairingPrice.trim()) {
-      window.alert("가격을 입력해 주세요.")
-      return
-    }
     if (!pairingSummary.trim()) {
-      window.alert("페어링 한줄 요약을 입력해 주세요.")
+      window.alert("제목을 입력해 주세요.")
       return
     }
     if (normalizedPairingBody.length < 30) {
-      window.alert("상세 후기는 30자 이상 입력해 주세요.")
       return
     }
     if (!canSubmit) return
 
-    const pairingTitleText = `${selectedDrinkType} + ${selectedFoodCategory}`
-      const nextPost = {
+    const nextPost = {
       id: Date.now(),
       authorId: 2001,
       authorName: nickname,
-      title: pairingTitleText,
-      body: `${pairingSummary.trim()}\n\n${normalizedPairingBody}`.trim(),
+      title: pairingSummary.trim(),
+      body: normalizedPairingBody,
       createdAt: now.toISOString(),
       likeCount: 0,
       commentCount: 0,
@@ -434,7 +568,7 @@ export default function CommunityWrite() {
         ...Array.from(pairingTasteTags),
         "후기",
       ].filter((v): v is string => Boolean(v)),
-      pairingPriceWon: pairingPrice.trim(),
+      pairingPriceWon: pairingPrice.trim() || undefined,
       pairingSummary: pairingSummary.trim(),
       photoIds: pairingPhotoIds.length > 0 ? pairingPhotoIds.slice(0, 3) : undefined,
     }
@@ -531,7 +665,7 @@ export default function CommunityWrite() {
 
   return (
     <section
-      className="community_page page_screen"
+      className={reviewTab === "pairing" ? "community_page page_screen is_pairing_review" : "community_page page_screen"}
       aria-label="글쓰기"
       onMouseDown={(event) => {
         if ((event.target as HTMLElement | null)?.closest(".write_sheet")) return
@@ -547,7 +681,24 @@ export default function CommunityWrite() {
         onOpenNotifications={() => {}}
       />
 
-      <div className="write_sheet" aria-label="글쓰기 폼">
+      <div className="write_review_tabs" aria-label="후기 탭">
+        <button
+          type="button"
+          className={reviewTab === "pairing" ? "write_review_tab is_active" : "write_review_tab"}
+          onClick={() => setReviewTab("pairing")}
+        >
+          페어링 후기 쓰기
+        </button>
+        <button
+          type="button"
+          className={reviewTab === "drink" ? "write_review_tab is_active" : "write_review_tab"}
+          onClick={() => setReviewTab("drink")}
+        >
+          술 후기 쓰기
+        </button>
+      </div>
+
+      <div className={reviewTab === "pairing" ? "write_sheet is_pairing_review" : "write_sheet"} aria-label="글쓰기 폼">
         <div className="write_sheet_inner">
           <div className="write_section">
             <div className="write_section_header">
@@ -561,37 +712,48 @@ export default function CommunityWrite() {
                 <img src={iconX} alt="" aria-hidden="true" />
               </button>
             </div>
-
-            <div className="write_review_tabs" aria-label="후기 탭">
-              <button
-                type="button"
-                className={reviewTab === "drink" ? "write_review_tab is_active" : "write_review_tab"}
-                onClick={() => setReviewTab("drink")}
-              >
-                술만 후기 쓰기
-              </button>
-              <button
-                type="button"
-                className={reviewTab === "pairing" ? "write_review_tab is_active" : "write_review_tab"}
-                onClick={() => setReviewTab("pairing")}
-              >
-                페어링 후기 쓰기
-              </button>
-            </div>
           </div>
 
           {reviewTab === "drink" ? (
             <>
               <div className="write_section">
-                <label className="write_field">
+                <div className="write_field">
                   <span className="write_field_label">술 선택 (필수)</span>
-                  <input
-                    className="write_input"
-                    value={drinkName}
-                    placeholder="술 이름을 검색하거나 태그를 선택하세요"
-                    onChange={(e) => handleDrinkNameChange(e.target.value)}
-                  />
-                </label>
+                  <div className="write_drink_input_wrap">
+                    <input
+                      className="write_input"
+                      value={drinkName}
+                      placeholder="술 이름을 검색하거나 태그를 선택하세요"
+                      onChange={(e) => handleDrinkNameChange(e.target.value)}
+                      onFocus={() => setDrinkSuggestionsOpen(true)}
+                      onBlur={() =>
+                        window.setTimeout(() => {
+                          setDrinkSuggestionsOpen(false)
+                          const q = drinkName.trim().toLowerCase()
+                          const matchesLabel = allDrinkSuggestions.some(({ label }) => label.toLowerCase().includes(q))
+                          const matchesCategoryOnly = !matchesLabel && allDrinkSuggestions.some(({ subCategory }) => subCategory.toLowerCase().includes(q))
+                          if (matchesCategoryOnly) setDrinkName("")
+                        }, 150)
+                      }
+                    />
+                    {drinkSuggestionsOpen && filteredDrinkSuggestions.length > 0 && (
+                      <ul className="write_drink_autocomplete" role="listbox" aria-label="술 이름 추천">
+                        {filteredDrinkSuggestions.slice(0, 8).map(({ label, type, subCategory }) => (
+                          <li key={`${type}-${label}`} role="option" aria-selected={drinkName === label}>
+                            <button
+                              type="button"
+                              className="write_drink_suggestion_item"
+                              onMouseDown={() => handleDrinkSuggestionSelect(label, type)}
+                            >
+                              <span className="write_drink_suggestion_label">{label}</span>
+                              <span className="write_drink_suggestion_type">{subCategory}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
 
                 <div className="write_chip_row" aria-label="술 태그 선택">
                   {sakeItems.slice(0, 12).map((chip) => (
@@ -704,14 +866,11 @@ export default function CommunityWrite() {
                       </span>
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    className={photoIds.length >= 3 ? "write_photo_add is_disabled" : "write_photo_add"}
-                    aria-label="사진 추가 자리"
-                    disabled={photoIds.length >= 3}
-                  >
-                    +
-                  </button>
+                  {photoIds.length < 3 ? (
+                    <button type="button" className="write_photo_add" aria-label="사진 추가 자리">
+                      +
+                    </button>
+                  ) : null}
                 </div>
 
                 <label className="write_field">
@@ -740,28 +899,161 @@ export default function CommunityWrite() {
           ) : (
             <>
               <div className="write_section">
-                <label className="write_field">
-                  <span className="write_field_label">위치 (선택)</span>
-                  <input
-                    className="write_input"
-                    value={pairingLocationSearch}
-                    placeholder="위치를 검색하세요"
-                    onChange={(e) => setPairingLocationSearch(e.target.value)}
-                  />
-                </label>
+                <h4 className="write_section_title">포토후기(최대 3장)</h4>
+                <input
+                  ref={photoUploadInputRef}
+                  className="write_photo_file_input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadPhotoChange}
+                />
+                <button
+                  type="button"
+                  className="write_photo_browse"
+                  disabled={pairingPhotoIds.length >= 3}
+                  onClick={() => {
+                    setPairingPhotoIds((prev) =>
+                      prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`],
+                    )
+                    setPairingDrinkName("닷사이 23")
+                    setSelectedDrinkType(SAKE_LABEL)
+                    setSelectedFoodCategory("야끼니꾸")
+                  }}
+                >
+                  테스트용 이미지 불러오기
+                </button>
+                <div className="write_photo_row" aria-label="사진 추가">
+                  {pairingPhotoIds.slice(0, 3).map((photoId, index) => (
+                    <button
+                      key={photoId}
+                      type="button"
+                      className="write_photo_thumb"
+                      aria-label={`사진 ${index + 1}`}
+                      style={photoId.startsWith("data:image/") ? { backgroundImage: `url(${photoId})` } : undefined}
+                      onClick={() => setPairingPhotoIds((prev) => prev.filter((id) => id !== photoId))}
+                    >
+                      <span className="write_photo_remove" aria-hidden="true">
+                        ×
+                      </span>
+                    </button>
+                  ))}
+                  {pairingPhotoIds.length < 3 ? (
+                    <button
+                      type="button"
+                      className="write_photo_add"
+                      aria-label="사진 추가"
+                      onClick={() => setIsPhotoActionSheetOpen(true)}
+                    >
+                      +
+                    </button>
+                  ) : null}
+                </div>
+              </div>
 
-                <div className="write_chip_row" aria-label="위치 태그 선택">
-                  {filteredPairingLocationSuggestions.slice(0, 12).map((chip) => {
-                    const active = pairingLocationTags.includes(chip)
+              <div className="write_pairing_choice_list">
+                <div className="write_pairing_choice_row">
+                  <strong>술 선택 *</strong>
+                  {isPairingDrinkEditing ? (
+                    <div className="write_drink_input_wrap">
+                      <input
+                        className="write_input"
+                        value={pairingDrinkName}
+                        placeholder="술 이름을 검색하세요"
+                        autoFocus
+                        onChange={(e) => setPairingDrinkName(e.target.value)}
+                        onFocus={() => setPairingDrinkSuggestionsOpen(true)}
+                        onBlur={() =>
+                          window.setTimeout(() => {
+                            setPairingDrinkSuggestionsOpen(false)
+                            setIsPairingDrinkEditing(false)
+                            const q = pairingDrinkName.trim().toLowerCase()
+                            const matchesLabel = allDrinkSuggestions.some(({ label }) => label.toLowerCase().includes(q))
+                            const matchesCategoryOnly = !matchesLabel && allDrinkSuggestions.some(({ subCategory }) => subCategory.toLowerCase().includes(q))
+                            if (matchesCategoryOnly) setPairingDrinkName(pairingDrinkNameSnapshotRef.current)
+                          }, 150)
+                        }
+                      />
+                      {pairingDrinkSuggestionsOpen && filteredPairingDrinkSuggestions.length > 0 && (
+                        <ul className="write_drink_autocomplete" role="listbox" aria-label="술 이름 추천">
+                          {filteredPairingDrinkSuggestions.slice(0, 8).map(({ label, type, subCategory }) => (
+                            <li key={`${type}-${label}`} role="option" aria-selected={pairingDrinkName === label}>
+                              <button
+                                type="button"
+                                className="write_drink_suggestion_item"
+                                onMouseDown={() => handlePairingDrinkSuggestionSelect(label, type)}
+                              >
+                                <span className="write_drink_suggestion_label">{label}</span>
+                                <span className="write_drink_suggestion_type">{subCategory}</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <p>{pairingDrinkName || "술을 입력해 주세요"}</p>
+                      {pairingDrinkName && <span>{[selectedDrinkType, pairingDrinkSubCategory, pairingDrinkName].filter(Boolean).join(" > ")}</span>}
+                    </div>
+                  )}
+                  <button type="button" onClick={() => { if (!isPairingDrinkEditing) pairingDrinkNameSnapshotRef.current = pairingDrinkName; setIsPairingDrinkEditing((prev) => !prev) }}>
+                    {isPairingDrinkEditing ? "완료" : "수정"}
+                  </button>
+                </div>
+
+                <div className="write_pairing_choice_row">
+                  <strong>음식 선택 *</strong>
+                  {isPairingFoodEditing ? (
+                    <div className="write_drink_input_wrap">
+                      <input
+                        className="write_input"
+                        value={pairingFoodSearch}
+                        placeholder="음식 이름을 검색하세요"
+                        autoFocus
+                        onChange={(e) => setPairingFoodSearch(e.target.value)}
+                        onBlur={() =>
+                          window.setTimeout(() => {
+                            setIsPairingFoodEditing(false)
+                            if (pairingFoodSearch.trim()) setSelectedFoodCategory(pairingFoodSearch.trim())
+                            setPairingFoodSearch("")
+                          }, 150)
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <p>{selectedFoodCategory || "음식을 입력해 주세요"}</p>
+                    </div>
+                  )}
+                  <button type="button" onClick={() => setIsPairingFoodEditing((prev) => !prev)}>
+                    {isPairingFoodEditing ? "완료" : "수정"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="write_section">
+                <h4 className="write_section_title">맛 키워드 (2개 선택) *</h4>
+                <div className="write_chip_row is_pairing_preview" aria-label="취향 키워드 선택">
+                  {pairingFeatureChips.map((chip) => {
+                    const active = pairingTasteTags.has(chip)
                     return (
                       <button
                         key={chip}
                         type="button"
                         className={active ? "write_chip is_active" : "write_chip"}
                         onClick={() =>
-                            setPairingLocationTags((prev) => {
-                            if (prev.includes(chip)) return prev.filter((item) => item !== chip)
-                            return [...prev, chip]
+                            setPairingTasteTags((prev) => {
+                            const next = new Set(prev)
+                            if (next.has(chip)) {
+                              next.delete(chip)
+                              return next
+                            }
+                            if (next.size >= 2) {
+                              window.alert("취향 키워드는 최대 2개까지 선택할 수 있어요.")
+                              return prev
+                            }
+                            next.add(chip)
+                            return next
                           })
                         }
                       >
@@ -773,8 +1065,8 @@ export default function CommunityWrite() {
               </div>
 
               <div className="write_section">
-                <h4 className="write_section_title">상황 키워드 (필수)</h4>
-                <div className="write_pill_grid" aria-label="상황 선택">
+                <h4 className="write_section_title">상황 키워드 *</h4>
+                <div className="write_pill_grid is_pairing_preview" aria-label="상황 선택">
                   {situationChips.map((chip) => (
                     <button
                       key={chip}
@@ -788,80 +1080,60 @@ export default function CommunityWrite() {
                 </div>
               </div>
 
-              <div
-                className={pairingHasSituation ? "write_section write_reveal is_visible" : "write_section write_reveal"}
-              >
-                <h4 className="write_section_title">술 & 음식 (필수)</h4>
-                <div className="write_pick_cards" aria-label="술과 음식 선택">
-                  <button
-                    type="button"
-                    className={selectedDrinkType ? "write_pick_card is_compact is_selected" : "write_pick_card is_compact"}
-                    aria-label="술 선택"
-                    onClick={() => setIsDrinkPickerOpen(true)}
-                  >
-                    {selectedDrinkType ? (
-                      <div className="write_pick_card_selected" aria-label="선택됨">
-                        <strong className="write_pick_card_title">{selectedDrinkType}</strong>
-                        <span className="write_pick_card_selected_badge">선택됨</span>
-                      </div>
-                    ) : (
-                      <div className="write_pick_card_plus" aria-hidden="true">
-                        +
-                      </div>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    className={
-                      selectedFoodCategory ? "write_pick_card is_compact is_selected" : "write_pick_card is_compact"
-                    }
-                    aria-label="음식 선택"
-                    onClick={() => setIsFoodPickerOpen(true)}
-                  >
-                    {selectedFoodCategory ? (
-                      <div className="write_pick_card_selected" aria-label="선택됨">
-                        <strong className="write_pick_card_title">{selectedFoodCategory}</strong>
-                        <span className="write_pick_card_selected_badge">선택됨</span>
-                      </div>
-                    ) : (
-                      <div className="write_pick_card_plus" aria-hidden="true">
-                        +
-                      </div>
-                    )}
-                  </button>
-                </div>
+              <div className="write_section">
+                <label className="write_field">
+                  <span className="write_field_label">페어링 한 줄 요약 (제목) *</span>
+                  <input
+                    className="write_input"
+                    value={pairingSummary}
+                    placeholder="제목을 입력하세요"
+                    onChange={(e) => setPairingSummary(e.target.value)}
+                  />
+                </label>
               </div>
 
-              <div
-                className={
-                  pairingHasSituation && pairingHasDrinkAndFood
-                    ? "write_section write_reveal is_visible"
-                    : "write_section write_reveal"
-                }
-              >
-                <h4 className="write_section_title">취향키워드</h4>
-                {selectedDrinkType ? (
-                  <div className="write_chip_row" aria-label="취향 키워드 선택">
-                    {availableFeatureChips.map((chip) => {
-                      const active = pairingTasteTags.has(chip)
+              <div className="write_section">
+                <label className="write_field">
+                  <span className="write_field_label">상세 후기 *</span>
+                  <textarea
+                    className="write_textarea"
+                    value={pairingBody}
+                    placeholder="30자 이상 입력해주세요."
+                    maxLength={1000}
+                    onChange={(e) => setPairingBody(e.target.value)}
+                  />
+                  {pairingBody.trim().length > 0 && pairingBody.trim().length < 30 && <span className="write_field_error">상세 후기는 30자 이상 입력해 주세요.</span>}
+                  <span className="write_field_counter">{Math.min(1000, pairingBody.length)}/1000</span>
+                </label>
+              </div>
+
+              <div className="write_section">
+                <label className="write_field">
+                  <span className="write_field_label">위치</span>
+                  <span className="write_location_input">
+                    <input
+                      className="write_input"
+                      value={pairingLocationSearch}
+                      placeholder="위치를 검색하세요"
+                      onChange={(e) => setPairingLocationSearch(e.target.value)}
+                    />
+                    <img src={iconSearch} alt="" aria-hidden="true" />
+                  </span>
+                </label>
+
+                {pairingLocationSearch.trim() || pairingLocationTags.length > 0 ? (
+                  <div className="write_chip_row" aria-label="위치 태그 선택">
+                    {filteredPairingLocationSuggestions.slice(0, 12).map((chip) => {
+                      const active = pairingLocationTags.includes(chip)
                       return (
                         <button
                           key={chip}
                           type="button"
                           className={active ? "write_chip is_active" : "write_chip"}
                           onClick={() =>
-                              setPairingTasteTags((prev) => {
-                              const next = new Set(prev)
-                              if (next.has(chip)) {
-                                next.delete(chip)
-                                return next
-                              }
-                              if (next.size >= 2) {
-                                window.alert("취향 키워드는 최대 2개까지 선택할 수 있어요.")
-                                return prev
-                              }
-                              next.add(chip)
-                              return next
+                            setPairingLocationTags((prev) => {
+                              if (prev.includes(chip)) return prev.filter((item) => item !== chip)
+                              return [...prev, chip]
                             })
                           }
                         >
@@ -870,124 +1142,7 @@ export default function CommunityWrite() {
                       )
                     })}
                   </div>
-                ) : (
-                  <div className="write_empty_slot" aria-label="술 선택 후 키워드 표시" />
-                )}
-              </div>
-
-              <div
-                className={
-                  pairingHasSituation && pairingHasDrinkAndFood && pairingHasTasteTags
-                    ? "write_section write_reveal is_visible"
-                    : "write_section write_reveal"
-                }
-              >
-                <label className="write_field">
-                  <span className="write_field_label">가격 (필수)</span>
-                  <div className="write_input_suffix_row" aria-label="가격 입력">
-                    <input
-                      className="write_input"
-                      inputMode="numeric"
-                      value={pairingPriceDisplay}
-                      placeholder="가격을 입력하세요"
-                      onChange={(e) => setPairingPrice(e.target.value.replace(/[^\d]/g, ""))}
-                    />
-                    <span className="write_input_suffix" aria-hidden="true">
-                      원
-                    </span>
-                  </div>
-                </label>
-              </div>
-
-              <div
-                className={
-                  pairingHasSituation && pairingHasDrinkAndFood && pairingHasTasteTags && pairingHasPrice
-                    ? "write_section write_reveal is_visible"
-                    : "write_section write_reveal"
-                }
-              >
-                <label className="write_field">
-                  <span className="write_field_label">페어링 한줄 요약 (필수)</span>
-                  <input
-                    className="write_input"
-                    value={pairingSummary}
-                    placeholder="텍스트를 입력하세요"
-                    onChange={(e) => setPairingSummary(e.target.value)}
-                  />
-                </label>
-              </div>
-
-              <div
-                className={
-                  pairingHasSituation &&
-                  pairingHasDrinkAndFood &&
-                  pairingHasTasteTags &&
-                  pairingHasPrice &&
-                  Boolean(pairingSummary.trim())
-                    ? "write_section write_reveal is_visible"
-                    : "write_section write_reveal"
-                }
-              >
-                <label className="write_field">
-                  <span className="write_field_label">상세 후기 (필수)</span>
-                  <textarea
-                    className="write_textarea"
-                    value={pairingBody}
-                    placeholder="30자 이상 입력해 주세요."
-                    onChange={(e) => setPairingBody(e.target.value)}
-                  />
-                  <span className="write_field_counter">{Math.min(300, pairingBody.length)}/300</span>
-                </label>
-              </div>
-
-              <div
-                className={
-                  pairingHasSituation &&
-                  pairingHasDrinkAndFood &&
-                  pairingHasTasteTags &&
-                  pairingHasPrice &&
-                  Boolean(pairingSummary.trim()) &&
-                  pairingHasBodyInput
-                    ? "write_section write_reveal is_visible"
-                    : "write_section write_reveal"
-                }
-              >
-                <h4 className="write_section_title">포토후기 (선택, 최대3장)</h4>
-                <button
-                  type="button"
-                  className="write_photo_browse"
-                  disabled={pairingPhotoIds.length >= 3}
-                  onClick={() =>
-                    setPairingPhotoIds((prev) =>
-                      prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`],
-                    )
-                  }
-                >
-                  테스트용 이미지로 둘러보기
-                </button>
-                <div className="write_photo_row" aria-label="사진 추가">
-                  {pairingPhotoIds.slice(0, 3).map((photoId, index) => (
-                    <button
-                      key={photoId}
-                      type="button"
-                      className="write_photo_thumb"
-                      aria-label={`사진 ${index + 1}`}
-                      onClick={() => setPairingPhotoIds((prev) => prev.filter((id) => id !== photoId))}
-                    >
-                      <span className="write_photo_remove" aria-hidden="true">
-                        ×
-                      </span>
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className={pairingPhotoIds.length >= 3 ? "write_photo_add is_disabled" : "write_photo_add"}
-                    aria-label="사진 추가 자리"
-                    disabled={pairingPhotoIds.length >= 3}
-                  >
-                    +
-                  </button>
-                </div>
+                ) : null}
               </div>
             </>
           )}
@@ -1051,11 +1206,6 @@ export default function CommunityWrite() {
                         const valid = new Set(popupFeaturesByDrinkType[drinkType] ?? [])
                         return new Set(Array.from(prev).filter((item) => valid.has(item)))
                       })
-                        setPairingTasteTags((prev) => {
-                        if (prev.size === 0) return prev
-                        const valid = new Set(popupFeaturesByDrinkType[drinkType] ?? [])
-                        return new Set(Array.from(prev).filter((item) => valid.has(item)))
-                      })
                       setIsDrinkPickerOpen(false)
                     }}
                   >
@@ -1068,44 +1218,60 @@ export default function CommunityWrite() {
         </div>
       ) : null}
 
-      {isFoodPickerOpen ? (
+
+      {isPhotoActionSheetOpen ? (
         <div
-          className="write_modal_backdrop"
+          className="write_photo_action_backdrop"
           role="presentation"
           onMouseDown={(event) => {
             event.stopPropagation()
-            setIsFoodPickerOpen(false)
+            setIsPhotoActionSheetOpen(false)
           }}
         >
           <div
-            className="write_modal_panel"
+            className="write_photo_action_sheet"
             role="dialog"
             aria-modal="true"
-            aria-label="음식 선택"
+            aria-label="사진 추가 방법"
             onMouseDown={(event) => event.stopPropagation()}
           >
-            <div className="write_modal_header">
-              <h4 className="write_modal_title">음식 선택</h4>
-              <button type="button" className="write_modal_close" aria-label="닫기" onClick={() => setIsFoodPickerOpen(false)}>
-                <img src={iconX} alt="" aria-hidden="true" />
+            <button type="button" onClick={openCameraCapture}>
+              사진 촬영
+            </button>
+            <button type="button" onClick={() => photoUploadInputRef.current?.click()}>
+              사진 업로드
+            </button>
+            <button type="button" onClick={() => setIsPhotoActionSheetOpen(false)}>
+              닫기
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {cameraStream ? (
+        <div
+          className="write_camera_backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            event.stopPropagation()
+            closeCameraPreview()
+          }}
+        >
+          <div
+            className="write_camera_panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="사진 촬영"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <video ref={cameraVideoRef} className="write_camera_video" playsInline muted />
+            <div className="write_camera_actions">
+              <button type="button" onClick={handleTakeCameraPhoto}>
+                촬영하기
               </button>
-            </div>
-            <div className="write_modal_body" aria-label="음식 목록">
-              <div className="write_chip_row">
-                {popupFoodCategories.map((food) => (
-                  <button
-                    key={food}
-                    type="button"
-                    className={selectedFoodCategory === food ? "write_chip is_active" : "write_chip"}
-                    onClick={() => {
-                        setSelectedFoodCategory(food)
-                      setIsFoodPickerOpen(false)
-                    }}
-                  >
-                    {food}
-                  </button>
-                ))}
-              </div>
+              <button type="button" onClick={closeCameraPreview}>
+                닫기
+              </button>
             </div>
           </div>
         </div>

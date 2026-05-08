@@ -819,7 +819,7 @@ export default function Community() {
                 source: "feed",
                 feedFilter: feedFilter,
               }}
-              title={post.isQna ? post.title : extractPairingTitle(post.title)}
+              title={post.isQna ? post.title : (post.pairingSummary ?? post.title)}
               body={post.body}
               answerCount={post.answerCount}
               answerPreview={post.answerPreview}

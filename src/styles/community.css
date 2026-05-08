@@ -923,6 +923,278 @@
   gap: 16px;
 }
 
+.community_page.is_pairing_review {
+  background: #F7F3EC;
+  color: #111111;
+}
+
+.write_sheet.is_pairing_review {
+  margin: 0 -16px 0;
+  border-radius: 16px 16px 0 0;
+  background: #FFFFFF;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.write_sheet.is_pairing_review .write_sheet_inner {
+  padding: 18px 16px 0;
+  gap: 26px;
+}
+
+.write_sheet.is_pairing_review .write_section_header {
+  display: none;
+}
+
+.community_page.is_pairing_review > .write_review_tabs {
+  margin: 12px 0 0;
+}
+
+.write_sheet.is_pairing_review .write_review_tabs,
+.community_page.is_pairing_review > .write_review_tabs {
+  justify-self: start;
+  width: min(100%, 288px);
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0;
+  border-radius: 9px 9px 0 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.write_sheet.is_pairing_review .write_section_title,
+.write_sheet.is_pairing_review .write_field_label {
+  color: #111111;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.write_sheet.is_pairing_review .write_review_tab,
+.community_page.is_pairing_review > .write_review_tabs .write_review_tab {
+  min-height: 38px;
+  border-radius: 9px 9px 0 0;
+  background: #dfdfdf;
+  color: #111111;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.write_sheet.is_pairing_review .write_review_tab.is_active,
+.community_page.is_pairing_review > .write_review_tabs .write_review_tab.is_active {
+  background: #A17C3B;
+  color: #FFFFFF;
+}
+
+.write_pairing_photo_area {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: center;
+  gap: 18px;
+  min-height: 238px;
+}
+
+.write_pairing_pick_actions {
+  justify-self: end;
+  display: grid;
+  gap: 68px;
+  padding-right: 2px;
+}
+
+.write_pairing_pick_actions button {
+  min-width: 54px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff8ed;
+  color: #5f5b56;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.write_sheet.is_pairing_review .write_pairing_photo_area .write_photo_add {
+  width: 120px;
+  height: 118px;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #000000;
+  font-size: 58px;
+  font-weight: 300;
+}
+
+.write_sheet.is_pairing_review .write_photo_add {
+  width: 108px;
+  height: 106px;
+  border: 1px solid #999999;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #000000;
+  font-size: 58px;
+  font-weight: 300;
+}
+
+.write_sheet.is_pairing_review .write_photo_thumb {
+  width: 108px;
+  height: 106px;
+  border-radius: 8px;
+}
+
+.write_pairing_choice_list {
+  display: grid;
+  gap: 22px;
+}
+
+.write_pairing_choice_row {
+  display: grid;
+  grid-template-columns: 82px 1fr auto;
+  align-items: start;
+  gap: 10px;
+  color: #111111;
+}
+
+.write_pairing_choice_row strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.write_pairing_choice_row p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.write_pairing_choice_row span {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.write_pairing_choice_row button {
+  min-width: 43px;
+  min-height: 28px;
+  border: 1px solid #7f745e;
+  border-radius: 999px;
+  background: #fff8ed;
+  color: #6d665d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.write_sheet.is_pairing_review .write_photo_browse {
+  color: #cfc6b8;
+}
+
+.write_sheet.is_pairing_review .write_chip_row,
+.write_sheet.is_pairing_review .write_pill_grid {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 9px;
+  scrollbar-width: none;
+}
+
+.write_sheet.is_pairing_review .write_chip_row::-webkit-scrollbar,
+.write_sheet.is_pairing_review .write_pill_grid::-webkit-scrollbar {
+  display: none;
+}
+
+.write_sheet.is_pairing_review .write_chip,
+.write_sheet.is_pairing_review .write_pill {
+  flex-shrink: 0;
+  min-height: 25px;
+  border: 1px solid #8a8174;
+  border-radius: 999px;
+  padding: 0 11px;
+  background: #fff8ed;
+  color: #716a62;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.write_sheet.is_pairing_review .write_chip.is_active,
+.write_sheet.is_pairing_review .write_pill.is_active {
+  background: #e4d2a7;
+  color: #5f564b;
+}
+
+.write_sheet.is_pairing_review .write_input {
+  min-height: 45px;
+  border: 1px solid #9d9d9d;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #FFFFFF;
+  color: #111111;
+  font-size: 14px;
+}
+
+.write_sheet.is_pairing_review .write_input::placeholder,
+.write_sheet.is_pairing_review .write_textarea::placeholder {
+  color: #cfcfcf;
+}
+
+.write_sheet.is_pairing_review .write_textarea {
+  min-height: 154px;
+  border: 1px solid #9d9d9d;
+  border-radius: 8px;
+  padding: 15px 12px;
+  background: #FFFFFF;
+  color: #111111;
+  font-size: 14px;
+}
+
+.write_sheet.is_pairing_review .write_field_counter {
+  color: #9a9a9a;
+}
+
+.write_location_input {
+  position: relative;
+  display: block;
+}
+
+.write_location_input .write_input {
+  padding-right: 54px;
+}
+
+.write_location_input img {
+  position: absolute;
+  top: 50%;
+  right: 17px;
+  width: 24px;
+  height: 24px;
+  transform: translateY(-50%);
+}
+
+.write_sheet.is_pairing_review .write_bottom_actions {
+  position: sticky;
+  bottom: -16px;
+  grid-template-columns: 1fr 92px;
+  gap: 12px;
+  margin: 10px -16px 0;
+  padding: 14px 20px 18px;
+  border-radius: 0 0 16px 16px;
+  background: #FFFFFF;
+}
+
+.write_sheet.is_pairing_review .write_primary_button {
+  min-height: 34px;
+  border-radius: 10px;
+  background: #A17C3B;
+  box-shadow: 0 3px 10px rgba(161, 124, 59, 0.35);
+}
+
+.write_sheet.is_pairing_review .write_primary_button.is_disabled {
+  background: #CFC6B8;
+  box-shadow: none;
+}
+
+.write_sheet.is_pairing_review .write_secondary_button {
+  min-height: 34px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #6f655d;
+  border-color: #f0e8dc;
+}
+
 .write_section {
   display: grid;
   gap: 10px;
@@ -1302,6 +1574,10 @@
   cursor: default;
 }
 
+.write_photo_file_input {
+  display: none;
+}
+
 .write_photo_thumb {
   position: relative;
   width: 64px;
@@ -1309,6 +1585,8 @@
   border: 0;
   border-radius: 14px;
   background: linear-gradient(135deg, #E5DED3, #B5AA99);
+  background-position: center;
+  background-size: cover;
   flex: 0 0 auto;
 }
 
@@ -1341,9 +1619,141 @@
   opacity: 0.4;
 }
 
+.write_photo_action_backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 16px 18px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.write_photo_action_sheet {
+  width: min(100%, 398px);
+  display: grid;
+  gap: 8px;
+}
+
+.write_photo_action_sheet button {
+  min-height: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: #FFFFFF;
+  color: #111111;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.write_photo_action_sheet button:last-child {
+  margin-top: 4px;
+  color: #757575;
+}
+
+.write_camera_backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.write_camera_panel {
+  width: min(100%, 398px);
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  background: #FFFFFF;
+}
+
+.write_camera_video {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  background: #111111;
+  object-fit: cover;
+}
+
+.write_camera_actions {
+  display: grid;
+  grid-template-columns: 1fr 96px;
+  gap: 10px;
+}
+
+.write_camera_actions button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #A17C3B;
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.write_camera_actions button:last-child {
+  background: #F7F3EC;
+  color: #424242;
+}
+
 .write_field {
   display: grid;
   gap: 8px;
+}
+
+.write_drink_input_wrap {
+  position: relative;
+}
+
+.write_drink_autocomplete {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  border: 1px solid #E5DED3;
+  border-radius: 14px;
+  background: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.write_drink_suggestion_item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  gap: 8px;
+}
+
+.write_drink_suggestion_item:hover,
+.write_drink_suggestion_item:focus {
+  background: #F7F3EC;
+}
+
+.write_drink_suggestion_label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212121;
+}
+
+.write_drink_suggestion_type {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #9a9a9a;
+  font-weight: 500;
 }
 
 .write_field_label {
@@ -1390,6 +1800,11 @@
   text-align: right;
   font-size: 11px;
   color: #757575;
+}
+
+.write_field_error {
+  font-size: 12px;
+  color: #d94f4f;
 }
 
 .write_rating_row {
