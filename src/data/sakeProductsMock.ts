@@ -25,7 +25,7 @@ export const sakeProductsMock: SakeProductMock[] = [
     subcategory: SAKE_READY_SUBCATEGORY,
     name: "닷사이 23",
     subtitle: "Dassai 23 Junmai Daiginjo",
-    priceWon: 88000,
+    priceWon: 200000,
     tags: ["사케", "과일향", "16도", "드라이"],
     keywords: ["준마이 다이긴죠", "다이긴죠", "닷사이", "23", "과일향"],
     chat: {
