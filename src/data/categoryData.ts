@@ -13,28 +13,28 @@ export const CATEGORY_PREPARING_MESSAGE = "아직 준비 중인 기능이에요,
 
 export const drinkCategories: DrinkCategory[] = [
   {
-    id: "sake",
-    label: "사케",
-    englishLabel: "Sake",
-    subcategories: ["준마이 다이긴죠 / 다이긴죠", "준마이 긴죠 / 긴죠", "준마이", "혼죠조 / 후츠슈"],
-  },
-  {
     id: "soju",
     label: "소주",
     englishLabel: "Soju",
     subcategories: ["데일리(희석식)", "프리미엄(증류식)", "플레이버"],
   },
   {
-    id: "wine",
-    label: "와인",
-    englishLabel: "Wine",
-    subcategories: ["레드 / 화이트 / 로제 / 스파클링", "내추럴", "포트", "디저트"],
-  },
-  {
     id: "beer",
     label: "맥주",
     englishLabel: "Beer",
     subcategories: ["라거 / 필스너", "에일 / IPA", "흑맥주(스타우트)", "과일맥주"],
+  },
+  {
+    id: "wine",
+    label: "와인",
+    englishLabel: "Wine",
+    subcategories: ["레드", "화이트", "로제", "스파클링", "내추럴", "포트", "디저트"],
+  },
+  {
+    id: "sake",
+    label: "사케",
+    englishLabel: "Sake",
+    subcategories: ["준마이 다이긴죠 / 다이긴죠", "준마이 긴죠 / 긴죠", "준마이", "혼죠조 / 후츠슈"],
   },
   {
     id: "whisky",
@@ -75,7 +75,10 @@ export const subcategoryInfoByCategoryId: Record<string, SubcategoryInfoMap> = {
     플레이버: "증류주 베이스에 과일 향이나 농축액을 블렌딩하여 기호성을 높인 술",
   },
   wine: {
-    "레드 / 화이트 / 로제 / 스파클링": "포도 품종과 침출 방식, 탄산 함유 여부에 따라 구분",
+    레드: "포도 품종과 침출 방식, 탄산 함유 여부에 따라 구분",
+    화이트: "포도 품종과 침출 방식, 탄산 함유 여부에 따라 구분",
+    로제: "포도 품종과 침출 방식, 탄산 함유 여부에 따라 구분",
+    스파클링: "포도 품종과 침출 방식, 탄산 함유 여부에 따라 구분",
     내추럴: "사람의 손길을 최소화하여, 포도와 땅의 본래 성격을 그대로 담아냄",
     포트: "와인이 변질되는 것을 막기 위해 도수가 높은 브랜디를 첨가하여 강렬하고 달콤함",
     디저트: "포도의 단맛을 최대한 응축시켜, 식후 입 안을 달콤하고 깔끔하게 정리",

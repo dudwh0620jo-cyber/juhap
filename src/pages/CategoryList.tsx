@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router"
+import { useLocation, useNavigate, useSearchParams } from "react-router"
 import type { CategoryListItem } from "../components/CategoryItemCard"
 import CategoryItemCard from "../components/CategoryItemCard"
 import CategoryListSearch from "../components/CategoryListSearch"
@@ -9,13 +9,14 @@ import "../styles/category-list.css"
 const sortLabels: Record<SortKey, string> = {
   default: "기본순",
   recommended: "추천순",
-  lowPrice: "낮은가격순",
-  highPrice: "높은가격순",
+  lowPrice: "낮은 가격순",
+  highPrice: "높은 가격순",
 }
 
 export default function CategoryList() {
   const { sakeDaiginjoItems, sortOptions } = useCategoryListPageData()
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const group = searchParams.get("group") ?? "사케"
   const sub = searchParams.get("sub") ?? "준마이 다이긴죠"
@@ -54,27 +55,24 @@ export default function CategoryList() {
     navigate(`/product/${item.id}`)
   }
 
+  const returnState = location.state as { returnCategoryId?: string; returnScrollTop?: number } | null
+  const handleBack = () => {
+    navigate("/category", {
+      state: { groupLabel: group, categoryId: returnState?.returnCategoryId, scrollTop: returnState?.returnScrollTop },
+    })
+  }
+
   return (
     <section className="category_list_page page_screen" aria-label="카테고리 리스트">
       <header className="category_list_header">
-        <button
-          type="button"
-          className="category_list_back"
-          aria-label="카테고리로 돌아가기"
-          onClick={() => navigate("/category", { state: { groupLabel: group } })}
-        >
-          ←
+        <button type="button" className="category_list_back" aria-label="카테고리로 돌아가기" onClick={handleBack}>
+          ‹
         </button>
-        <CategoryListSearch
-          ref={searchInputRef}
-          value={searchValue}
-          onChange={setSearchValue}
-          onConfirm={() => undefined}
-        />
+        <CategoryListSearch ref={searchInputRef} value={searchValue} onChange={setSearchValue} onConfirm={() => undefined} />
       </header>
 
       <div className="category_list_meta_row">
-        <button type="button" className="category_list_title" onClick={() => navigate("/category", { state: { groupLabel: group } })}>
+        <button type="button" className="category_list_title" onClick={handleBack}>
           {group} &gt; {sub.replace(" / ", " ")}
         </button>
         <button className="category_sort_button" type="button" onClick={() => setIsSortSheetOpen(true)}>
@@ -84,7 +82,7 @@ export default function CategoryList() {
       </div>
 
       <div className="category_list_cards" aria-label="카테고리 상품 목록">
-        {sortedItems.length === 0 ? <p className="category_list_empty">검색 결과가 없어요.</p> : null}
+        {sortedItems.length === 0 ? <p className="category_list_empty">검색 결과가 없어요</p> : null}
         {sortedItems.map((item) => (
           <CategoryItemCard key={item.id} item={item} onOpen={handleOpenItem} />
         ))}
@@ -125,3 +123,4 @@ export default function CategoryList() {
     </section>
   )
 }
+

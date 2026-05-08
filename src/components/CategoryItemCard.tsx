@@ -3,6 +3,7 @@ import { Link } from "react-router"
 export type CategoryListItem = {
   id: string
   name: string
+  imageSrc?: string
   price?: number
   priceLabel?: string
   subGroup?: string
@@ -20,7 +21,9 @@ export default function CategoryItemCard({ item, onOpen }: Props) {
 
   return (
     <article className="category_item_card">
-      <div className="category_item_thumb" aria-hidden="true" />
+      <div className="category_item_thumb" aria-hidden="true">
+        {item.imageSrc ? <img className="category_item_thumb_img" src={item.imageSrc} alt="" aria-hidden="true" /> : null}
+      </div>
       <div className="category_item_text">
         <strong className="category_item_name">{item.name}</strong>
         {priceText ? <span className="category_item_price">{priceText}</span> : null}

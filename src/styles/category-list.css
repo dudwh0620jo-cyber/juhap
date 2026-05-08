@@ -122,13 +122,21 @@
 }
 
 .category_item_thumb {
+  position: relative;
   width: 58px;
   height: 82px;
   justify-self: center;
   border-radius: 12px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0)),
-    linear-gradient(90deg, #f1f1f1 0 30%, #3f4b2f 30% 64%, #efe6d0 64% 100%);
+  overflow: hidden;
+
+}
+
+.category_item_thumb_img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .category_item_text {

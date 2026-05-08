@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import CategorySearch from "../components/CategorySearch"
-import iconInfo from "../assets/svg/Info.svg"
 import {
   CATEGORY_PREPARING_MESSAGE,
-  READY_CATEGORY_ID,
   READY_SUBCATEGORY,
   drinkCategories,
   subcategoryInfoByCategoryId,
@@ -15,36 +13,39 @@ import "../styles/category.css"
 export default function Category() {
   const navigate = useNavigate()
   const location = useLocation()
-  const returnedGroupLabel = (location.state as { groupLabel?: string } | null)?.groupLabel
+  const returnedState = location.state as
+    | { groupLabel?: string; categoryId?: string; scrollTop?: number }
+    | null
+  const returnedGroupLabel = returnedState?.groupLabel
   const searchInputRef = useRef<HTMLInputElement | null>(null)
+
+  const scrollPanelRef = useRef<HTMLDivElement | null>(null)
+  const leftListRef = useRef<HTMLDivElement | null>(null)
+  const sectionHeaderRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const isProgrammaticScrollRef = useRef(false)
+  const programmaticScrollTimeoutRef = useRef<number | null>(null)
+  const scrollRafRef = useRef<number | null>(null)
 
   const [activeCategoryId, setActiveCategoryId] = useState(() => {
     const returnedCategory = drinkCategories.find((category) => category.label === returnedGroupLabel)
-    return returnedCategory?.id ?? drinkCategories[0].id
+    return returnedState?.categoryId ?? returnedCategory?.id ?? drinkCategories[0].id
   })
   const [searchValue, setSearchValue] = useState("")
-  const [openInfoKey, setOpenInfoKey] = useState<string | null>(null)
-  const [isInfoFadingOut, setIsInfoFadingOut] = useState(false)
-  const infoTimeoutRef = useRef<number | null>(null)
-  const infoFadeTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
-      if (infoTimeoutRef.current) window.clearTimeout(infoTimeoutRef.current)
-      if (infoFadeTimeoutRef.current) window.clearTimeout(infoFadeTimeoutRef.current)
+      if (programmaticScrollTimeoutRef.current) window.clearTimeout(programmaticScrollTimeoutRef.current)
+      if (scrollRafRef.current) window.cancelAnimationFrame(scrollRafRef.current)
     }
   }, [])
-
-  const activeCategory = drinkCategories.find((category) => category.id === activeCategoryId) ?? drinkCategories[0]
 
   const visibleCategories = useMemo(() => {
     const normalizedQuery = searchValue.trim().toLowerCase()
     if (!normalizedQuery) return drinkCategories
 
     return drinkCategories.filter((category) => {
-      const categoryMatches =
-        category.label.toLowerCase().includes(normalizedQuery) ||
-        category.englishLabel.toLowerCase().includes(normalizedQuery)
+      const categoryMatches = category.label.toLowerCase().includes(normalizedQuery)
       const subcategoryMatches = category.subcategories.some((subcategory) =>
         subcategory.toLowerCase().includes(normalizedQuery),
       )
@@ -53,24 +54,34 @@ export default function Category() {
     })
   }, [searchValue])
 
-  const selectedCategory =
-    visibleCategories.find((category) => category.id === activeCategoryId) ?? visibleCategories[0] ?? activeCategory
+  useEffect(() => {
+    if (visibleCategories.length === 0) return
+    if (visibleCategories.some((category) => category.id === activeCategoryId)) return
+    setActiveCategoryId(visibleCategories[0].id)
+  }, [activeCategoryId, visibleCategories])
 
-  const visibleSubcategories = useMemo(() => {
+  const categoriesWithVisibleSubcategories = useMemo(() => {
     const normalizedQuery = searchValue.trim().toLowerCase()
-    if (!normalizedQuery) return selectedCategory.subcategories
+    if (!normalizedQuery) {
+      return visibleCategories.map((category) => ({ category, subcategories: category.subcategories }))
+    }
 
-    const selectedCategoryMatches =
-      selectedCategory.label.toLowerCase().includes(normalizedQuery) ||
-      selectedCategory.englishLabel.toLowerCase().includes(normalizedQuery)
+    return visibleCategories
+      .map((category) => {
+        const categoryMatches = category.label.toLowerCase().includes(normalizedQuery)
 
-    if (selectedCategoryMatches) return selectedCategory.subcategories
+        const subcategories = categoryMatches
+          ? category.subcategories
+          : category.subcategories.filter((subcategory) => subcategory.toLowerCase().includes(normalizedQuery))
 
-    return selectedCategory.subcategories.filter((subcategory) => subcategory.toLowerCase().includes(normalizedQuery))
-  }, [searchValue, selectedCategory])
+        return { category, subcategories }
+      })
+      .filter(({ subcategories }) => subcategories.length > 0)
+  }, [searchValue, visibleCategories])
 
   const handleSubcategoryClick = (category: DrinkCategory, subcategory: string) => {
-    if (category.id !== READY_CATEGORY_ID || subcategory !== READY_SUBCATEGORY) {
+    const isReady = category.id === "sake" && subcategory === READY_SUBCATEGORY
+    if (!isReady) {
       alert(CATEGORY_PREPARING_MESSAGE)
       return
     }
@@ -78,99 +89,160 @@ export default function Category() {
     const params = new URLSearchParams()
     params.set("group", category.label)
     params.set("sub", subcategory)
-    navigate(`/category/list?${params.toString()}`)
+    navigate(`/category/list?${params.toString()}`, {
+      state: { returnCategoryId: category.id, returnScrollTop: scrollPanelRef.current?.scrollTop ?? 0 },
+    })
   }
+
+  useEffect(() => {
+    const root = scrollPanelRef.current
+    const returnedScrollTop = returnedState?.scrollTop
+    if (!root || returnedScrollTop === undefined) return
+
+    isProgrammaticScrollRef.current = true
+    root.scrollTo({ top: returnedScrollTop })
+    if (programmaticScrollTimeoutRef.current) window.clearTimeout(programmaticScrollTimeoutRef.current)
+    programmaticScrollTimeoutRef.current = window.setTimeout(() => {
+      isProgrammaticScrollRef.current = false
+    }, 120)
+  }, [returnedState?.scrollTop])
+
+  useEffect(() => {
+    const root = scrollPanelRef.current
+    if (!root) return
+
+    const pickActiveCategoryId = () => {
+      if (isProgrammaticScrollRef.current) return
+
+      const scrollTop = root.scrollTop
+      const paddingTop = Number.parseFloat(window.getComputedStyle(root).paddingTop || "0") || 0
+      const probeLine = scrollTop + paddingTop + 12
+
+      if (categoriesWithVisibleSubcategories.length > 0) {
+        const isNearBottom = scrollTop + root.clientHeight >= root.scrollHeight - 2
+        if (isNearBottom) {
+          const lastId = categoriesWithVisibleSubcategories[categoriesWithVisibleSubcategories.length - 1].category.id
+          if (lastId !== activeCategoryId) setActiveCategoryId(lastId)
+          return
+        }
+      }
+
+      let nextActiveId: string | null = null
+      for (const { category } of categoriesWithVisibleSubcategories) {
+        const header = sectionHeaderRefs.current[category.id]
+        if (!header) continue
+        if (header.offsetTop <= probeLine) nextActiveId = category.id
+        else break
+      }
+
+      if (nextActiveId && nextActiveId !== activeCategoryId) setActiveCategoryId(nextActiveId)
+    }
+
+    const onScroll = () => {
+      if (scrollRafRef.current) return
+      scrollRafRef.current = window.requestAnimationFrame(() => {
+        scrollRafRef.current = null
+        pickActiveCategoryId()
+      })
+    }
+
+    root.addEventListener("scroll", onScroll, { passive: true })
+    pickActiveCategoryId()
+    return () => root.removeEventListener("scroll", onScroll)
+  }, [activeCategoryId, categoriesWithVisibleSubcategories])
+
+  const scrollToCategory = (categoryId: string) => {
+    const root = scrollPanelRef.current
+    const target = sectionHeaderRefs.current[categoryId]
+    if (!root || !target) {
+      setActiveCategoryId(categoryId)
+      return
+    }
+
+    const paddingTop = Number.parseFloat(window.getComputedStyle(root).paddingTop || "0") || 0
+    isProgrammaticScrollRef.current = true
+    setActiveCategoryId(categoryId)
+    root.scrollTo({ top: Math.max(0, target.offsetTop - paddingTop), behavior: "smooth" })
+
+    if (programmaticScrollTimeoutRef.current) window.clearTimeout(programmaticScrollTimeoutRef.current)
+    programmaticScrollTimeoutRef.current = window.setTimeout(() => {
+      isProgrammaticScrollRef.current = false
+    }, 450)
+  }
+
+  useEffect(() => {
+    const leftRoot = leftListRef.current
+    if (!leftRoot) return
+    const el = leftRoot.querySelector(`[data-category-id="${activeCategoryId}"]`) as HTMLElement | null
+    el?.scrollIntoView({ block: "nearest" })
+  }, [activeCategoryId])
 
   return (
     <section className="category_page page_screen" aria-label="카테고리">
       <CategorySearch ref={searchInputRef} value={searchValue} onChange={setSearchValue} />
 
-      <div className="category_layout">
-        <aside className="category_group_list" aria-label="대분류">
-          {visibleCategories.map((category, index) => (
-            <button
-              className={category.id === selectedCategory.id ? "category_group_button is_selected" : "category_group_button"}
-              key={category.id}
-              type="button"
-              onClick={() => setActiveCategoryId(category.id)}
-            >
-              <span className="category_group_number">{index + 1}</span>
-              <span className="category_group_text">
-                <strong>{category.label}</strong>
-                <small>{category.englishLabel}</small>
-              </span>
-            </button>
-          ))}
+      <div className="category_layout category_layout_v2">
+        <aside className="category_group_list category_group_list_v2" aria-label="주종">
+          <div className="category_group_list_inner" ref={leftListRef}>
+            {categoriesWithVisibleSubcategories.map(({ category }) => (
+              <button
+                className={category.id === activeCategoryId ? "category_group_button is_selected" : "category_group_button"}
+                key={category.id}
+                type="button"
+                data-category-id={category.id}
+                onClick={() => scrollToCategory(category.id)}
+              >
+                <span className="category_group_text">
+                  <strong>{category.label}</strong>
+                </span>
+              </button>
+            ))}
+          </div>
         </aside>
 
-        <section className="category_subcategory_panel" aria-label={`${selectedCategory.label} 하위 카테고리`}>
-          <header className="category_subcategory_header">
-            <h2>{selectedCategory.label}</h2>
-            <p>{selectedCategory.englishLabel}</p>
-          </header>
-
-          <div className="category_subcategory_list">
-            {visibleSubcategories.length === 0 ? <p className="category_empty">검색 결과가 없어요.</p> : null}
-            {visibleSubcategories.map((subcategory) => {
-              const infoKey = `${selectedCategory.id}:${subcategory}`
-              const infoText = subcategoryInfoByCategoryId[selectedCategory.id]?.[subcategory]
-              const isInfoOpen = openInfoKey === infoKey
-
-              return (
-                <div className="category_subcategory_item" key={subcategory}>
-                  <div className="category_subcategory_button_row">
-                    <button
-                      className="category_subcategory_button"
-                      type="button"
-                      onClick={() => handleSubcategoryClick(selectedCategory, subcategory)}
-                    >
-                      <span>{subcategory}</span>
-                    </button>
-                    {infoText ? (
-                      <button
-                        type="button"
-                        className="category_subcategory_info_button"
-                        aria-label={`${subcategory} 용어 설명 보기`}
-                        onClick={() => {
-                          if (infoTimeoutRef.current) window.clearTimeout(infoTimeoutRef.current)
-                          if (infoFadeTimeoutRef.current) window.clearTimeout(infoFadeTimeoutRef.current)
-
-                          if (openInfoKey === infoKey && !isInfoFadingOut) {
-                            setOpenInfoKey(null)
-                            return
-                          }
-
-                          setOpenInfoKey(infoKey)
-                          setIsInfoFadingOut(false)
-                          infoTimeoutRef.current = window.setTimeout(() => {
-                            setIsInfoFadingOut(true)
-                            infoFadeTimeoutRef.current = window.setTimeout(() => {
-                              setOpenInfoKey(null)
-                              setIsInfoFadingOut(false)
-                            }, 220)
-                          }, 3000)
-                        }}
-                      >
-                        <img src={iconInfo} alt="" aria-hidden="true" />
-                      </button>
-                    ) : null}
-                  </div>
-                  {infoText && isInfoOpen ? (
-                    <div
-                      className={
-                        isInfoFadingOut
-                          ? "category_subcategory_info_bubble is_fading"
-                          : "category_subcategory_info_bubble"
-                      }
-                      role="status"
-                      aria-live="polite"
-                    >
-                      {infoText}
-                    </div>
-                  ) : null}
+        <section className="category_subcategory_panel category_subcategory_panel_v2" aria-label="카테고리 목록">
+          <div className="category_subcategory_scroll" ref={scrollPanelRef}>
+            {categoriesWithVisibleSubcategories.length === 0 ? <p className="category_empty">검색 결과가 없어요</p> : null}
+            {categoriesWithVisibleSubcategories.map(({ category, subcategories }) => (
+              <div className="category_section" key={category.id} data-category-id={category.id}>
+                <div
+                  className="category_section_header"
+                  data-category-id={category.id}
+                  ref={(node) => {
+                    sectionHeaderRefs.current[category.id] = node
+                  }}
+                >
+                  <span className="category_section_title">
+                    <strong>{category.label}</strong>
+                    <small>{category.englishLabel}</small>
+                  </span>
+                  <span className="category_section_chevron" aria-hidden="true">
+                    ›
+                  </span>
                 </div>
-              )
-            })}
+
+                <div className="category_subcategory_list">
+                  {subcategories.map((subcategory) => {
+                    const infoText = subcategoryInfoByCategoryId[category.id]?.[subcategory]
+                    const isReady = category.id === "sake" && subcategory === READY_SUBCATEGORY
+                    return (
+                      <button
+                        className={isReady ? "category_subcategory_row is_ready" : "category_subcategory_row is_disabled"}
+                        key={subcategory}
+                        type="button"
+                        data-category-id={category.id}
+                        data-subcategory={subcategory}
+                        aria-disabled={!isReady}
+                        onClick={() => handleSubcategoryClick(category, subcategory)}
+                      >
+                        <span className="category_subcategory_row_title">{subcategory}</span>
+                        {infoText ? <span className="category_subcategory_row_desc">{infoText}</span> : null}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       </div>
