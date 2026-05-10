@@ -1,7 +1,9 @@
+import { useState } from "react"
 import { Link } from "react-router"
 
 import iconChat from "../assets/svg/chatcircledots.svg"
-import iconHeart from "../assets/svg/heart.svg"
+import iconBeerstein from "../assets/svg/beerstein.svg"
+import iconBeersteinActive from "../assets/svg/beerstein_active.svg"
 
 type Props = {
   postId: number
@@ -16,6 +18,7 @@ type Props = {
   onViewComments: () => void
   linkTo: string
   linkState: Record<string, unknown>
+  photoIds?: string[]
   thumbVariant?: "none" | "bottle" | "photo"
 }
 
@@ -25,13 +28,13 @@ function formatRelativeKorean(createdAt: string) {
 
   const diffMs = Date.now() - targetMs
   const diffMin = Math.max(0, Math.floor(diffMs / 60000))
-  if (diffMin < 60) return `${diffMin}분전`
+  if (diffMin < 60) return `${diffMin}분 전`
 
   const diffHour = Math.floor(diffMin / 60)
-  if (diffHour < 24) return `${diffHour}시간전`
+  if (diffHour < 24) return `${diffHour}시간 전`
 
   const diffDay = Math.floor(diffHour / 24)
-  if (diffDay < 7) return `${diffDay}일전`
+  if (diffDay < 7) return `${diffDay}일 전`
 
   const hours = new Date(createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
   return hours.replace(/\s/g, "")
@@ -50,9 +53,26 @@ export default function QuestionPostRow({
   onViewComments,
   linkTo,
   linkState,
+  photoIds,
   thumbVariant,
 }: Props) {
+  const [isLikeAnimating, setIsLikeAnimating] = useState(false)
   const timeLabel = formatRelativeKorean(createdAt)
+  const firstPhotoId = photoIds?.[0]?.trim() ?? ""
+  const photoThumbStyle = firstPhotoId.startsWith("data:image/") || firstPhotoId.startsWith("blob:")
+    ? { backgroundImage: `url(${firstPhotoId})` }
+    : undefined
+
+  const handleToggleLike = () => {
+    if (!likeActive) {
+      setIsLikeAnimating(false)
+      requestAnimationFrame(() => {
+        setIsLikeAnimating(true)
+      })
+    }
+
+    onToggleLike()
+  }
 
   return (
     <article className="question_row" key={postId}>
@@ -62,7 +82,11 @@ export default function QuestionPostRow({
             <strong className="question_row_title">{title}</strong>
             <p className="question_row_excerpt">{body}</p>
           </div>
-          {thumbVariant && thumbVariant !== "none" ? (
+          {photoIds && photoIds.length > 0 ? (
+            <div className="question_row_thumb is_photo" style={photoThumbStyle} aria-label={`사진 ${photoIds.length}장`}>
+              {photoIds.length > 1 ? <span className="question_row_thumb_count">+{photoIds.length - 1}</span> : null}
+            </div>
+          ) : thumbVariant && thumbVariant !== "none" ? (
             <div className={thumbVariant === "bottle" ? "question_row_thumb is_bottle" : "question_row_thumb"} />
           ) : null}
         </Link>
@@ -73,9 +97,15 @@ export default function QuestionPostRow({
           type="button"
           className={likeActive ? "question_meta_button is_active" : "question_meta_button"}
           aria-label={likeAriaLabel}
-          onClick={onToggleLike}
+          onClick={handleToggleLike}
         >
-          <img className="question_meta_icon" src={iconHeart} alt="" aria-hidden="true" />
+          <img
+            className={isLikeAnimating ? "question_meta_icon is_like_animated" : "question_meta_icon"}
+            src={likeActive ? iconBeersteinActive : iconBeerstein}
+            alt=""
+            aria-hidden="true"
+            onAnimationEnd={() => setIsLikeAnimating(false)}
+          />
           <span className="question_meta_value">{likeCount.toLocaleString()}</span>
         </button>
 
@@ -91,4 +121,3 @@ export default function QuestionPostRow({
     </article>
   )
 }
-

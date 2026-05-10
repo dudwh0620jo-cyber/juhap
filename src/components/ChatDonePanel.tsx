@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { formatWon, type WineCandidate } from "../utils/chatBotFlow"
 
 type ChatDonePanelProps = {
@@ -35,7 +35,7 @@ export default function ChatDonePanel({ wine, onClose }: ChatDonePanelProps) {
   return (
     <div className="chat_done_panel chat_done_panel_full" aria-label="선택 완료">
       <div className="chat_done_hero">
-        <h3 className="chat_done_title">완벽한 선택이 될 거예요!</h3>
+        <h3 className="chat_done_title">이 조합으로 준비해볼까요?</h3>
         <div className="chat_done_photo" aria-hidden="true" />
       </div>
 
@@ -51,7 +51,7 @@ export default function ChatDonePanel({ wine, onClose }: ChatDonePanelProps) {
         최저가 구매처 보러가기
       </button>
 
-      <div className="chat_done_section_title">준비하면 좋은 것</div>
+      <div className="chat_done_section_title">함께 준비하면 좋은 것</div>
       <div className="chat_done_banner_list">
         {prepItems.map((item) => (
           <button type="button" key={item.label} className="chat_done_banner_button" onClick={() => setPendingLink(item)}>
@@ -62,7 +62,7 @@ export default function ChatDonePanel({ wine, onClose }: ChatDonePanelProps) {
 
       <div className="chat_action_row">
         <button type="button" className="chat_action_button" onClick={onClose}>
-          홈으로 돌아가기
+          이전으로 돌아가기
         </button>
       </div>
 

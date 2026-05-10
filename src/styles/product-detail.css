@@ -2,7 +2,7 @@
   display: grid;
   gap: 18px;
   padding: 16px 20px 132px;
-  background: #e9e9e9;
+  background: var(--color-bg-white);
   color: #111111;
   font-family: var(--font-main);
 }
@@ -45,44 +45,9 @@
   background: #ffffff;
 }
 
-.product_hero_bottle {
-  position: relative;
-  width: 88px;
-  height: 205px;
-  border-radius: 28px 28px 16px 16px;
-  background:
-    linear-gradient(90deg, transparent 0 26px, #7b718f 26px 34px, transparent 34px 54px, #7b718f 54px 62px, transparent 62px 100%),
-    linear-gradient(180deg, #d7d7de 0 25%, #334232 25% 66%, #f6f2e8 66% 88%, #2c332a 88% 100%);
-  box-shadow: 0 18px 25px rgba(0, 0, 0, 0.16);
-}
-
-.product_hero_bottle::before {
-  content: "";
-  position: absolute;
-  top: -28px;
-  left: 50%;
-  width: 30px;
-  height: 48px;
-  border-radius: 10px 10px 4px 4px;
-  background: #cdd0dc;
-  transform: translateX(-50%);
-}
-
-.product_hero_bottle::after {
-  content: "獺祭";
-  position: absolute;
-  left: 50%;
-  bottom: 34px;
-  display: grid;
-  place-items: center;
-  width: 58px;
-  height: 62px;
-  background: #f7f1e4;
-  color: #1d1d1d;
-  font-family: var(--font-title);
-  font-size: 24px;
-  font-weight: 800;
-  transform: translateX(-50%);
+.product_hero_image {
+  width: 100%;
+  object-fit: cover;
 }
 
 .product_summary {
@@ -104,8 +69,33 @@
 }
 
 .product_rating {
-  color: #b9b9b9;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.product_rating_track {
+  color: #d7d7d7;
   letter-spacing: 1px;
+}
+
+.product_rating_fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  color: #ca9e52;
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 1px;
+}
+
+.product_rating_value {
+  color: #7a7a7a;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .product_title {

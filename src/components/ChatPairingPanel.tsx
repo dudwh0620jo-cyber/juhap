@@ -25,7 +25,7 @@ export default function ChatPairingPanel({ wine, onConfirm, onBack }: ChatPairin
       </ul>
       <div className="chat_action_row">
         <button type="button" className="chat_action_button" onClick={onConfirm}>
-          이 주류로 선택할게요!
+          이 주류로 선택할게요
         </button>
         <button type="button" className="chat_action_button chat_action_button_secondary" onClick={onBack}>
           다른 주류 추천받기

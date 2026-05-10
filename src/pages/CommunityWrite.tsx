@@ -1,7 +1,9 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
+import CommunityWriteBasicSection from "../components/CommunityWriteBasicSection"
+import CommunityWritePostForm from "../components/CommunityWritePostForm"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
 import iconX from "../assets/svg/x.svg"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
@@ -215,6 +217,8 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     return popupFeaturesByDrinkType[selectedDrinkType] ?? []
   }, [popupFeaturesByDrinkType, selectedDrinkType])
   const pairingFeatureChips = [...pairingFeatureFallbackChips]
+  const isBasicWrite = isQuestionWrite || reviewTab === "drink"
+  const activePhotoIds = isBasicWrite ? photoIds : pairingPhotoIds
 
   // 술만 후기: 술 선택은 세부 카테고리(사케)만 허용 → 주종 자동 선택
   function handleDrinkNameChange(nextDrinkName: string) {
@@ -229,9 +233,13 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     if (files.length === 0) return
 
     try {
-      const remainingSlots = Math.max(0, 3 - pairingPhotoIds.length)
+      const remainingSlots = Math.max(0, 3 - activePhotoIds.length)
       const nextImages = await Promise.all(files.slice(0, remainingSlots).map(readImageFileAsDataUrl))
-      setPairingPhotoIds((prev) => [...prev, ...nextImages].slice(0, 3))
+      if (isBasicWrite) {
+        setPhotoIds((prev) => [...prev, ...nextImages].slice(0, 3))
+      } else {
+        setPairingPhotoIds((prev) => [...prev, ...nextImages].slice(0, 3))
+      }
     } catch {
       window.alert("이미지를 불러오지 못했습니다. 다시 시도해 주세요.")
     }
@@ -240,17 +248,17 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     event.target.value = ""
   }
 
-  function stopCameraStream(stream: MediaStream | null) {
+  const stopCameraStream = useCallback((stream: MediaStream | null) => {
     stream?.getTracks().forEach((track) => track.stop())
-  }
+  }, [])
 
-  function closeCameraPreview() {
+  const closeCameraPreview = useCallback(() => {
     stopCameraStream(cameraStream)
     setCameraStream(null)
-  }
+  }, [cameraStream, stopCameraStream])
 
   async function openCameraCapture() {
-    if (pairingPhotoIds.length >= 3) return
+    if (activePhotoIds.length >= 3) return
     setIsPhotoActionSheetOpen(false)
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -267,8 +275,21 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
   }
 
   function handleTakeCameraPhoto() {
-    setPairingPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))
+    if (isBasicWrite) {
+      setPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))
+    } else {
+      setPairingPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))
+    }
     closeCameraPreview()
+  }
+
+  function handleLoadMockPhoto() {
+    if (isBasicWrite) {
+      setPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))
+    } else {
+      setPairingPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))
+    }
+    setIsPhotoActionSheetOpen(false)
   }
 
   useEffect(() => {
@@ -278,13 +299,13 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
       window.alert("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
       closeCameraPreview()
     })
-  }, [cameraStream])
+  }, [cameraStream, closeCameraPreview])
 
   useEffect(() => {
     return () => {
       stopCameraStream(cameraStream)
     }
-  }, [cameraStream])
+  }, [cameraStream, stopCameraStream])
 
   const allDrinkSuggestions = useMemo(
     () =>
@@ -451,6 +472,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
         commentCount: 0,
         popularityScore: 0,
         locationLabel: undefined,
+        photoIds: photoIds.length > 0 ? photoIds.slice(0, 3) : undefined,
         isQna: true,
       }
 
@@ -586,80 +608,92 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     clearDraft()
   }
 
-  // Keep feature selection consistent in event handlers (avoid setState in effects).
-
   if (isQuestionWrite) {
     return (
-      <section
-        className="community_page page_screen"
-        aria-label="글쓰기"
-        onMouseDown={(event) => {
-          if ((event.target as HTMLElement | null)?.closest(".write_sheet")) return
-          navigate("/community?filter=free")
-        }}
-      >
-        <CommunityHeader
-          title="글쓰기"
-          topTab="feed"
-          openFilterAriaLabel="검색"
-          openNotificationsAriaLabel="알림"
-          onOpenFilter={() => {}}
-          onOpenNotifications={() => {}}
+      <>
+        <CommunityWritePostForm
+          title={title}
+          body={body}
+          photoIds={photoIds}
+          canSubmit={canSubmit}
+          photoUploadInputRef={photoUploadInputRef}
+          iconX={iconX}
+          onTitleChange={setTitle}
+          onBodyChange={setBody}
+          onPhotoFileChange={handleUploadPhotoChange}
+          onOpenPhotoPicker={handleLoadMockPhoto}
+          onRemovePhoto={(photoId) => setPhotoIds((prev) => prev.filter((id) => id !== photoId))}
+          onSubmit={handleShare}
+          onTempSave={handleTempSave}
+          onClose={() => navigate("/community?filter=free")}
+          titleText="질문 작성"
+          photoTitle="사진 첨부(최대 3장)"
+          titleLabel="제목"
+          titlePlaceholder="질문 제목을 입력해 주세요"
+          bodyLabel="본문"
+          bodyPlaceholder="질문 내용을 입력해 주세요"
+          bodyMaxLength={300}
         />
 
-        <div className="write_sheet" aria-label="글쓰기 폼">
-          <div className="write_sheet_inner">
-            <div className="write_section">
-              <div className="write_section_header">
-                <h4 className="write_section_title">질문 작성</h4>
-                <button
-                  type="button"
-                  className="write_section_close"
-                  aria-label="글쓰기 닫기"
-                  onClick={() => navigate("/community?filter=free")}
-                >
-                  <img src={iconX} alt="" aria-hidden="true" />
-                </button>
-              </div>
-
-              <label className="write_field">
-                <span className="write_field_label">제목</span>
-                <input
-                  className="write_input"
-                  value={title}
-                  placeholder="질문 제목을 입력해 주세요"
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </label>
-
-              <label className="write_field">
-                <span className="write_field_label">본문</span>
-                <textarea
-                  className="write_textarea"
-                  value={body}
-                  placeholder="질문 내용을 입력해 주세요"
-                  onChange={(e) => setBody(e.target.value)}
-                />
-                <span className="write_field_counter">{Math.min(300, body.length)}/300</span>
-              </label>
-            </div>
-
-            <div className="write_bottom_actions" aria-label="작성 액션">
-              <button
-                type="button"
-                className={canSubmit ? "write_primary_button" : "write_primary_button is_disabled"}
-                disabled={!canSubmit}
-                onClick={handleShare}
-              >
-                공유하기
+        {isPhotoActionSheetOpen ? (
+          <div
+            className="write_photo_action_backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              event.stopPropagation()
+              setIsPhotoActionSheetOpen(false)
+            }}
+          >
+            <div
+              className="write_photo_action_sheet"
+              role="dialog"
+              aria-modal="true"
+              aria-label="사진 추가 방법"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <span className="write_photo_action_handle" aria-hidden="true" />
+              <button type="button" onClick={openCameraCapture}>
+                사진 촬영
               </button>
-              <button type="button" className="write_secondary_button" onClick={handleTempSave}>
-                임시 저장
+              <button type="button" onClick={handleLoadMockPhoto}>
+                업로드
+              </button>
+              <button type="button" onClick={() => setIsPhotoActionSheetOpen(false)}>
+                닫기
               </button>
             </div>
           </div>
-        </div>
-      </section>
+        ) : null}
+
+        {cameraStream ? (
+          <div
+            className="write_camera_backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              event.stopPropagation()
+              closeCameraPreview()
+            }}
+          >
+            <div
+              className="write_camera_panel"
+              role="dialog"
+              aria-modal="true"
+              aria-label="사진 촬영"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <video ref={cameraVideoRef} className="write_camera_video" playsInline muted />
+              <div className="write_camera_actions">
+                <button type="button" onClick={handleTakeCameraPhoto}>
+                  촬영하기
+                </button>
+                <button type="button" onClick={closeCameraPreview}>
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </>
     )
   }
 
@@ -842,59 +876,24 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                 )}
               </div>
 
-              <div className="write_section">
-                <h4 className="write_section_title">포토후기 (선택, 최대3장)</h4>
-                <button
-                  type="button"
-                  className="write_photo_browse"
-                  disabled={photoIds.length >= 3}
-                  onClick={() => setPhotoIds((prev) => (prev.length >= 3 ? prev : [...prev, `photo-${Date.now()}`]))}
-                >
-                  테스트용 이미지로 둘러보기
-                </button>
-                <div className="write_photo_row" aria-label="사진 추가">
-                  {photoIds.slice(0, 3).map((photoId, index) => (
-                    <button
-                      key={photoId}
-                      type="button"
-                      className="write_photo_thumb"
-                      aria-label={`사진 ${index + 1}`}
-                      onClick={() => setPhotoIds((prev) => prev.filter((id) => id !== photoId))}
-                    >
-                      <span className="write_photo_remove" aria-hidden="true">
-                        ×
-                      </span>
-                    </button>
-                  ))}
-                  {photoIds.length < 3 ? (
-                    <button type="button" className="write_photo_add" aria-label="사진 추가 자리">
-                      +
-                    </button>
-                  ) : null}
-                </div>
-
-                <label className="write_field">
-                  <span className="write_field_label">타이틀 (필수)</span>
-                  <input
-                    className="write_input"
-                    value={title}
-                    placeholder="제목을 입력해 주세요"
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </label>
-
-                <label className="write_field">
-                  <span className="write_field_label">상세 후기 (필수)</span>
-                  <textarea
-                    className="write_textarea"
-                    value={body}
-                    placeholder="30자 이상 입력해 주세요."
-                    maxLength={1000}
-                    onChange={(e) => setBody(e.target.value)}
-                  />
-                  <span className="write_field_counter">{Math.min(1000, body.length)}/1000</span>
-                </label>
-              </div>
+              <CommunityWriteBasicSection
+                sectionTitle="후기 작성"
+                photoTitle="사진 후기(선택, 최대 3장)"
+                photoIds={photoIds}
+                photoInputRef={photoUploadInputRef}
+                onPhotoFileChange={handleUploadPhotoChange}
+                onOpenPhotoPicker={() => setIsPhotoActionSheetOpen(true)}
+                onRemovePhoto={(photoId) => setPhotoIds((prev) => prev.filter((id) => id !== photoId))}
+                titleLabel="제목 (필수)"
+                titleValue={title}
+                titlePlaceholder="제목을 입력해 주세요"
+                onTitleChange={setTitle}
+                bodyLabel="상세 후기 (필수)"
+                bodyValue={body}
+                bodyPlaceholder="30자 이상 입력해 주세요"
+                bodyMaxLength={1000}
+                onBodyChange={setBody}
+              />
             </>
           ) : (
             <>
@@ -1235,11 +1234,12 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
             aria-label="사진 추가 방법"
             onMouseDown={(event) => event.stopPropagation()}
           >
+            <span className="write_photo_action_handle" aria-hidden="true" />
             <button type="button" onClick={openCameraCapture}>
               사진 촬영
             </button>
-            <button type="button" onClick={() => photoUploadInputRef.current?.click()}>
-              사진 업로드
+            <button type="button" onClick={handleLoadMockPhoto}>
+              업로드
             </button>
             <button type="button" onClick={() => setIsPhotoActionSheetOpen(false)}>
               닫기
@@ -1279,4 +1279,3 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     </section>
   )
 }
-

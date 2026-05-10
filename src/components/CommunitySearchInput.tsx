@@ -1,4 +1,5 @@
 import type { RefObject } from "react"
+import iconSearch from "../assets/svg/magnifyingglass.svg"
 
 type Props = {
   shellAriaLabel: string
@@ -10,7 +11,10 @@ type Props = {
   onChange: (nextValue: string) => void
   onEnter: () => void
   onClear: () => void
+  onFocusInput?: () => void
   focusOnClear?: boolean
+  confirmLabel?: string
+  showConfirmButton?: boolean
 }
 
 export default function CommunitySearchInput({
@@ -23,31 +27,31 @@ export default function CommunitySearchInput({
   onChange,
   onEnter,
   onClear,
+  onFocusInput,
   focusOnClear = true,
+  confirmLabel = "확인",
+  showConfirmButton = true,
 }: Props) {
   const hasValue = Boolean(value.trim())
 
   const handleClear = () => {
     onClear()
-    if (!focusOnClear) {
-      return
-    }
+    if (!focusOnClear) return
     window.setTimeout(() => inputRef?.current?.focus(), 0)
   }
 
   return (
     <div className="feed_filter_search_shell" aria-label={shellAriaLabel}>
       <div className="feed_filter_search">
-        <span className="feed_filter_search_magnifier" aria-hidden="true" />
+        <img className="category_search_icon" src={iconSearch} alt="" aria-hidden="true" />
         <input
           ref={inputRef}
           className="feed_filter_search_input"
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onFocus={onFocusInput}
           onKeyDown={(event) => {
-            if (event.key !== "Enter") {
-              return
-            }
+            if (event.key !== "Enter") return
             event.preventDefault()
             onEnter()
           }}
@@ -55,14 +59,14 @@ export default function CommunitySearchInput({
           aria-label={inputAriaLabel}
         />
         {hasValue ? (
-          <button
-            type="button"
-            className="feed_filter_search_clear"
-            aria-label={clearAriaLabel}
-            onClick={handleClear}
-          />
+          <button type="button" className="feed_filter_search_clear" aria-label={clearAriaLabel} onClick={handleClear} />
         ) : null}
       </div>
+      {hasValue && showConfirmButton ? (
+        <button type="button" className="feed_filter_search_confirm" onClick={onEnter}>
+          {confirmLabel}
+        </button>
+      ) : null}
     </div>
   )
 }

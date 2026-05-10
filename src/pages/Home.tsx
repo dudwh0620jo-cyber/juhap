@@ -10,29 +10,22 @@ import { useHomePageData } from "../hooks/useHomePageData"
 import { useVoteData, FEATURED_VOTE_ID } from "../hooks/useVoteData"
 
 export default function Home() {
-  const { rankingItems, recommendationItems, situationItems } = useHomePageData()
+  const { rankingItems, recommendationItems, situationItems, weeklyDrinkItems } = useHomePageData()
   const { voteItems } = useVoteData()
   const featuredVote = voteItems.find((v) => v.id === FEATURED_VOTE_ID) ?? voteItems[0]
+
   return (
     <section className="home_page page_screen" aria-label="홈">
       <header className="home_header">
-        <h1>Hi 주합러!</h1>
+        <h1>Hi 주합님</h1>
         <button className="notice_button" type="button">
           알림
         </button>
       </header>
 
-      <AiCard
-        icon="🐰"
-        label="⚡ AI 주식 분석"
-        heading="지금 마시는 술, 어떤 음식이 어울릴까?"
-      />
+      <AiCard icon="🤖" label="주합 AI 추천 분석" heading="지금 마시는 술에 어떤 안주가 어울릴까요?" />
 
-      <TodayRecommendation
-        title="오늘의 추천"
-        subtitle="비 오는 화요일, 와인 한 잔"
-        items={recommendationItems}
-      />
+      <TodayRecommendation title="오늘의 추천" subtitle="비 오는 요일엔 이런 조합" items={recommendationItems} />
 
       <SituationSection items={situationItems} />
 
@@ -47,18 +40,7 @@ export default function Home() {
 
       <RankingSection title="이번 주의 주합 랭킹" items={rankingItems} />
 
-      <WeeklyDrink
-        title="금주의 주류 소개"
-        linkTo="/product/1"
-        info={{
-          name: "케이머스 나파 밸리 카버네 소비뇽 2023",
-          type: "레드와인",
-          origin: "미국(U.S.A), California",
-          variety: "Cabernet Sauvignon",
-          rating: 4.0,
-          sweetness: "낮은 당도",
-        }}
-      />
+      <WeeklyDrink title="금주의 주류 소개" linkTo="/product/1" items={weeklyDrinkItems} />
 
       <Link to="/quiz" className="quiz_card">
         퀴즈 풀고 포인트 받자!

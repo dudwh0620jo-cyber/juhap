@@ -139,3 +139,49 @@ export function useStoredStringArray(key: string, maxLength: number) {
   return { value, setValue } as const
 }
 
+export function useStoredNullableStringRecord(key: string) {
+  const [value, setValue] = useState<Record<number, string | null>>(() => {
+    try {
+      const raw = window.localStorage.getItem(key)
+      if (!raw) return {}
+      const parsed = JSON.parse(raw)
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {}
+      const next: Record<number, string | null> = {}
+      for (const [recordKey, recordValue] of Object.entries(parsed)) {
+        const numericKey = Number(recordKey)
+        if (!Number.isFinite(numericKey)) continue
+        next[numericKey] = typeof recordValue === "string" ? recordValue : null
+      }
+      return next
+    } catch {
+      return {}
+    }
+  })
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== key) return
+      try {
+        const parsed = event.newValue ? JSON.parse(event.newValue) : {}
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          setValue({})
+          return
+        }
+        const next: Record<number, string | null> = {}
+        for (const [recordKey, recordValue] of Object.entries(parsed)) {
+          const numericKey = Number(recordKey)
+          if (!Number.isFinite(numericKey)) continue
+          next[numericKey] = typeof recordValue === "string" ? recordValue : null
+        }
+        setValue(next)
+      } catch {
+        setValue({})
+      }
+    }
+
+    window.addEventListener("storage", handleStorage)
+    return () => window.removeEventListener("storage", handleStorage)
+  }, [key])
+
+  return { value, setValue } as const
+}

@@ -81,7 +81,7 @@ export default function SearchFilterChipsPanel({
 
       {isNoResults ? (
         <p className="feed_filter_no_results" role="status">
-          검색 결과가 없어요
+          검색 결과가 없어요.
         </p>
       ) : null}
 
@@ -103,4 +103,3 @@ export default function SearchFilterChipsPanel({
     </>
   )
 }
-

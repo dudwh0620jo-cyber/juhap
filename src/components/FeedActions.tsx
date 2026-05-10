@@ -1,3 +1,5 @@
+import { useState } from "react"
+
 import iconBookmark from "../assets/svg/bookmarksimple.svg"
 import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
 import iconChat from "../assets/svg/chatcircledots.svg"
@@ -36,6 +38,19 @@ export default function FeedActions({
   shareAriaLabel = "공유",
   onShare,
 }: Props) {
+  const [isLikeAnimating, setIsLikeAnimating] = useState(false)
+
+  const handleToggleLike = () => {
+    if (!likeActive) {
+      setIsLikeAnimating(false)
+      requestAnimationFrame(() => {
+        setIsLikeAnimating(true)
+      })
+    }
+
+    onToggleLike()
+  }
+
   return (
     <div className={variant === "detail" ? "feed_actions is_detail" : "feed_actions"} aria-label="피드 액션">
       <div className="left_actions">
@@ -44,13 +59,14 @@ export default function FeedActions({
           className={likeActive ? "feed_action_button is_active" : "feed_action_button"}
           aria-label={likeAriaLabel}
           aria-pressed={likeActive}
-          onClick={onToggleLike}
+          onClick={handleToggleLike}
         >
           <img
-            className="feed_action_icon"
+            className={isLikeAnimating ? "feed_action_icon is_like_animated" : "feed_action_icon"}
             src={likeActive ? iconBeersteinActive : iconBeerstein}
             alt=""
             aria-hidden="true"
+            onAnimationEnd={() => setIsLikeAnimating(false)}
           />
           <span className="feed_action_text">{likeText}</span>
         </button>

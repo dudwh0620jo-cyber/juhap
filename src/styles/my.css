@@ -1,5 +1,6 @@
 .my_page {
   min-height: 100vh;
+  padding-top: 68px;
   padding-bottom: 120px;
   background:
     radial-gradient(circle at 50% 14%, rgba(112, 59, 38, 0.3), transparent 34%),
@@ -643,7 +644,7 @@
 
 .my_exchange_page {
   min-height: 100vh;
-  padding: 28px 20px 128px;
+  padding: 68px 20px 128px;
   background:
     radial-gradient(circle at 50% 12%, rgba(112, 59, 38, 0.3), transparent 35%),
     linear-gradient(180deg, #1b0710 0%, #17050c 54%, #12040a 100%);

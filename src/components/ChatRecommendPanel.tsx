@@ -18,6 +18,7 @@ export default function ChatRecommendPanel({
   onMore,
 }: ChatRecommendPanelProps) {
   const selected = selectedWineId ? recommendations.find((item) => item.id === selectedWineId) ?? null : null
+
   return (
     <div className="chat_recommend_panel" aria-label="추천 결과">
       <div className="chat_recommend_list">
@@ -50,20 +51,15 @@ export default function ChatRecommendPanel({
             </button>
             {candidate.id === selectedWineId ? (
               <button type="button" className="chat_recommend_selected_cta" onClick={() => onGoProductDetail(candidate.id)}>
-                제품 상세페이지 가기
+                상품 상세페이지 가기
               </button>
             ) : null}
           </div>
         ))}
       </div>
       <div className="chat_action_row">
-        <button
-          type="button"
-          className="chat_action_button"
-          onClick={() => (selected ? onAskMore(selected.id) : undefined)}
-          disabled={!selected}
-        >
-          술 정보 더보기
+        <button type="button" className="chat_action_button" onClick={() => (selected ? onAskMore(selected.id) : undefined)} disabled={!selected}>
+          더 자세한 정보 보기
         </button>
         <button type="button" className="chat_action_button chat_action_button_secondary" onClick={onMore}>
           다른 추천 보기

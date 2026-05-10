@@ -1,4 +1,4 @@
-﻿import FeedFilterChip from "./FeedFilterChip"
+import FeedFilterChip from "./FeedFilterChip"
 import FeedFilterGroup from "./FeedFilterGroup"
 import RecentSearchChips from "./RecentSearchChips"
 

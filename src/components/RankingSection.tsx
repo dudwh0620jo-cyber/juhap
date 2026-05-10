@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react"
-import { Link } from "react-router"
+import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router"
+import PurchaseConfirmModal from "./PurchaseConfirmModal"
 
 export type RankingItem = {
   drink: string
@@ -31,13 +32,15 @@ function RankingCard({ item, rank }: { item: RankingItem; rank: number }) {
       <span className="ranking_card_food">{item.food}</span>
       <div className="ranking_card_meta">
         <span className="ranking_card_rating">★ {item.rating}</span>
-        <span className="ranking_card_count">{item.count.toLocaleString()}판</span>
+        <span className="ranking_card_count">{item.count.toLocaleString()}표</span>
       </div>
     </div>
   )
 }
 
 export default function RankingSection({ title, items }: RankingSectionProps) {
+  const navigate = useNavigate()
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const offsetRef = useRef(0)
@@ -48,10 +51,10 @@ export default function RankingSection({ title, items }: RankingSectionProps) {
     const track = trackRef.current
     if (!container || !track) return
 
-    const SPEED = 0.4
+    const speed = 0.4
 
     const animate = () => {
-      offsetRef.current += SPEED
+      offsetRef.current += speed
       const halfWidth = track.scrollWidth / 2
       if (offsetRef.current >= halfWidth) {
         offsetRef.current = 0
@@ -81,18 +84,36 @@ export default function RankingSection({ title, items }: RankingSectionProps) {
   const loopItems = [...items, ...items]
 
   return (
-    <section className="home_block">
-      <div className="ranking_header">
-        <h3>{title}</h3>
-        <Link to="/community/ranking" className="more_button">더보기</Link>
-      </div>
-      <div className="ranking_carousel" ref={containerRef}>
-        <div className="ranking_track" ref={trackRef}>
-          {loopItems.map((item, index) => (
-            <RankingCard key={index} item={item} rank={(index % items.length) + 1} />
-          ))}
+    <>
+      <section className="home_block">
+        <div className="ranking_header">
+          <h3>{title}</h3>
+          <button type="button" className="more_button" onClick={() => setIsConfirmOpen(true)}>
+            더보기
+          </button>
         </div>
-      </div>
-    </section>
+        <div className="ranking_carousel" ref={containerRef}>
+          <div className="ranking_track" ref={trackRef}>
+            {loopItems.map((item, index) => (
+              <RankingCard key={index} item={item} rank={(index % items.length) + 1} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {isConfirmOpen ? (
+        <PurchaseConfirmModal
+          ariaLabel="랭킹 이동 확인"
+          message="랭킹에 들어가면 바로 참여가 진행되어 취소할 수 없어요. 이동할까요?"
+          cancelLabel="취소"
+          confirmLabel="이동"
+          onCancel={() => setIsConfirmOpen(false)}
+          onConfirm={() => {
+            setIsConfirmOpen(false)
+            navigate("/community/ranking")
+          }}
+        />
+      ) : null}
+    </>
   )
 }

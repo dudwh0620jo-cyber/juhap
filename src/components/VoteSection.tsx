@@ -1,5 +1,7 @@
 import { useState } from "react"
-import { Link } from "react-router"
+import { useNavigate } from "react-router"
+import { getStoredPicks, storePick } from "../utils/votePicks"
+import PurchaseConfirmModal from "./PurchaseConfirmModal"
 
 type VoteOption = {
   id: number
@@ -24,67 +26,67 @@ type VoteCardProps = {
 function VoteCard({ title, percent, voted, isSelected, onVote }: VoteCardProps) {
   return (
     <article className="vote_card">
-      {isSelected && <span className="vote_my_pick">✓</span>}
+      {isSelected ? <span className="vote_my_pick">내 선택</span> : null}
       <h4>{title}</h4>
       <p>{voted ? `${percent}%` : "--"}</p>
-      <button type="button" onClick={onVote} style={{ visibility: voted ? "hidden" : "visible" }}>투표하고 현황보기</button>
+      <button type="button" onClick={onVote} style={{ visibility: voted ? "hidden" : "visible" }}>
+        투표하고 현황보기
+      </button>
     </article>
   )
 }
 
-const SESSION_KEY = "vote_picks"
-
-function readSession(voteId: number): 0 | 1 | null {
-  try {
-    const picks = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "{}")
-    const val = picks[String(voteId)]
-    return val === 0 || val === 1 ? val : null
-  } catch {
-    return null
-  }
-}
-
-function writeSession(voteId: number, index: 0 | 1) {
-  try {
-    const picks = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "{}")
-    picks[String(voteId)] = index
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(picks))
-  } catch {
-    // Ignore session storage write failures.
-  }
-}
-
 export default function VoteSection({ voteId, question, options }: VoteSectionProps) {
-  const [selectedIndex, setSelectedIndex] = useState<0 | 1 | null>(() => readSession(voteId))
+  const navigate = useNavigate()
+  const [selectedIndex, setSelectedIndex] = useState<0 | 1 | null>(() => getStoredPicks()[String(voteId)] ?? null)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
   const voted = selectedIndex !== null
 
   function handleVote(index: 0 | 1) {
     setSelectedIndex(index)
-    writeSession(voteId, index)
+    storePick(voteId, index)
   }
 
   return (
-    <section className="home_block">
-      <div className="ranking_header">
-        <h3>{question}</h3>
-        <Link to="/vote" className="more_button">더보기</Link>
-      </div>
-      <VoteCard
-        title={options[0].title}
-        percent={options[0].percent}
-        voted={voted}
-        isSelected={selectedIndex === 0}
-        onVote={() => handleVote(0)}
-      />
-      <div className="versus_label">vs</div>
-      <VoteCard
-        title={options[1].title}
-        percent={options[1].percent}
-        voted={voted}
-        isSelected={selectedIndex === 1}
-        onVote={() => handleVote(1)}
-      />
-    </section>
+    <>
+      <section className="home_block">
+        <div className="ranking_header">
+          <h3>{question}</h3>
+          <button type="button" className="more_button" onClick={() => setIsConfirmOpen(true)}>
+            더보기
+          </button>
+        </div>
+        <VoteCard
+          title={options[0].title}
+          percent={options[0].percent}
+          voted={voted}
+          isSelected={selectedIndex === 0}
+          onVote={() => handleVote(0)}
+        />
+        <div className="versus_label">vs</div>
+        <VoteCard
+          title={options[1].title}
+          percent={options[1].percent}
+          voted={voted}
+          isSelected={selectedIndex === 1}
+          onVote={() => handleVote(1)}
+        />
+      </section>
+
+      {isConfirmOpen ? (
+        <PurchaseConfirmModal
+          ariaLabel="투표 이동 확인"
+          message="투표에 들어가면 바로 참여가 진행되어 취소할 수 없어요. 이동할까요?"
+          cancelLabel="취소"
+          confirmLabel="이동"
+          onCancel={() => setIsConfirmOpen(false)}
+          onConfirm={() => {
+            setIsConfirmOpen(false)
+            navigate("/vote")
+          }}
+        />
+      ) : null}
+    </>
   )
 }

@@ -25,7 +25,7 @@ export default function VoteListCard({ item }: { item: VoteItem }) {
       <div className="vote_list_card_header">
         <h3 className="vote_list_question">{item.question}</h3>
         <div className="vote_list_date_wrap">
-          {active && <span className="vote_list_active">진행 중</span>}
+          {active ? <span className="vote_list_active">진행 중</span> : null}
           <span className="vote_list_date">{formatDate(item.date)}</span>
         </div>
       </div>
@@ -35,7 +35,7 @@ export default function VoteListCard({ item }: { item: VoteItem }) {
             <div className="vote_list_bar" style={{ width: `${option.percent}%` }} />
             <span className="vote_list_label_wrap">
               <span className="vote_list_label">{option.title}</span>
-              {item.myPickIndex === index && <span className="vote_my_pick">✓</span>}
+              {item.myPickIndex === index ? <span className="vote_my_pick">내 선택</span> : null}
             </span>
             <span className="vote_list_percent">{option.percent}%</span>
           </div>

@@ -1,3 +1,5 @@
+import { preferenceGroups } from "./setupContent"
+
 export type UserAccount = {
   email: string
   password: string
@@ -21,6 +23,13 @@ export type UserProfile = {
 
 const USER_PROFILE_STORAGE_KEY = "juhap_user_profile"
 
+function createDefaultTastePreferences(): UserTastePreferences {
+  return preferenceGroups.reduce<UserTastePreferences>((acc, group) => {
+    acc[group.key] = []
+    return acc
+  }, {})
+}
+
 export const defaultUserProfile: UserProfile = {
   account: {
     email: "",
@@ -33,7 +42,7 @@ export const defaultUserProfile: UserProfile = {
     detailAddress: "",
     isPhoneVerified: false,
   },
-  tastePreferences: {},
+  tastePreferences: createDefaultTastePreferences(),
 }
 
 function canUseStorage() {
@@ -59,6 +68,7 @@ export function readUserProfile(): UserProfile {
         ...parsedProfile.personalInfo,
       },
       tastePreferences: {
+        ...createDefaultTastePreferences(),
         ...defaultUserProfile.tastePreferences,
         ...parsedProfile.tastePreferences,
       },

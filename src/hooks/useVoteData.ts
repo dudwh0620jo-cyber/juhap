@@ -16,15 +16,15 @@ const voteItems: VoteItem[] = [
     question: "불금에 어울리는 조합은?",
     date: daysAgo(0),
     options: [
-      { title: "맥주에 피자다", percent: 62 },
-      { title: "와인에 스테이크다", percent: 38 },
+      { title: "맥주에 치킨", percent: 62 },
+      { title: "와인에 스테이크", percent: 38 },
     ],
     totalVotes: 1284,
     myPickIndex: null,
   },
   {
     id: 2,
-    question: "혼술할 때 최고의 선택은?",
+    question: "혼술할 때 최고인 선택은?",
     date: daysAgo(1),
     options: [
       { title: "막걸리에 파전", percent: 55 },
@@ -46,7 +46,7 @@ const voteItems: VoteItem[] = [
   },
   {
     id: 4,
-    question: "비 오는 날 최고의 조합은?",
+    question: "비 오는 날 최고 조합은?",
     date: daysAgo(3),
     options: [
       { title: "막걸리에 해물파전", percent: 83 },
@@ -82,8 +82,8 @@ const voteItems: VoteItem[] = [
     question: "2차로 가기 좋은 조합은?",
     date: daysAgo(6),
     options: [
-      { title: "호프집 생맥주", percent: 73 },
-      { title: "포장마차 막걸리", percent: 27 },
+      { title: "하이볼과 감튀", percent: 73 },
+      { title: "사장막걸리와 전", percent: 27 },
     ],
     totalVotes: 2045,
     myPickIndex: 0,
@@ -94,7 +94,7 @@ const voteItems: VoteItem[] = [
     date: daysAgo(7),
     options: [
       { title: "편의점 캔맥주", percent: 60 },
-      { title: "미니 와인 한 병", percent: 40 },
+      { title: "미니 와인 병", percent: 40 },
     ],
     totalVotes: 891,
     myPickIndex: null,

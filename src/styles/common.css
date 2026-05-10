@@ -47,34 +47,154 @@
 .alert_modal {
   width: min(100%, 360px);
   border-radius: 20px;
-  background: var(--color-sub-01);
-  padding: 16px;
+  background: var(--color-bg-white);
+  padding: 20px;
   display: grid;
   gap: 16px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
+.alert_modal.is_preparing {
+  width: min(100%, 340px);
+  border-radius: 24px;
+  padding: 28px 20px 20px;
+  gap: 20px;
+}
+
+.alert_modal.is_signup {
+  width: min(100%, 324px);
+  border-radius: 18px;
+  padding: 45px 32px 32px;
+  gap: 30px;
+}
+
+.alert_modal_body {
+  display: grid;
+  gap: 8px;
+}
+
+.alert_modal_title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+  white-space: pre-line;
+}
+
 .alert_modal_text {
   margin: 0;
-  color: var(--color-dark-05);
+  color: var(--color-text-primary);
   font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  white-space: pre-line;
+}
+
+.alert_modal.is_signup .alert_modal_body {
+  gap: 6px;
+}
+
+.alert_modal.is_signup .alert_modal_title,
+.alert_modal.is_signup .alert_modal_text {
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.alert_modal.is_signup .alert_modal_text {
   font-weight: 800;
-  line-height: 1.35;
 }
 
 .alert_modal_actions {
   display: grid;
 }
 
+.alert_modal_actions.is_stacked {
+  gap: 12px;
+}
+
 .alert_modal_button {
-  min-height: 44px;
-  border: 1px solid var(--color-dark-05);
-  border-radius: 14px;
-  background: var(--color-dark-05);
-  color: var(--color-sub-01);
-  font-size: 14px;
-  font-weight: 800;
+  min-height: 52px;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-gray-02);
+  color: var(--color-text-primary);
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
+}
+
+.alert_modal_button.is_secondary {
+  border: 1px solid var(--color-point-01);
+  border-radius: 14px;
+  background: var(--color-bg-white);
+  color: var(--color-point-01);
+}
+
+.alert_modal_button:disabled {
+  cursor: not-allowed;
+}
+
+.alert_modal_button.is_primary {
+  border-radius: 14px;
+  background: var(--color-point-01);
+  color: var(--color-bg-white);
+}
+
+.purchase_confirm_overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 40;
+}
+
+.purchase_confirm_modal {
+  width: min(100%, 360px);
+  border-radius: 20px;
+  background: var(--color-bg-white);
+  padding: 18px 16px 16px;
+  display: grid;
+  gap: 16px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.purchase_confirm_text {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.purchase_confirm_actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.purchase_confirm_button {
+  min-height: 44px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.purchase_confirm_button.is_cancel {
+  border: 1px solid var(--color-point-01);
+  background: var(--color-bg-white);
+  color: var(--color-point-01);
+}
+
+.purchase_confirm_button.is_confirm {
+  border: 1px solid var(--color-point-01);
+  background: var(--color-point-01);
+  color: var(--color-bg-white);
 }
 
 * {
@@ -243,4 +363,50 @@ body {
 
 .chat_corner_label {
   line-height: 1;
+}
+
+.post_owner_action_overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 17, 17, 0.2);
+}
+
+.post_owner_action_modal {
+  width: min(100%, 320px);
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(17, 17, 17, 0.18);
+}
+
+.post_owner_action_title {
+  margin: 0 0 16px;
+  color: #111111;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.post_owner_action_buttons {
+  display: grid;
+  gap: 10px;
+}
+
+.post_owner_action_button {
+  min-height: 44px;
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111111;
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.post_owner_action_button.is_danger {
+  color: #c84e45;
 }

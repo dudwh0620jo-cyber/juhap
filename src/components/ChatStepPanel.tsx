@@ -1,4 +1,4 @@
-﻿import {
+import {
   foodCategoryOptions,
   glossaryOptions,
   partyMoodOptions,
@@ -50,6 +50,7 @@ export default function ChatStepPanel({
   onClose,
 }: ChatStepPanelProps) {
   if (!isVisible) return null
+
   return (
     <div className="chat_step_panel" aria-label="선택지">
       {step === "glossary" ? (
@@ -105,23 +106,16 @@ export default function ChatStepPanel({
           selectedWineId={selectedWine?.id ?? null}
           onSelect={(wineId) => onSelectRecommendation(wineId)}
           onGoProductDetail={(wineId) => onGoProductDetail(wineId)}
-          onAskMore={(wineId) => onAskMore(wineId, "술 정보 더보기")}
+          onAskMore={(wineId) => onAskMore(wineId, "더 자세한 정보 보기")}
           onMore={onMoreRecommendations}
         />
       ) : null}
 
-      {step === "detail" && selectedWine ? (
-        <ChatDetailPanel wine={selectedWine} onBack={onBackToRecommend} onConfirm={onConfirmSelection} />
-      ) : null}
+      {step === "detail" && selectedWine ? <ChatDetailPanel wine={selectedWine} onBack={onBackToRecommend} onConfirm={onConfirmSelection} /> : null}
 
-      {step === "pairing" && selectedWine ? (
-        <ChatPairingPanel wine={selectedWine} onConfirm={onConfirmSelection} onBack={onBackToRecommend} />
-      ) : null}
+      {step === "pairing" && selectedWine ? <ChatPairingPanel wine={selectedWine} onConfirm={onConfirmSelection} onBack={onBackToRecommend} /> : null}
 
-      {step === "done" && selectedWine ? (
-        <ChatDonePanel wine={selectedWine} onClose={onClose} />
-      ) : null}
+      {step === "done" && selectedWine ? <ChatDonePanel wine={selectedWine} onClose={onClose} /> : null}
     </div>
   )
 }
-

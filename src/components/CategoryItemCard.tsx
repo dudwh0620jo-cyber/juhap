@@ -5,6 +5,12 @@ export type CategoryListItem = {
   name: string
   imageSrc?: string
   price?: number
+  abv?: number
+  drinkTypeLabel?: string
+  subcategory?: string
+  detailCategories?: string[]
+  features?: string[]
+  searchTags?: string[]
   priceLabel?: string
   subGroup?: string
   tags: string[]
