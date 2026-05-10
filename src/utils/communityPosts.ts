@@ -1,4 +1,6 @@
-import rawPosts from "../data/communityPosts.json"
+﻿import rawPosts from "../data/communityPosts.json"
+import { QUESTION_MOCK_SEEDS } from "./communityQuestionData"
+import { usersMockById } from "./usersMock"
 
 export type FeedPost = {
   id: number
@@ -24,6 +26,7 @@ export type FeedPost = {
   foods?: string[]
   priceWon?: number
   abv?: number
+  detailMockKey?: string
 }
 
 export const extractPairingTitle = (title: string) => {
@@ -64,13 +67,51 @@ export const getPairingDetailBodyText = (post: Pick<FeedPost, "pairingSummary" |
 
 const basePosts = rawPosts as FeedPost[]
 
-export const feedPosts: FeedPost[] = basePosts.map((post) => {
-  if (post.isQna) return post
-  if (post.photoIds) return post
-  const count = Math.abs(post.id) % 3
+const toCreatedAtFromMinutesAgo = (minutesAgo: number) => {
+  const now = Date.now()
+  return new Date(now - minutesAgo * 60_000).toISOString()
+}
+
+type QuestionMockSeed = Omit<FeedPost, "createdAt"> & { minutesAgo: number }
+
+const questionMockSeeds: QuestionMockSeed[] = QUESTION_MOCK_SEEDS as unknown as QuestionMockSeed[]
+
+const questionMockPosts: FeedPost[] = questionMockSeeds.map(({ minutesAgo, ...rest }) => ({
+  ...rest,
+  createdAt: toCreatedAtFromMinutesAgo(minutesAgo),
+}))
+
+const applyUserDerivedFields = (post: FeedPost): FeedPost => {
+  const user = usersMockById[post.authorId]
+  if (!user?.name) return post
+  return { ...post, authorName: user.name }
+}
+
+const REVIEW_IMAGE_POOL = [3, 4, 5, 6, 7, 8, 9] as const
+const IMAGE_COUNT_SEED = 7
+const IMAGE_START_SEED = 11
+const MAX_REVIEW_IMAGES_PER_POST = 3
+
+const isFixedSeedReviewPost = (post: FeedPost) => post.id === 1001 || post.id === 1002
+
+const ensureReviewPhotoIds = (post: FeedPost): FeedPost => {
+  if (post.isQna || isFixedSeedReviewPost(post) || post.photoIds) return post
+
+  // Deterministic mock rule for review seeds without explicit photoIds.
+  const count = Math.abs(post.id * IMAGE_COUNT_SEED) % (MAX_REVIEW_IMAGES_PER_POST + 1)
   if (count === 0) return post
-  return {
-    ...post,
-    photoIds: Array.from({ length: count }).map((_, index) => `mock-photo-${post.id}-${index + 1}`),
-  }
+
+  const startIndex = Math.abs(post.id * IMAGE_START_SEED) % REVIEW_IMAGE_POOL.length
+  const photoIds = Array.from({ length: count }).map((_, index) => {
+    const imageNo = REVIEW_IMAGE_POOL[(startIndex + index) % REVIEW_IMAGE_POOL.length]
+    return `review_image_${String(imageNo).padStart(2, "0")}`
+  })
+
+  return { ...post, photoIds }
+}
+
+export const feedPosts: FeedPost[] = [...questionMockPosts, ...basePosts].map((post) => {
+  const withPhotos = ensureReviewPhotoIds(post)
+  return applyUserDerivedFields(withPhotos)
 })
+

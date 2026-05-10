@@ -1,3 +1,5 @@
+﻿import PurchaseConfirmModal from "./PurchaseConfirmModal"
+
 type BookmarkList = {
   id: string
   label: string
@@ -30,46 +32,34 @@ export default function CommunityBookmarkPickerModal({
   listPickerAriaLabel,
   primaryLabel,
   secondaryLabel,
-  onDismiss,
+  onDismiss: _onDismiss,
   onSelectList,
   onSecondary,
   onPrimary,
 }: Props) {
   return (
-    <div className="bookmark_modal_backdrop" role="presentation" onClick={onDismiss}>
-      <div
-        className="bookmark_modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <p className="bookmark_modal_title">{titleText}</p>
-
-        <div className="bookmark_list_picker" role="radiogroup" aria-label={listPickerAriaLabel}>
-          {lists.map((list) => (
-            <button
-              key={list.id}
-              type="button"
-              className={picker.selectedListId === list.id ? "bookmark_list_item is_active" : "bookmark_list_item"}
-              role="radio"
-              aria-checked={picker.selectedListId === list.id}
-              onClick={() => onSelectList(list.id)}
-            >
-              {list.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="bookmark_modal_actions">
-          <button type="button" className="bookmark_modal_button" onClick={onSecondary}>
-            {secondaryLabel}
+    <PurchaseConfirmModal
+      ariaLabel={ariaLabel}
+      message={titleText}
+      cancelLabel={secondaryLabel}
+      confirmLabel={primaryLabel}
+      onCancel={onSecondary}
+      onConfirm={onPrimary}
+    >
+      <div className="bookmark_list_picker" role="radiogroup" aria-label={listPickerAriaLabel} onClick={(e) => e.stopPropagation()}>
+        {lists.map((list) => (
+          <button
+            key={list.id}
+            type="button"
+            className={picker.selectedListId === list.id ? "bookmark_list_item is_active" : "bookmark_list_item"}
+            role="radio"
+            aria-checked={picker.selectedListId === list.id}
+            onClick={() => onSelectList(list.id)}
+          >
+            {list.label}
           </button>
-          <button type="button" className="bookmark_modal_button is_primary" onClick={onPrimary}>
-            {primaryLabel}
-          </button>
-        </div>
+        ))}
       </div>
-    </div>
+    </PurchaseConfirmModal>
   )
 }

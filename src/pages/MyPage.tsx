@@ -27,6 +27,7 @@ import {
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
 import { defaultFollowedUserIdsMock } from "../utils/usersMock"
+import { resolveMyUserAvatar } from "../utils/userAvatars"
 import "../styles/my.css"
 
 type ExchangeTab = (typeof exchangeTabs)[number]
@@ -116,6 +117,7 @@ export default function MyPage() {
   const [isPointExchangeOpen, setIsPointExchangeOpen] = useState(false)
   const [activeExchangeTab, setActiveExchangeTab] = useState<ExchangeTab>("전체")
   const [isExperienceExpanded, setIsExperienceExpanded] = useState(false)
+  const myAvatarSrc = resolveMyUserAvatar()
   const [selectedByGroup, setSelectedByGroup] = useState<UserTastePreferences>(() =>
     normalizeTastePreferences(profile.tastePreferences),
   )
@@ -312,7 +314,9 @@ export default function MyPage() {
   return (
     <section className="my_page" aria-label="마이페이지">
       <header className="my_profile_header">
-        <div className="my_profile_avatar" aria-hidden="true" />
+        <div className="my_profile_avatar" aria-hidden="true">
+          {myAvatarSrc ? <img className="my_profile_avatar_image" src={myAvatarSrc} alt="" aria-hidden="true" /> : null}
+        </div>
 
         <div className="my_profile_identity">
           <h1>{nickname}</h1>

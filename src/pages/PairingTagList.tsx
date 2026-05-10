@@ -7,9 +7,9 @@ import "../styles/community.css"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
 import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../utils/communityPosts"
-import { usersMockById } from "../utils/usersMock"
+import { currentUserMock, usersMockById } from "../utils/usersMock"
 
-type TagType = "liquor" | "food"
+type TagType = "liquor" | "food" | "hashtag"
 
 type NavState = {
   tagType: TagType
@@ -33,6 +33,10 @@ export default function PairingTagList() {
 
     return feedPosts.filter((post) => {
       if (post.isQna) return false
+      if (tagType === "hashtag") {
+        const tags = (post.searchTags ?? []).map((tag) => tag.replace(/\s+/g, "").toLowerCase())
+        return tags.some((tag) => tag === normalizedTag || tag.includes(normalizedTag))
+      }
       const pairingTitle = extractPairingTitle(post.title)
       const tags = getPairingTagsFromTitle(pairingTitle)
       const liquor = (tags.liquorTag ?? "").replace(/\s+/g, "").toLowerCase()
@@ -63,8 +67,8 @@ export default function PairingTagList() {
             <RelatedContentPostCard
               key={item.id}
               postId={item.id}
-              showImages={item.authorId === 2001 ? Boolean(item.photoIds?.length) : true}
-              imageCount={item.authorId === 2001 ? Math.min(3, item.photoIds?.length ?? 0) : 2}
+              showImages={item.authorId === currentUserMock.id ? Boolean(item.photoIds?.length) : true}
+              imageCount={item.authorId === currentUserMock.id ? Math.min(3, item.photoIds?.length ?? 0) : 2}
               authorName={usersMockById[item.authorId]?.name ?? "익명"}
               profile={usersMockById[item.authorId]?.profile ?? ""}
               badgeClassName={getTierClassName(getPairingTierByUserId(item.authorId), "feed_post_badge")}

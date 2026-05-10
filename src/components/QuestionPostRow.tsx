@@ -1,9 +1,7 @@
-import { useState } from "react"
-import { Link } from "react-router"
+﻿import { Link } from "react-router"
 
-import iconChat from "../assets/svg/chatcircledots.svg"
-import iconBeerstein from "../assets/svg/beerstein.svg"
-import iconBeersteinActive from "../assets/svg/beerstein_active.svg"
+import iconChat from "../assets/svg/chatcircledots_p.svg"
+import { resolveQuestionImage } from "../utils/questionImages"
 
 type Props = {
   postId: number
@@ -45,39 +43,27 @@ export default function QuestionPostRow({
   title,
   body,
   createdAt,
-  likeCount,
   commentCount,
-  likeActive,
-  likeAriaLabel,
-  onToggleLike,
   onViewComments,
   linkTo,
   linkState,
   photoIds,
   thumbVariant,
 }: Props) {
-  const [isLikeAnimating, setIsLikeAnimating] = useState(false)
   const timeLabel = formatRelativeKorean(createdAt)
   const firstPhotoId = photoIds?.[0]?.trim() ?? ""
+  const hasThumb = Boolean((photoIds && photoIds.length > 0) || (thumbVariant && thumbVariant !== "none"))
+  const resolvedQuestionThumb = resolveQuestionImage(firstPhotoId)
   const photoThumbStyle = firstPhotoId.startsWith("data:image/") || firstPhotoId.startsWith("blob:")
     ? { backgroundImage: `url(${firstPhotoId})` }
-    : undefined
-
-  const handleToggleLike = () => {
-    if (!likeActive) {
-      setIsLikeAnimating(false)
-      requestAnimationFrame(() => {
-        setIsLikeAnimating(true)
-      })
-    }
-
-    onToggleLike()
-  }
+    : resolvedQuestionThumb
+      ? { backgroundImage: `url(${resolvedQuestionThumb})` }
+      : undefined
 
   return (
     <article className="question_row" key={postId}>
       <div className="question_row_top">
-        <Link className="question_row_link" to={linkTo} state={linkState}>
+        <Link className={`question_row_link${hasThumb ? " has_thumb" : ""}`} to={linkTo} state={linkState}>
           <div className="question_row_text">
             <strong className="question_row_title">{title}</strong>
             <p className="question_row_excerpt">{body}</p>
@@ -93,22 +79,6 @@ export default function QuestionPostRow({
       </div>
 
       <div className="question_row_meta">
-        <button
-          type="button"
-          className={likeActive ? "question_meta_button is_active" : "question_meta_button"}
-          aria-label={likeAriaLabel}
-          onClick={handleToggleLike}
-        >
-          <img
-            className={isLikeAnimating ? "question_meta_icon is_like_animated" : "question_meta_icon"}
-            src={likeActive ? iconBeersteinActive : iconBeerstein}
-            alt=""
-            aria-hidden="true"
-            onAnimationEnd={() => setIsLikeAnimating(false)}
-          />
-          <span className="question_meta_value">{likeCount.toLocaleString()}</span>
-        </button>
-
         <button type="button" className="question_meta_button" aria-label="댓글 보기" onClick={onViewComments}>
           <img className="question_meta_icon" src={iconChat} alt="" aria-hidden="true" />
           <span className="question_meta_value">{commentCount.toLocaleString()}</span>

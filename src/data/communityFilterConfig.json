@@ -7,6 +7,11 @@
     { "key": "free", "label": "질문" },
     { "key": "follow", "label": "팔로우" }
   ],
+  "reviewSortItems": [
+    { "key": "latest", "label": "최신순" },
+    { "key": "recommend", "label": "추천순" },
+    { "key": "popular", "label": "인기순" }
+  ],
   "bookmarkLists": [
     { "id": "default", "label": "기본 북마크" },
     { "id": "wine", "label": "와인 페어링" },

@@ -1,4 +1,4 @@
-import iconPencil from "../assets/svg/pencil.svg"
+import iconPencil from "../assets/svg/pencilsimple_p.svg"
 
 type Props = {
   ariaLabel: string

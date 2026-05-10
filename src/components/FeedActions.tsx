@@ -1,11 +1,11 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 
-import iconBookmark from "../assets/svg/bookmarksimple.svg"
+import iconBookmark from "../assets/svg/bookmarksimple_p.svg"
 import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
-import iconChat from "../assets/svg/chatcircledots.svg"
-import iconBeerstein from "../assets/svg/beerstein.svg"
+import iconChat from "../assets/svg/chatcircledots_p.svg"
+import iconBeerstein from "../assets/svg/beerstein_p.svg"
 import iconBeersteinActive from "../assets/svg/beerstein_active.svg"
-import iconShare from "../assets/svg/sharenetwork.svg"
+import iconShare from "../assets/svg/sharenetwork_p.svg"
 
 type Props = {
   variant?: "compact" | "detail"
@@ -47,7 +47,6 @@ export default function FeedActions({
         setIsLikeAnimating(true)
       })
     }
-
     onToggleLike()
   }
 

@@ -22,7 +22,7 @@ import TasteSetup from "./pages/TasteSetup"
 import VoteList from "./pages/VoteList"
 import "./styles/common.css"
 
-import iconChatscircleWhite from "./assets/svg/chatscircle_w.svg"
+import chatMascotButton from "./assets/chat_mascot_btn.png"
 import iconCirclesFour from "./assets/svg/circlesfour.svg"
 import iconCirclesFourActive from "./assets/svg/circlesfour_active.svg"
 import iconHouse from "./assets/svg/house.svg"
@@ -90,9 +90,8 @@ export default function App() {
               onClick={() => setIsChatOpen(true)}
             >
               <span className="chat_corner_icon" aria-hidden="true">
-                <img className="chat_corner_icon_img" src={iconChatscircleWhite} alt="" />
+                <img className="chat_corner_icon_img" src={chatMascotButton} alt="" />
               </span>
-              <span className="chat_corner_label">AI챗봇</span>
             </button>
           </div>
         ) : null}

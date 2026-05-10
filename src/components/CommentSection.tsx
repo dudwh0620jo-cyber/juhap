@@ -8,6 +8,7 @@ import iconDots from "../assets/svg/dotsthreevertical.svg"
 import iconReplyArrow from "../assets/svg/arrowbenddownright.svg"
 import { COMMUNITY_FOLLOWED_USERS_KEY, getPairingCommentsStorageKey } from "../utils/communityStorage"
 import { mentionDirectoryMock } from "../utils/usersMock"
+import { resolveUserAvatar } from "../utils/userAvatars"
 
 type CommentItem = {
   id: number
@@ -554,10 +555,12 @@ export default function CommentSection({
           swipeStartRef.current = null
         }}
       >
-        {visibleComments.map((item) => (
-          <div className={item.replyTo ? "comment_row is_reply" : "comment_row"} key={item.id}>
-            <div className="avatar" />
-            <div>
+        {visibleComments.map((item) => {
+          const avatarSrc = resolveUserAvatar(item.userId)
+          return (
+            <div className={item.replyTo ? "comment_row is_reply" : "comment_row"} key={item.id}>
+              <div className="avatar">{avatarSrc ? <img className="avatar_image" src={avatarSrc} alt="" aria-hidden="true" /> : null}</div>
+              <div>
               <div className="comment_header_row">
                 <h4>
                   {item.userName} <span className="comment_meta">{item.userMeta}</span>
@@ -694,9 +697,10 @@ export default function CommentSection({
                   </button>
                 </form>
               ) : null}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
 
         {placeholderRowCount > 0
           ? Array.from({ length: placeholderRowCount }).map((_, index) => (

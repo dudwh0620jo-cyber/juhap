@@ -10,6 +10,7 @@ import { useCommunityPageData } from "../hooks/useCommunityPageData"
 import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
 import { readUserProfile } from "../data/userProfile"
 import { sakeProductsMock } from "../data/sakeProductsMock"
+import { currentUserMock } from "../utils/usersMock"
 
 type WriteMode = "review" | "free"
 type ReviewTab = "drink" | "pairing"
@@ -463,7 +464,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
 
       const nextPost = {
         id: Date.now(),
-        authorId: 2001,
+        authorId: currentUserMock.id,
         authorName: nickname,
         title: title.trim(),
         body: body.trim(),
@@ -519,7 +520,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
 
       const nextPost = {
         id: Date.now(),
-        authorId: 2001,
+        authorId: currentUserMock.id,
         authorName: nickname,
         title: normalizedTitle,
         body: normalizedBody,
@@ -570,7 +571,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
 
     const nextPost = {
       id: Date.now(),
-      authorId: 2001,
+      authorId: currentUserMock.id,
       authorName: nickname,
       title: pairingSummary.trim(),
       body: normalizedPairingBody,

@@ -7,10 +7,11 @@ import {
   bookmarkLists,
   feedFilterItems,
   popupFoodCategories,
+  reviewSortItems,
 } from "../data/communityFilterConfig"
 import { COMMUNITY_FOLLOWED_USERS_KEY, COMMUNITY_LIKED_POSTS_KEY, COMMUNITY_SEARCH_RECENT_KEY } from "../utils/communityStorage"
 import { defaultFollowedUserIdsMock } from "../utils/usersMock"
-export type { FeedFilter } from "../data/communityFilterConfig"
+export type { FeedFilter, ReviewSortKey } from "../data/communityFilterConfig"
 
 export type PopupChipGroup = {
   title: string
@@ -36,6 +37,7 @@ export function useCommunityPageData() {
     ABV_MIN,
     ABV_MAX,
     feedFilterItems,
+    reviewSortItems,
     bookmarkLists,
     popupCategoryByDrinkType,
     popupFeaturesByDrinkType,

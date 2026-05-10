@@ -171,6 +171,18 @@
   line-height: 1.5;
 }
 
+.purchase_confirm_title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.purchase_confirm_content {
+  display: grid;
+  gap: 10px;
+}
+
 .purchase_confirm_actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -333,36 +345,16 @@ body {
 
 .chat_corner_fab {
   pointer-events: auto;
-  display: grid;
-  place-items: center;
-  gap: 6px;
-  padding: 8px 6px;
-  background: transparent;
-  border: 0;
-  color: #1f1f1f;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .chat_corner_icon {
   display: block;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  background-color: #f3c546;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+  width: 70px;
 }
 
 .chat_corner_icon_img {
-  width: 24px;
-  height: 24px;
-}
-
-.chat_corner_label {
-  line-height: 1;
+  width: 70px;
+  object-fit: cover;
 }
 
 .post_owner_action_overlay {

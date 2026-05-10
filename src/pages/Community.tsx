@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useLocation, useNavigate, useSearchParams } from "react-router"
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
+import askQuestionBanner from "../assets/ask_question_banner.png"
 import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
-import RelatedContentPostCard from "../components/RelatedContentPostCard"
+import CommunityReviewCard from "../components/CommunityReviewCard"
 import QuestionPostRow from "../components/QuestionPostRow"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import SearchFilterModal from "../components/SearchFilterModal"
@@ -16,7 +17,7 @@ import {
   feedPosts as communityFeedPosts,
   type FeedPost,
 } from "../utils/communityPosts"
-import { type FeedFilter, type PopupChipGroup, useCommunityPageData } from "../hooks/useCommunityPageData"
+import { type FeedFilter, type PopupChipGroup, type ReviewSortKey, useCommunityPageData } from "../hooks/useCommunityPageData"
 import { includesNormalized, normalizeSearchText } from "../utils/text"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
@@ -29,6 +30,10 @@ import {
 import { usersMockById } from "../utils/usersMock"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
+import { QUESTION_BANNER_COPY } from "../utils/communityQuestionData"
+import { myPageProfileSummary } from "../data/myPageContent"
+import { resolveMyUserAvatar } from "../utils/userAvatars"
+import { currentUserMock } from "../utils/usersMock"
 
 const feedPosts: FeedPost[] = communityFeedPosts
 const USER_POSTS_UPDATED_EVENT = "community:user-posts-updated"
@@ -37,13 +42,14 @@ export default function Community() {
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { metaLine: myHeaderProfile } = useMyOnboardingMeta()
+  const { metaLine: myHeaderProfile, nickname: myNickname } = useMyOnboardingMeta()
   const {
     COMMUNITY_FOLLOWED_USERS_KEY,
     COMMUNITY_LIKED_POSTS_KEY,
     COMMUNITY_SEARCH_RECENT_KEY,
     MAX_RECENT_TERMS,
     feedFilterItems,
+    reviewSortItems,
     bookmarkLists,
     popupCategoryByDrinkType,
     popupFeaturesByDrinkType,
@@ -82,9 +88,13 @@ export default function Community() {
   const [selectedFoods, setSelectedFoods] = useState<Set<string>>(() => new Set())
   const [feedSearchValue, setFeedSearchValue] = useState("")
   const [isFeedSearchConfirmed, setIsFeedSearchConfirmed] = useState(false)
+  const [reviewSort, setReviewSort] = useState<ReviewSortKey>("latest")
+  const [isReviewSortSheetOpen, setIsReviewSortSheetOpen] = useState(false)
   const feedSearchInputRef = useRef<HTMLInputElement | null>(null)
   const [expandedChipGroups, setExpandedChipGroups] = useState<Set<string>>(() => new Set())
   const chipGroupRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
+  const myUserId = currentUserMock.id
+  const myAvatarSrc = resolveMyUserAvatar()
 
   const readStoredUserPosts = useCallback((): FeedPost[] => {
     try {
@@ -274,29 +284,37 @@ export default function Community() {
     effectiveSelectedFeatures.size > 0 ||
     selectedFoods.size > 0
 
+  const sortByReviewSort = useCallback(
+    (items: FeedPost[]) => {
+      const copy = [...items]
+      if (reviewSort === "popular") {
+        return copy.sort((a, b) => b.likeCount + b.commentCount - (a.likeCount + a.commentCount))
+      }
+      if (reviewSort === "recommend") {
+        return copy.sort((a, b) => b.popularityScore - a.popularityScore)
+      }
+      return copy.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    },
+    [reviewSort],
+  )
+
   const posts = useMemo(() => {
     const copy = [...userPosts, ...feedPosts]
 
     if (feedFilter === "review") {
-      return copy
-        .filter((post) => !post.isQna)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      return sortByReviewSort(copy.filter((post) => !post.isQna))
     }
 
     if (feedFilter === "free") {
-      return copy
-        .filter((post) => post.isQna)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      return sortByReviewSort(copy.filter((post) => post.isQna))
     }
 
     if (feedFilter === "follow") {
-      return copy
-        .filter((post) => followedUserIds.has(post.authorId) && post.authorId !== 2001)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      return sortByReviewSort(copy.filter((post) => !post.isQna && followedUserIds.has(post.authorId) && post.authorId !== myUserId))
     }
 
     return []
-  }, [feedFilter, followedUserIds, userPosts])
+  }, [feedFilter, followedUserIds, sortByReviewSort, userPosts])
 
   const filteredPosts = useMemo(() => {
     if (!isCommunitySearchActive) {
@@ -589,7 +607,7 @@ export default function Community() {
     }
   }, [initialFilter])
 
-  const feedSectionTitle = feedFilter === "review" ? "후기" : feedFilter === "free" ? "질문" : "팔로우"
+  const reviewSortLabel = reviewSortItems.find((item) => item.key === reviewSort)?.label ?? "최신순"
 
   return (
     <section className="community_page page_screen" aria-label="커뮤니티">
@@ -659,12 +677,21 @@ export default function Community() {
         />
       </SearchFilterModal>
 
-      <FeedSegmentTabs
-        ariaLabel="커뮤니티 피드 필터"
-        items={feedFilterItems}
-        activeKey={feedFilter}
-        onChange={(key) => changeFeedFilter(key as FeedFilter)}
-      />
+      <div className="community_feed_control_row">
+        <FeedSegmentTabs
+          ariaLabel="커뮤니티 피드 필터"
+          items={feedFilterItems}
+          activeKey={feedFilter}
+          onChange={(key) => changeFeedFilter(key as FeedFilter)}
+        />
+        <button
+          type="button"
+          className="community_review_sort_button"
+          onClick={() => setIsReviewSortSheetOpen(true)}
+        >
+          {reviewSortLabel}
+        </button>
+      </div>
 
       {feedFilter === "review" ? (
         <FeedWriteRow ariaLabel="후기 글쓰기" onClickReview={() => navigate("/community/write?mode=review")} />
@@ -674,7 +701,42 @@ export default function Community() {
         <FeedWriteRow ariaLabel="질문 글쓰기" onClickFree={() => navigate("/community/write?mode=free")} />
       ) : null}
 
-      <h4 className="community_section_title">{feedSectionTitle}</h4>
+      {feedFilter === "free" ? (
+        <Link className="question_banner_link" to="/community/write?mode=free" aria-label="질문 작성 배너">
+          <img className="question_banner_image" src={askQuestionBanner} alt="" aria-hidden="true" />
+          <div className="question_banner_copy" aria-hidden="true">
+            <p className="question_banner_title">{QUESTION_BANNER_COPY.title}</p>
+            <p className="question_banner_subtitle">{QUESTION_BANNER_COPY.subtitle}</p>
+          </div>
+        </Link>
+      ) : null}
+
+      {feedFilter === "follow" ? (
+        <section className="community_follow_me_section" aria-label="내 팔로우 요약">
+          <div className="community_follow_me_card">
+            <div className="community_follow_me_avatar" aria-hidden="true">
+              {myAvatarSrc ? <img className="community_follow_me_avatar_image" src={myAvatarSrc} alt="" aria-hidden="true" /> : null}
+            </div>
+            <div className="community_follow_me_body">
+              <div className="community_follow_me_identity">
+                <strong className="community_follow_me_name">{myNickname}</strong>
+                <span className="community_follow_me_grade">{myPageProfileSummary.gradeLabel}</span>
+              </div>
+              <div className="community_follow_me_stats" aria-label="팔로워 팔로잉">
+                <div className="community_follow_me_stat">
+                  <strong>{myPageProfileSummary.followerCount.toLocaleString("ko-KR")}</strong>
+                  <span>팔로워</span>
+                </div>
+                <div className="community_follow_me_stat">
+                  <strong>{followedUserIds.size.toLocaleString("ko-KR")}</strong>
+                  <span>팔로잉</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <div className={feedFilter === "free" ? "question_list" : "feed_cards"} aria-label="커뮤니티 피드 목록">
         {isFeedNoResults ? (
           <div className="search_no_results" role="status">
@@ -731,54 +793,60 @@ export default function Community() {
                 thumbVariant={index % 3 === 1 ? "bottle" : index % 3 === 2 ? "photo" : "none"}
               />
             ))
-          : filteredPosts.map((post) => (
-              <RelatedContentPostCard
-                key={post.id}
-                postId={post.id}
-                isQna={post.isQna}
-                showImages={Boolean(post.photoIds?.length)}
-                imageCount={post.photoIds?.length ?? 0}
-                authorName={post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명"}
-                profile={post.authorId === 2001 ? myHeaderProfile : usersMockById[post.authorId]?.profile ?? ""}
-                badgeClassName={getTierClassName(getPairingTierByUserId(post.authorId), "feed_post_badge")}
-                badgeText={getPairingTierLabelByUserId(post.authorId)}
-                menuAriaLabel={userPostIdSet.has(post.id) ? "게시글 설정" : undefined}
-                onOpenMenu={userPostIdSet.has(post.id) ? () => setOwnerPostAction(post) : undefined}
-                followButtonClassName={followedUserIds.has(post.authorId) ? "follow_toggle_button is_following" : "follow_toggle_button"}
-                followAriaLabel={feedFilter === "follow" ? "언팔로우" : followedUserIds.has(post.authorId) ? "팔로잉" : "팔로우"}
-                followText={feedFilter === "follow" ? "언팔로우" : followedUserIds.has(post.authorId) ? "팔로잉" : "팔로우"}
-                onToggleFollow={() =>
-                  requestToggleFollowUser(post.authorId, post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명")
-                }
-                linkTo={`/community/pairing/${post.id}`}
-                linkState={{
-                  pairingTitle: extractPairingTitle(post.title),
-                  body: post.body,
-                  pairingSummary: post.pairingSummary ?? "",
-                  authorId: post.authorId,
-                  authorName: post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명",
-                  profile: usersMockById[post.authorId]?.profile ?? "",
-                  locationLabel: post.locationLabel?.trim() ?? "",
-                  drinkType: post.drinkType ?? "",
-                  features: post.features ?? [],
-                  source: "feed",
-                  feedFilter: feedFilter,
-                }}
-                title={post.isQna ? post.title : (post.pairingSummary ?? post.title)}
-                body={post.body}
-                answerCount={post.answerCount}
-                answerPreview={post.answerPreview}
-                likeActive={Boolean(likedById[post.id])}
-                likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
-                likeText={`${getLikeCount(post)}`}
-                onToggleLike={() => toggleLike(post.id)}
-                commentText={`${getCommentCount(post)}`}
-                onViewComments={() => goToComments(post.id)}
-                bookmarkActive={Boolean(bookmarkListById[post.id])}
-                bookmarkAriaLabel={bookmarkListById[post.id] ? "북마크 변경" : "북마크"}
-                onOpenBookmarkPicker={() => openBookmarkPicker(post.id)}
-              />
-            ))}
+          : filteredPosts.map((post) => {
+              const authorName = post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명"
+              const authorMeta = post.authorId === myUserId ? myHeaderProfile : usersMockById[post.authorId]?.profile ?? ""
+              const pairingTitle = extractPairingTitle(post.title)
+
+              return (
+                <CommunityReviewCard
+                  key={post.id}
+                  postId={post.id}
+                  authorId={post.authorId}
+                  authorName={authorName}
+                  authorMeta={authorMeta}
+                  badgeClassName={getTierClassName(getPairingTierByUserId(post.authorId), "feed_post_badge")}
+                  badgeText={getPairingTierLabelByUserId(post.authorId)}
+                  menuAriaLabel={userPostIdSet.has(post.id) ? "게시글 설정" : undefined}
+                  onOpenMenu={userPostIdSet.has(post.id) ? () => setOwnerPostAction(post) : undefined}
+                  followButtonClassName={
+                    followedUserIds.has(post.authorId) ? "follow_toggle_button is_following" : "follow_toggle_button"
+                  }
+                  followAriaLabel={followedUserIds.has(post.authorId) ? "언팔로우" : "팔로우"}
+                  followText={followedUserIds.has(post.authorId) ? "언팔로우" : "팔로우"}
+                  onToggleFollow={() => requestToggleFollowUser(post.authorId, authorName)}
+                  linkTo={`/community/pairing/${post.id}`}
+                  linkState={{
+                    pairingTitle,
+                    body: post.body,
+                    pairingSummary: post.pairingSummary ?? "",
+                    authorId: post.authorId,
+                    authorName,
+                    profile: usersMockById[post.authorId]?.profile ?? "",
+                    locationLabel: post.locationLabel?.trim() ?? "",
+                    drinkType: post.drinkType ?? "",
+                    features: post.features ?? [],
+                    source: "feed",
+                    feedFilter: feedFilter,
+                  }}
+                  title={post.pairingSummary ?? post.title}
+                  pairingTitle={pairingTitle}
+                  body={post.body}
+                  photoIds={post.photoIds}
+                  hashtags={post.searchTags}
+                  locationLabel={post.locationLabel?.trim() ?? ""}
+                  likeActive={Boolean(likedById[post.id])}
+                  likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
+                  likeText={`${getLikeCount(post)}`}
+                  onToggleLike={() => toggleLike(post.id)}
+                  commentText={`${getCommentCount(post)}`}
+                  onViewComments={() => goToComments(post.id)}
+                  bookmarkActive={Boolean(bookmarkListById[post.id])}
+                  bookmarkAriaLabel={bookmarkListById[post.id] ? "북마크 변경" : "북마크"}
+                  onOpenBookmarkPicker={() => openBookmarkPicker(post.id)}
+                />
+              )
+            })}
       </div>
 
       {bookmarkPicker ? (
@@ -833,6 +901,39 @@ export default function Community() {
             deleteUserPost(postId)
           }}
         />
+      ) : null}
+
+      {isReviewSortSheetOpen ? (
+        <div className="community_review_sort_overlay" role="presentation" onClick={() => setIsReviewSortSheetOpen(false)}>
+          <section
+            className="community_review_sort_sheet"
+            aria-label="정렬"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <span className="community_review_sort_handle" aria-hidden="true" />
+            <div className="community_review_sort_options">
+              {reviewSortItems.map((item) => {
+                const isActive = item.key === reviewSort
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={isActive ? "community_review_sort_option is_active" : "community_review_sort_option"}
+                    onClick={() => {
+                      setReviewSort(item.key)
+                      setIsReviewSortSheetOpen(false)
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    {isActive ? <span className="community_review_sort_check" aria-hidden="true" /> : null}
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        </div>
       ) : null}
 
       {pendingUnfollowUser ? (
