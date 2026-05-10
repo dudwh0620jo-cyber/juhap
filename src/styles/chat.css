@@ -458,10 +458,6 @@
   justify-self: center;
 }
 
-.ai_face_small {
-  display: none;
-}
-
 .chat_suggestion_list,
 .chat_chip_group {
   display: flex;
@@ -640,7 +636,7 @@ button:active .chat_suggestion_label,
 }
 
 .chat_matching_mascot {
-  width: 162x;
+  width: 162px;
   height: 162px;
   object-fit: cover;
 }

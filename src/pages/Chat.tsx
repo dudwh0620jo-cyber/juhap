@@ -15,16 +15,19 @@ import "../styles/chat.css"
 import { findGlossaryTopicMatch } from "../utils/chatGlossarySearch"
 import {
   buildGlossaryIntroMessage,
+  chatRecommendationFoundMessage,
+  chatUnknownInputMessage,
   DIRECT_GLOSSARY_INPUT_LABEL,
   foodCategoryOptions,
   getTopRecommendations,
   glossaryDefinitionByTopic,
   glossaryOptions,
-  glossaryRecommendStyleByTopic,
+  glossaryRecommendationByTopic,
   glossaryRelatedOptions,
   glossaryUserBubbleTextByTopic,
   introPromptOptions,
   partyMoodOptions,
+  primaryRecommendationIds,
   wineStyleOptions,
   wineCandidatesMock,
   type ChatMessage,
@@ -72,7 +75,6 @@ const STEP_PANEL_APPEAR_MS = 80
 const FEATURE_PREPARING_DELAY_MS = 700
 const INITIAL_RECOMMENDATION_COUNT = 2
 const MORE_RECOMMENDATION_COUNT = 3
-const PRIMARY_RECOMMENDATION_IDS = ["sake-dassai-23", "sake-kubota-manju"] as const
 const MICROPHONE_PERMISSION_MODAL = {
   title: "\uB9C8\uC774\uD06C \uAD8C\uD55C\uC774 \uD544\uC694\uD574\uC694",
   message: "\uC74C\uC131 \uC785\uB825\uC744 \uC0AC\uC6A9\uD558\uB824\uBA74\n\uB9C8\uC774\uD06C \uAD8C\uD55C\uC744 \uD5C8\uC6A9\uD574 \uC8FC\uC138\uC694.",
@@ -86,7 +88,6 @@ const INTRO_HERO_MESSAGE = [
 const BACK_MESSAGE = "\uB4A4\uB85C\uAC00\uAE30"
 const MORE_DRINKS_MESSAGE = "\uB2E4\uB978 \uC220 \uB354\uBCF4\uAE30"
 const FEATURE_PREPARING_MESSAGE = "\uC900\uBE44\uC911\uC778 \uAE30\uB2A5\uC774\uC5D0\uC694"
-const RECOMMENDATION_FOUND_MESSAGE = "\uC870\uAC74\uC5D0 \uB9DE\uB294 \uC644\uBCBD\uD55C \uC220\uC744 \uCC3E\uC558\uC5B4\uC694!"
 
 function getIntroPromptIcon(item: (typeof introPromptOptions)[number]) {
   if (item === scanPromptLabel) return introScanIcon
@@ -110,6 +111,13 @@ function findBestOptionMatch(options: readonly string[], rawInput: string) {
     options.find((option) => input.includes(normalizeKeyword(option))) ??
     null
   )
+}
+
+function findExactOptionMatch(options: readonly string[], rawInput: string) {
+  const input = normalizeKeyword(rawInput)
+  if (!input) return null
+
+  return options.find((option) => normalizeKeyword(option) === input) ?? null
 }
 
 function buildGreetingMessage(userName: string) {
@@ -197,17 +205,20 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       if (action.value === DIRECT_GLOSSARY_INPUT_LABEL) {
         return { ...state, step: "glossary", session }
       }
-      const recommendationStyle = glossaryRecommendStyleByTopic[action.value]
-      if (recommendationStyle) {
-        const messages = pushAi(state.messages, RECOMMENDATION_FOUND_MESSAGE)
+      const recommendationConfig = glossaryRecommendationByTopic[action.value]
+      if (recommendationConfig) {
+        const messages = recommendationConfig.showFoundMessage
+          ? pushAi(state.messages, chatRecommendationFoundMessage)
+          : state.messages
         return {
           ...state,
           step: "recommend",
           session: {
             ...session,
-            wineStyle: recommendationStyle,
+            wineStyle: recommendationConfig.wineStyle,
             recommendationCursor: 0,
             recommendationSource: "glossary",
+            recommendationProductIds: recommendationConfig.productIds,
             lastRecommendationIds: [],
             selectedWineId: undefined,
           },
@@ -238,6 +249,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         wineStyle: action.value,
         recommendationCursor: 0,
         recommendationSource: "pairing",
+        recommendationProductIds: undefined,
         lastRecommendationIds: [],
       }
       const messages = action.skipPrompt ? state.messages : pushAi(state.messages, getNextAiPrompt("recommend"))
@@ -300,6 +312,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           "selectedWineId",
           "recommendationCursor",
           "recommendationSource",
+          "recommendationProductIds",
           "lastRecommendationIds",
         ])
         const messages = pushAi(pushUser(state.messages, BACK_MESSAGE), getNextAiPrompt("party_mood"))
@@ -312,6 +325,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           "selectedWineId",
           "recommendationCursor",
           "recommendationSource",
+          "recommendationProductIds",
           "lastRecommendationIds",
         ])
         const messages = pushAi(pushUser(state.messages, BACK_MESSAGE), getNextAiPrompt("food"))
@@ -324,6 +338,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
             "selectedWineId",
             "recommendationCursor",
             "recommendationSource",
+            "recommendationProductIds",
             "lastRecommendationIds",
           ])
           return { ...state, step: "glossary", session, messages: state.messages, selectedWine: null }
@@ -333,6 +348,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           "selectedWineId",
           "recommendationCursor",
           "recommendationSource",
+          "recommendationProductIds",
           "lastRecommendationIds",
         ])
         const messages = pushAi(pushUser(state.messages, BACK_MESSAGE), getNextAiPrompt("wine_style"))
@@ -534,7 +550,7 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
           dispatch(action.type === "SELECT_WINE_STYLE" && shouldShowMatching ? { ...action, skipPrompt: true } : action)
         }
         if (shouldShowMatching) {
-          dispatch({ type: "APPEND_AI_MESSAGE", text: RECOMMENDATION_FOUND_MESSAGE })
+          dispatch({ type: "APPEND_AI_MESSAGE", text: chatRecommendationFoundMessage })
         }
         setIsTyping(false)
         setMatchingLabels([])
@@ -546,6 +562,13 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
         selectionEchoTimeoutRef.current = null
       }, typingDelayMs)
     }, PANEL_TRANSITION_MS)
+  }
+
+  function dispatchUnknownReply(text: string) {
+    dispatchAfterSelectionEcho(text, [
+      { type: "APPEND_USER_MESSAGE", text },
+      { type: "APPEND_AI_MESSAGE", text: chatUnknownInputMessage },
+    ])
   }
 
   function handleIntroPromptClick(item: (typeof introPromptOptions)[number]) {
@@ -564,7 +587,7 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     if (!trimmedMessage) return
 
     if (state.step === "intro") {
-      dispatchAfterIntroClose({ type: "SELECT_INTRO_PROMPT", value: fastPromptLabel })
+      dispatchAfterIntroClose({ type: "SELECT_INTRO_PROMPT", value: fastPromptLabel, userName })
       setMessageValue("")
       return
     }
@@ -584,10 +607,7 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
         return
       }
 
-      dispatchAfterSelectionEcho(trimmedMessage, [
-        { type: "APPEND_USER_MESSAGE", text: trimmedMessage },
-        { type: "SELECT_GLOSSARY_TOPIC", value: DIRECT_GLOSSARY_INPUT_LABEL },
-      ])
+      dispatchUnknownReply(trimmedMessage)
       setMessageValue("")
       return
     }
@@ -602,6 +622,10 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
         setMessageValue("")
         return
       }
+
+      dispatchUnknownReply(trimmedMessage)
+      setMessageValue("")
+      return
     }
 
     if (state.step === "food") {
@@ -614,10 +638,14 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
         setMessageValue("")
         return
       }
+
+      dispatchUnknownReply(trimmedMessage)
+      setMessageValue("")
+      return
     }
 
     if (state.step === "wine_style") {
-      const matched = findBestOptionMatch(wineStyleOptions, trimmedMessage)
+      const matched = findExactOptionMatch(wineStyleOptions, trimmedMessage)
       if (matched) {
         dispatchAfterSelectionEcho(matched, [
           { type: "APPEND_USER_MESSAGE", text: matched },
@@ -626,6 +654,10 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
         setMessageValue("")
         return
       }
+
+      dispatchUnknownReply(trimmedMessage)
+      setMessageValue("")
+      return
     }
 
     if (state.step === "recommend") {
@@ -656,11 +688,13 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     if (state.step !== "recommend") return []
 
     const pool = getTopRecommendations(state.session, 20)
-    if (state.session.recommendationSource === "glossary") {
-      return pool.filter((item) => item.id === "sake-dassai-23").slice(0, 1)
+    if (state.session.recommendationProductIds?.length) {
+      return state.session.recommendationProductIds
+        .map((id) => pool.find((item) => item.id === id))
+        .filter((item): item is WineCandidate => Boolean(item))
     }
 
-    const primaryRecommendations = PRIMARY_RECOMMENDATION_IDS.map((id) => pool.find((item) => item.id === id)).filter(
+    const primaryRecommendations = primaryRecommendationIds.map((id) => pool.find((item) => item.id === id)).filter(
       (item): item is WineCandidate => Boolean(item),
     )
     const primaryIds = new Set(primaryRecommendations.map((item) => item.id))
@@ -672,7 +706,7 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     const cursor = state.session.recommendationCursor ?? 0
     if (cursor === 0) return initialRecommendations
 
-    const otherPool = pool.filter((item) => !PRIMARY_RECOMMENDATION_IDS.includes(item.id as (typeof PRIMARY_RECOMMENDATION_IDS)[number]))
+    const otherPool = pool.filter((item) => !primaryRecommendationIds.includes(item.id))
     if (!otherPool.length) return initialRecommendations
 
     const otherCursor = ((cursor - 1) * MORE_RECOMMENDATION_COUNT) % otherPool.length
@@ -752,7 +786,6 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
                   ? state.messages.map((message) =>
                       message.role === "ai" ? (
                         <div className="chat_bubble_row" key={message.id}>
-                          <div className="ai_face ai_face_small" aria-hidden="true" />
                           <p>{message.text}</p>
                         </div>
                       ) : (
@@ -777,7 +810,6 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
                     </div>
                   ) : (
                     <div className="chat_bubble_row" aria-label="AI 입력 중">
-                      <div className="ai_face ai_face_small" aria-hidden="true" />
                       <p className="chat_typing_bubble" aria-hidden="true">
                         . . .
                       </p>

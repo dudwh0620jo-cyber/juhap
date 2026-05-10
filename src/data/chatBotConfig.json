@@ -4,6 +4,7 @@
   "partyMoodOptions": ["혼술", "가족", "데이트", "친구/파티", "모임/단체", "선물용", "기타"],
   "foodCategoryOptions": ["고기류", "해산물", "배달음식", "튀김/안주류", "음식을 아직 정하지 않았어요"],
   "wineStyleOptions": ["실패 없는 무난한 술", "분위기 있는 술", "가볍게 마시기 좋은 술", "새로운 술", "특별한 술"],
+  "primaryRecommendationIds": ["sake-dassai-23", "sake-kubota-manju"],
   "extraWineCandidates": [
     {
       "id": "cloudy-bay-sb-2022",

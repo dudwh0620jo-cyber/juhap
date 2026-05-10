@@ -1,6 +1,8 @@
 export const DIRECT_GLOSSARY_INPUT_LABEL = "직접 입력하시겠어요?"
 export const CLEAN_SAKE_RECOMMEND_LABEL = "깔끔한 술 추천"
 
+export const chatUnknownInputMessage = "이해하지 못했어요."
+export const chatRecommendationFoundMessage = "조건에 맞는 완벽한 술을 찾았어요!"
 export const glossaryIntroMessageTemplate = ["안녕하세요. {userName}님!", "어려운 주류용어를 쉽게 알려드릴께요!"].join("\n")
 
 export const glossaryOptions = [
@@ -17,9 +19,23 @@ export const glossaryUserBubbleTextByTopic: Record<string, string> = {
   "정미율 낮은 사케가 궁금하신가요?": "정미율이 낮은 사케가 궁금해요",
 }
 
-export const glossaryRecommendStyleByTopic: Record<string, string> = {
-  [CLEAN_SAKE_RECOMMEND_LABEL]: CLEAN_SAKE_RECOMMEND_LABEL,
-  "정미율 낮은 사케가 궁금하신가요?": CLEAN_SAKE_RECOMMEND_LABEL,
+export type GlossaryRecommendationConfig = {
+  wineStyle: string
+  productIds: string[]
+  showFoundMessage: boolean
+}
+
+export const glossaryRecommendationByTopic: Record<string, GlossaryRecommendationConfig> = {
+  [CLEAN_SAKE_RECOMMEND_LABEL]: {
+    wineStyle: CLEAN_SAKE_RECOMMEND_LABEL,
+    productIds: ["sake-dassai-23"],
+    showFoundMessage: false,
+  },
+  "정미율 낮은 사케가 궁금하신가요?": {
+    wineStyle: CLEAN_SAKE_RECOMMEND_LABEL,
+    productIds: ["sake-dassai-23"],
+    showFoundMessage: false,
+  },
 }
 
 export const glossaryRelatedOptions = [

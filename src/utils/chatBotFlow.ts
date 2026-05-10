@@ -1,11 +1,13 @@
 import chatBotConfig from "../data/chatBotConfig.json"
 import {
+  chatRecommendationFoundMessage,
+  chatUnknownInputMessage,
   CLEAN_SAKE_RECOMMEND_LABEL,
   DIRECT_GLOSSARY_INPUT_LABEL,
   glossaryDefinitionByTopic,
+  glossaryRecommendationByTopic,
   glossaryIntroMessageTemplate,
   glossaryOptions,
-  glossaryRecommendStyleByTopic,
   glossaryRelatedOptions,
   glossaryUserBubbleTextByTopic,
 } from "../data/chatGlossary"
@@ -31,6 +33,7 @@ export type ChatSession = {
   recommendationCursor?: number
   lastRecommendationIds?: string[]
   recommendationSource?: "glossary" | "pairing"
+  recommendationProductIds?: string[]
 }
 
 export type WineCandidate = {
@@ -92,18 +95,22 @@ type ChatBotConfigShape = {
   partyMoodOptions: string[]
   foodCategoryOptions: string[]
   wineStyleOptions: string[]
+  primaryRecommendationIds: string[]
   extraWineCandidates: WineCandidate[]
 }
 
 const config = chatBotConfig as ChatBotConfigShape
 
 export const introPromptOptions = config.introPromptOptions
+export const primaryRecommendationIds = config.primaryRecommendationIds
 export {
+  chatRecommendationFoundMessage,
+  chatUnknownInputMessage,
   CLEAN_SAKE_RECOMMEND_LABEL,
   DIRECT_GLOSSARY_INPUT_LABEL,
   glossaryDefinitionByTopic,
+  glossaryRecommendationByTopic,
   glossaryOptions,
-  glossaryRecommendStyleByTopic,
   glossaryRelatedOptions,
   glossaryUserBubbleTextByTopic,
 }
