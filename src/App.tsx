@@ -7,6 +7,7 @@ import CategoryList from "./pages/CategoryList"
 import Chat from "./pages/Chat"
 import Community from "./pages/Community"
 import CommunityWrite from "./pages/CommunityWrite"
+import { readUserProfile } from "./data/userProfile"
 import Home from "./pages/Home"
 import Login from "./pages/Login"
 import MyPage from "./pages/MyPage"
@@ -60,6 +61,8 @@ const rightNavItems = [
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const { pathname } = useLocation()
+  const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
+  const isChatHidden = pathname.startsWith("/product/")
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -117,7 +120,9 @@ export default function App() {
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
 
-        {!isAuthPage && isChatOpen ? <Chat onClose={() => setIsChatOpen(false)} /> : null}
+        {!isAuthPage && isChatOpen ? (
+          <Chat onClose={() => setIsChatOpen(false)} userName={chatUserName} isHidden={isChatHidden} />
+        ) : null}
 
         {!isAuthPage ? (
           <nav className="bottom_nav" aria-label="주요 메뉴">

@@ -17,6 +17,9 @@
 - Use design tokens from `src/styles/common.css` `:root` when available.
 - Do not add new token variables unless the value is reused across multiple screens.
 - Keep page-specific styles in their page style file; put shared style rules in shared files only.
+- Do not use inline `style={{ ... }}` for normal UI styling.
+- Put styles in the matching CSS file for that page or component.
+- Use inline styles only for unavoidable runtime-calculated values, and leave a short reason if it is not obvious.
 
 ## Layout rules
 - Mobile-first layout.

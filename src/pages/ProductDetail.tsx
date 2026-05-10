@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import SakeGuideAccordion from "../components/SakeGuideAccordion"
@@ -17,7 +17,9 @@ export default function ProductDetail() {
   const { mockProductById, defaultProduct } = useProductDetailPageData()
   const navigate = useNavigate()
   const { id } = useParams()
-  const [activeTab, setActiveTab] = useState<(typeof tabItems)[number]>("상품정보")
+  const [searchParams] = useSearchParams()
+  const initialTab = searchParams.get("tab") === "pairing" ? "페어링추천" : "상품정보"
+  const [activeTab, setActiveTab] = useState<(typeof tabItems)[number]>(initialTab)
   const [pendingPurchaseShopName, setPendingPurchaseShopName] = useState<string | null>(null)
   const [isPreparingModalOpen, setIsPreparingModalOpen] = useState(false)
 

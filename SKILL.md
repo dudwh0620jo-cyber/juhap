@@ -25,6 +25,8 @@
 
 - Use existing CSS variables from `src/styles/common.css` when a matching token exists.
 - Do not add new CSS variables unless the value is reused across multiple screens or approved.
+- Do not use inline `style={{ ... }}` for normal UI styling.
+- Put styles in the matching page/component CSS file.
 - Prefer even font sizes, but allow odd sizes when matching existing components or visual balance.
 - Medium-sized UI text usually uses `font-weight: 500`.
 - Check nearby styles before introducing new font sizes, font weights, spacing, or colors.

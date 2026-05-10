@@ -16,6 +16,8 @@ type ChatStepPanelProps = {
   step: ChatStep
   isVisible: boolean
   selectionEcho: string | null
+  glossaryItems?: string[]
+  activeGlossaryOption?: string | null
   selectedWine: WineCandidate | null
   recommendations: WineCandidate[]
   onSelectGlossaryTopic: (value: string) => void
@@ -24,7 +26,6 @@ type ChatStepPanelProps = {
   onSelectWineStyle: (value: string) => void
   onSelectRecommendation: (wineId: string) => void
   onGoProductDetail: (wineId: string) => void
-  onAskMore: (wineId: string, label: string) => void
   onBackToRecommend: () => void
   onMoreRecommendations: () => void
   onConfirmSelection: () => void
@@ -35,6 +36,8 @@ export default function ChatStepPanel({
   step,
   isVisible,
   selectionEcho,
+  glossaryItems = glossaryOptions,
+  activeGlossaryOption,
   selectedWine,
   recommendations,
   onSelectGlossaryTopic,
@@ -43,7 +46,6 @@ export default function ChatStepPanel({
   onSelectWineStyle,
   onSelectRecommendation,
   onGoProductDetail,
-  onAskMore,
   onBackToRecommend,
   onMoreRecommendations,
   onConfirmSelection,
@@ -55,8 +57,13 @@ export default function ChatStepPanel({
     <div className="chat_step_panel" aria-label="선택지">
       {step === "glossary" ? (
         <ChatChoiceRow echoText={selectionEcho}>
-          {glossaryOptions.map((item) => (
-            <button type="button" key={item} className="chat_chip" onClick={() => onSelectGlossaryTopic(item)}>
+          {glossaryItems.map((item) => (
+            <button
+              type="button"
+              key={item}
+              className={item === activeGlossaryOption ? "chat_chip is_active" : "chat_chip"}
+              onClick={() => onSelectGlossaryTopic(item)}
+            >
               {item}
             </button>
           ))}
@@ -89,10 +96,8 @@ export default function ChatStepPanel({
             <button
               type="button"
               key={item}
-              className={item === "사케" ? "chat_chip" : "chat_chip chat_chip_static"}
+              className="chat_chip"
               onClick={() => onSelectWineStyle(item)}
-              disabled={item !== "사케"}
-              aria-disabled={item !== "사케"}
             >
               {item}
             </button>
@@ -106,7 +111,6 @@ export default function ChatStepPanel({
           selectedWineId={selectedWine?.id ?? null}
           onSelect={(wineId) => onSelectRecommendation(wineId)}
           onGoProductDetail={(wineId) => onGoProductDetail(wineId)}
-          onAskMore={(wineId) => onAskMore(wineId, "더 자세한 정보 보기")}
           onMore={onMoreRecommendations}
         />
       ) : null}
