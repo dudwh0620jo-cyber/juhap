@@ -7,6 +7,7 @@ type Props = {
   meta?: ReactNode
   titleMeta?: ReactNode
   rightAction?: ReactNode
+  avatarFallback?: ReactNode
   onPressProfile?: () => void
   className?: string
   identityClassName?: string
@@ -20,6 +21,7 @@ export default function UserIdentityRow({
   meta,
   titleMeta,
   rightAction,
+  avatarFallback,
   onPressProfile,
   className,
   identityClassName,
@@ -31,16 +33,21 @@ export default function UserIdentityRow({
   const textClassName = identityClassName ? `user_identity_text ${identityClassName}` : "user_identity_text"
   const headingClassName = titleClassName ? `user_identity_title ${titleClassName}` : "user_identity_title"
   const secondaryClassName = metaClassName ? `user_identity_meta ${metaClassName}` : "user_identity_meta"
+  const avatarContent = avatarSrc ? (
+    <img className="avatar_image" src={avatarSrc} alt="" aria-hidden="true" />
+  ) : (
+    avatarFallback
+  )
 
   return (
     <div className={rootClassName}>
       {typeof onPressProfile === "function" ? (
-        <button type="button" className="avatar user_identity_avatar_button" onClick={onPressProfile} aria-label="프로필">
-          {avatarSrc ? <img className="avatar_image" src={avatarSrc} alt="" aria-hidden="true" /> : null}
+        <button type="button" className="avatar user_identity_avatar_button" onClick={onPressProfile} aria-label="프로필 보기">
+          {avatarContent}
         </button>
       ) : (
         <div className="avatar" aria-hidden="true">
-          {avatarSrc ? <img className="avatar_image" src={avatarSrc} alt="" aria-hidden="true" /> : null}
+          {avatarContent}
         </div>
       )}
 

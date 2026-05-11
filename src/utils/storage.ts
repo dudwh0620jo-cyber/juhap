@@ -141,7 +141,9 @@ export function useStoredStringArray(key: string, maxLength: number) {
 }
 
 export function useStoredNullableStringRecord(key: string) {
-  const [value, setValue] = useState<Record<number, string | null>>(() => {
+  const syncEventName = `${key}:updated`
+
+  const readFromStorage = useCallback(() => {
     try {
       const raw = window.localStorage.getItem(key)
       if (!raw) return {}
@@ -157,32 +159,43 @@ export function useStoredNullableStringRecord(key: string) {
     } catch {
       return {}
     }
+  }, [key])
+
+  const [value, setValue] = useState<Record<number, string | null>>(() => {
+    return readFromStorage()
   })
 
   useEffect(() => {
+    const sync = () => setValue(readFromStorage())
+
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== key) return
-      try {
-        const parsed = event.newValue ? JSON.parse(event.newValue) : {}
-        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-          setValue({})
-          return
-        }
-        const next: Record<number, string | null> = {}
-        for (const [recordKey, recordValue] of Object.entries(parsed)) {
-          const numericKey = Number(recordKey)
-          if (!Number.isFinite(numericKey)) continue
-          next[numericKey] = typeof recordValue === "string" ? recordValue : null
-        }
-        setValue(next)
-      } catch {
-        setValue({})
-      }
+      sync()
     }
 
     window.addEventListener("storage", handleStorage)
-    return () => window.removeEventListener("storage", handleStorage)
-  }, [key])
+    window.addEventListener(syncEventName, sync)
+    return () => {
+      window.removeEventListener("storage", handleStorage)
+      window.removeEventListener(syncEventName, sync)
+    }
+  }, [key, readFromStorage, syncEventName])
 
-  return { value, setValue } as const
+  const updateValue = useCallback(
+    (nextValue: Record<number, string | null> | ((prev: Record<number, string | null>) => Record<number, string | null>)) => {
+      setValue((prev) => {
+        const resolved = typeof nextValue === "function" ? nextValue(prev) : nextValue
+        try {
+          window.localStorage.setItem(key, JSON.stringify(resolved))
+          window.dispatchEvent(new Event(syncEventName))
+        } catch {
+          // ignore storage errors
+        }
+        return resolved
+      })
+    },
+    [key, syncEventName],
+  )
+
+  return { value, setValue: updateValue } as const
 }

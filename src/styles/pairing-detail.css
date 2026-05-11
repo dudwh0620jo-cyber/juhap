@@ -41,8 +41,6 @@
   display: block;
 }
 
-.detail_header_profile_row {
-}
 
 .user_identity_row {
   display: grid;
@@ -73,8 +71,19 @@
 }
 
 .detail_header_title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.detail_header_title .user_grade_badge {
+  min-width: auto;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 400;
   line-height: 1.2;
 }
 
@@ -146,7 +155,7 @@
 }
 
 .detail_content_location {
-  margin: 10px 0 0;
+  margin: 0;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -155,10 +164,34 @@
   line-height: 1.35;
 }
 
-.detail_content_location img {
+.detail_content_location img,
+.detail_content_location_icon {
   width: 14px;
   height: 14px;
   opacity: 0.7;
+}
+
+.detail_content_group {
+  display: grid;
+  gap: 8px;
+}
+
+.detail_content_main {
+  display: grid;
+  gap: 12px;
+}
+
+.detail_content_main .review_content_block_intro {
+  display: grid;
+  gap: 6px;
+}
+
+.detail_content_heading {
+  display: grid;
+  gap: 8px;
+  font-family: var(--font-title);
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .avatar {
@@ -213,13 +246,19 @@
 
 .detail_image_count {
   position: absolute;
-  right: 16px;
-  bottom: 20px;
+  right: 0;
+  bottom: 10px;
+  min-width: 42px;
+  min-height: 26px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
   color: var(--color-bg-white);
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 300;
   line-height: 1;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
+  letter-spacing: 0.1em;
+  text-align: center;
 }
 
 .detail_image_dots {
@@ -315,6 +354,10 @@
   color: var(--color-gray-05);
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.feed_actions.is_detail {
+  margin-top: 16px;
 }
 
 .detail_product_shell {
@@ -830,9 +873,9 @@
   padding: 0;
   border-radius: 0;
   background: transparent;
-  color: #d18a56;
+  color: var(--color-grade);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.2;
 }
 
@@ -947,23 +990,6 @@
   background: #d99561;
   border-color: #d99561;
   color: #fff;
-}
-
-.user_grade_badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  margin-left: 8px;
-  padding: 0 6px;
-  border-radius: 999px;
-  color: #222;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 18px;
-  vertical-align: middle;
-  white-space: nowrap;
 }
 
 

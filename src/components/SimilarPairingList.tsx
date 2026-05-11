@@ -29,7 +29,7 @@ export default function SimilarPairingList({ items, onSelect, title, titleVarian
   return (
     <>
       <h3 className="similar_title">{title ?? "유사한 페어링 조합 둘러보기"}</h3>
-      <div className="similar_list" aria-label="유사 페어링 추천">
+      <div className="similar_list" aria-label="유사한 페어링 추천">
         {items.map((item) => (
           <button key={item.id} type="button" className="similar_card" onClick={() => onSelect(item)}>
             <div className="similar_thumb" aria-hidden="true">

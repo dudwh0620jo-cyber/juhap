@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+﻿import { useMemo, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
@@ -18,7 +18,7 @@ export default function ProductDetail() {
   const navigate = useNavigate()
   const { id } = useParams()
   const [searchParams] = useSearchParams()
-  const initialTab = searchParams.get("tab") === "pairing" ? "페어링추천" : "상품정보"
+  const initialTab = searchParams.get("tab") === "pairing" ? "페어링추천" : searchParams.get("tab") === "review" ? "후기" : "상품정보"
   const [activeTab, setActiveTab] = useState<(typeof tabItems)[number]>(initialTab)
   const [pendingPurchaseShopName, setPendingPurchaseShopName] = useState<string | null>(null)
   const [isPreparingModalOpen, setIsPreparingModalOpen] = useState(false)
@@ -34,7 +34,7 @@ export default function ProductDetail() {
     <section className="product_detail_page page_screen" aria-label="상품 상세">
       <header className="product_detail_header" aria-label="상단 메뉴">
         <button type="button" className="product_icon_button" aria-label="뒤로가기" onClick={() => navigate(-1)}>
-          <img src={iconCaretLeft} alt="" />
+          <img src={iconCaretLeft} alt="" aria-hidden="true" />
         </button>
         <div className="product_header_actions">
           <Link className="product_icon_button" to="/home" aria-label="홈으로 이동">
@@ -145,6 +145,13 @@ export default function ProductDetail() {
             </div>
           </section>
         </>
+      ) : activeTab === "후기" ? (
+        <section className="product_card product_placeholder_panel product_review_panel" aria-label="주류 후기">
+          <p>이 술에 대한 후기를 남겨보세요.</p>
+          <button type="button" className="product_write_button" onClick={() => navigate(`/product/${product.id}/write`)}>
+            주류 후기 글쓰기
+          </button>
+        </section>
       ) : (
         <section className="product_card product_placeholder_panel">
           <p>아직 준비 중인 탭이에요.</p>
@@ -176,3 +183,6 @@ export default function ProductDetail() {
     </section>
   )
 }
+
+
+

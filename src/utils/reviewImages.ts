@@ -1,3 +1,5 @@
+import { getPairingDetailSimilarPostById } from "./pairingDetailMock"
+
 const reviewImageModules = import.meta.glob("../assets/review_image_*.png", {
   eager: true,
   import: "default",
@@ -8,6 +10,13 @@ const sortedReviewImages = Object.entries(reviewImageModules)
   .map(([, src]) => src)
 
 export function resolveReviewImage(photoId: string): string | undefined {
+  if (photoId.startsWith("similar_image_")) {
+    const similarId = Number.parseInt(photoId.replace("similar_image_", ""), 10)
+    if (Number.isFinite(similarId)) {
+      return getPairingDetailSimilarPostById(similarId)?.imageSrc
+    }
+  }
+
   const match = photoId.match(/(\d+)$/)
   if (!match) return undefined
   const index = Number.parseInt(match[1], 10) - 1

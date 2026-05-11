@@ -1019,6 +1019,7 @@
 .question_row_thumb {
   width: 148px;
   height: 116px;
+  flex-shrink: 0;
   border-radius: 8px;
   background: linear-gradient(135deg, #E5DED3, #B5AA99);
   position: relative;
@@ -1034,7 +1035,6 @@
 .question_row_thumb.is_photo {
   width: 85px;
   height: 85px;
-  
 }
 
 .question_row_thumb_count {
@@ -1446,6 +1446,31 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.write_section_header_main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.write_back_button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.write_back_button img {
+  width: 18px;
+  height: 18px;
+  display: block;
+  opacity: 0.85;
 }
 
 .write_section_close {
@@ -2216,9 +2241,13 @@
 }
 
 .feed_write_row {
-  padding: 8px 0 0;
-  width: 100%;
+  margin: 0 -24px;
+  padding: 8px 24px 18px;
+  width: auto;
+  box-sizing: border-box;
   align-items: center;
+  background: var(--color-bg-base);
+  border-bottom: 2px dotted var(--color-point-02);
 }
 
 .feed_write_button {
@@ -2288,33 +2317,30 @@
   min-height: 20px;
   border-radius: 999px;
   background: transparent;
-  color: var(--color-point-01);
+  color: var(--color-grade);
   font-size: 14px;
   line-height: 140%;
   font-weight: 400;
 }
 
 .feed_post_badge.is_tier1 {
-
-  color: #7a5c2b;
+  color: var(--color-grade);
 }
 
 .feed_post_badge.is_tier2 {
-
-  color: #7a5c2b;
+  color: var(--color-grade);
 }
 
 .feed_post_badge.is_tier3 {
-
-  color: #6a4f24;
+  color: var(--color-grade);
 }
 
 .feed_post_badge.is_tier4 {
-  color: #CA9E52;
+  color: var(--color-grade);
 }
 
 .feed_post_badge.is_tier5 {
-  color: #A17C3B;
+  color: var(--color-grade);
 }
 
 .feed_card .feed_card_header_info p {
@@ -2360,6 +2386,10 @@
   background: #ede7e2;
 }
 
+.community_follow_me_card.is_clickable {
+  cursor: pointer;
+}
+
 .community_follow_me_avatar {
   border: 1px solid var(--color-bg-white);
   width: 70px;
@@ -2379,7 +2409,6 @@
 .community_follow_me_body {
   min-width: 0;
   display: grid;
-  gap: 8px;
 }
 
 .community_follow_me_top {
@@ -2394,6 +2423,14 @@
   align-items: baseline;
   gap: 6px;
   min-width: 0;
+}
+
+.community_follow_me_description {
+  margin: 0;
+  color: var(--color-gray-05);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
 }
 
 .community_follow_me_menu_button {
@@ -2424,7 +2461,7 @@
 }
 
 .community_follow_me_grade {
-  color: var(--color-primary);
+  color: var(--color-grade);
   font-size: 14px;
   font-weight: 400;
 }
@@ -2864,6 +2901,14 @@
   margin-top: 12px;
 }
 
+.bookmark_picker_helper {
+  margin: 0;
+  color: var(--color-gray-05);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .bookmark_list_item {
   min-height: 42px;
   padding: 0 12px;
@@ -2921,11 +2966,6 @@
   transform: translateY(0);
 }
 
-.community_page .feed_write_row {
-  margin: 0 0 18px;
-  padding: 0;
-}
-
 .community_page .feed_write_button {
   min-height: 58px;
   border: 1px solid var(--color-point-01);
@@ -2947,12 +2987,12 @@
 
 .community_review_header {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
 }
 
-.community_review_avatar {
+.community_review_header .avatar {
   width: 44px;
   height: 44px;
   display: grid;
@@ -2965,11 +3005,11 @@
   overflow: hidden;
 }
 
-.community_review_avatar_image {
+.community_review_avatar_fallback {
+  display: inline-grid;
+  place-items: center;
   width: 100%;
   height: 100%;
-  display: block;
-  object-fit: cover;
 }
 
 .community_review_author {
@@ -2985,14 +3025,18 @@
   min-width: 0;
 }
 
+.community_review_header .user_identity_title_meta,
+.community_review_header .user_identity_action {
+  display: inline-flex;
+  align-items: center;
+}
+
 .community_review_author_name {
   color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
 }
-
-
 
 .community_review_author_meta {
   margin: 0;
@@ -3018,8 +3062,6 @@
 .community_review_header .follow_toggle_button.is_following {
   color: var(--color-gray-04);
 }
-
-
 
 .community_review_menu_button {
   width: 28px;
@@ -3122,6 +3164,25 @@
   display: grid;
   gap: 8px;
 }
+
+.review_content_block_main{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review_content_block_intro,
+.community_review_content_main {
+  display: grid;
+  gap: 6px;
+}
+
+.review_content_block{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .community_review_content span{
   font-weight: 400;
 }
@@ -3213,7 +3274,7 @@
 }
 
 .community_review_card .feed_actions {
-  margin-top: 2px;
+  margin-top: 16px;
 }
 
 .community_review_card .feed_actions .left_actions {

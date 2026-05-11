@@ -64,6 +64,7 @@ export default function App() {
   const { pathname } = useLocation()
   const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
   const isChatHidden = pathname.startsWith("/product/")
+  const isWritePage = pathname === "/community/write" || /^\/product\/[^/]+\/write$/.test(pathname)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -82,7 +83,7 @@ export default function App() {
       <div className="app_viewport">
         <StatusBar />
 
-        {!isAuthPage ? (
+        {!isAuthPage && !isWritePage ? (
           <div className="chat_corner_slot">
             <button
               type="button"
@@ -124,6 +125,7 @@ export default function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/community/ranking" element={<CommunityRanking />} />
           <Route path="/community/write" element={<CommunityWrite />} />
+          <Route path="/product/:id/write" element={<CommunityWrite />} />
           <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
           <Route path="/community/tag" element={<PairingTagList />} />
           <Route path="/my" element={<MyPage />} />

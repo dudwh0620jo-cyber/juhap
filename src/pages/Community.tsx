@@ -8,6 +8,7 @@ import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import CommunityReviewCard from "../components/CommunityReviewCard"
+import ProfileSummaryCard from "../components/ProfileSummaryCard"
 import QuestionPostRow from "../components/QuestionPostRow"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import SearchFilterModal from "../components/SearchFilterModal"
@@ -15,8 +16,10 @@ import CommunityFilterPanel from "../components/CommunityFilterPanel"
 import FeedWriteRow from "../components/FeedWriteRow"
 import PostOwnerActionModal from "../components/PostOwnerActionModal"
 import {
+  deriveCommunityTagBundle,
   extractPairingTitle,
   feedPosts as communityFeedPosts,
+  resolveQuestionThumbVariant,
   type FeedPost,
 } from "../utils/communityPosts"
 import { type FeedFilter, type PopupChipGroup, type ReviewSortKey, useCommunityPageData } from "../hooks/useCommunityPageData"
@@ -41,7 +44,6 @@ import { QUESTION_BANNER_COPY } from "../utils/communityQuestionData"
 import { myPageProfileSummary } from "../data/myPageContent"
 import { resolveMyUserAvatar } from "../utils/userAvatars"
 import { currentUserMock } from "../utils/usersMock"
-import { normalizeCommunityFeatures } from "../utils/communityPosts"
 
 const feedPosts: FeedPost[] = communityFeedPosts
 const USER_POSTS_UPDATED_EVENT = "community:user-posts-updated"
@@ -737,7 +739,7 @@ export default function Community() {
       </div>
 
       {feedFilter === "review" ? (
-        <FeedWriteRow ariaLabel="후기 글쓰기" onClickReview={() => navigate("/community/write?mode=review")} />
+        <FeedWriteRow ariaLabel="페어링 후기 글쓰기" onClickReview={() => navigate("/community/write?mode=review")} />
       ) : null}
 
       {feedFilter === "free" ? (
@@ -756,37 +758,18 @@ export default function Community() {
 
       {feedFilter === "follow" ? (
         <section className="community_follow_me_section" aria-label="내 팔로우 요약">
-          <div className="community_follow_me_card">
-            <div className="community_follow_me_avatar" aria-hidden="true">
-              {myAvatarSrc ? <img className="community_follow_me_avatar_image" src={myAvatarSrc} alt="" aria-hidden="true" /> : null}
-            </div>
-            <div className="community_follow_me_body">
-              <div className="community_follow_me_top">
-                <div className="community_follow_me_identity">
-                  <strong className="community_follow_me_name">{myNickname}</strong>
-                  <span className="community_follow_me_grade">{myPageProfileSummary.gradeLabel}</span>
-                </div>
-                <button
-                  type="button"
-                  className="community_follow_me_menu_button"
-                  aria-label="프로필 수정"
-                  onClick={() => setIsProfileEditPreparingOpen(true)}
-                >
-                  <img className="community_follow_me_menu_icon" src={iconDots} alt="" aria-hidden="true" />
-                </button>
-              </div>
-              <div className="community_follow_me_stats" aria-label="팔로워 팔로잉">
-                <div className="community_follow_me_stat">
-                  <strong>{myPageProfileSummary.followerCount.toLocaleString("ko-KR")}</strong>
-                  <span>팔로워</span>
-                </div>
-                <div className="community_follow_me_stat">
-                  <strong>{followedUserIds.size.toLocaleString("ko-KR")}</strong>
-                  <span>팔로잉</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ProfileSummaryCard
+            avatarSrc={myAvatarSrc}
+            title={myNickname}
+            accentText={myPageProfileSummary.gradeLabel}
+            stats={[
+              { value: myPageProfileSummary.followerCount.toLocaleString("ko-KR"), label: "팔로워" },
+              { value: followedUserIds.size.toLocaleString("ko-KR"), label: "팔로잉" },
+            ]}
+            menuAriaLabel="프로필 수정"
+            menuIconSrc={iconDots}
+            onMenuClick={() => setIsProfileEditPreparingOpen(true)}
+          />
         </section>
       ) : null}
 
@@ -824,7 +807,7 @@ export default function Community() {
         ) : null}
 
         {feedFilter === "free"
-          ? filteredPosts.map((post, index) => (
+          ? filteredPosts.map((post) => (
               <QuestionPostRow
                 key={post.id}
                 postId={post.id}
@@ -852,13 +835,20 @@ export default function Community() {
                   feedFilter: "free",
                 }}
                 photoIds={post.photoIds}
-                thumbVariant={index % 3 === 1 ? "bottle" : index % 3 === 2 ? "photo" : "none"}
+                thumbVariant={resolveQuestionThumbVariant(post)}
               />
             ))
           : filteredPosts.map((post) => {
               const authorName = post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명"
               const authorMeta = post.authorId === myUserId ? myHeaderProfile : usersMockById[post.authorId]?.profile ?? ""
               const pairingTitle = extractPairingTitle(post.title)
+              const tagBundle = deriveCommunityTagBundle({
+                pairingTitle,
+                title: post.title,
+                drinkType: post.drinkType ?? "",
+                foods: post.foods,
+                features: post.features,
+              })
 
               return (
                 <CommunityReviewCard
@@ -887,15 +877,17 @@ export default function Community() {
                     profile: usersMockById[post.authorId]?.profile ?? "",
                     locationLabel: post.locationLabel?.trim() ?? "",
                     drinkType: post.drinkType ?? "",
-                    features: post.features ?? [],
+                    features: tagBundle.featureTags,
                     source: "feed",
                     feedFilter: feedFilter,
                   }}
                   title={post.pairingSummary ?? post.title}
                   pairingTitle={pairingTitle}
                   body={post.body}
+                  liquorTag={tagBundle.liquorTag}
+                  foodTag={tagBundle.foodTag}
                   photoIds={post.photoIds}
-                  hashtags={normalizeCommunityFeatures(post.features)}
+                  hashtags={tagBundle.featureTags}
                   locationLabel={post.locationLabel?.trim() ?? ""}
                   likeActive={Boolean(likedById[post.id])}
                   likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
@@ -913,17 +905,18 @@ export default function Community() {
 
       {bookmarkPicker ? (
         <CommunityBookmarkPickerModal
-          picker={bookmarkPicker}
-          lists={bookmarkLists}
           ariaLabel="북마크 리스트 선택"
-          titleText={bookmarkListById[bookmarkPicker.postId] ? "북마크를 어디로 옮길까요?" : "어느 리스트에 담을까요?"}
-          listPickerAriaLabel="북마크 리스트"
-          secondaryLabel={bookmarkListById[bookmarkPicker.postId] ? "해제" : "취소"}
-          primaryLabel="확인"
+          titleText={bookmarkListById[bookmarkPicker.postId] ? "저장한 게시글을 취소할까요?" : "게시글을 저장할까요?"}
+          helperText={
+            bookmarkListById[bookmarkPicker.postId]
+              ? "취소하면 내 정보 > 저장한 리스트에서 이 게시글이 사라져요."
+              : "저장한 게시글은 내 정보 > 저장한 리스트에서 확인할 수 있어요."
+          }
+          secondaryLabel="취소"
+          primaryLabel={bookmarkListById[bookmarkPicker.postId] ? "저장 취소하기" : "저장하기"}
           onDismiss={cancelBookmark}
-          onSelectList={(listId) => setBookmarkPicker({ ...bookmarkPicker, selectedListId: listId })}
-          onSecondary={bookmarkListById[bookmarkPicker.postId] ? removeBookmark : cancelBookmark}
-          onPrimary={confirmBookmark}
+          onSecondary={cancelBookmark}
+          onPrimary={bookmarkListById[bookmarkPicker.postId] ? removeBookmark : confirmBookmark}
         />
       ) : null}
 

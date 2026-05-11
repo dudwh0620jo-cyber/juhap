@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router"
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
 import CommunityWriteBasicSection from "../components/CommunityWriteBasicSection"
 import CommunityWritePostForm from "../components/CommunityWritePostForm"
+import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
 import iconX from "../assets/svg/x.svg"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
@@ -11,10 +12,12 @@ import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
 import { normalizeCommunityFeatures } from "../utils/communityPosts"
 import { readUserProfile } from "../data/userProfile"
 import { sakeProductsMock } from "../data/sakeProductsMock"
+import { useProductDetailPageData } from "../hooks/useProductDetailPageData"
 import { currentUserMock } from "../utils/usersMock"
 
 type WriteMode = "review" | "free"
 type ReviewTab = "drink" | "pairing"
+type WriteKind = "question" | "pairing-review" | "drink-review"
 type DraftPayload = {
   mode: WriteMode
   reviewTab: ReviewTab
@@ -153,16 +156,22 @@ function StarRating({ value, onChange }: { value: number; onChange: (next: numbe
 
 export default function CommunityWrite() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { id: productId } = useParams()
   const [searchParams] = useSearchParams()
+  const { mockProductById, defaultProduct } = useProductDetailPageData()
   const mode = getModeFromSearch(searchParams.get("mode"))
   const { popupCategoryByDrinkType, popupFeaturesByDrinkType } = useCommunityPageData()
   const isQuestionWrite = mode === "free"
+  const isProductReviewWrite = location.pathname.startsWith("/product/") && location.pathname.endsWith("/write")
+  const writeKind: WriteKind = isQuestionWrite ? "question" : isProductReviewWrite ? "drink-review" : "pairing-review"
+  const productDetail = productId ? mockProductById[productId] ?? defaultProduct : null
   const hasCheckedDraftRef = useRef(false)
   const photoUploadInputRef = useRef<HTMLInputElement | null>(null)
   const cameraVideoRef = useRef<HTMLVideoElement | null>(null)
   const pairingDrinkNameSnapshotRef = useRef("")
 
-  const [reviewTab, setReviewTab] = useState<ReviewTab>("pairing")
+  const [reviewTab, setReviewTab] = useState<ReviewTab>(writeKind === "drink-review" ? "drink" : "pairing")
 
   const [selectedSituation, setSelectedSituation] = useState<string | null>(null)
   const [selectedDrinkType, setSelectedDrinkType] = useState<string | null>(SAKE_LABEL)
@@ -194,7 +203,14 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
   const [pairingBody, setPairingBody] = useState("")
   const [pairingPhotoIds, setPairingPhotoIds] = useState<string[]>([])
 
-  const headerTitle = "글쓰기"
+  const headerTitle =
+    writeKind === "question" ? "질문 작성" : writeKind === "drink-review" ? "주류 후기 글쓰기" : "페어링 후기 글쓰기"
+  const exitPath =
+    writeKind === "question"
+      ? "/community?filter=free"
+      : writeKind === "drink-review" && productId
+        ? `/product/${productId}?tab=review`
+        : "/community?filter=review"
 
   const canSubmit = useMemo(() => {
     if (mode === "free") return Boolean(title.trim()) && Boolean(body.trim())
@@ -223,6 +239,21 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
   }, [popupFeaturesByDrinkType, selectedDrinkType])
   const isBasicWrite = isQuestionWrite || reviewTab === "drink"
   const activePhotoIds = isBasicWrite ? photoIds : pairingPhotoIds
+
+  useEffect(() => {
+    if (writeKind === "drink-review") {
+      setReviewTab("drink")
+      setSelectedDrinkType(SAKE_LABEL)
+      if (productDetail?.name && !drinkName.trim()) {
+        setDrinkName(productDetail.name)
+      }
+      return
+    }
+
+    if (writeKind === "pairing-review") {
+      setReviewTab("pairing")
+    }
+  }, [drinkName, productDetail?.name, writeKind])
 
   // 술만 후기: 술 선택은 세부 카테고리(사케)만 허용 → 주종 자동 선택
   function handleDrinkNameChange(nextDrinkName: string) {
@@ -407,7 +438,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
       const payload = buildDraftPayload()
       window.localStorage.setItem(draftStorageKey, JSON.stringify(payload))
       window.alert("임시 저장되었습니다.")
-      navigate(mode === "free" ? "/community?filter=free" : "/community?filter=review")
+      navigate(exitPath)
     } catch {
       window.alert("임시 저장에 실패했습니다. 다시 시도해 주세요.")
     }
@@ -489,7 +520,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
         // ignore storage errors
       }
 
-      navigate("/community?filter=free")
+      navigate(exitPath)
       clearDraft()
       return
     }
@@ -549,7 +580,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
         // ignore storage errors
       }
 
-      navigate("/community?filter=review")
+      navigate(writeKind === "drink-review" && productId ? `/product/${productId}?tab=review` : "/community?filter=review")
       clearDraft()
       return
     }
@@ -608,7 +639,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
       // ignore storage errors
     }
 
-    navigate("/community?filter=review")
+    navigate(exitPath)
     clearDraft()
   }
 
@@ -621,7 +652,6 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
           photoIds={photoIds}
           canSubmit={canSubmit}
           photoUploadInputRef={photoUploadInputRef}
-          iconX={iconX}
           onTitleChange={setTitle}
           onBodyChange={setBody}
           onPhotoFileChange={handleUploadPhotoChange}
@@ -629,7 +659,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
           onRemovePhoto={(photoId) => setPhotoIds((prev) => prev.filter((id) => id !== photoId))}
           onSubmit={handleShare}
           onTempSave={handleTempSave}
-          onClose={() => navigate("/community?filter=free")}
+          onClose={() => navigate(exitPath)}
           titleText="질문 작성"
           photoTitle="사진 첨부(최대 3장)"
           titleLabel="제목"
@@ -707,7 +737,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
       aria-label="글쓰기"
       onMouseDown={(event) => {
         if ((event.target as HTMLElement | null)?.closest(".write_sheet")) return
-        navigate("/community?filter=review")
+        navigate(exitPath)
       }}
     >
       <CommunityHeader
@@ -719,36 +749,16 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
         onOpenNotifications={() => {}}
       />
 
-      <div className="write_review_tabs" aria-label="후기 탭">
-        <button
-          type="button"
-          className={reviewTab === "pairing" ? "write_review_tab is_active" : "write_review_tab"}
-          onClick={() => setReviewTab("pairing")}
-        >
-          페어링 후기 쓰기
-        </button>
-        <button
-          type="button"
-          className={reviewTab === "drink" ? "write_review_tab is_active" : "write_review_tab"}
-          onClick={() => setReviewTab("drink")}
-        >
-          술 후기 쓰기
-        </button>
-      </div>
-
       <div className={reviewTab === "pairing" ? "write_sheet is_pairing_review" : "write_sheet"} aria-label="글쓰기 폼">
         <div className="write_sheet_inner">
           <div className="write_section">
             <div className="write_section_header">
-              <h4 className="write_section_title">후기 작성</h4>
-              <button
-                type="button"
-                className="write_section_close"
-                aria-label="글쓰기 닫기"
-                onClick={() => navigate("/community?filter=review")}
-              >
-                <img src={iconX} alt="" aria-hidden="true" />
-              </button>
+              <div className="write_section_header_main">
+                <button type="button" className="write_back_button" aria-label="뒤로가기" onClick={() => navigate(exitPath)}>
+                  <img src={iconCaretLeft} alt="" aria-hidden="true" />
+                </button>
+                <h4 className="write_section_title">{headerTitle}</h4>
+              </div>
             </div>
           </div>
 
@@ -1283,3 +1293,6 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     </section>
   )
 }
+
+
+
