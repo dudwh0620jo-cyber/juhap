@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Chiron+Sung+HK:ital,wght@0,200..900;1,200..900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Chiron+Sung+HK:ital,wght@0,200..900;1,200..900&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
-
 :root {
   /* font family */
   --font-title: "Chiron Sung HK", serif;
@@ -29,6 +28,7 @@
   --color-point-01: #D4956B;
   --color-point-02: #E8CAB7;
   --color-point-03: #F6F0EB;
+  --color-point-03-soft: #F6F1ED;
   --color-point-04: #F1D39F;
   --color-point-05: #E9F0F5;
   --color-point-06: #477396;
@@ -216,7 +216,7 @@
 html,
 body {
   margin: 0;
-  background: #eeeeee;
+  background: var(--color-bg-base);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   scrollbar-gutter: stable;
 }
@@ -231,7 +231,7 @@ body {
   max-width: 430px;
   min-height: 100vh;
   margin: 0 auto;
-  background: #d9d9d9;
+  background: var(--color-bg-base);
   overflow-x: hidden;
 }
 

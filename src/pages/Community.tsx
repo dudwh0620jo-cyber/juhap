@@ -2,6 +2,8 @@
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import askQuestionBanner from "../assets/ask_question_banner.png"
+import iconDots from "../assets/svg/dotsthreevertical.svg"
+import AlertModal from "../components/AlertModal"
 import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
@@ -28,7 +30,12 @@ import {
   useStoredStringArray,
 } from "../utils/storage"
 import { usersMockById } from "../utils/usersMock"
-import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
+import {
+  COMMUNITY_BOOKMARK_LIST_BY_POST_KEY,
+  COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT,
+  COMMUNITY_USER_POSTS_KEY,
+  readStoredPairingCommentCount,
+} from "../utils/communityStorage"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { QUESTION_BANNER_COPY } from "../utils/communityQuestionData"
 import { myPageProfileSummary } from "../data/myPageContent"
@@ -96,6 +103,7 @@ export default function Community() {
   const chipGroupRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
   const myUserId = currentUserMock.id
   const myAvatarSrc = resolveMyUserAvatar()
+  const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
 
   const readStoredUserPosts = useCallback((): FeedPost[] => {
     try {
@@ -108,6 +116,7 @@ export default function Community() {
   }, [])
 
   const [userPosts, setUserPosts] = useState<FeedPost[]>(() => readStoredUserPosts())
+  const [commentCountByPostId, setCommentCountByPostId] = useState<Record<number, number>>({})
   const userPostIdSet = useMemo(() => new Set(userPosts.map((post) => post.id)), [userPosts])
 
   const persistUserPosts = useCallback((next: FeedPost[]) => {
@@ -166,6 +175,39 @@ export default function Community() {
       window.removeEventListener("storage", handleStorage)
     }
   }, [readStoredUserPosts])
+
+  useEffect(() => {
+    const allPosts = [...userPosts, ...feedPosts]
+
+    const syncCommentCount = (post: FeedPost) => {
+      const nextCount = readStoredPairingCommentCount(String(post.id), post.commentCount)
+      setCommentCountByPostId((prev) => (prev[post.id] === nextCount ? prev : { ...prev, [post.id]: nextCount }))
+    }
+
+    const syncAllCommentCounts = () => {
+      for (const post of allPosts) {
+        syncCommentCount(post)
+      }
+    }
+
+    const handleCommentUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ pairingId?: string }>).detail
+      if (!detail?.pairingId) return
+      const postId = Number(detail.pairingId)
+      if (!Number.isFinite(postId)) return
+      const targetPost = allPosts.find((post) => post.id === postId)
+      if (!targetPost) return
+      syncCommentCount(targetPost)
+    }
+
+    syncAllCommentCounts()
+    window.addEventListener(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, handleCommentUpdate)
+    window.addEventListener("storage", syncAllCommentCounts)
+    return () => {
+      window.removeEventListener(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, handleCommentUpdate)
+      window.removeEventListener("storage", syncAllCommentCounts)
+    }
+  }, [userPosts])
 
   const availableCategories = useMemo(() => {
     if (!selectedDrinkType) return []
@@ -470,7 +512,7 @@ export default function Community() {
   }, [isFeedFilterPopupOpen])
 
   const getLikeCount = (post: FeedPost) => post.likeCount + (likedById[post.id] ? 1 : 0)
-  const getCommentCount = (post: FeedPost) => post.commentCount
+  const getCommentCount = (post: FeedPost) => commentCountByPostId[post.id] ?? post.commentCount
 
   const openBookmarkPicker = (postId: number) => {
     const currentListId = bookmarkListById[postId]
@@ -719,9 +761,19 @@ export default function Community() {
               {myAvatarSrc ? <img className="community_follow_me_avatar_image" src={myAvatarSrc} alt="" aria-hidden="true" /> : null}
             </div>
             <div className="community_follow_me_body">
-              <div className="community_follow_me_identity">
-                <strong className="community_follow_me_name">{myNickname}</strong>
-                <span className="community_follow_me_grade">{myPageProfileSummary.gradeLabel}</span>
+              <div className="community_follow_me_top">
+                <div className="community_follow_me_identity">
+                  <strong className="community_follow_me_name">{myNickname}</strong>
+                  <span className="community_follow_me_grade">{myPageProfileSummary.gradeLabel}</span>
+                </div>
+                <button
+                  type="button"
+                  className="community_follow_me_menu_button"
+                  aria-label="프로필 수정"
+                  onClick={() => setIsProfileEditPreparingOpen(true)}
+                >
+                  <img className="community_follow_me_menu_icon" src={iconDots} alt="" aria-hidden="true" />
+                </button>
               </div>
               <div className="community_follow_me_stats" aria-label="팔로워 팔로잉">
                 <div className="community_follow_me_stat">
@@ -736,6 +788,15 @@ export default function Community() {
             </div>
           </div>
         </section>
+      ) : null}
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          title={"아직 준비 중인 서비스입니다.\n곧 만나보실 수 있어요!"}
+          confirmLabel="닫기"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
       ) : null}
 
       <div className={feedFilter === "free" ? "question_list" : "feed_cards"} aria-label="커뮤니티 피드 목록">

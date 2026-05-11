@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
+import AlertModal from "../components/AlertModal"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import {
   MAX_MULTI_SELECTIONS,
@@ -111,6 +112,7 @@ function ExchangeItemCard({ item }: { item: ExchangeItem }) {
 
 export default function MyPage() {
   const profile = readUserProfile()
+  const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
   const [isTasteOpen, setIsTasteOpen] = useState(false)
   const [isTasteEditorOpen, setIsTasteEditorOpen] = useState(false)
   const [isTasteEditorClosing, setIsTasteEditorClosing] = useState(false)
@@ -240,6 +242,15 @@ export default function MyPage() {
           <button type="button" className="my_exchange_history">포인트내역</button>
         </header>
 
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          title={"아직 준비 중인 서비스입니다.\n곧 만나보실 수 있어요!"}
+          confirmLabel="닫기"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
+
         <section className="my_exchange_balance" aria-label="보유 포인트">
           <div>
             <span>보유 포인트</span>
@@ -331,8 +342,16 @@ export default function MyPage() {
           <strong>팔로잉 {followedUserIds.size}</strong>
         </div>
 
-        <button type="button" className="my_edit_button">수정</button>
+        <button type="button" className="my_edit_button" onClick={() => setIsProfileEditPreparingOpen(true)}>수정</button>
       </header>
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          message="준비중이에요"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
 
       <div className="my_page_body">
         <section className="my_activity_section" aria-labelledby="my-activity-title">
@@ -423,6 +442,14 @@ export default function MyPage() {
                 <h2>취향 수정</h2>
                 <button type="button" aria-label="닫기" onClick={closeTasteEditor} />
               </header>
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          message="준비중이에요"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
 
               <div className="my_taste_sheet_groups">
                 {preferenceGroups.map((group) => (

@@ -1,4 +1,4 @@
-﻿import { useCallback, useLayoutEffect, useMemo, useState } from "react"
+﻿import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import CommentSection from "../components/CommentSection"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
@@ -178,6 +178,10 @@ export default function PairingDetail() {
 
   const [commentCountByPairingId, setCommentCountByPairingId] = useState<Record<string, number>>({})
   const commentCount = pairingId ? commentCountByPairingId[pairingId] ?? initialCommentCount : initialCommentCount
+  const detailImageListRef = useRef<HTMLDivElement | null>(null)
+  const detailPhotoIds = Array.isArray(post?.photoIds) ? post.photoIds.slice(0, 3) : []
+  const detailImageTotal = detailPhotoIds.length
+  const [activeDetailImageIndex, setActiveDetailImageIndex] = useState(0)
 
   const detailMock = useMemo(() => getPairingDetailMock(post?.detailMockKey ?? null), [post?.detailMockKey])
 
@@ -250,10 +254,22 @@ export default function PairingDetail() {
     document.getElementById("comments")?.scrollIntoView({ behavior: "auto", block: "start" })
   }, [location.hash])
 
+  useLayoutEffect(() => {
+    setActiveDetailImageIndex(0)
+    detailImageListRef.current?.scrollTo({ left: 0, behavior: "auto" })
+  }, [numericId])
+
   const handleCommentCountChange = useCallback((nextCount: number) => {
     if (!pairingId) return
     setCommentCountByPairingId((prev) => (prev[pairingId] === nextCount ? prev : { ...prev, [pairingId]: nextCount }))
   }, [pairingId])
+
+  const handleDetailImageScroll = useCallback(() => {
+    const target = detailImageListRef.current
+    if (!target || detailImageTotal === 0) return
+    const nextIndex = Math.round(target.scrollLeft / Math.max(1, target.clientWidth))
+    setActiveDetailImageIndex(Math.min(detailImageTotal - 1, Math.max(0, nextIndex)))
+  }, [detailImageTotal])
 
   const toggleFollow = () => {
     if (authorId === null) return
@@ -379,10 +395,15 @@ export default function PairingDetail() {
         </>
       ) : (
         <>
-          {Array.isArray(post?.photoIds) && post.photoIds.length > 0 ? (
+          {detailImageTotal > 0 ? (
             <div className="detail_media">
-              <div className="detail_images" aria-label="페어링 리뷰 이미지">
-                {post.photoIds.slice(0, 3).map((photoId: string) => {
+              <div
+                ref={detailImageListRef}
+                className="detail_images"
+                aria-label="페어링 리뷰 이미지"
+                onScroll={handleDetailImageScroll}
+              >
+                {detailPhotoIds.map((photoId: string) => {
                   const imageSrc = resolveReviewImage(photoId)
                   return (
                     <figure className="detail_image_item" key={photoId}>
@@ -391,11 +412,11 @@ export default function PairingDetail() {
                   )
                 })}
               </div>
-              <span className="detail_image_count">1/{Math.min(3, post.photoIds.length)}</span>
-              {post.photoIds.length > 1 ? (
-                <div className="detail_image_dots" aria-label={`이미지 ${post.photoIds.length}장`}>
-                  {post.photoIds.slice(0, 3).map((photoId: string, index: number) => (
-                    <span key={photoId} className={index === 0 ? "is_active" : ""} />
+              <span className="detail_image_count">{activeDetailImageIndex + 1}/{detailImageTotal}</span>
+              {detailImageTotal > 1 ? (
+                <div className="detail_image_dots" aria-label={`이미지 ${detailImageTotal}장`}>
+                  {detailPhotoIds.map((photoId: string, index: number) => (
+                    <span key={photoId} className={index === activeDetailImageIndex ? "is_active" : ""} />
                   ))}
                 </div>
               ) : null}

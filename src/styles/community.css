@@ -1,6 +1,6 @@
 .community_page {
   padding-top: 12px;
-  background: #f0f0f0;
+  background: var(--color-bg-base);
 }
 
 .community_header {
@@ -2382,10 +2382,38 @@
   gap: 8px;
 }
 
+.community_follow_me_top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .community_follow_me_identity {
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
+  min-width: 0;
+}
+
+.community_follow_me_menu_button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.community_follow_me_menu_icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  opacity: 0.68;
 }
 
 .community_follow_me_name {
@@ -3197,4 +3225,3 @@
   font-size: 14px;
   gap: 4px;
 }
-

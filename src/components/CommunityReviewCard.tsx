@@ -150,7 +150,7 @@ export default function CommunityReviewCard({
               )
             })}
           </div>
-          <span className="community_review_image_count">1/{imageTotal}</span>
+          <span className="community_review_image_count">{activeImageIndex + 1}/{imageTotal}</span>
         </div>
       ) : null}
 
@@ -219,4 +219,3 @@ export default function CommunityReviewCard({
     </article>
   )
 }
-
