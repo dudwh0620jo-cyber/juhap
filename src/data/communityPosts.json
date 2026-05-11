@@ -386,4 +386,28 @@
     "priceWon": 60000,
     "abv": 45
   }
+  ,
+  {
+    "id": 1025,
+    "authorId": 2019,
+    "title": "하이네켄 + 토마토 파스타",
+    "body": "라거의 청량함이 토마토 파스타의 산미랑 잘 맞아서, 느끼함 없이 깔끔하게 마무리돼요.",
+    "pairingSummary": "파스타에 맥주도 궁합이 좋아요!",
+    "createdAt": "2026-05-10T20:20:00+09:00",
+    "likeCount": 412,
+    "commentCount": 128,
+    "popularityScore": 740,
+    "locationLabel": "따뜻한우리집",
+    "drinkType": "맥주",
+    "categories": ["라거 / 필스너"],
+    "detailCategories": ["페일 라거"],
+    "drinkEnglishName": "heineken",
+    "drinkCountry": "네덜란드",
+    "foods": ["토마토 파스타"],
+    "foodParentCategory": "양식",
+    "features": ["깔끔한", "청량한"],
+    "rating": 4.2,
+    "reviewCount": 13422,
+    "searchTags": ["하이네켄", "heineken", "토마토 파스타", "양식", "라거", "맥주"]
+  }
 ]

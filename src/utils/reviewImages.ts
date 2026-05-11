@@ -10,6 +10,23 @@ const sortedReviewImages = Object.entries(reviewImageModules)
   .map(([, src]) => src)
 
 export function resolveReviewImage(photoId: string): string | undefined {
+  const trimmed = photoId.trim()
+  if (!trimmed) return undefined
+
+  if (
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("/")
+  ) {
+    return trimmed
+  }
+
+  if (/\.(png|jpe?g|webp|gif|svg)(\?|#|$)/i.test(trimmed)) {
+    return trimmed
+  }
+
   if (photoId.startsWith("similar_image_")) {
     const similarId = Number.parseInt(photoId.replace("similar_image_", ""), 10)
     if (Number.isFinite(similarId)) {

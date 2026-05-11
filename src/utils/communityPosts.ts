@@ -19,6 +19,9 @@ export type FeedPost = {
   popularityScore: number
   rating?: number
   reviewCount?: number
+  drinkEnglishName?: string
+  drinkCountry?: string
+  foodParentCategory?: string
   locationLabel?: string
   isQna?: boolean
   answerPreview?: string
