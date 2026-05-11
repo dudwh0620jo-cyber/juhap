@@ -2620,6 +2620,9 @@
   isolation: isolate;
 }
 
+
+
+
 .feed_like_bubbles {
   --bubble-layer-bottom: 12px;
   --bubble-layer-width: 52px;
