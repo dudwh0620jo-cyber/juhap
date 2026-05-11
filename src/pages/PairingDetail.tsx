@@ -3,16 +3,19 @@ import { useLocation, useNavigate, useParams } from "react-router"
 import CommentSection from "../components/CommentSection"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import FeedActions from "../components/FeedActions"
+import PairingTagRow from "../components/PairingTagRow"
 import PairingDetailHeader from "../components/PairingDetailHeader"
 import PostOwnerActionModal from "../components/PostOwnerActionModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import SimilarPairingList, { type SimilarPairingItem } from "../components/SimilarPairingList"
+import iconArrowRight from "../assets/svg/arrowright_p.svg"
 import iconChat from "../assets/svg/chatcircledots_p.svg"
 import iconLocation from "../assets/svg/mappin.svg"
+import iconStar from "../assets/svg/star.svg"
 import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
-import { extractPairingTitle, feedPosts, getPairingSummaryText, getPairingTagsFromTitle } from "../utils/communityPosts"
+import { extractPairingTitle, feedPosts, getPairingSummaryText, normalizeCommunityFeatures, resolvePairingTags } from "../utils/communityPosts"
 import {
   COMMUNITY_BOOKMARK_LIST_BY_POST_KEY,
   COMMUNITY_BOOKMARKED_POSTS_KEY,
@@ -44,7 +47,10 @@ type PairingDetailNavState = {
   profile?: string
   locationLabel?: string
   drinkType?: string
+  foods?: string[]
   features?: string[]
+  rating?: number
+  voteCount?: number
   source?: "feed" | "ranking" | "free"
   feedFilter?: "review" | "follow" | "free"
 }
@@ -99,13 +105,10 @@ export default function PairingDetail() {
   const pairingFeatures = useMemo((): string[] => {
     const fromNavRaw: unknown[] = Array.isArray(navState.features) ? navState.features : []
     const fromPostRaw: unknown[] = Array.isArray(post?.features) ? post.features : []
-    const fromNav = fromNavRaw.filter((v: unknown): v is string => typeof v === "string")
-    const fromPost = fromPostRaw.filter((v: unknown): v is string => typeof v === "string")
-    const source = fromNav.length > 0 ? fromNav : fromPost
-    return Array.from(new Set(source.map((v: string) => v.trim()).filter(Boolean))).slice(0, 2)
+    const fromNav = normalizeCommunityFeatures(fromNavRaw, 2)
+    const fromPost = normalizeCommunityFeatures(fromPostRaw, 2)
+    return fromNav.length > 0 ? fromNav : fromPost
   }, [navState.features, post])
-
-  const drinkTypeLabel = navState.drinkType?.trim() || post?.drinkType?.trim() || (pairingTitle.includes("+") ? pairingTitle.split("+")[0]?.trim() : "") || "기타"
 
   const authorId = typeof navState.authorId === "number" ? navState.authorId : typeof post?.authorId === "number" ? post.authorId : null
   const authorMock = authorId !== null ? usersMockById[authorId] : undefined
@@ -149,9 +152,13 @@ export default function PairingDetail() {
   const isBookmarked = Number.isFinite(numericId) ? Boolean(bookmarkListById[numericId] ?? bookmarkedById[numericId]) : false
 
   const initialLikeCount = useMemo(() => {
+    const fromRanking = navState.source === "ranking" ? navState.voteCount : undefined
+    if (typeof fromRanking === "number" && Number.isFinite(fromRanking)) {
+      return Math.max(0, Math.round(fromRanking))
+    }
     const value = (post as { likeCount?: unknown } | undefined)?.likeCount
     return typeof value === "number" && Number.isFinite(value) ? value : 0
-  }, [post])
+  }, [navState.source, navState.voteCount, post])
 
   const [likeCountByPostId, setLikeCountByPostId] = useState<Record<number, number>>({})
   const likeCount = Number.isFinite(numericId) ? likeCountByPostId[numericId] ?? initialLikeCount : initialLikeCount
@@ -174,29 +181,62 @@ export default function PairingDetail() {
 
   const detailMock = useMemo(() => getPairingDetailMock(post?.detailMockKey ?? null), [post?.detailMockKey])
 
+  const rankingRating = useMemo(() => {
+    const value = navState.source === "ranking" ? navState.rating : undefined
+    return typeof value === "number" && Number.isFinite(value) ? value : null
+  }, [navState.rating, navState.source])
+
+  const rankingVoteCount = useMemo(() => {
+    const value = navState.source === "ranking" ? navState.voteCount : undefined
+    return typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.round(value)) : null
+  }, [navState.source, navState.voteCount])
+
   const similarItems = useMemo<SimilarPairingItem[]>(() => {
-    if (detailMock?.similars?.length) return detailMock.similars
+    if (detailMock?.similars?.length) {
+      return detailMock.similars.map((item) => {
+        const { liquorTag, foodTag } = resolvePairingTags({
+          pairingTitle: item.pairingTitle,
+          drinkType: item.drinkType,
+        })
+        return {
+          ...item,
+          drinkType: liquorTag || "기타",
+          foodTag,
+        }
+      })
+    }
     return feedPosts
       .filter((item) => !item.isQna && item.id !== numericId)
       .slice(0, 3)
-      .map((item) => ({
-        id: item.id,
-        pairingTitle: extractPairingTitle(item.title),
-        authorId: item.authorId,
-        authorName: usersMockById[item.authorId]?.name ?? "익명",
-        profile: usersMockById[item.authorId]?.profile ?? "",
-        locationLabel: item.locationLabel ?? "",
-        drinkType: item.drinkType ?? "기타",
-      }))
+      .map((item) => {
+        const pairingTitle = extractPairingTitle(item.title)
+        const { liquorTag, foodTag } = resolvePairingTags({
+          pairingTitle,
+          title: item.title,
+          drinkType: item.drinkType,
+          foods: item.foods,
+        })
+        return {
+          id: item.id,
+          pairingTitle,
+          authorId: item.authorId,
+          authorName: usersMockById[item.authorId]?.name ?? "익명",
+          profile: usersMockById[item.authorId]?.profile ?? "",
+          locationLabel: item.locationLabel ?? "",
+          drinkType: liquorTag || "기타",
+          foodTag,
+        }
+      })
   }, [detailMock?.similars, numericId])
 
   const { liquorTag, foodTag } = useMemo(() => {
-    const fromPostTitle = post?.title ? getPairingTagsFromTitle(post.title) : { liquorTag: "", foodTag: "" }
-    if (fromPostTitle.liquorTag && fromPostTitle.foodTag) return fromPostTitle
-    const fromTitle = getPairingTagsFromTitle(pairingTitle)
-    if (fromTitle.liquorTag && fromTitle.foodTag) return fromTitle
-    return { liquorTag: drinkTypeLabel, foodTag: Array.isArray(post?.foods) ? (post.foods[0] ?? "") : "" }
-  }, [drinkTypeLabel, pairingTitle, post])
+    return resolvePairingTags({
+      pairingTitle,
+      title: post?.title ?? "",
+      drinkType: navState.drinkType ?? post?.drinkType,
+      foods: Array.isArray(navState.foods) ? navState.foods : post?.foods,
+    })
+  }, [navState.drinkType, navState.foods, pairingTitle, post])
 
   const hasPairingTags = Boolean(liquorTag) && Boolean(foodTag)
   const isQnaDetail = Boolean(post?.isQna) || navState.source === "free"
@@ -363,23 +403,22 @@ export default function PairingDetail() {
           ) : null}
 
           <h2>{pairingSummary || pairingTitle}</h2>
+          {rankingRating !== null && rankingVoteCount !== null ? (
+            <p className="detail_ranking_meta" aria-label="랭킹 점수">
+              <span className="detail_ranking_rating">
+                <img className="detail_ranking_star" src={iconStar} alt="" aria-hidden="true" />
+                <span>{rankingRating.toFixed(1)}</span>
+              </span>
+              <span className="detail_ranking_votes">{rankingVoteCount.toLocaleString("ko-KR")}짠</span>
+            </p>
+          ) : null}
           {hasPairingTags ? (
-            <div className="community_review_pair_tags" aria-label="페어링 태그">
-              <button
-                type="button"
-                className="community_review_pair_chip is_drink"
-                onClick={() => navigate("/community/tag", { state: { tagType: "liquor", tagValue: liquorTag } })}
-              >
-                {liquorTag}
-              </button>
-              <button
-                type="button"
-                className="community_review_pair_chip is_food"
-                onClick={() => navigate("/community/tag", { state: { tagType: "food", tagValue: foodTag } })}
-              >
-                {foodTag}
-              </button>
-            </div>
+            <PairingTagRow
+              liquorTag={liquorTag}
+              foodTag={foodTag}
+              onSelectLiquor={() => navigate("/community/tag", { state: { tagType: "liquor", tagValue: liquorTag } })}
+              onSelectFood={() => navigate("/community/tag", { state: { tagType: "food", tagValue: foodTag } })}
+            />
           ) : null}
 
           <p className="detail_text">{detailBodyText}</p>
@@ -417,22 +456,27 @@ export default function PairingDetail() {
                 <div className="product_thumb" aria-hidden="true">
                   <img className="product_thumb_image" src={detailMock.product.imageSrc} alt="" aria-hidden="true" />
                 </div>
-                <div className="product_text">
-                  <h3>{detailMock.product.name}</h3>
-                  <p>{detailMock.product.priceText}</p>
-                  <div>
+                <div className="product_info">
+                  <div className="product_text">
+                    <h3>{detailMock.product.name}</h3>
+                    <p>{detailMock.product.priceText}</p>
+                  </div>
+                  <div className="chips">
                     {detailMock.product.chips.map((chip) => (
                       <span key={chip}>{chip}</span>
                     ))}
                   </div>
                 </div>
-                <button type="button" aria-label="상품 상세로 이동">›</button>
+                <button className="detail_product_arrow" type="button" aria-label="상품 상세로 이동">
+                  <img src={iconArrowRight} alt="" aria-hidden="true" />
+                </button>
               </div>
             </section>
           ) : null}
 
           <SimilarPairingList
             items={similarItems}
+            titleVariant="text"
             onSelect={(item) =>
               navigate(`/community/pairing/${item.id}`, {
                 state: {
@@ -442,6 +486,7 @@ export default function PairingDetail() {
                   profile: item.profile,
                   locationLabel: item.locationLabel,
                   drinkType: item.drinkType,
+                  foods: item.foodTag ? [item.foodTag] : undefined,
                   source: "feed",
                   feedFilter: navState.feedFilter,
                 } satisfies PairingDetailNavState,

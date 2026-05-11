@@ -1,4 +1,5 @@
-﻿import rawPosts from "../data/communityPosts.json"
+import rawPosts from "../data/communityPosts.json"
+import { FEATURE_CHIPS } from "../data/categoryFilterConfig"
 import { QUESTION_MOCK_SEEDS } from "./communityQuestionData"
 import { usersMockById } from "./usersMock"
 
@@ -40,6 +41,44 @@ export const getPairingTagsFromTitle = (title: string) => {
   if (!pairingTitle.includes("+")) return { liquorTag: "", foodTag: "" }
   const [left, right] = pairingTitle.split("+").map((value) => value.trim())
   return { liquorTag: left ?? "", foodTag: right ?? "" }
+}
+
+const FEATURE_CHIP_SET = new Set(FEATURE_CHIPS)
+
+export const normalizeCommunityFeatures = (features: unknown, limit?: number) => {
+  if (!Array.isArray(features)) return []
+
+  const normalized = Array.from(
+    new Set(
+      features
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0 && FEATURE_CHIP_SET.has(value)),
+    ),
+  )
+
+  return typeof limit === "number" && limit >= 0 ? normalized.slice(0, limit) : normalized
+}
+
+export const resolvePairingTags = ({
+  pairingTitle = "",
+  title = "",
+  drinkType = "",
+  foods,
+}: {
+  pairingTitle?: string
+  title?: string
+  drinkType?: string
+  foods?: string[]
+}) => {
+  const titleSource = pairingTitle.trim() || title.trim()
+  const fromTitle = titleSource ? getPairingTagsFromTitle(titleSource) : { liquorTag: "", foodTag: "" }
+  const foodTag = Array.isArray(foods) ? (foods.find((item) => typeof item === "string" && item.trim())?.trim() ?? "") : ""
+
+  return {
+    liquorTag: drinkType.trim() || fromTitle.liquorTag,
+    foodTag: foodTag || fromTitle.foodTag,
+  }
 }
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -97,7 +136,6 @@ const isFixedSeedReviewPost = (post: FeedPost) => post.id === 1001 || post.id ==
 const ensureReviewPhotoIds = (post: FeedPost): FeedPost => {
   if (post.isQna || isFixedSeedReviewPost(post) || post.photoIds) return post
 
-  // Deterministic mock rule for review seeds without explicit photoIds.
   const count = Math.abs(post.id * IMAGE_COUNT_SEED) % (MAX_REVIEW_IMAGES_PER_POST + 1)
   if (count === 0) return post
 
@@ -114,4 +152,3 @@ export const feedPosts: FeedPost[] = [...questionMockPosts, ...basePosts].map((p
   const withPhotos = ensureReviewPhotoIds(post)
   return applyUserDerivedFields(withPhotos)
 })
-

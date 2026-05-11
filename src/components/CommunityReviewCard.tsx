@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router"
 import iconLocation from "../assets/svg/mappin.svg"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
 import FeedActions from "./FeedActions"
+import PairingTagRow from "./PairingTagRow"
 import { getPairingTagsFromTitle } from "../utils/communityPosts"
 import { resolveReviewImage } from "../utils/reviewImages"
 import { resolveUserAvatar } from "../utils/userAvatars"
@@ -77,7 +78,6 @@ export default function CommunityReviewCard({
   const imageListRef = useRef<HTMLDivElement | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const { liquorTag, foodTag } = getPairingTagsFromTitle(pairingTitle)
-  const visibleTags = [liquorTag, foodTag].filter(Boolean)
   const visibleHashtags = (hashtags ?? []).slice(0, 5)
   const authorInitial = authorName.trim().slice(0, 1) || "?"
   const authorAvatarSrc = resolveUserAvatar(authorId)
@@ -175,20 +175,14 @@ export default function CommunityReviewCard({
       >
         <h3 className="community_review_title">{title}</h3>
 
-        {visibleTags.length > 0 ? (
-          <div className="community_review_pair_tags" aria-label="페어링 태그">
-            {visibleTags.map((tag, index) => (
-              <Link
-                key={tag}
-                className={index === 0 ? "community_review_pair_chip is_drink" : "community_review_pair_chip is_food"}
-                to="/community/tag"
-                state={{ tagType: index === 0 ? "liquor" : "food", tagValue: tag }}
-              >
-                {tag}
-              </Link>
-            ))}
-          </div>
-        ) : null}
+        <PairingTagRow
+          liquorTag={liquorTag}
+          foodTag={foodTag}
+          liquorTo="/community/tag"
+          foodTo="/community/tag"
+          liquorState={{ tagType: "liquor", tagValue: liquorTag }}
+          foodState={{ tagType: "food", tagValue: foodTag }}
+        />
 
         <p className="community_review_body">{body}</p>
 
@@ -225,5 +219,4 @@ export default function CommunityReviewCard({
     </article>
   )
 }
-
 

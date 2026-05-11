@@ -8,6 +8,7 @@ import iconSearch from "../assets/svg/magnifyingglass.svg"
 import iconX from "../assets/svg/x.svg"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
 import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
+import { normalizeCommunityFeatures } from "../utils/communityPosts"
 import { readUserProfile } from "../data/userProfile"
 import { sakeProductsMock } from "../data/sakeProductsMock"
 import { currentUserMock } from "../utils/usersMock"
@@ -52,7 +53,6 @@ const locationSuggestions = [
 ] as const
 
 const situationChips = ["혼술", "가족", "데이트", "친구/파티", "모임/단체"] as const
-const pairingFeatureFallbackChips = ["상큼", "달콤", "묵직", "깔끔", "탄산감", "드라이", "기타"] as const
 const SAKE_LABEL = "사케"
 const COMMUNITY_WRITE_DRAFT_KEY_BY_MODE: Record<WriteMode, string> = {
   review: "community_write_draft_v1_review",
@@ -217,7 +217,10 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     if (!selectedDrinkType) return []
     return popupFeaturesByDrinkType[selectedDrinkType] ?? []
   }, [popupFeaturesByDrinkType, selectedDrinkType])
-  const pairingFeatureChips = [...pairingFeatureFallbackChips]
+  const pairingFeatureChips = useMemo(() => {
+    if (!selectedDrinkType) return []
+    return popupFeaturesByDrinkType[selectedDrinkType] ?? []
+  }, [popupFeaturesByDrinkType, selectedDrinkType])
   const isBasicWrite = isQuestionWrite || reviewTab === "drink"
   const activePhotoIds = isBasicWrite ? photoIds : pairingPhotoIds
 
@@ -530,7 +533,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
         popularityScore: 0,
         drinkType: selectedDrinkType ?? undefined,
         categories: selectedDrinkType ? [selectedDrinkType] : undefined,
-        features: drinkTasteTags.size > 0 ? Array.from(drinkTasteTags) : undefined,
+        features: normalizeCommunityFeatures(Array.from(drinkTasteTags), 2),
         searchTags: [selectedDrinkType, ...Array.from(drinkTasteTags), "후기"].filter((v): v is string => Boolean(v)),
         rating: drinkRating,
         drinkName: normalizedDrinkName,
@@ -582,7 +585,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
       locationLabel: pairingLocationTags.length > 0 ? pairingLocationTags.join(" · ") : undefined,
       drinkType: selectedDrinkType ?? undefined,
       categories: selectedDrinkType ? [selectedDrinkType] : undefined,
-      features: pairingTasteTags.size > 0 ? Array.from(pairingTasteTags) : undefined,
+      features: normalizeCommunityFeatures(Array.from(pairingTasteTags), 2),
       foods: selectedFoodCategory ? [selectedFoodCategory] : undefined,
       searchTags: [
         selectedDrinkType,

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { motion } from "motion/react"
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router"
 import StatusBar from "./components/StatusBar"
 import AiScan from "./pages/AiScan"
@@ -90,7 +91,21 @@ export default function App() {
               onClick={() => setIsChatOpen(true)}
             >
               <span className="chat_corner_icon" aria-hidden="true">
-                <img className="chat_corner_icon_img" src={chatMascotButton} alt="" />
+                <motion.img
+                  className="chat_corner_icon_img"
+                  src={chatMascotButton}
+                  alt=""
+                  animate={{
+                    y: [0, -8, 0],
+                    rotate: [0, -1.5, 0, 1.5, 0],
+                    scale: [1, 1.015, 1],
+                  }}
+                  transition={{
+                    duration: 3.8,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut",
+                  }}
+                />
               </span>
             </button>
           </div>

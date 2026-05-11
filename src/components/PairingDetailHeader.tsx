@@ -1,8 +1,8 @@
-﻿import iconBell from "../assets/svg/bell.svg"
+import iconBell from "../assets/svg/bell.svg"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
-import { resolveUserAvatar } from "../utils/userAvatars"
+import UserIdentityRow from "./UserIdentityRow"
 
 type Props = {
   authorId: number | null
@@ -33,8 +33,6 @@ export default function PairingDetailHeader({
   onBack,
   onToggleFollow,
 }: Props) {
-  const authorAvatarSrc = authorId !== null ? resolveUserAvatar(authorId) : undefined
-
   return (
     <header className="detail_header">
       <div className="detail_header_top">
@@ -51,13 +49,14 @@ export default function PairingDetailHeader({
         </div>
       </div>
 
-      <div className="detail_header_profile_row">
-        <div className="avatar" aria-hidden="true">
-          {authorAvatarSrc ? <img className="avatar_image" src={authorAvatarSrc} alt="" aria-hidden="true" /> : null}
-        </div>
-
-        <div className="detail_header_identity">
-          <h1>
+      <UserIdentityRow
+        userId={authorId}
+        className="detail_header_profile_row"
+        identityClassName="detail_header_identity"
+        titleClassName="detail_header_title"
+        metaClassName="detail_header_meta"
+        title={
+          <>
             {authorName} {showTier ? <span className={tierClassName}>{tierLabel}</span> : null}
             {typeof onOpenMenu !== "function" ? <span className="detail_follow_divider">ㆍ</span> : null}
             {typeof onOpenMenu !== "function" ? (
@@ -71,16 +70,17 @@ export default function PairingDetailHeader({
                 {isFollowing ? "언팔로우" : "팔로우"}
               </button>
             ) : null}
-          </h1>
-          <p>{profile}</p>
-        </div>
-
-        {typeof onOpenMenu === "function" ? (
-          <button type="button" className="detail_menu_button" aria-label={menuAriaLabel ?? "설정"} onClick={onOpenMenu}>
-            <img className="detail_menu_icon" src={iconDots} alt="" aria-hidden="true" />
-          </button>
-        ) : null}
-      </div>
+          </>
+        }
+        meta={profile}
+        rightAction={
+          typeof onOpenMenu === "function" ? (
+            <button type="button" className="detail_menu_button" aria-label={menuAriaLabel ?? "설정"} onClick={onOpenMenu}>
+              <img className="detail_menu_icon" src={iconDots} alt="" aria-hidden="true" />
+            </button>
+          ) : null
+        }
+      />
     </header>
   )
 }

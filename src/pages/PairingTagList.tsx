@@ -6,7 +6,7 @@ import iconCaretLeft from "../assets/svg/caretleft.svg"
 import "../styles/community.css"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
-import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../utils/communityPosts"
+import { extractPairingTitle, feedPosts, getPairingTagsFromTitle, normalizeCommunityFeatures } from "../utils/communityPosts"
 import { currentUserMock, usersMockById } from "../utils/usersMock"
 
 type TagType = "liquor" | "food" | "hashtag"
@@ -34,7 +34,7 @@ export default function PairingTagList() {
     return feedPosts.filter((post) => {
       if (post.isQna) return false
       if (tagType === "hashtag") {
-        const tags = (post.searchTags ?? []).map((tag) => tag.replace(/\s+/g, "").toLowerCase())
+        const tags = normalizeCommunityFeatures(post.features).map((tag) => tag.replace(/\s+/g, "").toLowerCase())
         return tags.some((tag) => tag === normalizedTag || tag.includes(normalizedTag))
       }
       const pairingTitle = extractPairingTitle(post.title)

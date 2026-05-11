@@ -34,6 +34,7 @@ import { QUESTION_BANNER_COPY } from "../utils/communityQuestionData"
 import { myPageProfileSummary } from "../data/myPageContent"
 import { resolveMyUserAvatar } from "../utils/userAvatars"
 import { currentUserMock } from "../utils/usersMock"
+import { normalizeCommunityFeatures } from "../utils/communityPosts"
 
 const feedPosts: FeedPost[] = communityFeedPosts
 const USER_POSTS_UPDATED_EVENT = "community:user-posts-updated"
@@ -833,7 +834,7 @@ export default function Community() {
                   pairingTitle={pairingTitle}
                   body={post.body}
                   photoIds={post.photoIds}
-                  hashtags={post.searchTags}
+                  hashtags={normalizeCommunityFeatures(post.features)}
                   locationLabel={post.locationLabel?.trim() ?? ""}
                   likeActive={Boolean(likedById[post.id])}
                   likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
