@@ -83,6 +83,15 @@
   border-color: #d48652;
 }
 
+.profile_setup_input_wrap {
+  position: relative;
+  display: block;
+}
+
+.profile_setup_input_wrap input {
+  padding-right: 56px;
+}
+
 .profile_phone_input {
   position: relative;
   display: block;
@@ -114,6 +123,21 @@
   font-size: 12px;
   font-weight: 700;
   line-height: 1.3;
+}
+
+.profile_setup_counter {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  color: #b8b3ad;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  transform: translateY(-50%);
+}
+
+.profile_setup_counter.is_limit {
+  color: #d48652;
 }
 
 .profile_setup_address {

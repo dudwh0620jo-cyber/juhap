@@ -4,7 +4,7 @@ import mascotImage from "../assets/onboarding-mascot.png"
 import mapPinIcon from "../assets/svg/mappin.svg"
 import AlertModal from "../components/AlertModal"
 import { profileSetupCopy } from "../data/setupContent"
-import { readUserProfile, updateUserPersonalInfo } from "../data/userProfile"
+import { NICKNAME_MAX_LENGTH, readUserProfile, sanitizeNickname, updateUserPersonalInfo } from "../data/userProfile"
 import "../styles/profile-setup.css"
 
 const DAUM_POSTCODE_SCRIPT_URL = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
@@ -73,7 +73,7 @@ export default function ProfileSetup() {
   const navigate = useNavigate()
   const detailAddressInputRef = useRef<HTMLInputElement>(null)
   const savedProfile = readUserProfile()
-  const [nickname, setNickname] = useState(savedProfile.personalInfo.nickname)
+  const [nickname, setNickname] = useState(savedProfile.personalInfo.nickname.slice(0, NICKNAME_MAX_LENGTH))
   const [phone, setPhone] = useState(savedProfile.personalInfo.phone)
   const [address, setAddress] = useState(savedProfile.personalInfo.address)
   const [detailAddress, setDetailAddress] = useState(savedProfile.personalInfo.detailAddress)
@@ -83,6 +83,8 @@ export default function ProfileSetup() {
   const [isAddressSearchLoading, setIsAddressSearchLoading] = useState(false)
 
   const phoneDigits = phone.replace(/\D/g, "")
+  const nicknameLength = nickname.length
+  const isNicknameAtLimit = nicknameLength === NICKNAME_MAX_LENGTH
   const isPhoneIncomplete = phoneDigits.length > 0 && phoneDigits.length < 11
   const showNicknameWarning = hasTriedSubmit && nickname.trim().length === 0
   const showPhoneWarning = isPhoneIncomplete || (hasTriedSubmit && phoneDigits.length !== 11)
@@ -95,7 +97,7 @@ export default function ProfileSetup() {
     if (nickname.trim().length === 0 || phoneDigits.length !== 11 || !isPhoneVerified) return
 
     updateUserPersonalInfo({
-      nickname: nickname.trim(),
+      nickname: sanitizeNickname(nickname),
       phone,
       address,
       detailAddress,
@@ -152,13 +154,22 @@ export default function ProfileSetup() {
           <span>
             {TEXT.nicknameLabel}<em aria-label={TEXT.requiredLabel}>*</em>
           </span>
-          <input
-            type="text"
-            placeholder={TEXT.nicknamePlaceholder}
-            autoComplete="nickname"
-            value={nickname}
-            onChange={(event) => setNickname(event.target.value)}
-          />
+          <span className="profile_setup_input_wrap">
+            <input
+              type="text"
+              placeholder={TEXT.nicknamePlaceholder}
+              autoComplete="nickname"
+              maxLength={NICKNAME_MAX_LENGTH}
+              value={nickname}
+              onChange={(event) => setNickname(event.target.value.slice(0, NICKNAME_MAX_LENGTH))}
+            />
+            <span
+              className={isNicknameAtLimit ? "profile_setup_counter is_limit" : "profile_setup_counter"}
+              aria-live="polite"
+            >
+              {`${nicknameLength}/${NICKNAME_MAX_LENGTH}`}
+            </span>
+          </span>
           {showNicknameWarning ? <p className="profile_setup_hint">{TEXT.nicknameWarning}</p> : null}
         </label>
 
