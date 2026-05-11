@@ -2339,7 +2339,7 @@
 }
 
 .community_review_follow_divider {
-  color: var(--color-gray-04);
+  color: var(--color-gray-06);
   font-size: 14px;
   line-height: 1;
 }
@@ -2948,6 +2948,10 @@
   font-weight: 500;
 }
 
+.community_review_header .follow_toggle_button.is_following {
+  color: var(--color-gray-04);
+}
+
 
 
 .community_review_menu_button {
@@ -3154,4 +3158,3 @@
   font-size: 14px;
   gap: 4px;
 }
-

@@ -333,7 +333,7 @@ body {
 .chat_corner_slot {
   position: fixed;
   left: 50%;
-  bottom: 84px;
+  bottom: 95px;
   z-index: 11;
   width: min(100%, 430px);
   padding: 0 16px;
@@ -349,11 +349,11 @@ body {
 
 .chat_corner_icon {
   display: block;
-  width: 70px;
+  width: 60px;
 }
 
 .chat_corner_icon_img {
-  width: 70px;
+  width: 60px;
   object-fit: cover;
 }
 
