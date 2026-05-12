@@ -22,24 +22,23 @@ export type PairingWriteFoodMock = {
 
 export const pairingWriteDrinkMocks: PairingWriteDrinkMock[] = [
   {
-    name: "하이네켄",
-    englishName: "heineken",
-    parentCategory: "맥주",
-    subCategory: "라거 / 필스너",
-    country: "네덜란드",
-    rating: 4.2,
-    reviewCount: 13422,
+    name: "닷사이 23",
+    englishName: "dassai 23",
+    parentCategory: "사케",
+    subCategory: "준마이 다이긴죠 / 다이긴죠",
+    country: "일본",
+    rating: 4.8,
+    reviewCount: 22134,
     imageSrc: autoPairingDrink01Image,
   },
 ]
 
 export const pairingWriteFoodMocks: PairingWriteFoodMock[] = [
   {
-    name: "토마토 파스타",
-    parentCategory: "양식",
-    rating: 4.8,
-    reviewCount: 17212,
+    name: "닭꼬치",
+    parentCategory: "일식",
+    rating: 4.7,
+    reviewCount: 14821,
     imageSrc: autoPairingFood01Image,
   },
 ]
-

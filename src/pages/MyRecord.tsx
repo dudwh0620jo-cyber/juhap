@@ -1,0 +1,225 @@
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Link, useNavigate, useSearchParams } from "react-router"
+import { AnimatePresence, motion } from "motion/react"
+
+import iconAlcohol from "../assets/svg/wine.svg"
+import iconAlcoholActive from "../assets/svg/wine_p.svg"
+import iconPairing from "../assets/svg/forkknife.svg"
+import iconPairingActive from "../assets/svg/forkknife_p.svg"
+import iconQuestion from "../assets/svg/chatcircledots.svg"
+import iconQuestionActive from "../assets/svg/chatcircledots_p.svg"
+import iconHeart from "../assets/svg/heart_p.svg"
+import iconChat from "../assets/svg/chatcircledots_p.svg"
+import iconShare from "../assets/svg/sharenetwork_p.svg"
+
+import QuestionPostRow from "../components/QuestionPostRow"
+import { extractPairingTitle, feedPosts, getPairingSummaryText, resolveQuestionThumbVariant, type FeedPost } from "../utils/communityPosts"
+import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
+import { currentUserMock } from "../utils/usersMock"
+import { resolveReviewImage } from "../utils/reviewImages"
+import "../styles/my.css"
+
+type RecordTab = "alcohol" | "pairing" | "question"
+
+const TAB_ORDER: RecordTab[] = ["alcohol", "pairing", "question"]
+
+const parseTab = (value: string | null): RecordTab => {
+  if (value === "pairing" || value === "question" || value === "alcohol") return value
+  return "alcohol"
+}
+
+const toHashTag = (value: string) => `#${value.replace(/\s+/g, "")}`
+
+export default function MyRecord() {
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = parseTab(searchParams.get("tab"))
+  const [slideDirection, setSlideDirection] = useState(0)
+  const prevTabRef = useRef<RecordTab>(tab)
+  const [userPosts, setUserPosts] = useState<FeedPost[]>([])
+
+  useEffect(() => {
+    const readStoredUserPosts = () => {
+      try {
+        const raw = window.localStorage.getItem(COMMUNITY_USER_POSTS_KEY)
+        const parsed = raw ? JSON.parse(raw) : []
+        if (!Array.isArray(parsed)) return []
+        return parsed.filter((item) => typeof item?.id === "number") as FeedPost[]
+      } catch {
+        return []
+      }
+    }
+
+    setUserPosts(readStoredUserPosts())
+
+    const onUpdated = () => setUserPosts(readStoredUserPosts())
+    window.addEventListener("community:user-posts-updated", onUpdated)
+    return () => window.removeEventListener("community:user-posts-updated", onUpdated)
+  }, [])
+
+  const myPosts = useMemo(() => {
+    const combined = [...userPosts, ...feedPosts]
+    const byId = new Map<number, FeedPost>()
+    combined.forEach((post) => {
+      if (typeof post.id === "number" && Number.isFinite(post.id) && !byId.has(post.id)) {
+        byId.set(post.id, post)
+      }
+    })
+    return Array.from(byId.values())
+      .filter((post) => post.authorId === currentUserMock.id)
+      .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+  }, [userPosts])
+
+  const visiblePosts = useMemo(() => {
+    if (tab === "question") return myPosts.filter((post) => Boolean(post.isQna))
+    if (tab === "alcohol") return []
+    const reviewPosts = myPosts.filter((post) => !post.isQna)
+    const isPairingReview = (post: FeedPost) => Array.isArray(post.foods) && post.foods.some((food) => typeof food === "string" && food.trim())
+    return tab === "pairing" ? reviewPosts.filter(isPairingReview) : reviewPosts.filter((post) => !isPairingReview(post))
+  }, [myPosts, tab])
+
+  const setTab = (nextTab: RecordTab) =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set("tab", nextTab)
+      return next
+    })
+
+  useEffect(() => {
+    const prevIndex = TAB_ORDER.indexOf(prevTabRef.current)
+    const nextIndex = TAB_ORDER.indexOf(tab)
+    if (prevIndex === -1 || nextIndex === -1) return
+    if (prevIndex === nextIndex) return
+    setSlideDirection(nextIndex > prevIndex ? 1 : -1)
+    prevTabRef.current = tab
+  }, [tab])
+
+  return (
+    <section className="my_record_page" aria-label="기록">
+      <div className="my_record_tabs_shell" aria-label="기록 탭">
+        <div className="my_record_tabs">
+          <button
+            type="button"
+            className={tab === "alcohol" ? "my_record_tab is_active" : "my_record_tab"}
+            onClick={() => setTab("alcohol")}
+          >
+            {tab === "alcohol" ? <motion.span className="my_record_tab_active_bg" layoutId="my_record_tab_bg" /> : null}
+            <img src={tab === "alcohol" ? iconAlcoholActive : iconAlcohol} alt="" aria-hidden="true" />
+            <span>주류 후기</span>
+          </button>
+          <span className="my_record_tab_line" aria-hidden="true" />
+          <button
+            type="button"
+            className={tab === "pairing" ? "my_record_tab is_active" : "my_record_tab"}
+            onClick={() => setTab("pairing")}
+          >
+            {tab === "pairing" ? <motion.span className="my_record_tab_active_bg" layoutId="my_record_tab_bg" /> : null}
+            <img src={tab === "pairing" ? iconPairingActive : iconPairing} alt="" aria-hidden="true" />
+            <span>페어링 후기</span>
+          </button>
+          <span className="my_record_tab_line" aria-hidden="true" />
+          <button
+            type="button"
+            className={tab === "question" ? "my_record_tab is_active" : "my_record_tab"}
+            onClick={() => setTab("question")}
+          >
+            {tab === "question" ? <motion.span className="my_record_tab_active_bg" layoutId="my_record_tab_bg" /> : null}
+            <img src={tab === "question" ? iconQuestionActive : iconQuestion} alt="" aria-hidden="true" />
+            <span>질문글</span>
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait" initial={false} custom={slideDirection}>
+        <motion.div
+          key={tab}
+          custom={slideDirection}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          variants={{
+            enter: (direction: number) => ({ opacity: 0, x: direction * 22 }),
+            center: { opacity: 1, x: 0 },
+            exit: (direction: number) => ({ opacity: 0, x: direction * -22 }),
+          }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        >
+          {tab === "alcohol" ? (
+            <div className="my_record_empty" aria-label="주류 후기 안내">
+              제품 상세페이지에서 작성한 주류 후기가 여기에 표시돼요.
+            </div>
+          ) : tab === "question" ? (
+            <div className="my_record_question_list" aria-label="내 질문글">
+              {visiblePosts.map((post) => (
+                <QuestionPostRow
+                  key={post.id}
+                  postId={post.id}
+                  title={post.title}
+                  body={post.body}
+                  createdAt={post.createdAt}
+                  likeCount={post.likeCount}
+                  commentCount={post.commentCount}
+                  likeActive={false}
+                  likeAriaLabel="좋아요"
+                  onToggleLike={() => {}}
+                  onViewComments={() => navigate(`/community/pairing/${post.id}#comments`, { state: {} })}
+                  linkTo={`/community/pairing/${post.id}`}
+                  linkState={{}}
+                  photoIds={post.photoIds}
+                  thumbVariant={resolveQuestionThumbVariant(post)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="my_record_review_list" aria-label="내 페어링 후기">
+              {visiblePosts.map((post) => {
+                const title = extractPairingTitle(post.title)
+                const desc = post.body?.trim() || getPairingSummaryText(post)
+                const thumbSrc = post.photoIds?.[0] ? resolveReviewImage(post.photoIds[0]) : undefined
+                const tags = (post.searchTags ?? [])
+                  .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+                  .slice(0, 3)
+                  .map((value) => toHashTag(value.trim()))
+
+                return (
+                  <article className="my_record_card" key={post.id}>
+                    <Link className="my_record_card_link" to={`/community/pairing/${post.id}`} state={{}}>
+                      <div className="my_record_thumb" aria-hidden="true">
+                        {thumbSrc ? (
+                          <img className="my_record_thumb_img" src={thumbSrc} alt="" aria-hidden="true" />
+                        ) : null}
+                      </div>
+                      <div className="my_record_body">
+                        <strong className="my_record_title">{title}</strong>
+                        <p className="my_record_desc">{desc}</p>
+                        <div className="my_record_tags" aria-label="태그">
+                          {tags.map((tag) => (
+                            <span className="my_record_tag" key={tag}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="my_record_meta" aria-label="반응">
+                          <span className="my_record_meta_item">
+                            <img src={iconHeart} alt="" aria-hidden="true" />
+                            <span>{post.likeCount.toLocaleString("ko-KR")}</span>
+                          </span>
+                          <span className="my_record_meta_item">
+                            <img src={iconChat} alt="" aria-hidden="true" />
+                            <span>{post.commentCount.toLocaleString("ko-KR")}</span>
+                          </span>
+                          <span className="my_record_meta_spacer" aria-hidden="true" />
+                          <img className="my_record_share" src={iconShare} alt="" aria-hidden="true" />
+                        </div>
+                      </div>
+                    </Link>
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </section>
+  )
+}

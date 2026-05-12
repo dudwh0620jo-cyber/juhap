@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
+import { AnimatePresence, motion } from "motion/react"
 import AlertModal from "../components/AlertModal"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import RelatedContentPostCard from "../components/RelatedContentPostCard"
@@ -18,13 +19,13 @@ import {
   EXCHANGE_VISIBLE_LIMIT,
   TASTE_SHEET_CLOSE_MS,
   activityStats,
+  tasteBars,
   discountItems,
   exchangeTabs,
   experienceItems,
   myPagePointsSummary,
   myPageProfileSummary,
   pointMissions,
-  tasteBars,
   type ExchangeItem,
 } from "../data/myPageContent"
 import { bookmarkLists } from "../data/communityFilterConfig"
@@ -35,6 +36,10 @@ import { currentUserMock, defaultFollowedUserIdsMock, usersMockById } from "../u
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
 import { resolveMyUserAvatar } from "../utils/userAvatars"
+import iconCaretRight from "../assets/svg/caretright.svg"
+import iconDotsThreeVertical from "../assets/svg/dotsthreevertical.svg"
+import iconCaretDown from "../assets/svg/caretdown.png"
+import myPointCoinImage from "../assets/my_point_coin.png"
 import "../styles/community.css"
 import "../styles/my.css"
 
@@ -73,7 +78,7 @@ function getTasteTags(tastePreferences: UserTastePreferences) {
 
   const quietTags = (tastePreferences.avoid ?? [])
     .filter((option) => option && !hiddenTagOptions.has(option))
-    .map((option) => `기피 ${toTagLabel(option)}`)
+    .map(toTagLabel)
 
   return {
     activeTags: activeTags.length > 0 ? activeTags : ["#취향미설정"],
@@ -89,9 +94,9 @@ function getTasteSummary(tastePreferences: UserTastePreferences) {
   const traitLine = traits.length > 0 ? traits.join(" · ") : "취향 미설정"
   const situationLine = situations[0] ?? "상황 미설정"
   const summaryTitle = `${drinkType} · ${traitLine}`
-  const summaryDescription = `${situationLine} 기준으로 추천을 받고 있어요.`
+  const summaryDescription = `기준으로 추천을 받고 있어요.`
 
-  return { summaryTitle, summaryDescription }
+  return { summaryTitle, summaryDescription, situationLine }
 }
 
 function ExchangeItemCard({ item }: { item: ExchangeItem }) {
@@ -122,7 +127,8 @@ export default function MyPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const profile = readUserProfile()
   const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
-  const [isTasteOpen, setIsTasteOpen] = useState(false)
+  const [isTasteOpen, setIsTasteOpen] = useState(true)
+  const [tasteChartRunId, setTasteChartRunId] = useState(0)
   const [isTasteEditorOpen, setIsTasteEditorOpen] = useState(false)
   const [isTasteEditorClosing, setIsTasteEditorClosing] = useState(false)
   const [isPointExchangeOpen, setIsPointExchangeOpen] = useState(false)
@@ -143,12 +149,17 @@ export default function MyPage() {
   const savedActivityLabel = activityStats[activityStats.length - 1]?.label
   const nickname = profile.personalInfo.nickname.trim() || "이름"
   const { activeTags, quietTags } = getTasteTags(savedTastePreferences)
-  const { summaryTitle, summaryDescription } = getTasteSummary(savedTastePreferences)
+  const { summaryTitle, summaryDescription, situationLine } = getTasteSummary(savedTastePreferences)
   const bookmarkListLabelById = useMemo(
     () => Object.fromEntries(bookmarkLists.map((item) => [item.id, item.label])) as Record<string, string>,
     [],
   )
   const isSavedListOpen = searchParams.get("view") === "saved"
+
+  useEffect(() => {
+    if (!isTasteOpen) return
+    setTasteChartRunId((value) => value + 1)
+  }, [isTasteOpen])
 
   const bookmarkedPosts = useMemo(() => {
     const combinedPosts = [...userPosts, ...feedPosts]
@@ -170,6 +181,18 @@ export default function MyPage() {
       .filter((item): item is { post: FeedPost; listId: string } => Boolean(item))
       .sort((left, right) => new Date(right.post.createdAt).getTime() - new Date(left.post.createdAt).getTime())
   }, [bookmarkListById, userPosts, bookmarkListLabelById])
+
+  const tasteValueByKey = useMemo(() => {
+    return Object.fromEntries(
+      tasteBars.map((item) => [item.className, Math.max(0, Math.min(100, item.value))]),
+    ) as Record<string, number>
+  }, [])
+
+  const buildArcMetric = (radius: number, value: number) => {
+    const circumference = 2 * Math.PI * radius
+    const offset = circumference * (1 - value / 100)
+    return { radius, circumference, offset }
+  }
 
   useEffect(() => {
     const handleGoHome = () => {
@@ -282,6 +305,11 @@ export default function MyPage() {
     setActiveExchangeTab(tab)
     setIsExperienceExpanded(false)
   }
+
+  const bodyArc = buildArcMetric(46, tasteValueByKey.body ?? 0)
+  const bitterArc = buildArcMetric(36, tasteValueByKey.bitter ?? 0)
+  const sweetArc = buildArcMetric(26, tasteValueByKey.sweet ?? 0)
+  const sparkleArc = buildArcMetric(16, tasteValueByKey.sparkle ?? 0)
 
   if (isSavedListOpen) {
     return (
@@ -494,24 +522,41 @@ export default function MyPage() {
   return (
     <section className="my_page" aria-label="마이페이지">
       <header className="my_profile_header">
-        <div className="my_profile_avatar" aria-hidden="true">
-          {myAvatarSrc ? <img className="my_profile_avatar_image" src={myAvatarSrc} alt="" aria-hidden="true" /> : null}
-        </div>
+        <div className="my_profile_header_inner">
+          <div className="my_profile_avatar" aria-hidden="true">
+            {myAvatarSrc ? (
+              <img className="my_profile_avatar_image" src={myAvatarSrc} alt="" aria-hidden="true" />
+            ) : null}
+          </div>
 
-        <div className="my_profile_identity">
-          <h1>{nickname}</h1>
-          <div className="my_grade_line">
-            <span className="user_grade_badge is_tier3">{myPageProfileSummary.gradeLabel}</span>
+          <div className="my_profile_summary">
+            <div className="my_profile_name_row" aria-label="닉네임 및 메뉴">
+              <div className="my_profile_name">
+                <span className="my_profile_nickname">{nickname}</span>
+                <span className="my_profile_grade">{myPageProfileSummary.gradeLabel}</span>
+              </div>
+              <button
+                type="button"
+                className="my_profile_menu"
+                aria-label="프로필 메뉴"
+                onClick={() => setIsProfileEditPreparingOpen(true)}
+              >
+                <img src={iconDotsThreeVertical} alt="" aria-hidden="true" />
+              </button>
+            </div>
+
+            <div className="my_profile_follow_row" aria-label="팔로우 정보">
+              <div className="my_profile_follow_item">
+                <strong>{myPageProfileSummary.followerCount}</strong>
+                <span>팔로워</span>
+              </div>
+              <div className="my_profile_follow_item">
+                <strong>{followedUserIds.size}</strong>
+                <span>팔로잉</span>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="my_social_summary" aria-label="팔로우 정보">
-          <strong>팔로워 {myPageProfileSummary.followerCount}</strong>
-          <span>/</span>
-          <strong>팔로잉 {followedUserIds.size}</strong>
-        </div>
-
-        <button type="button" className="my_edit_button" onClick={() => setIsProfileEditPreparingOpen(true)}>수정</button>
       </header>
 
       {isProfileEditPreparingOpen ? (
@@ -525,105 +570,149 @@ export default function MyPage() {
       <div className="my_page_body">
         <section className="my_activity_section" aria-labelledby="my-activity-title">
           <h2 id="my-activity-title">활동 데이터</h2>
-          <div className="my_activity_grid">
-            {activityStats.map((stat) => {
-              const isSavedStat = stat.label === savedActivityLabel
-              const value = isSavedStat ? bookmarkSavedCount : stat.value
-
-              return isSavedStat ? (
-                <button
-                  type="button"
-                  className="my_activity_card"
-                  key={stat.label}
-                  aria-label="저장한 리스트 보기"
-                  onClick={openSavedList}
-                >
-                  <strong>{value}</strong>
-                  <span>{stat.label}</span>
-                </button>
-              ) : (
-                <article className="my_activity_card" key={stat.label}>
-                  <strong>{value}</strong>
-                  <span>{stat.label}</span>
-                </article>
-              )
-            })}
+          <div className="my_activity_panel" aria-label="활동 데이터 요약">
+            {activityStats
+              .filter((stat) => ["기록", "투표 참여", savedActivityLabel].includes(stat.label))
+              .map((stat) => {
+                const isSavedStat = stat.label === savedActivityLabel
+                const isRecordStat = stat.label === "기록"
+                const value = isSavedStat ? bookmarkSavedCount : stat.value
+                const Element: "button" | "div" = isSavedStat || isRecordStat ? "button" : "div"
+                const extraProps = isSavedStat
+                  ? ({ type: "button", onClick: openSavedList, "aria-label": "저장한 리스트 보기" } as const)
+                  : isRecordStat
+                    ? ({ type: "button", onClick: () => navigate("/my/record"), "aria-label": "기록 보기" } as const)
+                  : ({} as const)
+                return (
+                  <Element key={stat.label} className="my_activity_item" {...extraProps}>
+                    <strong>{value}</strong>
+                    <span>{stat.label}</span>
+                  </Element>
+                )
+              })}
           </div>
         </section>
 
-        <section
-          className="my_taste_summary"
+        <button
+          type="button"
+          className={isTasteOpen ? "my_taste_summary is_open" : "my_taste_summary"}
           aria-label="취향 요약"
-          role="button"
-          tabIndex={0}
+          aria-expanded={isTasteOpen}
+          aria-controls="my-taste-profile"
           onClick={() => setIsTasteOpen((current) => !current)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault()
-              setIsTasteOpen((current) => !current)
-            }
-          }}
         >
-          <span className="my_taste_drop" aria-hidden="true">🍶</span>
-          <p>
+          <p className="my_taste_summary_text">
             <strong>{summaryTitle}</strong>
-            <br />
-            <span>{summaryDescription}</span>
+            <span>
+              <span className="my_taste_summary_highlight">{situationLine}</span> {summaryDescription}
+            </span>
           </p>
-          <button
-            type="button"
-            className={isTasteOpen ? "my_taste_toggle is_open" : "my_taste_toggle"}
-            aria-label={isTasteOpen ? "내 취향 프로필 닫기" : "내 취향 프로필 펼치기"}
-            aria-expanded={isTasteOpen}
-            aria-controls="my-taste-profile"
-            onClick={(event) => {
-              event.stopPropagation()
-              setIsTasteOpen((current) => !current)
-            }}
-          />
-        </section>
+          <img className="my_taste_summary_icon" src={iconCaretDown} alt="" aria-hidden="true" />
+        </button>
 
-        {isTasteOpen && (
-          <section className="my_taste_profile" id="my-taste-profile" aria-labelledby="my-taste-profile-title">
-            <div className="my_section_header">
+        <AnimatePresence initial={false}>
+          {isTasteOpen ? (
+            <motion.section
+              className="my_taste_profile my_taste_profile_motion"
+              aria-label="내 취향 프로필"
+              id="my-taste-profile"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+            >
+              <div className="my_taste_profile_card">
+              <div className="my_section_header">
               <h2 id="my-taste-profile-title">내 취향 프로필</h2>
-              <button type="button" className="my_outline_button" onClick={openTasteEditor}>수정</button>
+              <button type="button" className="my_icon_button" aria-label="취향 설정" onClick={openTasteEditor}>
+                ⚙
+              </button>
             </div>
-
-            <div className="my_taste_card">
-              <div className="my_taste_bars">
-                {tasteBars.map((bar) => (
-                  <div className="my_taste_bar_row" key={bar.label}>
-                    <span>{bar.label}</span>
-                    <div className="my_taste_bar_track" aria-hidden="true">
-                      <span className={`my_taste_bar_fill ${bar.className}`} style={{ width: `${bar.value}%` }} />
-                    </div>
-                    <strong>{bar.level}</strong>
+              <div className="my_taste_profile_chart" aria-hidden="true">
+                <svg key={tasteChartRunId} viewBox="0 0 120 120" className="my_taste_chart_svg" aria-hidden="true">
+                  <circle className="my_taste_chart_bg" cx="60" cy="60" r="46" />
+                  <motion.circle
+                    className="my_taste_chart_arc is_body"
+                    cx="60"
+                    cy="60"
+                    r={bodyArc.radius}
+                    strokeDasharray={bodyArc.circumference}
+                    initial={{ strokeDashoffset: bodyArc.circumference }}
+                    animate={{ strokeDashoffset: bodyArc.offset }}
+                    transition={{ duration: 0.9, ease: "easeOut" }}
+                  />
+                  <motion.circle
+                    className="my_taste_chart_arc is_bitter"
+                    cx="60"
+                    cy="60"
+                    r={bitterArc.radius}
+                    strokeDasharray={bitterArc.circumference}
+                    initial={{ strokeDashoffset: bitterArc.circumference }}
+                    animate={{ strokeDashoffset: bitterArc.offset }}
+                    transition={{ duration: 0.9, ease: "easeOut", delay: 0.05 }}
+                  />
+                  <motion.circle
+                    className="my_taste_chart_arc is_sweet"
+                    cx="60"
+                    cy="60"
+                    r={sweetArc.radius}
+                    strokeDasharray={sweetArc.circumference}
+                    initial={{ strokeDashoffset: sweetArc.circumference }}
+                    animate={{ strokeDashoffset: sweetArc.offset }}
+                    transition={{ duration: 0.9, ease: "easeOut", delay: 0.1 }}
+                  />
+                  <motion.circle
+                    className="my_taste_chart_arc is_sparkle"
+                    cx="60"
+                    cy="60"
+                    r={sparkleArc.radius}
+                    strokeDasharray={sparkleArc.circumference}
+                    initial={{ strokeDashoffset: sparkleArc.circumference }}
+                    animate={{ strokeDashoffset: sparkleArc.offset }}
+                    transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 }}
+                  />
+                </svg>
+                <div className="my_taste_chart_legend" aria-label="취향 범례">
+                  <div className="my_taste_legend_item">
+                    <span className="my_taste_legend_dot is_body" aria-hidden="true" />
+                    <span>바디</span>
                   </div>
-                ))}
-              </div>
-
-              <div className="my_tag_group" aria-label="선호 태그">
-                {activeTags.map((tag) => (
-                  <span className="my_tag is_active" key={tag}>{tag}</span>
-                ))}
-              </div>
-
-              {quietTags.length > 0 ? (
-                <div className="my_tag_group is_muted" aria-label="기피 태그">
-                  {quietTags.map((tag) => (
-                    <span className="my_tag" key={tag}>{tag}</span>
-                  ))}
+                  <div className="my_taste_legend_item">
+                    <span className="my_taste_legend_dot is_bitter" aria-hidden="true" />
+                    <span>쓴맛</span>
+                  </div>
+                  <div className="my_taste_legend_item">
+                    <span className="my_taste_legend_dot is_sweet" aria-hidden="true" />
+                    <span>단맛</span>
+                  </div>
+                  <div className="my_taste_legend_item">
+                    <span className="my_taste_legend_dot is_sparkle" aria-hidden="true" />
+                    <span>탄산</span>
+                  </div>
                 </div>
-              ) : null}
+              </div>
+
+              <div className="my_tag_group" aria-label="선호/기피 태그">
+                {activeTags.map((tag) => (
+                  <span className="my_tag is_active" key={tag}>
+                    {tag}
+                  </span>
+                ))}
+                {quietTags.map((tag) => (
+                  <span className="my_tag is_quiet" key={tag}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
 
               <p className="my_ai_note">
                 <span>AI 분석</span>
                 "빠르게 결정하는 스타일이에요. 가성비 중시로 새로운 경험도 자주 시도해요."
               </p>
-            </div>
-          </section>
-        )}
+              </div>
+            </motion.section>
+          ) : null}
+        </AnimatePresence>
 
         {isTasteEditorOpen ? (
           <div
@@ -671,46 +760,57 @@ export default function MyPage() {
         <section className="my_points_section" aria-labelledby="my-points-title">
           <div className="my_section_header">
             <h2 id="my-points-title">포인트</h2>
-            <button type="button" className="my_link_button" onClick={() => setIsPointExchangeOpen(true)}>교환소</button>
+            <button type="button" className="my_link_button" onClick={() => setIsPointExchangeOpen(true)}>
+              포인트 교환소
+            </button>
           </div>
 
           <div className="my_point_card">
-            <span>보유 포인트</span>
-            <strong>{myPagePointsSummary.balance.toLocaleString("ko-KR")} P</strong>
-            <div className="my_point_progress" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
-              <span className="is_empty" />
+            <div className="my_point_card_head">
+              <div className="my_point_card_meta">
+                <span>보유 포인트</span>
+                <strong>{myPagePointsSummary.balance.toLocaleString("ko-KR")} P</strong>
+              </div>
+              <div className="my_point_coin" aria-hidden="true">
+                <img src={myPointCoinImage} alt="" aria-hidden="true" />
+              </div>
             </div>
+            <progress
+              className="my_point_progress"
+              value={myPagePointsSummary.balance}
+              max={myPagePointsSummary.balance + myPagePointsSummary.remainingToNextReward}
+              aria-hidden="true"
+            />
             <p>
-              {myPagePointsSummary.nextRewardLabel}까지 <strong>{myPagePointsSummary.remainingToNextReward}P</strong> 남아있어요.
+              {myPagePointsSummary.nextRewardLabel}까지 <strong>{myPagePointsSummary.remainingToNextReward}P</strong>
             </p>
           </div>
         </section>
 
         <nav className="my_setting_list" aria-label="마이페이지 설정">
-          <button type="button" className="my_saved_menu_button" onClick={openSavedList}>
-            <span>저장한 리스트</span>
-            <small>북마크한 게시글 모아보기</small>
+          <button type="button" className="my_setting_item" onClick={() => window.alert("준비중이에요")}>
+            <div className="my_setting_item_body">
+              <span>쿠폰 보기</span>
+              <small>보유 중인 쿠폰 확인 및 사용</small>
+            </div>
+            <img src={iconCaretRight} alt="" aria-hidden="true" />
           </button>
-          <a href="/coupon">
-            <span>쿠폰 보기</span>
-            <small>보유 중인 쿠폰 확인 및 사용</small>
-          </a>
-          <a href="/profile-setup">
-            <span>계정 / 보안 설정</span>
-            <small>프로필 편집 및 인증, 알림</small>
-          </a>
-          <a href="/home">
-            <span>공지사항 & 문의</span>
-            <small>고객 지원 센터</small>
-          </a>
+          <button type="button" className="my_setting_item" onClick={() => navigate("/profile-setup")}>
+            <div className="my_setting_item_body">
+              <span>계정/보안 설정</span>
+              <small>프로필 편집 및 인증, 알림</small>
+            </div>
+            <img src={iconCaretRight} alt="" aria-hidden="true" />
+          </button>
+          <button type="button" className="my_setting_item" onClick={() => window.alert("준비중이에요")}>
+            <div className="my_setting_item_body">
+              <span>공지사항&문의</span>
+              <small>고객 지원 센터</small>
+            </div>
+            <img src={iconCaretRight} alt="" aria-hidden="true" />
+          </button>
         </nav>
       </div>
     </section>
   )
 }
-
-

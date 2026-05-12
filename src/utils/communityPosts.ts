@@ -1,6 +1,5 @@
 ﻿import rawPosts from "../data/communityPosts.json"
 import { FEATURE_CHIPS } from "../data/categoryFilterConfig"
-import { getAllPairingDetailSimilarPosts } from "./pairingDetailMock"
 import { QUESTION_MOCK_SEEDS } from "./communityQuestionData"
 import { usersMockById } from "./usersMock"
 
@@ -13,6 +12,7 @@ export type FeedPost = {
   pairingSummary?: string
   photoIds?: string[]
   imageSrc?: string
+  similarPostIds?: number[]
   createdAt: string
   likeCount: number
   commentCount: number
@@ -195,39 +195,6 @@ const questionMockPosts: FeedPost[] = questionMockSeeds.map(({ minutesAgo, ...re
   createdAt: toCreatedAtFromMinutesAgo(minutesAgo),
 }))
 
-const pickSimilarFeatureTags = (index: number) => {
-  if (FEATURE_CHIPS.length === 0) return []
-  const startIndex = index % FEATURE_CHIPS.length
-  return Array.from({ length: Math.min(2, FEATURE_CHIPS.length) }, (_, offset) => FEATURE_CHIPS[(startIndex + offset) % FEATURE_CHIPS.length])
-}
-
-const buildSimilarMockPost = (item: ReturnType<typeof getAllPairingDetailSimilarPosts>[number], index: number): FeedPost => {
-  const pairingTitle = item.pairingTitle.trim()
-  const { liquorTag, foodTag } = getPairingTagsFromTitle(pairingTitle)
-
-  return {
-    id: item.id,
-    authorId: item.authorId,
-    title: item.title?.trim() || pairingTitle,
-    pairingSummary: pairingTitle,
-    body: `${pairingTitle} 조합으로 가볍게 즐기기 좋아요.`,
-    createdAt: toCreatedAtFromMinutesAgo((index + 1) * 37),
-    likeCount: item.reviewCount ?? 0,
-    commentCount: Math.max(0, Math.round((item.reviewCount ?? 0) / 40)),
-    popularityScore: item.reviewCount ?? 0,
-    rating: item.rating,
-    reviewCount: item.reviewCount,
-    locationLabel: item.locationLabel,
-    drinkType: item.drinkType || liquorTag,
-    foods: foodTag ? [foodTag] : [],
-    features: normalizeCommunityFeatures(pickSimilarFeatureTags(index), 2),
-    imageSrc: item.imageSrc,
-    photoIds: [`similar_image_${item.id}`],
-  }
-}
-
-const similarMockPosts: FeedPost[] = getAllPairingDetailSimilarPosts().map((item, index) => buildSimilarMockPost(item, index))
-
 const applyUserDerivedFields = (post: FeedPost): FeedPost => {
   const user = usersMockById[post.authorId]
   if (!user?.name) return post
@@ -241,8 +208,24 @@ const MAX_REVIEW_IMAGES_PER_POST = 3
 
 const isFixedSeedReviewPost = (post: FeedPost) => post.id === 1001 || post.id === 1002
 
+const normalizePhotoIds = (photoIds: unknown): string[] | undefined => {
+  if (!Array.isArray(photoIds)) return undefined
+  const normalized = Array.from(
+    new Set(
+      photoIds
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  )
+  return normalized
+}
+
 const ensureReviewPhotoIds = (post: FeedPost): FeedPost => {
-  if (post.isQna || isFixedSeedReviewPost(post) || post.photoIds) return post
+  const normalizedPhotoIds = normalizePhotoIds(post.photoIds)
+  if (post.isQna || isFixedSeedReviewPost(post) || normalizedPhotoIds) {
+    return normalizedPhotoIds ? { ...post, photoIds: normalizedPhotoIds } : post
+  }
 
   const count = Math.abs(post.id * IMAGE_COUNT_SEED) % (MAX_REVIEW_IMAGES_PER_POST + 1)
   if (count === 0) return post
@@ -256,7 +239,7 @@ const ensureReviewPhotoIds = (post: FeedPost): FeedPost => {
   return { ...post, photoIds }
 }
 
-export const feedPosts: FeedPost[] = [...questionMockPosts, ...similarMockPosts, ...basePosts].map((post) => {
+export const feedPosts: FeedPost[] = [...questionMockPosts, ...basePosts].map((post) => {
   const withPhotos = ensureReviewPhotoIds(post)
   return applyUserDerivedFields(withPhotos)
 })
