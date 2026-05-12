@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router"
 import type { CSSProperties } from "react"
+import { AnimatePresence, motion } from "motion/react"
 import "../styles/community.css"
 import CommunityWriteBasicSection from "../components/CommunityWriteBasicSection"
 import CommunityWritePostForm from "../components/CommunityWritePostForm"
@@ -27,6 +28,8 @@ import { currentUserMock } from "../utils/usersMock"
 import communityPostsRaw from "../data/communityPosts.json"
 import { pairingWriteDrinkMocks, pairingWriteFoodMocks } from "../data/pairingWriteMocks"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
+
+const PAIRING_SCAN_MS = 1200
 
 type WriteMode = "review" | "free"
 type ReviewTab = "drink" | "pairing"
@@ -431,7 +434,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
           if (drinkMock) setPairingDrinkThumbSrc(drinkMock.imageSrc)
           setIsPairingDrinkScanning(false)
           setIsPairingDrinkScanDone(true)
-          window.setTimeout(() => setIsPairingDrinkRevealed(true), 1200)
+          window.setTimeout(() => setIsPairingDrinkRevealed(true), PAIRING_SCAN_MS)
 
           if (foodMock) {
             setSelectedFoodCategory(foodMock.name)
@@ -445,8 +448,8 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
           if (foodMock) setPairingFoodThumbSrc(foodMock.imageSrc)
           setIsPairingFoodScanning(false)
           setIsPairingFoodScanDone(true)
-          window.setTimeout(() => setIsPairingFoodRevealed(true), 1200)
-        }, 1200)
+          window.setTimeout(() => setIsPairingFoodRevealed(true), PAIRING_SCAN_MS)
+        }, PAIRING_SCAN_MS)
       }
 
       if (shouldAskMockRescan) {
@@ -1349,11 +1352,9 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                     </div>
                     <div
                       className={
-                        isPairingDrinkScanning
-                          ? "write_pairing_pick_card_meta is_faded is_pending_reveal"
-                          : isPairingDrinkScanDone && !isPairingDrinkRevealed
-                            ? "write_pairing_pick_card_meta is_pending_reveal"
-                            : "write_pairing_pick_card_meta is_revealed"
+                        isPairingDrinkScanning || (isPairingDrinkScanDone && !isPairingDrinkRevealed)
+                          ? "write_pairing_pick_card_meta is_faded"
+                          : "write_pairing_pick_card_meta is_revealed"
                       }
                     >
                       <div className="write_pairing_pick_card_rating" aria-label="주류 평점">
@@ -1365,10 +1366,46 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                           ({pairingDrinkRatingMeta.reviewCount !== null ? pairingDrinkRatingMeta.reviewCount.toLocaleString("ko-KR") : "--"})
                         </span>
                       </div>
-                      <div className="write_pairing_pick_card_title">{pairingDrinkName || "상품명"}</div>
-                      <div className="write_pairing_pick_card_subtitle">
-                        {pairingDrinkName ? [pairingDrinkTypeLabel, pairingDrinkSubCategory].filter(Boolean).join(" · ") : "주종 · 하위 카테고리"}
-                      </div>
+                      <AnimatePresence mode="wait" initial={false}>
+                        {isPairingDrinkScanning ? (
+                          <motion.div
+                            key="drink_scanning"
+                            initial={{ opacity: 0, y: 2 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 2 }}
+                            transition={{ duration: 0.22, ease: "easeOut" }}
+                          >
+                            <div className="write_pairing_pick_card_title">스캔 중…</div>
+                            <div className="write_pairing_pick_card_subtitle">AI가 주류를 인식하고 있어요</div>
+                          </motion.div>
+                        ) : isPairingDrinkScanDone && !isPairingDrinkRevealed ? (
+                          <motion.div
+                            key="drink_loading"
+                            initial={{ opacity: 0, y: 2 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 2 }}
+                            transition={{ duration: 0.22, ease: "easeOut" }}
+                          >
+                            <div className="write_pairing_pick_card_title">분석 완료</div>
+                            <div className="write_pairing_pick_card_subtitle">결과를 불러오는 중…</div>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="drink_result"
+                            initial={{ opacity: 0, y: 2 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 2 }}
+                            transition={{ duration: 0.26, ease: "easeOut" }}
+                          >
+                            <div className="write_pairing_pick_card_title">{pairingDrinkName || "상품명"}</div>
+                            <div className="write_pairing_pick_card_subtitle">
+                              {pairingDrinkName
+                                ? [pairingDrinkTypeLabel, pairingDrinkSubCategory].filter(Boolean).join(" · ")
+                                : "주종 · 하위 카테고리"}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 </button>
@@ -1405,11 +1442,9 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                     </div>
                     <div
                       className={
-                        isPairingFoodScanning
-                          ? "write_pairing_pick_card_meta is_faded is_pending_reveal"
-                          : isPairingFoodScanDone && !isPairingFoodRevealed
-                            ? "write_pairing_pick_card_meta is_pending_reveal"
-                            : "write_pairing_pick_card_meta is_revealed"
+                        isPairingFoodScanning || (isPairingFoodScanDone && !isPairingFoodRevealed)
+                          ? "write_pairing_pick_card_meta is_faded"
+                          : "write_pairing_pick_card_meta is_revealed"
                       }
                     >
                       <div className="write_pairing_pick_card_rating" aria-label="음식 평점">
@@ -1421,8 +1456,42 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                           ({pairingFoodRatingMeta.reviewCount !== null ? pairingFoodRatingMeta.reviewCount.toLocaleString("ko-KR") : "--"})
                         </span>
                       </div>
-                      <div className="write_pairing_pick_card_title">{selectedFoodCategory || "음식명"}</div>
-                      <div className="write_pairing_pick_card_subtitle">{selectedFoodParentCategory ?? "카테고리"}</div>
+                      <AnimatePresence mode="wait" initial={false}>
+                        {isPairingFoodScanning ? (
+                          <motion.div
+                            key="food_scanning"
+                            initial={{ opacity: 0, y: 2 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 2 }}
+                            transition={{ duration: 0.22, ease: "easeOut" }}
+                          >
+                            <div className="write_pairing_pick_card_title">스캔 중…</div>
+                            <div className="write_pairing_pick_card_subtitle">AI가 음식을 인식하고 있어요</div>
+                          </motion.div>
+                        ) : isPairingFoodScanDone && !isPairingFoodRevealed ? (
+                          <motion.div
+                            key="food_loading"
+                            initial={{ opacity: 0, y: 2 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 2 }}
+                            transition={{ duration: 0.22, ease: "easeOut" }}
+                          >
+                            <div className="write_pairing_pick_card_title">분석 완료</div>
+                            <div className="write_pairing_pick_card_subtitle">결과를 불러오는 중…</div>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="food_result"
+                            initial={{ opacity: 0, y: 2 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 2 }}
+                            transition={{ duration: 0.26, ease: "easeOut" }}
+                          >
+                            <div className="write_pairing_pick_card_title">{selectedFoodCategory || "음식명"}</div>
+                            <div className="write_pairing_pick_card_subtitle">{selectedFoodParentCategory ?? "카테고리"}</div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 </button>
@@ -1594,32 +1663,40 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                 <label className="write_field">
                   <span className="write_field_header">
                     <span className="write_field_label">조합 한 줄 요약</span>
-                    <span className="write_field_hint">{Math.min(30, pairingSummary.length)}/30</span>
                   </span>
-                  <input
-                    className="write_input"
-                    value={pairingSummary}
-                    placeholder="해당 조합을 한 줄로 추천한다면?"
-                    maxLength={30}
-                    onChange={(e) => setPairingSummary(e.target.value)}
-                  />
+                  <span className="write_input_wrap">
+                    <input
+                      className="write_input"
+                      value={pairingSummary}
+                      placeholder="해당 조합을 한 줄로 추천한다면?"
+                      maxLength={30}
+                      onChange={(e) => setPairingSummary(e.target.value)}
+                    />
+                    <span className="write_field_hint" aria-hidden="true">
+                      {Math.min(30, pairingSummary.length)}/30
+                    </span>
+                  </span>
                 </label>
               </div>
 
               <div className="write_section">
                 <label className="write_field">
                   <span className="write_field_label">상세 후기</span>
-                  <textarea
-                    className="write_textarea"
-                    value={pairingBody}
-                    placeholder="내용을 30자 이상 입력해주세요."
-                    maxLength={1000}
-                    onChange={(e) => setPairingBody(e.target.value)}
-                  />
+                  <span className="write_textarea_wrap">
+                    <textarea
+                      className="write_textarea"
+                      value={pairingBody}
+                      placeholder="내용을 30자 이상 입력해주세요."
+                      maxLength={1000}
+                      onChange={(e) => setPairingBody(e.target.value)}
+                    />
+                    <span className="write_field_counter" aria-label="상세 후기 글자 수">
+                      {Math.min(1000, pairingBody.length)}/1000
+                    </span>
+                  </span>
                   {pairingBody.trim().length > 0 && pairingBody.trim().length < 30 ? (
                     <span className="write_field_error">상세 후기는 30자 이상 입력해 주세요.</span>
                   ) : null}
-                  <span className="write_field_counter">{Math.min(1000, pairingBody.length)}/1000</span>
                 </label>
               </div>
 
@@ -1813,7 +1890,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
               if (drinkMock) setPairingDrinkThumbSrc(drinkMock.imageSrc)
               setIsPairingDrinkScanning(false)
               setIsPairingDrinkScanDone(true)
-              window.setTimeout(() => setIsPairingDrinkRevealed(true), 1200)
+              window.setTimeout(() => setIsPairingDrinkRevealed(true), PAIRING_SCAN_MS)
 
               if (foodMock) {
                 setSelectedFoodCategory(foodMock.name)
@@ -1827,8 +1904,8 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
               if (foodMock) setPairingFoodThumbSrc(foodMock.imageSrc)
               setIsPairingFoodScanning(false)
               setIsPairingFoodScanDone(true)
-              window.setTimeout(() => setIsPairingFoodRevealed(true), 1200)
-            }, 1200)
+              window.setTimeout(() => setIsPairingFoodRevealed(true), PAIRING_SCAN_MS)
+            }, PAIRING_SCAN_MS)
           }}
         />
       ) : null}

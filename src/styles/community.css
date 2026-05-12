@@ -1362,12 +1362,12 @@
 
 .write_sheet.is_pairing_review .write_input {
   min-height: 45px;
-  border: 1px solid #9d9d9d;
-  border-radius: 8px;
+  border: 1px solid var(--color-primary);
+  border-radius: 14px;
   padding: 0 12px;
   background: #FFFFFF;
   color: #111111;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .write_sheet.is_pairing_review .write_input::placeholder,
@@ -1375,14 +1375,7 @@
   color: #cfcfcf;
 }
 
-.write_sheet.is_pairing_review .write_textarea {
-  min-height: 154px;
-  border: 1px solid var(--color-point-01);
-  border-radius: 8px;
-  padding: 15px 12px;
-  color: #111111;
-  font-size: 14px;
-}
+
 
 .write_sheet.is_pairing_review .write_field_counter {
   color: #9a9a9a;
@@ -1411,7 +1404,7 @@
 }
 
 .write_location_input:focus-within .write_input {
-  box-shadow: 0 0 0 3px rgba(212, 149, 107, 0.18);
+  box-shadow: 0 0 0 3px rgba(202, 128, 79, 0.18);
 }
 
 .write_location_input:focus-within img {
@@ -1459,8 +1452,39 @@
 
 .write_field_hint {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 400;
   color: #9a9a9a;
+}
+
+.write_input_wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.write_input_wrap .write_field_hint {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.write_input_wrap .write_input {
+  padding-right: 58px;
+}
+
+.write_textarea_wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.write_textarea_wrap .write_field_counter {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  text-align: right;
 }
 
 .write_sheet.is_pairing_review .write_pairing_location_pick {
@@ -1731,14 +1755,15 @@
 }
 
 .write_pairing_pick_card_title {
-  font-size: 14px;
-  font-weight: 900;
-  color: #212121;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-family: var(--font-title);
 }
 
 .write_pairing_pick_card_subtitle {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 500;
   color: #9a9a9a;
 }
 
@@ -2458,9 +2483,8 @@
   width: 100%;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--color-point-01);
+  border: 1px solid var(--color-primary);
   border-radius: 14px;
-  background: #FFFFFF;
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease,
@@ -2472,7 +2496,7 @@
 }
 
 .write_input:focus-visible {
-  box-shadow: 0 0 0 3px rgba(212, 149, 107, 0.18);
+  box-shadow: 0 0 10px rgba(202, 128, 79, 0.1);
 }
 
 .write_input_suffix_row {
@@ -2483,21 +2507,25 @@
 }
 
 .write_input_suffix {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-text-primary);
   padding-right: 2px;
+  line-height: 140%;
 }
 
 .write_textarea {
   width: 100%;
-  min-height: 120px;
-  padding: 12px;
+  padding: 16px 20px;
   border: 1px solid var(--color-point-01);
   border-radius: 14px;
-  background: #FFFFFF;
   resize: none;
   font-family: inherit;
+  font-size: 16px;
+  min-height: 154px;
+  padding: 15px 12px 34px;
+  color: var(--color-text-primary);
+  font-size: 16px;
 }
 
 .write_field_counter {
@@ -2533,7 +2561,7 @@
   margin-left: 8px;
   font-size: 13px;
   font-weight: 900;
-  color: #212121;
+  color: var(--color-text-primary);
 }
 
 .write_bottom_actions {
@@ -2548,7 +2576,7 @@
   border: 0;
   border-radius: 16px;
   background: #A17C3B;
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   font-weight: 900;
 }
 
@@ -3039,6 +3067,9 @@
   height: 320px;
   border-radius: 16px;
   background: #a7a7a7;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   scroll-snap-align: start;
 }
 

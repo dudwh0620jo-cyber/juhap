@@ -1,8 +1,8 @@
 ﻿import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
-import ProfileSummaryCard from "../components/ProfileSummaryCard"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
+import RelatedContentPostCard from "../components/RelatedContentPostCard"
 import {
   MAX_MULTI_SELECTIONS,
   NONE_OPTION,
@@ -32,7 +32,9 @@ import { extractPairingTitle, feedPosts, getPairingSummaryText, type FeedPost } 
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
 import { currentUserMock, defaultFollowedUserIdsMock, usersMockById } from "../utils/usersMock"
-import { resolveMyUserAvatar, resolveUserAvatar } from "../utils/userAvatars"
+import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
+import { getTierClassName } from "../utils/tier"
+import { resolveMyUserAvatar } from "../utils/userAvatars"
 import "../styles/community.css"
 import "../styles/my.css"
 
@@ -296,33 +298,64 @@ export default function MyPage() {
         </header>
 
         {bookmarkedPosts.length > 0 ? (
-          <div className="my_saved_list">
+          <div className="feed_cards my_saved_list" aria-label="저장한 게시글 목록">
             {bookmarkedPosts.map(({ post, listId }) => {
               const authorId = typeof post.authorId === "number" ? post.authorId : currentUserMock.id
               const authorName = post.authorName?.trim() || usersMockById[authorId]?.name || "익명"
-              const title = post.isQna ? post.title : post.pairingSummary?.trim() || extractPairingTitle(post.title)
+              const profile = usersMockById[authorId]?.profile ?? ""
+              const pairingTitle = extractPairingTitle(post.title)
+              const title = post.isQna ? post.title : post.pairingSummary?.trim() || pairingTitle
               const description = post.locationLabel?.trim() || getPairingSummaryText(post)
+              const listLabel = bookmarkListLabelById[listId] ?? listId
 
               return (
-                <ProfileSummaryCard
+                <RelatedContentPostCard
                   key={`${post.id}-${listId}`}
-                  avatarSrc={authorId === currentUserMock.id ? resolveMyUserAvatar() : resolveUserAvatar(authorId)}
+                  postId={post.id}
+                  isQna={Boolean(post.isQna)}
+                  authorName={authorName}
+                  profile={profile}
+                  badgeClassName={getTierClassName(getPairingTierByUserId(authorId), "feed_post_badge")}
+                  badgeText={getPairingTierLabelByUserId(authorId)}
+                  followButtonClassName="follow_toggle_button"
+                  followAriaLabel="팔로우"
+                  followText="팔로우"
+                  onToggleFollow={() => {}}
+                  linkTo={`/community/pairing/${post.id}`}
+                  linkState={{
+                    pairingTitle,
+                    pairingSummary: post.pairingSummary ?? "",
+                    body: post.body,
+                    authorId,
+                    authorName,
+                    profile,
+                    locationLabel: post.locationLabel ?? "",
+                    drinkType: post.drinkType ?? "",
+                    foods: post.foods,
+                    features: post.features ?? [],
+                    source: post.isQna ? "free" : "feed",
+                    feedFilter: post.isQna ? "free" : "review",
+                  }}
                   title={title}
-                  accentText={authorName}
-                  description={description}
-                  stats={[
-                    { value: bookmarkListLabelById[listId] ?? listId, label: "리스트" },
-                    { value: String(post.commentCount ?? 0), label: "댓글" },
-                  ]}
-                  onClick={() =>
+                  body={`${listLabel} · ${description}`}
+                  showImages={true}
+                  photoIds={post.photoIds}
+                  answerCount={post.answerCount}
+                  answerPreview={post.answerPreview}
+                  likeActive={false}
+                  likeAriaLabel="좋아요"
+                  likeText="0"
+                  onToggleLike={() => {}}
+                  commentText={`${post.commentCount ?? 0}`}
+                  onViewComments={() =>
                     navigate(`/community/pairing/${post.id}`, {
                       state: {
-                        pairingTitle: extractPairingTitle(post.title),
+                        pairingTitle,
                         pairingSummary: post.pairingSummary ?? "",
                         body: post.body,
                         authorId,
                         authorName,
-                        profile: usersMockById[authorId]?.profile ?? "",
+                        profile,
                         locationLabel: post.locationLabel ?? "",
                         drinkType: post.drinkType ?? "",
                         foods: post.foods,
@@ -332,6 +365,9 @@ export default function MyPage() {
                       },
                     })
                   }
+                  bookmarkActive={true}
+                  bookmarkAriaLabel="북마크"
+                  onOpenBookmarkPicker={() => {}}
                 />
               )
             })}
@@ -490,12 +526,28 @@ export default function MyPage() {
         <section className="my_activity_section" aria-labelledby="my-activity-title">
           <h2 id="my-activity-title">활동 데이터</h2>
           <div className="my_activity_grid">
-            {activityStats.map((stat) => (
-              <article className="my_activity_card" key={stat.label}>
-                <strong>{stat.label === savedActivityLabel ? bookmarkSavedCount : stat.value}</strong>
-                <span>{stat.label}</span>
-              </article>
-            ))}
+            {activityStats.map((stat) => {
+              const isSavedStat = stat.label === savedActivityLabel
+              const value = isSavedStat ? bookmarkSavedCount : stat.value
+
+              return isSavedStat ? (
+                <button
+                  type="button"
+                  className="my_activity_card"
+                  key={stat.label}
+                  aria-label="저장한 리스트 보기"
+                  onClick={openSavedList}
+                >
+                  <strong>{value}</strong>
+                  <span>{stat.label}</span>
+                </button>
+              ) : (
+                <article className="my_activity_card" key={stat.label}>
+                  <strong>{value}</strong>
+                  <span>{stat.label}</span>
+                </article>
+              )
+            })}
           </div>
         </section>
 

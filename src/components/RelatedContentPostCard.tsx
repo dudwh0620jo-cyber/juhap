@@ -1,6 +1,8 @@
 import { Link } from "react-router"
-import RelatedContentPostCardHeader from "./RelatedContentPostCardHeader"
+
 import FeedActions from "./FeedActions"
+import RelatedContentPostCardHeader from "./RelatedContentPostCardHeader"
+import { resolveReviewImage } from "../utils/reviewImages"
 
 type Props = {
   postId: number
@@ -21,6 +23,7 @@ type Props = {
   title: string
   body: string
   showImages?: boolean
+  photoIds?: string[]
   imageCount?: number
   answerCount?: number
   answerPreview?: string
@@ -54,6 +57,7 @@ export default function RelatedContentPostCard({
   title,
   body,
   showImages = true,
+  photoIds,
   imageCount = 2,
   answerCount,
   answerPreview,
@@ -67,7 +71,12 @@ export default function RelatedContentPostCard({
   bookmarkAriaLabel,
   onOpenBookmarkPicker,
 }: Props) {
-  const safeImageCount = Math.max(0, Math.min(3, imageCount))
+  const safePhotoIds = (photoIds ?? [])
+    .map((value) => (typeof value === "string" ? value.trim() : String(value)))
+    .filter(Boolean)
+    .slice(0, 3)
+
+  const safeFallbackImageCount = Math.max(0, Math.min(3, imageCount))
 
   return (
     <article className={isQna ? "feed_card is_free" : "feed_card"} key={postId}>
@@ -103,11 +112,23 @@ export default function RelatedContentPostCard({
         </Link>
       ) : (
         <Link className="feed_text_link" to={linkTo} state={linkState}>
-          {showImages && safeImageCount > 0 ? (
-            <div className="feed_images" aria-label="사진">
-              {Array.from({ length: safeImageCount }).map((_, index) => (
-                <div className="feed_image" key={index} />
-              ))}
+          {showImages && (safePhotoIds.length > 0 || safeFallbackImageCount > 0) ? (
+            <div className="feed_images" aria-label={`사진 ${safePhotoIds.length || safeFallbackImageCount}장`}>
+              {safePhotoIds.length > 0
+                ? safePhotoIds.map((photoId, index) => {
+                    const imageSrc = resolveReviewImage(photoId)
+                    return (
+                      <div
+                        className="feed_image"
+                        key={`${photoId}-${index}`}
+                        style={imageSrc ? { backgroundImage: `url(${imageSrc})` } : undefined}
+                        aria-hidden="true"
+                      />
+                    )
+                  })
+                : Array.from({ length: safeFallbackImageCount }).map((_, index) => (
+                    <div className="feed_image" key={index} aria-hidden="true" />
+                  ))}
             </div>
           ) : null}
           <strong className="review_pair_title">{title}</strong>
