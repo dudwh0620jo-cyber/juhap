@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router"
+import AlertModal from "../components/AlertModal"
+import ProfileSummaryCard from "../components/ProfileSummaryCard"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import {
   MAX_MULTI_SELECTIONS,
@@ -24,10 +27,13 @@ import {
   tasteBars,
   type ExchangeItem,
 } from "../data/myPageContent"
+import { bookmarkLists } from "../data/communityFilterConfig"
+import { extractPairingTitle, feedPosts, getPairingSummaryText, type FeedPost } from "../utils/communityPosts"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
-import { defaultFollowedUserIdsMock } from "../utils/usersMock"
-import { resolveMyUserAvatar } from "../utils/userAvatars"
+import { currentUserMock, defaultFollowedUserIdsMock, usersMockById } from "../utils/usersMock"
+import { resolveMyUserAvatar, resolveUserAvatar } from "../utils/userAvatars"
+import "../styles/community.css"
 import "../styles/my.css"
 
 type ExchangeTab = (typeof exchangeTabs)[number]
@@ -110,7 +116,10 @@ function ExchangeItemCard({ item }: { item: ExchangeItem }) {
 }
 
 export default function MyPage() {
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const profile = readUserProfile()
+  const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
   const [isTasteOpen, setIsTasteOpen] = useState(false)
   const [isTasteEditorOpen, setIsTasteEditorOpen] = useState(false)
   const [isTasteEditorClosing, setIsTasteEditorClosing] = useState(false)
@@ -127,19 +136,81 @@ export default function MyPage() {
   const [warningByGroup, setWarningByGroup] = useState<Record<string, string>>({})
   const { value: followedUserIds } = useStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, defaultFollowedUserIdsMock)
   const { value: bookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
+  const [userPosts, setUserPosts] = useState<FeedPost[]>([])
   const bookmarkSavedCount = Object.values(bookmarkListById).filter(Boolean).length
   const savedActivityLabel = activityStats[activityStats.length - 1]?.label
   const nickname = profile.personalInfo.nickname.trim() || "이름"
   const { activeTags, quietTags } = getTasteTags(savedTastePreferences)
   const { summaryTitle, summaryDescription } = getTasteSummary(savedTastePreferences)
+  const bookmarkListLabelById = useMemo(
+    () => Object.fromEntries(bookmarkLists.map((item) => [item.id, item.label])) as Record<string, string>,
+    [],
+  )
+  const isSavedListOpen = searchParams.get("view") === "saved"
+
+  const bookmarkedPosts = useMemo(() => {
+    const combinedPosts = [...userPosts, ...feedPosts]
+    const postById = new Map<number, FeedPost>()
+
+    combinedPosts.forEach((post) => {
+      if (typeof post.id === "number" && Number.isFinite(post.id) && !postById.has(post.id)) {
+        postById.set(post.id, post)
+      }
+    })
+
+    return Object.entries(bookmarkListById)
+      .map(([postId, listId]) => {
+        if (!listId) return null
+        const post = postById.get(Number(postId))
+        if (!post) return null
+        return { post, listId }
+      })
+      .filter((item): item is { post: FeedPost; listId: string } => Boolean(item))
+      .sort((left, right) => new Date(right.post.createdAt).getTime() - new Date(left.post.createdAt).getTime())
+  }, [bookmarkListById, userPosts, bookmarkListLabelById])
 
   useEffect(() => {
     const handleGoHome = () => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete("view")
+        return next
+      })
       setIsPointExchangeOpen(false)
     }
 
     window.addEventListener("my:go-home", handleGoHome)
     return () => window.removeEventListener("my:go-home", handleGoHome)
+  }, [setSearchParams])
+
+  const openSavedList = () =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set("view", "saved")
+      return next
+    })
+
+  const closeSavedList = () =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete("view")
+      return next
+    })
+
+  useEffect(() => {
+    const readStoredUserPosts = () => {
+      try {
+        const raw = window.localStorage.getItem("community_user_posts")
+        const parsed = raw ? JSON.parse(raw) : []
+        setUserPosts(Array.isArray(parsed) ? (parsed as FeedPost[]) : [])
+      } catch {
+        setUserPosts([])
+      }
+    }
+
+    readStoredUserPosts()
+    window.addEventListener("community:user-posts-updated", readStoredUserPosts)
+    return () => window.removeEventListener("community:user-posts-updated", readStoredUserPosts)
   }, [])
 
   function openTasteEditor() {
@@ -210,6 +281,70 @@ export default function MyPage() {
     setIsExperienceExpanded(false)
   }
 
+  if (isSavedListOpen) {
+    return (
+      <section className="my_exchange_page my_saved_page" aria-label="저장한 리스트">
+        <header className="my_exchange_header">
+          <button
+            type="button"
+            className="my_exchange_back"
+            aria-label="마이페이지로 돌아가기"
+            onClick={closeSavedList}
+          />
+          <h1>저장한 리스트</h1>
+          <div />
+        </header>
+
+        {bookmarkedPosts.length > 0 ? (
+          <div className="my_saved_list">
+            {bookmarkedPosts.map(({ post, listId }) => {
+              const authorId = typeof post.authorId === "number" ? post.authorId : currentUserMock.id
+              const authorName = post.authorName?.trim() || usersMockById[authorId]?.name || "익명"
+              const title = post.isQna ? post.title : post.pairingSummary?.trim() || extractPairingTitle(post.title)
+              const description = post.locationLabel?.trim() || getPairingSummaryText(post)
+
+              return (
+                <ProfileSummaryCard
+                  key={`${post.id}-${listId}`}
+                  avatarSrc={authorId === currentUserMock.id ? resolveMyUserAvatar() : resolveUserAvatar(authorId)}
+                  title={title}
+                  accentText={authorName}
+                  description={description}
+                  stats={[
+                    { value: bookmarkListLabelById[listId] ?? listId, label: "리스트" },
+                    { value: String(post.commentCount ?? 0), label: "댓글" },
+                  ]}
+                  onClick={() =>
+                    navigate(`/community/pairing/${post.id}`, {
+                      state: {
+                        pairingTitle: extractPairingTitle(post.title),
+                        pairingSummary: post.pairingSummary ?? "",
+                        body: post.body,
+                        authorId,
+                        authorName,
+                        profile: usersMockById[authorId]?.profile ?? "",
+                        locationLabel: post.locationLabel ?? "",
+                        drinkType: post.drinkType ?? "",
+                        foods: post.foods,
+                        features: post.features ?? [],
+                        source: post.isQna ? "free" : "feed",
+                        feedFilter: post.isQna ? "free" : "review",
+                      },
+                    })
+                  }
+                />
+              )
+            })}
+          </div>
+        ) : (
+          <div className="my_saved_empty" role="status">
+            저장한 게시글이 아직 없어요.
+          </div>
+        )}
+      </section>
+    )
+  }
+
   if (isPointExchangeOpen) {
     const showDiscount = activeExchangeTab === "전체" || activeExchangeTab === "할인권"
     const showExperience = activeExchangeTab === "전체" || activeExchangeTab === "체험권"
@@ -239,6 +374,15 @@ export default function MyPage() {
           <h1>포인트 교환소</h1>
           <button type="button" className="my_exchange_history">포인트내역</button>
         </header>
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          title={"아직 준비 중인 서비스입니다.\n곧 만나보실 수 있어요!"}
+          confirmLabel="닫기"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
 
         <section className="my_exchange_balance" aria-label="보유 포인트">
           <div>
@@ -331,8 +475,16 @@ export default function MyPage() {
           <strong>팔로잉 {followedUserIds.size}</strong>
         </div>
 
-        <button type="button" className="my_edit_button">수정</button>
+        <button type="button" className="my_edit_button" onClick={() => setIsProfileEditPreparingOpen(true)}>수정</button>
       </header>
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          message="준비중이에요"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
 
       <div className="my_page_body">
         <section className="my_activity_section" aria-labelledby="my-activity-title">
@@ -347,7 +499,19 @@ export default function MyPage() {
           </div>
         </section>
 
-        <section className="my_taste_summary" aria-label="취향 요약">
+        <section
+          className="my_taste_summary"
+          aria-label="취향 요약"
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsTasteOpen((current) => !current)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              setIsTasteOpen((current) => !current)
+            }
+          }}
+        >
           <span className="my_taste_drop" aria-hidden="true">🍶</span>
           <p>
             <strong>{summaryTitle}</strong>
@@ -360,7 +524,10 @@ export default function MyPage() {
             aria-label={isTasteOpen ? "내 취향 프로필 닫기" : "내 취향 프로필 펼치기"}
             aria-expanded={isTasteOpen}
             aria-controls="my-taste-profile"
-            onClick={() => setIsTasteOpen((current) => !current)}
+            onClick={(event) => {
+              event.stopPropagation()
+              setIsTasteOpen((current) => !current)
+            }}
           />
         </section>
 
@@ -424,6 +591,14 @@ export default function MyPage() {
                 <button type="button" aria-label="닫기" onClick={closeTasteEditor} />
               </header>
 
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          message="준비중이에요"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
+
               <div className="my_taste_sheet_groups">
                 {preferenceGroups.map((group) => (
                   <PreferenceGroupSection
@@ -464,6 +639,10 @@ export default function MyPage() {
         </section>
 
         <nav className="my_setting_list" aria-label="마이페이지 설정">
+          <button type="button" className="my_saved_menu_button" onClick={openSavedList}>
+            <span>저장한 리스트</span>
+            <small>북마크한 게시글 모아보기</small>
+          </button>
           <a href="/coupon">
             <span>쿠폰 보기</span>
             <small>보유 중인 쿠폰 확인 및 사용</small>
@@ -481,3 +660,5 @@ export default function MyPage() {
     </section>
   )
 }
+
+

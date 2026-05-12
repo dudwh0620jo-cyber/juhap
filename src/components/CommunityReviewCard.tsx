@@ -1,12 +1,11 @@
 ﻿import { useRef, useState } from "react"
-import { Link, useNavigate } from "react-router"
+import { useNavigate } from "react-router"
 
-import iconLocation from "../assets/svg/mappin.svg"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
 import FeedActions from "./FeedActions"
-import { getPairingTagsFromTitle } from "../utils/communityPosts"
+import ReviewContentBlock from "./ReviewContentBlock"
+import UserIdentityRow from "./UserIdentityRow"
 import { resolveReviewImage } from "../utils/reviewImages"
-import { resolveUserAvatar } from "../utils/userAvatars"
 
 type Props = {
   postId: number
@@ -26,6 +25,8 @@ type Props = {
   title: string
   pairingTitle: string
   body: string
+  liquorTag: string
+  foodTag: string
   photoIds?: string[]
   hashtags?: string[]
   locationLabel?: string
@@ -56,8 +57,9 @@ export default function CommunityReviewCard({
   linkTo,
   linkState,
   title,
-  pairingTitle,
   body,
+  liquorTag,
+  foodTag,
   photoIds,
   hashtags,
   locationLabel,
@@ -76,53 +78,54 @@ export default function CommunityReviewCard({
   const imageTotal = safePhotoIds.length
   const imageListRef = useRef<HTMLDivElement | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
-  const { liquorTag, foodTag } = getPairingTagsFromTitle(pairingTitle)
-  const visibleTags = [liquorTag, foodTag].filter(Boolean)
-  const visibleHashtags = (hashtags ?? []).slice(0, 5)
   const authorInitial = authorName.trim().slice(0, 1) || "?"
-  const authorAvatarSrc = resolveUserAvatar(authorId)
 
   return (
     <article className="community_review_card" key={postId}>
-      <header className="community_review_header">
-        <div className="community_review_avatar" aria-hidden="true">
-          {authorAvatarSrc ? (
-            <img className="community_review_avatar_image" src={authorAvatarSrc} alt="" aria-hidden="true" />
-          ) : (
-            authorInitial
-          )}
-        </div>
-
-        <div className="community_review_author">
-          <div className="community_review_author_row">
+      <UserIdentityRow
+        userId={authorId}
+        className="community_review_header"
+        identityClassName="community_review_author"
+        titleClassName="community_review_author_row"
+        metaClassName="community_review_author_meta"
+        avatarFallback={<span className="community_review_avatar_fallback">{authorInitial}</span>}
+        title={
+          <>
             <strong className="community_review_author_name">{authorName}</strong>
             <span className={badgeClassName}>{badgeText}</span>
-            {typeof onOpenMenu === "function" ? (
+          </>
+        }
+        titleMeta={
+          typeof onOpenMenu === "function" ? null : (
+            <>
+              <span className="community_review_follow_divider" aria-hidden="true">
+                ㆍ
+              </span>
               <button
                 type="button"
-                className="community_review_menu_button"
-                aria-label={menuAriaLabel ?? "게시글 설정"}
-                onClick={onOpenMenu}
+                className={followButtonClassName}
+                aria-label={followAriaLabel}
+                onClick={onToggleFollow}
               >
-                <img className="community_review_menu_icon" src={iconDots} alt="" aria-hidden="true" />
+                {followText}
               </button>
-            ) : (
-              <>
-                <span className="community_review_follow_divider" aria-hidden="true">ㆍ</span>
-                <button
-                  type="button"
-                  className={followButtonClassName}
-                  aria-label={followAriaLabel}
-                  onClick={onToggleFollow}
-                >
-                  {followText}
-                </button>
-              </>
-            )}
-          </div>
-          {authorMeta ? <p className="community_review_author_meta">{authorMeta}</p> : null}
-        </div>
-      </header>
+            </>
+          )
+        }
+        meta={authorMeta}
+        rightAction={
+          typeof onOpenMenu === "function" ? (
+            <button
+              type="button"
+              className="community_review_menu_button"
+              aria-label={menuAriaLabel ?? "게시글 설정"}
+              onClick={onOpenMenu}
+            >
+              <img className="community_review_menu_icon" src={iconDots} alt="" aria-hidden="true" />
+            </button>
+          ) : null
+        }
+      />
 
       {imageTotal > 0 ? (
         <div className="community_review_media">
@@ -150,7 +153,7 @@ export default function CommunityReviewCard({
               )
             })}
           </div>
-          <span className="community_review_image_count">1/{imageTotal}</span>
+          <span className="community_review_image_count">{activeImageIndex + 1}/{imageTotal}</span>
         </div>
       ) : null}
 
@@ -173,41 +176,23 @@ export default function CommunityReviewCard({
           navigate(linkTo, { state: linkState })
         }}
       >
-        <h3 className="community_review_title">{title}</h3>
-
-        {visibleTags.length > 0 ? (
-          <div className="community_review_pair_tags" aria-label="페어링 태그">
-            {visibleTags.map((tag, index) => (
-              <Link
-                key={tag}
-                className={index === 0 ? "community_review_pair_chip is_drink" : "community_review_pair_chip is_food"}
-                to="/community/tag"
-                state={{ tagType: index === 0 ? "liquor" : "food", tagValue: tag }}
-              >
-                {tag}
-              </Link>
-            ))}
-          </div>
-        ) : null}
-
-        <p className="community_review_body">{body}</p>
-
-        {visibleHashtags.length > 0 ? (
-          <div className="community_review_hashtags" aria-label="해시태그">
-            {visibleHashtags.map((tag) => (
-              <Link key={tag} to="/community/tag" state={{ tagType: "hashtag", tagValue: tag }}>
-                #{tag}
-              </Link>
-            ))}
-          </div>
-        ) : null}
-
-        {locationLabel ? (
-          <p className="community_review_location">
-            <img src={iconLocation} alt="" aria-hidden="true" />
-            <span>{locationLabel}</span>
-          </p>
-        ) : null}
+        <ReviewContentBlock
+          title={<h3 className="community_review_title">{title}</h3>}
+          liquorTag={liquorTag}
+          foodTag={foodTag}
+          body={body}
+          hashtags={hashtags}
+          locationLabel={locationLabel}
+          titleClassName="community_review_title_wrap"
+          bodyClassName="community_review_body"
+          hashtagLinkTo="/community/tag"
+          getHashtagState={(tag) => ({ tagType: "hashtag", tagValue: tag })}
+          liquorTo="/community/tag"
+          foodTo="/community/tag"
+          liquorState={{ tagType: "liquor", tagValue: liquorTag }}
+          foodState={{ tagType: "food", tagValue: foodTag }}
+          locationIconClassName="community_review_location_icon"
+        />
       </div>
 
       <FeedActions
@@ -225,5 +210,3 @@ export default function CommunityReviewCard({
     </article>
   )
 }
-
-

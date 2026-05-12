@@ -65,7 +65,7 @@ export default function CommunityWriteBasicSection({
               type="button"
               className="write_photo_thumb"
               aria-label={`사진 ${index + 1}`}
-              style={photoId.startsWith("data:image/") ? { backgroundImage: `url(${photoId})` } : undefined}
+              style={photoId ? { backgroundImage: `url(${photoId})` } : undefined}
               onClick={() => onRemovePhoto(photoId)}
             >
               <span className="write_photo_remove" aria-hidden="true">

@@ -2,10 +2,13 @@
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router"
 import "../styles/community.css"
 import askQuestionBanner from "../assets/ask_question_banner.png"
+import iconDots from "../assets/svg/dotsthreevertical.svg"
+import AlertModal from "../components/AlertModal"
 import CommunityHeader from "../components/CommunityHeader"
 import FeedSegmentTabs from "../components/FeedSegmentTabs"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import CommunityReviewCard from "../components/CommunityReviewCard"
+import ProfileSummaryCard from "../components/ProfileSummaryCard"
 import QuestionPostRow from "../components/QuestionPostRow"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import SearchFilterModal from "../components/SearchFilterModal"
@@ -13,8 +16,10 @@ import CommunityFilterPanel from "../components/CommunityFilterPanel"
 import FeedWriteRow from "../components/FeedWriteRow"
 import PostOwnerActionModal from "../components/PostOwnerActionModal"
 import {
+  deriveCommunityTagBundle,
   extractPairingTitle,
   feedPosts as communityFeedPosts,
+  resolveQuestionThumbVariant,
   type FeedPost,
 } from "../utils/communityPosts"
 import { type FeedFilter, type PopupChipGroup, type ReviewSortKey, useCommunityPageData } from "../hooks/useCommunityPageData"
@@ -28,7 +33,12 @@ import {
   useStoredStringArray,
 } from "../utils/storage"
 import { usersMockById } from "../utils/usersMock"
-import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
+import {
+  COMMUNITY_BOOKMARK_LIST_BY_POST_KEY,
+  COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT,
+  COMMUNITY_USER_POSTS_KEY,
+  readStoredPairingCommentCount,
+} from "../utils/communityStorage"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { QUESTION_BANNER_COPY } from "../utils/communityQuestionData"
 import { myPageProfileSummary } from "../data/myPageContent"
@@ -95,6 +105,7 @@ export default function Community() {
   const chipGroupRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
   const myUserId = currentUserMock.id
   const myAvatarSrc = resolveMyUserAvatar()
+  const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
 
   const readStoredUserPosts = useCallback((): FeedPost[] => {
     try {
@@ -107,6 +118,7 @@ export default function Community() {
   }, [])
 
   const [userPosts, setUserPosts] = useState<FeedPost[]>(() => readStoredUserPosts())
+  const [commentCountByPostId, setCommentCountByPostId] = useState<Record<number, number>>({})
   const userPostIdSet = useMemo(() => new Set(userPosts.map((post) => post.id)), [userPosts])
 
   const persistUserPosts = useCallback((next: FeedPost[]) => {
@@ -165,6 +177,39 @@ export default function Community() {
       window.removeEventListener("storage", handleStorage)
     }
   }, [readStoredUserPosts])
+
+  useEffect(() => {
+    const allPosts = [...userPosts, ...feedPosts]
+
+    const syncCommentCount = (post: FeedPost) => {
+      const nextCount = readStoredPairingCommentCount(String(post.id), post.commentCount)
+      setCommentCountByPostId((prev) => (prev[post.id] === nextCount ? prev : { ...prev, [post.id]: nextCount }))
+    }
+
+    const syncAllCommentCounts = () => {
+      for (const post of allPosts) {
+        syncCommentCount(post)
+      }
+    }
+
+    const handleCommentUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ pairingId?: string }>).detail
+      if (!detail?.pairingId) return
+      const postId = Number(detail.pairingId)
+      if (!Number.isFinite(postId)) return
+      const targetPost = allPosts.find((post) => post.id === postId)
+      if (!targetPost) return
+      syncCommentCount(targetPost)
+    }
+
+    syncAllCommentCounts()
+    window.addEventListener(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, handleCommentUpdate)
+    window.addEventListener("storage", syncAllCommentCounts)
+    return () => {
+      window.removeEventListener(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, handleCommentUpdate)
+      window.removeEventListener("storage", syncAllCommentCounts)
+    }
+  }, [userPosts])
 
   const availableCategories = useMemo(() => {
     if (!selectedDrinkType) return []
@@ -469,7 +514,7 @@ export default function Community() {
   }, [isFeedFilterPopupOpen])
 
   const getLikeCount = (post: FeedPost) => post.likeCount + (likedById[post.id] ? 1 : 0)
-  const getCommentCount = (post: FeedPost) => post.commentCount
+  const getCommentCount = (post: FeedPost) => commentCountByPostId[post.id] ?? post.commentCount
 
   const openBookmarkPicker = (postId: number) => {
     const currentListId = bookmarkListById[postId]
@@ -694,7 +739,7 @@ export default function Community() {
       </div>
 
       {feedFilter === "review" ? (
-        <FeedWriteRow ariaLabel="후기 글쓰기" onClickReview={() => navigate("/community/write?mode=review")} />
+        <FeedWriteRow ariaLabel="페어링 후기 글쓰기" onClickReview={() => navigate("/community/write?mode=review")} />
       ) : null}
 
       {feedFilter === "free" ? (
@@ -713,28 +758,28 @@ export default function Community() {
 
       {feedFilter === "follow" ? (
         <section className="community_follow_me_section" aria-label="내 팔로우 요약">
-          <div className="community_follow_me_card">
-            <div className="community_follow_me_avatar" aria-hidden="true">
-              {myAvatarSrc ? <img className="community_follow_me_avatar_image" src={myAvatarSrc} alt="" aria-hidden="true" /> : null}
-            </div>
-            <div className="community_follow_me_body">
-              <div className="community_follow_me_identity">
-                <strong className="community_follow_me_name">{myNickname}</strong>
-                <span className="community_follow_me_grade">{myPageProfileSummary.gradeLabel}</span>
-              </div>
-              <div className="community_follow_me_stats" aria-label="팔로워 팔로잉">
-                <div className="community_follow_me_stat">
-                  <strong>{myPageProfileSummary.followerCount.toLocaleString("ko-KR")}</strong>
-                  <span>팔로워</span>
-                </div>
-                <div className="community_follow_me_stat">
-                  <strong>{followedUserIds.size.toLocaleString("ko-KR")}</strong>
-                  <span>팔로잉</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ProfileSummaryCard
+            avatarSrc={myAvatarSrc}
+            title={myNickname}
+            accentText={myPageProfileSummary.gradeLabel}
+            stats={[
+              { value: myPageProfileSummary.followerCount.toLocaleString("ko-KR"), label: "팔로워" },
+              { value: followedUserIds.size.toLocaleString("ko-KR"), label: "팔로잉" },
+            ]}
+            menuAriaLabel="프로필 수정"
+            menuIconSrc={iconDots}
+            onMenuClick={() => setIsProfileEditPreparingOpen(true)}
+          />
         </section>
+      ) : null}
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          title={"아직 준비 중인 서비스입니다.\n곧 만나보실 수 있어요!"}
+          confirmLabel="닫기"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
       ) : null}
 
       <div className={feedFilter === "free" ? "question_list" : "feed_cards"} aria-label="커뮤니티 피드 목록">
@@ -762,7 +807,7 @@ export default function Community() {
         ) : null}
 
         {feedFilter === "free"
-          ? filteredPosts.map((post, index) => (
+          ? filteredPosts.map((post) => (
               <QuestionPostRow
                 key={post.id}
                 postId={post.id}
@@ -790,13 +835,20 @@ export default function Community() {
                   feedFilter: "free",
                 }}
                 photoIds={post.photoIds}
-                thumbVariant={index % 3 === 1 ? "bottle" : index % 3 === 2 ? "photo" : "none"}
+                thumbVariant={resolveQuestionThumbVariant(post)}
               />
             ))
           : filteredPosts.map((post) => {
               const authorName = post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명"
               const authorMeta = post.authorId === myUserId ? myHeaderProfile : usersMockById[post.authorId]?.profile ?? ""
               const pairingTitle = extractPairingTitle(post.title)
+              const tagBundle = deriveCommunityTagBundle({
+                pairingTitle,
+                title: post.title,
+                drinkType: post.drinkType ?? "",
+                foods: post.foods,
+                features: post.features,
+              })
 
               return (
                 <CommunityReviewCard
@@ -825,15 +877,17 @@ export default function Community() {
                     profile: usersMockById[post.authorId]?.profile ?? "",
                     locationLabel: post.locationLabel?.trim() ?? "",
                     drinkType: post.drinkType ?? "",
-                    features: post.features ?? [],
+                    features: tagBundle.featureTags,
                     source: "feed",
                     feedFilter: feedFilter,
                   }}
                   title={post.pairingSummary ?? post.title}
                   pairingTitle={pairingTitle}
                   body={post.body}
+                  liquorTag={tagBundle.liquorTag}
+                  foodTag={tagBundle.foodTag}
                   photoIds={post.photoIds}
-                  hashtags={post.searchTags}
+                  hashtags={tagBundle.featureTags}
                   locationLabel={post.locationLabel?.trim() ?? ""}
                   likeActive={Boolean(likedById[post.id])}
                   likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
@@ -851,17 +905,18 @@ export default function Community() {
 
       {bookmarkPicker ? (
         <CommunityBookmarkPickerModal
-          picker={bookmarkPicker}
-          lists={bookmarkLists}
           ariaLabel="북마크 리스트 선택"
-          titleText={bookmarkListById[bookmarkPicker.postId] ? "북마크를 어디로 옮길까요?" : "어느 리스트에 담을까요?"}
-          listPickerAriaLabel="북마크 리스트"
-          secondaryLabel={bookmarkListById[bookmarkPicker.postId] ? "해제" : "취소"}
-          primaryLabel="확인"
+          titleText={bookmarkListById[bookmarkPicker.postId] ? "저장한 게시글을 취소할까요?" : "게시글을 저장할까요?"}
+          helperText={
+            bookmarkListById[bookmarkPicker.postId]
+              ? "취소하면 내 정보 > 저장한 리스트에서 이 게시글이 사라져요."
+              : "저장한 게시글은 내 정보 > 저장한 리스트에서 확인할 수 있어요."
+          }
+          secondaryLabel="취소"
+          primaryLabel={bookmarkListById[bookmarkPicker.postId] ? "저장 취소하기" : "저장하기"}
           onDismiss={cancelBookmark}
-          onSelectList={(listId) => setBookmarkPicker({ ...bookmarkPicker, selectedListId: listId })}
-          onSecondary={bookmarkListById[bookmarkPicker.postId] ? removeBookmark : cancelBookmark}
-          onPrimary={confirmBookmark}
+          onSecondary={cancelBookmark}
+          onPrimary={bookmarkListById[bookmarkPicker.postId] ? removeBookmark : confirmBookmark}
         />
       ) : null}
 

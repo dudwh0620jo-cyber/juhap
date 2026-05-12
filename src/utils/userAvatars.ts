@@ -1,4 +1,6 @@
 import myProfileImage from "../assets/my_profile_image.png"
+import defaultUserAvatar from "../assets/user_avatar_defult.png"
+import { usersMockById } from "./usersMock"
 
 const userAvatarModules = import.meta.glob("../assets/user_avatar_*.png", {
   eager: true,
@@ -22,9 +24,14 @@ export function resolveMyUserAvatar(): string {
 }
 
 export function resolveUserAvatar(userId: number): string | undefined {
-  if (!Number.isFinite(userId) || sortedUserAvatars.length === 0) return undefined
-  const safe = Math.abs(Math.trunc(userId))
-  const resolved = sortedUserAvatars[safe % sortedUserAvatars.length]
-  if (resolved) return resolved
-  return userAvatarByNumber[(safe % Object.keys(userAvatarByNumber).length) + 1]
+  if (!Number.isFinite(userId)) return defaultUserAvatar
+
+  const avatarNumber = usersMockById[userId]?.avatarNumber
+  if (typeof avatarNumber === "number") {
+    const resolved = userAvatarByNumber[avatarNumber]
+    if (resolved) return resolved
+  }
+
+  if (sortedUserAvatars.length === 0) return defaultUserAvatar
+  return defaultUserAvatar
 }

@@ -459,6 +459,22 @@
   font-weight: 700;
 }
 
+.product_review_panel {
+  display: grid;
+  gap: 14px;
+}
+
+.product_write_button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--color-point-01);
+  color: var(--color-bg-white);
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 @media (max-width: 360px) {
   .product_detail_page {
     padding-inline: 14px;

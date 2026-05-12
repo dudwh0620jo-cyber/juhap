@@ -6,10 +6,10 @@ import iconCaretLeft from "../assets/svg/caretleft.svg"
 import "../styles/community.css"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
-import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../utils/communityPosts"
+import { extractPairingTitle, feedPosts, matchesCommunityTag, type CommunityTagType } from "../utils/communityPosts"
 import { currentUserMock, usersMockById } from "../utils/usersMock"
 
-type TagType = "liquor" | "food" | "hashtag"
+type TagType = CommunityTagType
 
 type NavState = {
   tagType: TagType
@@ -29,20 +29,10 @@ export default function PairingTagList() {
 
   const filtered = useMemo(() => {
     if (!tagType || !tagValue) return []
-    const normalizedTag = tagValue.replace(/\s+/g, "").toLowerCase()
 
     return feedPosts.filter((post) => {
       if (post.isQna) return false
-      if (tagType === "hashtag") {
-        const tags = (post.searchTags ?? []).map((tag) => tag.replace(/\s+/g, "").toLowerCase())
-        return tags.some((tag) => tag === normalizedTag || tag.includes(normalizedTag))
-      }
-      const pairingTitle = extractPairingTitle(post.title)
-      const tags = getPairingTagsFromTitle(pairingTitle)
-      const liquor = (tags.liquorTag ?? "").replace(/\s+/g, "").toLowerCase()
-      const food = (tags.foodTag ?? "").replace(/\s+/g, "").toLowerCase()
-      if (tagType === "liquor") return liquor === normalizedTag || liquor.includes(normalizedTag)
-      return food === normalizedTag || food.includes(normalizedTag)
+      return matchesCommunityTag(post, tagType, tagValue)
     })
   }, [tagType, tagValue])
 

@@ -59,6 +59,8 @@ export default function RankingRowList({
           to={`/community/pairing/${row.id}`}
           state={{
             pairingTitle: row.pair,
+            rating: row.score,
+            voteCount: row.votes,
             source: "ranking",
           }}
         >

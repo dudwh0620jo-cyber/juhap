@@ -1,23 +1,123 @@
+import { Link } from "react-router"
+
 type Props = {
   liquorTag: string
   foodTag: string
-  onSelectLiquor: () => void
-  onSelectFood: () => void
+  liquorTo?: string
+  foodTo?: string
+  liquorState?: unknown
+  foodState?: unknown
+  onSelectLiquor?: () => void
+  onSelectFood?: () => void
+  containerClassName?: string
+  tagClassName?: string
+  joinerClassName?: string
+  showJoiner?: boolean
+  wrapJoinerToNextLine?: boolean
+  lineClassName?: string
+  ariaLabel?: string
 }
 
-export default function PairingTagRow({ liquorTag, foodTag, onSelectLiquor, onSelectFood }: Props) {
-  if (!liquorTag || !foodTag) return null
+type RenderTagProps = {
+  label: string
+  toneClassName: string
+  tagClassName: string
+  to?: string
+  state?: unknown
+  onClick?: () => void
+}
+
+function RenderTag({ label, toneClassName, tagClassName, to, state, onClick }: RenderTagProps) {
+  const className = [tagClassName, toneClassName].filter(Boolean).join(" ")
+
+  if (to) {
+    return (
+      <Link className={className} to={to} state={state}>
+        {label}
+      </Link>
+    )
+  }
+
+  if (onClick) {
+    return (
+      <button type="button" className={className} onClick={onClick}>
+        {label}
+      </button>
+    )
+  }
+
+  return <span className={className}>{label}</span>
+}
+
+export default function PairingTagRow({
+  liquorTag,
+  foodTag,
+  liquorTo,
+  foodTo,
+  liquorState,
+  foodState,
+  onSelectLiquor,
+  onSelectFood,
+  containerClassName = "community_review_pair_tags",
+  tagClassName = "community_review_pair_chip",
+  joinerClassName = "similar_card_joiner",
+  showJoiner = false,
+  wrapJoinerToNextLine = false,
+  lineClassName = "",
+  ariaLabel = "페어링 태그",
+}: Props) {
+  const safeLiquorTag = liquorTag.trim()
+  const safeFoodTag = foodTag.trim()
+
+  if (!safeLiquorTag || !safeFoodTag) return null
 
   return (
-    <div className="detail_pairing_tag_row" aria-label="주류+음식 태그">
-      <button type="button" className="detail_pairing_tag" onClick={onSelectLiquor}>
-        {liquorTag}
-      </button>
-
-      <button type="button" className="detail_pairing_tag" onClick={onSelectFood}>
-        {foodTag}
-      </button>
+    <div className={containerClassName} aria-label={ariaLabel}>
+      {wrapJoinerToNextLine && showJoiner ? (
+        <>
+          <span className={lineClassName}>
+            <RenderTag
+              label={safeLiquorTag}
+              toneClassName="is_drink"
+              tagClassName={tagClassName}
+              to={liquorTo}
+              state={liquorState}
+              onClick={onSelectLiquor}
+            />
+          </span>
+          <span className={lineClassName}>
+            <span className={joinerClassName}>&</span>{" "}
+            <RenderTag
+              label={safeFoodTag}
+              toneClassName="is_food"
+              tagClassName={tagClassName}
+              to={foodTo}
+              state={foodState}
+              onClick={onSelectFood}
+            />
+          </span>
+        </>
+      ) : (
+        <>
+          <RenderTag
+            label={safeLiquorTag}
+            toneClassName="is_drink"
+            tagClassName={tagClassName}
+            to={liquorTo}
+            state={liquorState}
+            onClick={onSelectLiquor}
+          />
+          {showJoiner ? <span className={joinerClassName}>&</span> : null}
+          <RenderTag
+            label={safeFoodTag}
+            toneClassName="is_food"
+            tagClassName={tagClassName}
+            to={foodTo}
+            state={foodState}
+            onClick={onSelectFood}
+          />
+        </>
+      )}
     </div>
   )
 }
-

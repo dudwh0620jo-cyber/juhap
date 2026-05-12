@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { motion } from "motion/react"
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router"
 import StatusBar from "./components/StatusBar"
 import AiScan from "./pages/AiScan"
@@ -63,6 +64,7 @@ export default function App() {
   const { pathname } = useLocation()
   const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
   const isChatHidden = pathname.startsWith("/product/")
+  const isWritePage = pathname === "/community/write" || /^\/product\/[^/]+\/write$/.test(pathname)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -81,7 +83,7 @@ export default function App() {
       <div className="app_viewport">
         <StatusBar />
 
-        {!isAuthPage ? (
+        {!isAuthPage && !isWritePage ? (
           <div className="chat_corner_slot">
             <button
               type="button"
@@ -90,7 +92,21 @@ export default function App() {
               onClick={() => setIsChatOpen(true)}
             >
               <span className="chat_corner_icon" aria-hidden="true">
-                <img className="chat_corner_icon_img" src={chatMascotButton} alt="" />
+                <motion.img
+                  className="chat_corner_icon_img"
+                  src={chatMascotButton}
+                  alt=""
+                  animate={{
+                    y: [0, -8, 0],
+                    rotate: [0, -1.5, 0, 1.5, 0],
+                    scale: [1, 1.015, 1],
+                  }}
+                  transition={{
+                    duration: 3.8,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut",
+                  }}
+                />
               </span>
             </button>
           </div>
@@ -109,6 +125,7 @@ export default function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/community/ranking" element={<CommunityRanking />} />
           <Route path="/community/write" element={<CommunityWrite />} />
+          <Route path="/product/:id/write" element={<CommunityWrite />} />
           <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
           <Route path="/community/tag" element={<PairingTagList />} />
           <Route path="/my" element={<MyPage />} />

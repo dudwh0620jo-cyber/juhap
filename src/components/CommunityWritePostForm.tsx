@@ -1,5 +1,6 @@
 import type { RefObject } from "react"
 
+import iconCaretLeft from "../assets/svg/caretleft.svg"
 import CommunityHeader from "./CommunityHeader"
 import CommunityWriteBasicSection from "./CommunityWriteBasicSection"
 
@@ -9,7 +10,6 @@ type Props = {
   photoIds: string[]
   canSubmit: boolean
   photoUploadInputRef: RefObject<HTMLInputElement | null>
-  iconX: string
   onTitleChange: (value: string) => void
   onBodyChange: (value: string) => void
   onPhotoFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
@@ -33,7 +33,6 @@ export default function CommunityWritePostForm({
   photoIds,
   canSubmit,
   photoUploadInputRef,
-  iconX,
   onTitleChange,
   onBodyChange,
   onPhotoFileChange,
@@ -65,10 +64,12 @@ export default function CommunityWritePostForm({
         <div className="write_sheet_inner">
           <div className="write_section">
             <div className="write_section_header">
-              <h4 className="write_section_title">{titleText}</h4>
-              <button type="button" className="write_section_close" aria-label="글쓰기 닫기" onClick={onClose}>
-                <img src={iconX} alt="" aria-hidden="true" />
-              </button>
+              <div className="write_section_header_main">
+                <button type="button" className="write_back_button" aria-label="뒤로가기" onClick={onClose}>
+                  <img src={iconCaretLeft} alt="" aria-hidden="true" />
+                </button>
+                <h4 className="write_section_title">{titleText}</h4>
+              </div>
             </div>
 
             <CommunityWriteBasicSection

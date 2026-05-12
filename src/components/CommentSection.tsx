@@ -1,29 +1,39 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+﻿import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
+import { useNavigate } from "react-router"
 
 import AlertModal from "./AlertModal"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretDoubleRight from "../assets/svg/caretdoubleright.svg"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
+import iconHeart from "../assets/svg/heart_p.svg"
+import iconHeartActive from "../assets/svg/heart_active.svg"
 import iconReplyArrow from "../assets/svg/arrowbenddownright.svg"
-import { COMMUNITY_FOLLOWED_USERS_KEY, getPairingCommentsStorageKey } from "../utils/communityStorage"
-import { mentionDirectoryMock } from "../utils/usersMock"
+import {
+  COMMUNITY_FOLLOWED_USERS_KEY,
+  COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT,
+  getPairingCommentsStorageKey,
+} from "../utils/communityStorage"
+import { getUserMetaFromProfile, mentionDirectoryMock, usersMockById } from "../utils/usersMock"
 import { resolveUserAvatar } from "../utils/userAvatars"
 
 type CommentItem = {
   id: number
   userId: number
-  userName: string
-  userMeta: string
+  userName?: string
+  userMeta?: string
   text: string
+  timeLabel?: string
+  likeCount?: number
+  likedByCurrentUser?: boolean
   replyTo?: { userName: string; commentId: number }
 }
 
 const initialComments: CommentItem[] = [
-  { id: 1, userId: 2001, userName: "민지", userMeta: "서울 · 30대", text: "이 조합 진짜 맛있겠는데요. 저장해둘게요!" },
-  { id: 2, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "다음 주말 메뉴로 그대로 따라가 볼게요." },
-  { id: 3, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "스테이크랑 레드/샤프한 거 조합이 정답 같아요." },
-  { id: 4, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "오늘 저녁에 바로 실천합니다." },
+  { id: 1, userId: 2111, text: "이 조합 진짜 맛있겠는데요. 저장해둘게요!" },
+  { id: 2, userId: 2112, text: "다음 주말 메뉴로 그대로 따라가 볼게요." },
+  { id: 3, userId: 2113, text: "스테이크랑 레드/샤프한 거 조합이 정답 같아요." },
+  { id: 4, userId: 2114, text: "오늘 저녁에 바로 실천합니다." },
 ]
 
 const isLegacyInitialComments = (items: unknown): items is CommentItem[] => {
@@ -36,10 +46,8 @@ const isLegacyInitialComments = (items: unknown): items is CommentItem[] => {
       typeof item === "object" &&
       typeof (item as CommentItem).id === "number" &&
       typeof (item as CommentItem).userId === "number" &&
-      typeof (item as CommentItem).userName === "string" &&
-      typeof (item as CommentItem).userMeta === "string" &&
       typeof (item as CommentItem).text === "string" &&
-      (item as CommentItem).userName === base.userName &&
+      (item as CommentItem).userId === base.userId &&
       (item as CommentItem).text === base.text
     )
   })
@@ -72,7 +80,7 @@ const mockCommentsByPairingId: Record<string, CommentItem[]> = {
     { id: 4, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "야식으로 이만한 조합이 없어요." },
   ],
   "1009": [
-    { id: 1, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "타코엔 라임 계열 칵테일이 제일 깔끔해요." },
+    { id: 1, userId: 2115, text: "타코엔 라임 계열 칵테일이 제일 깔끔해요." },
     { id: 2, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "데킬라 베이스에 소금 테두리도 추천합니다." },
     { id: 3, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "살사 매운맛이 강하면 단맛 있는 칵테일도 좋아요." },
     { id: 4, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "홈파티 메뉴로 바로 가져갈게요." },
@@ -80,7 +88,7 @@ const mockCommentsByPairingId: Record<string, CommentItem[]> = {
     { id: 6, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "타코 종류별 추천도 올려주세요." },
   ],
   "1003": [
-    { id: 1, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "버번 다음이면 블렌디드부터 가는 게 편해요." },
+    { id: 1, userId: 2116, text: "버번 다음이면 블렌디드부터 가는 게 편해요." },
     { id: 2, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "피트향 약한 싱글몰트로 넘어가도 괜찮습니다." },
     { id: 3, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "하이볼 위주면 산뜻한 스타일 먼저 드셔보세요." },
     { id: 4, userId: 2025, userName: "윤아", userMeta: "서울 · 20대", text: "입문이면 도수 40도 안팎 제품이 무난했어요." },
@@ -110,7 +118,7 @@ const mockCommentsByPairingId: Record<string, CommentItem[]> = {
     { id: 7, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "도수 부담되면 큰 얼음 한 개 넣어서 드셔보세요." },
   ],
   "1012": [
-    { id: 1, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "맥주는 라거/IPA 반반 준비하면 대부분 좋아해요." },
+    { id: 1, userId: 2117, text: "맥주는 라거/IPA 반반 준비하면 대부분 좋아해요." },
     { id: 2, userId: 2001, userName: "민지", userMeta: "서울 · 30대", text: "전통주는 막걸리+전 조합이 실패가 적었습니다." },
     { id: 3, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "와인은 화이트 1, 레드 1 정도가 안전해요." },
     { id: 4, userId: 2002, userName: "현우", userMeta: "대전 · 20대", text: "안주는 짠맛/담백한 맛 둘 다 준비하면 좋아요." },
@@ -128,7 +136,7 @@ const mockCommentsByPairingId: Record<string, CommentItem[]> = {
     { id: 7, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "플레이팅 팁도 공유해주셔서 좋네요." },
   ],
   "90002": [
-    { id: 1, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "치즈 플래터랑 사케 조합 의외로 잘 맞네요." },
+    { id: 1, userId: 2113, text: "치즈 플래터랑 사케 조합 의외로 잘 맞네요." },
     { id: 2, userId: 2001, userName: "민지", userMeta: "서울 · 30대", text: "브리 치즈 추천 완전 동의합니다." },
     { id: 3, userId: 2102, userName: "도윤", userMeta: "대구 · 30대", text: "견과류 추가하면 식감이 확실히 살아나요." },
     { id: 4, userId: 2104, userName: "수빈", userMeta: "제주 · 30대", text: "홈파티 메뉴로 딱이에요." },
@@ -138,7 +146,7 @@ const mockCommentsByPairingId: Record<string, CommentItem[]> = {
     { id: 8, userId: 2103, userName: "나연", userMeta: "인천 · 30대", text: "크래커랑 과일도 같이 두면 더 좋아요." },
   ],
   "90003": [
-    { id: 1, userId: 2003, userName: "민지", userMeta: "서울 · 30대", text: "굴 초회랑 사케는 산뜻해서 좋네요." },
+    { id: 1, userId: 2118, text: "굴 초회랑 사케는 산뜻해서 좋네요." },
     { id: 2, userId: 2101, userName: "지훈", userMeta: "부산 · 20대", text: "비린 향 잡는 팁 덕분에 따라하기 쉬워요." },
     { id: 3, userId: 2019, userName: "태형", userMeta: "광주 · 20대", text: "차갑게 칠링해서 마셔봐야겠어요." },
   ],
@@ -158,6 +166,32 @@ const PAGE_SIZE = 5
 type MentionUser = { id: number; name: string; meta: string }
 type MentionContext = { start: number; end: number; query: string }
 
+const COMMENT_TIME_LABELS = ["방금전", "2분전", "38분전", "1시간전", "1시간전", "3시간전", "5시간전", "어제"] as const
+const COMMENT_LIKE_COUNTS = [4, 4, 4, 8, 1, 15, 6, 3] as const
+
+const resolveCommentIdentity = (item: Pick<CommentItem, "userId" | "userName" | "userMeta">) => {
+  const user = usersMockById[item.userId]
+  const resolvedName = user?.name?.trim() || item.userName?.trim() || "익명"
+  const resolvedMeta =
+    item.userMeta?.trim() ||
+    (user?.profile ? getUserMetaFromProfile(user.profile) : "") ||
+    "미설정"
+
+  return {
+    userName: resolvedName,
+    userMeta: resolvedMeta,
+  }
+}
+
+const normalizeCommentItems = (items: CommentItem[]) =>
+  items.map((item, index) => ({
+    ...item,
+    ...resolveCommentIdentity(item),
+    timeLabel: item.timeLabel?.trim() || COMMENT_TIME_LABELS[index % COMMENT_TIME_LABELS.length],
+    likeCount: typeof item.likeCount === "number" ? item.likeCount : COMMENT_LIKE_COUNTS[index % COMMENT_LIKE_COUNTS.length],
+    likedByCurrentUser: Boolean(item.likedByCurrentUser),
+  }))
+
 export default function CommentSection({
   pairingId,
   currentUser,
@@ -166,6 +200,7 @@ export default function CommentSection({
   onCountChange,
   emptyByDefault,
 }: Props) {
+  const navigate = useNavigate()
   const [commentValue, setCommentValue] = useState("")
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
@@ -198,27 +233,27 @@ export default function CommentSection({
   )
 
   const [commentItems, setCommentItems] = useState<CommentItem[]>(() => {
-    if (!pairingId) return emptyByDefault ? [] : initialComments
+    if (!pairingId) return normalizeCommentItems(emptyByDefault ? [] : initialComments)
     try {
       const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
-      if (!raw) return emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments
+      if (!raw) return normalizeCommentItems(emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments)
       const parsed = JSON.parse(raw)
       if (isLegacyInitialComments(parsed)) {
-        return emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments
+        return normalizeCommentItems(emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments)
       }
-      if (!Array.isArray(parsed)) return emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments
-      return parsed.filter(
-        (item): item is CommentItem =>
-          item &&
-          typeof item === "object" &&
-          typeof item.id === "number" &&
-          typeof item.userId === "number" &&
-          typeof item.userName === "string" &&
-          typeof item.userMeta === "string" &&
-          typeof item.text === "string",
+      if (!Array.isArray(parsed)) return normalizeCommentItems(emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments)
+      return normalizeCommentItems(
+        parsed.filter(
+          (item): item is CommentItem =>
+            item &&
+            typeof item === "object" &&
+            typeof item.id === "number" &&
+            typeof item.userId === "number" &&
+            typeof item.text === "string",
+        ),
       )
     } catch {
-      return emptyByDefault ? [] : (pairingId ? mockCommentsByPairingId[pairingId] ?? initialComments : initialComments)
+      return normalizeCommentItems(emptyByDefault ? [] : (pairingId ? mockCommentsByPairingId[pairingId] ?? initialComments : initialComments))
     }
   })
 
@@ -296,22 +331,34 @@ export default function CommentSection({
     return () => window.removeEventListener("storage", handleStorage)
   }, [])
 
-  const visibleComments = useMemo(() => {
-    const start = safePageIndex * PAGE_SIZE
-    return sortedComments.slice(start, start + PAGE_SIZE)
-  }, [safePageIndex, sortedComments])
-
-  const placeholderRowCount = Math.max(0, PAGE_SIZE - visibleComments.length)
+  const pagedComments = useMemo(() => {
+    const pageCount = Math.max(1, maxPageIndex + 1)
+    return Array.from({ length: pageCount }, (_, index) => {
+      const start = index * PAGE_SIZE
+      const items = sortedComments.slice(start, start + PAGE_SIZE)
+      return {
+        index,
+        items,
+      }
+    })
+  }, [maxPageIndex, sortedComments])
 
   useLayoutEffect(() => {
     if (!commentsStorageKey) return
     try {
       window.localStorage.setItem(commentsStorageKey, JSON.stringify(commentItems))
+      if (pairingId) {
+        window.dispatchEvent(
+          new CustomEvent(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, {
+            detail: { pairingId, count: commentItems.length },
+          }),
+        )
+      }
     } catch {
       // ignore storage errors
     }
     onCountChange(commentItems.length)
-  }, [commentItems, commentsStorageKey, onCountChange])
+  }, [commentItems, commentsStorageKey, onCountChange, pairingId])
 
   useEffect(() => {
     if (openMenuCommentId === null) return
@@ -333,7 +380,7 @@ export default function CommentSection({
       .reverse()
       .find((item) => item.userName === userName && !item.replyTo)
     if (!target) return null
-    return { userName: target.userName, commentId: target.id } as const
+    return { userName: resolveCommentIdentity(target).userName, commentId: target.id } as const
   }
 
   const mentionContext = useMemo<MentionContext | null>(() => {
@@ -361,7 +408,8 @@ export default function CommentSection({
     for (const user of mentionDirectoryMock) userById.set(user.id, user)
     for (const item of commentItems) {
       if (!userById.has(item.userId)) {
-        userById.set(item.userId, { id: item.userId, name: item.userName, meta: item.userMeta })
+        const identity = resolveCommentIdentity(item)
+        userById.set(item.userId, { id: item.userId, name: identity.userName, meta: identity.userMeta })
       }
     }
     userById.set(currentUser.id, { id: currentUser.id, name: currentUser.name, meta: currentUser.meta })
@@ -424,7 +472,7 @@ export default function CommentSection({
       inlineReplyCommentId !== null
         ? (() => {
             const target = commentItems.find((item) => item.id === inlineReplyCommentId)
-            return target ? ({ userName: target.userName, commentId: target.id } as const) : null
+            return target ? ({ userName: resolveCommentIdentity(target).userName, commentId: target.id } as const) : null
           })()
         : resolveReplyTarget(mentionName)
     const replyBody = (mentionMatch?.[2] ?? trimmed).trim()
@@ -442,6 +490,9 @@ export default function CommentSection({
         userName: currentUser.name,
         userMeta: currentUser.meta,
         text: storedText,
+        timeLabel: "방금전",
+        likeCount: 0,
+        likedByCurrentUser: false,
         replyTo: replyTo ?? undefined,
       },
     ])
@@ -498,6 +549,20 @@ export default function CommentSection({
     if (openMenuCommentId === commentId) setOpenMenuCommentId(null)
   }
 
+  const toggleCommentLike = (commentId: number) => {
+    setCommentItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== commentId) return item
+        const nextLiked = !item.likedByCurrentUser
+        return {
+          ...item,
+          likedByCurrentUser: nextLiked,
+          likeCount: Math.max(0, (item.likeCount ?? 0) + (nextLiked ? 1 : -1)),
+        }
+      }),
+    )
+  }
+
   const closeCommentOverlays = () => {
     setOpenMenuCommentId(null)
     setEditingCommentId(null)
@@ -524,200 +589,282 @@ export default function CommentSection({
   return (
     <>
       {alertMessage ? <AlertModal message={alertMessage} onConfirm={() => setAlertMessage(null)} /> : null}
-      <div
-        className="comment_list"
-        id="comments"
-        aria-label="댓글 목록"
-        onPointerDown={(event) => {
-          event.currentTarget.setPointerCapture(event.pointerId)
-          swipeStartRef.current = { x: event.clientX, y: event.clientY }
-        }}
-        onPointerUp={(event) => {
-          const start = swipeStartRef.current
-          swipeStartRef.current = null
-          if (!start) return
+      <section className="comment_section_shell" id="comments" aria-label="댓글 영역">
+        <div
+          className="comment_list"
+          aria-label="댓글 목록"
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId)
+            swipeStartRef.current = { x: event.clientX, y: event.clientY }
+          }}
+          onPointerUp={(event) => {
+            const start = swipeStartRef.current
+            swipeStartRef.current = null
+            if (!start) return
 
-          const deltaX = event.clientX - start.x
-          const deltaY = event.clientY - start.y
-          if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return
+            const deltaX = event.clientX - start.x
+            const deltaY = event.clientY - start.y
+            if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return
 
-          // swipe left -> next page (newer), swipe right -> previous page (older)
-          if (deltaX < 0) {
-            if (canGoNext) goToNextPage()
-          } else {
-            if (canGoPrev) goToPrevPage()
-          }
-        }}
-        onPointerCancel={() => {
-          swipeStartRef.current = null
-        }}
-        onPointerLeave={() => {
-          swipeStartRef.current = null
-        }}
-      >
-        {visibleComments.map((item) => {
-          const avatarSrc = resolveUserAvatar(item.userId)
-          return (
-            <div className={item.replyTo ? "comment_row is_reply" : "comment_row"} key={item.id}>
-              <div className="avatar">{avatarSrc ? <img className="avatar_image" src={avatarSrc} alt="" aria-hidden="true" /> : null}</div>
-              <div>
-              <div className="comment_header_row">
-                <h4>
-                  {item.userName} <span className="comment_meta">{item.userMeta}</span>
-                  <span className={getTierClassName(item.userId)}>{getTierLabel(item.userId)}</span>
-                </h4>
-
-                {item.userId === currentUser.id ? (
-                  <div className="comment_actions">
-                    <button
-                      type="button"
-                      className="comment_menu_toggle"
-                      aria-label="댓글 메뉴"
-                      aria-haspopup="menu"
-                      aria-expanded={openMenuCommentId === item.id}
-                      onClick={() => setOpenMenuCommentId((prev) => (prev === item.id ? null : item.id))}
-                    >
-                      <img src={iconDots} alt="" aria-hidden="true" />
-                    </button>
-
-                    {openMenuCommentId === item.id ? (
-                      <div className="comment_menu" role="menu" aria-label="댓글 메뉴">
-                        <button type="button" role="menuitem" onClick={() => startEdit(item)}>
-                          수정
-                        </button>
-                        <button type="button" role="menuitem" onClick={() => removeComment(item.id)}>
-                          삭제
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="comment_actions">
-                    <button
-                      type="button"
-                      className="comment_menu_toggle"
-                      aria-label="댓글 메뉴"
-                      aria-haspopup="menu"
-                      aria-expanded={openMenuCommentId === item.id}
-                      onClick={() => setOpenMenuCommentId((prev) => (prev === item.id ? null : item.id))}
-                    >
-                      <img src={iconDots} alt="" aria-hidden="true" />
-                    </button>
-
-                    {openMenuCommentId === item.id ? (
-                      <div className="comment_menu" role="menu" aria-label="댓글 메뉴">
-                        <button type="button" role="menuitem" onClick={() => mentionFromComment(item)}>
-                          대댓글달기
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                )}
-              </div>
-
-              {editingCommentId === item.id ? (
-                <div className="comment_edit_shell">
-                  <input
-                    className="comment_edit_input"
-                    value={editingCommentValue}
-                    onChange={(event) => setEditingCommentValue(event.target.value)}
-                    aria-label="댓글 수정"
-                  />
-                  <div className="comment_edit_actions">
-                    <button type="button" onClick={cancelEdit}>
-                      취소
-                    </button>
-                    <button type="button" className="is_primary" onClick={confirmEdit}>
-                      저장
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {item.replyTo ? (
-                    <p className="comment_reply_line">
-                      <span className="comment_reply_meta" aria-label="대댓글 대상">
-                        <img className="comment_reply_icon" src={iconReplyArrow} alt="" aria-hidden="true" />@
-                        {item.replyTo.userName}
-                      </span>
-                      <span className="comment_reply_text">{item.text}</span>
-                    </p>
-                  ) : (
-                    <p>{item.text}</p>
-                  )}
-                </>
-              )}
-
-              {inlineReplyCommentId === item.id ? (
-                <form className="comment_inline_reply" onSubmit={handleSubmit}>
-                  {isMentionPicking && mentionCandidates.length > 0 ? (
-                    <div className="comment_mention_panel" role="listbox" aria-label="태그할 유저 목록">
-                      {mentionCandidates.map((user) => (
+            // swipe left -> next page (newer), swipe right -> previous page (older)
+            if (deltaX < 0) {
+              if (canGoNext) goToNextPage()
+            } else {
+              if (canGoPrev) goToPrevPage()
+            }
+          }}
+          onPointerCancel={() => {
+            swipeStartRef.current = null
+          }}
+          onPointerLeave={() => {
+            swipeStartRef.current = null
+          }}
+        >
+          <div className="comment_list_header">
+            <h3 className="comment_list_title">댓글 {commentItems.length}</h3>
+          </div>
+        <div className="comment_slide_viewport">
+          <div
+            className="comment_page_track"
+            style={{
+              width: `${Math.max(1, pagedComments.length) * 100}%`,
+              transform: `translateX(-${safePageIndex * (100 / Math.max(1, pagedComments.length))}%)`,
+            }}
+          >
+            {pagedComments.map((page) => (
+              <div className="comment_page" key={page.index} style={{ width: `${100 / Math.max(1, pagedComments.length)}%` }}>
+                {page.items.map((item) => {
+                const isMyComment = item.userId === currentUser.id
+                const authorAvatarSrc = resolveUserAvatar(item.userId)
+                const authorInitial = item.userName?.trim().slice(0, 1) || "?"
+                return (
+                  <div className={item.replyTo ? "comment_row is_reply" : "comment_row"} key={item.id}>
+                    <div className="comment_row_layout">
+                      <div className="comment_profile_block">
                         <button
-                          key={user.id}
                           type="button"
-                          className="comment_mention_item"
-                          role="option"
-                          onMouseDown={(event) => event.preventDefault()}
-                          onClick={() => applyMention(user)}
+                          className="comment_avatar_button"
+                          aria-label={isMyComment ? "내 프로필 보기" : `${item.userName} 프로필`}
+                          onClick={() => {
+                            if (isMyComment) navigate("/my")
+                          }}
                         >
-                          <span className="comment_mention_name">@{user.name}</span>
-                          <span className="comment_mention_meta">{user.meta}</span>
+                          <div className="comment_avatar" aria-hidden="true">
+                            {authorAvatarSrc ? (
+                              <img className="comment_avatar_image" src={authorAvatarSrc} alt="" aria-hidden="true" />
+                            ) : (
+                              <span className="comment_avatar_fallback">{authorInitial}</span>
+                            )}
+                          </div>
                         </button>
-                      ))}
+                      </div>
+
+                      <div className="comment_body">
+                        <div className="comment_header_main">
+                          <button
+                            type="button"
+                            className="comment_author_button"
+                            onClick={() => {
+                              if (isMyComment) navigate("/my")
+                            }}
+                          >
+                            <span className="comment_author_name">{item.userName}</span>
+                          </button>
+                          <span className={getTierClassName(item.userId)}>{getTierLabel(item.userId)}</span>
+                          <span className="comment_header_dot" aria-hidden="true">ㆍ</span>
+                          <span className="comment_time">{item.timeLabel}</span>
+                        </div>
+
+                        <div className="comment_content_block">
+                          {editingCommentId === item.id ? (
+                            <div className="comment_edit_shell">
+                              <input
+                                className="comment_edit_input"
+                                value={editingCommentValue}
+                                onChange={(event) => setEditingCommentValue(event.target.value)}
+                                aria-label="댓글 수정"
+                              />
+                              <div className="comment_edit_actions">
+                                <button type="button" onClick={cancelEdit}>
+                                  취소
+                                </button>
+                                <button type="button" className="is_primary" onClick={confirmEdit}>
+                                  저장
+                                </button>
+                              </div>
+                            </div>
+                          ) : item.replyTo ? (
+                            <p className="comment_reply_line">
+                              <span className="comment_reply_meta" aria-label="대댓글 대상">
+                                <img className="comment_reply_icon" src={iconReplyArrow} alt="" aria-hidden="true" />@
+                                {item.replyTo.userName}
+                              </span>
+                              <span className="comment_reply_text">{item.text}</span>
+                            </p>
+                          ) : (
+                            <p className="comment_text">{item.text}</p>
+                          )}
+
+                          <div className="comment_footer">
+                            <button type="button" className="comment_reply_button" onClick={() => mentionFromComment(item)}>
+                              답글쓰기
+                            </button>
+                          </div>
+
+                          {inlineReplyCommentId === item.id ? (
+                            <form className="comment_inline_reply" onSubmit={handleSubmit}>
+                              {isMentionPicking && mentionCandidates.length > 0 ? (
+                                <div className="comment_mention_panel" role="listbox" aria-label="태그할 유저 목록">
+                                  {mentionCandidates.map((user) => (
+                                    <button
+                                      key={user.id}
+                                      type="button"
+                                      className="comment_mention_item"
+                                      role="option"
+                                      onMouseDown={(event) => event.preventDefault()}
+                                      onClick={() => applyMention(user)}
+                                    >
+                                      <span className="comment_mention_name">@{user.name}</span>
+                                      <span className="comment_mention_meta">{user.meta}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : null}
+
+                              <input
+                                ref={inlineInputRef}
+                                className="comment_inline_reply_field"
+                                value={commentValue}
+                                onChange={(event) => {
+                                  setCommentValue(event.target.value)
+                                  setAlertMessage(null)
+                                  setCursorIndex(event.target.selectionStart ?? event.target.value.length)
+                                  setIsMentionOpen(true)
+                                }}
+                                onFocus={() => setIsMentionOpen(true)}
+                                onBlur={() => setIsMentionOpen(false)}
+                                onKeyUp={(event) => {
+                                  const target = event.currentTarget
+                                  setCursorIndex(target.selectionStart ?? target.value.length)
+                                  if (!isMentionOpen) setIsMentionOpen(true)
+                                }}
+                                onClick={(event) => {
+                                  const target = event.currentTarget
+                                  setCursorIndex(target.selectionStart ?? target.value.length)
+                                }}
+                                placeholder="댓글을 입력해보세요"
+                                aria-label="댓글 입력"
+                              />
+                              <button type="submit" aria-label="댓글 등록">
+                                등록
+                              </button>
+                            </form>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="comment_side">
+                        <div className="comment_actions">
+                          {isMyComment ? (
+                            <button
+                              type="button"
+                              className="comment_menu_toggle"
+                              aria-label="댓글 메뉴"
+                              aria-haspopup="menu"
+                              aria-expanded={openMenuCommentId === item.id}
+                              onClick={() => setOpenMenuCommentId((prev) => (prev === item.id ? null : item.id))}
+                            >
+                              <img src={iconDots} alt="" aria-hidden="true" />
+                            </button>
+                          ) : (
+                            <span className="comment_menu_spacer" aria-hidden="true" />
+                          )}
+
+                          {openMenuCommentId === item.id ? (
+                            <div className="comment_menu" role="menu" aria-label="댓글 메뉴">
+                              <button type="button" role="menuitem" onClick={() => startEdit(item)}>
+                                수정
+                              </button>
+                              <button type="button" role="menuitem" onClick={() => removeComment(item.id)}>
+                                삭제
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+
+                        <button
+                          type="button"
+                          className={item.likedByCurrentUser ? "comment_like_button is_active" : "comment_like_button"}
+                          aria-label={item.likedByCurrentUser ? "댓글 좋아요 취소" : "댓글 좋아요"}
+                          aria-pressed={item.likedByCurrentUser}
+                          onClick={() => toggleCommentLike(item.id)}
+                        >
+                          <img src={item.likedByCurrentUser ? iconHeartActive : iconHeart} alt="" aria-hidden="true" />
+                          <span>{item.likeCount ?? 0}</span>
+                        </button>
+                      </div>
                     </div>
-                  ) : null}
-
-                  <input
-                    ref={inlineInputRef}
-                    className="comment_inline_reply_field"
-                    value={commentValue}
-                    onChange={(event) => {
-                      setCommentValue(event.target.value)
-                      setAlertMessage(null)
-                      setCursorIndex(event.target.selectionStart ?? event.target.value.length)
-                      setIsMentionOpen(true)
-                    }}
-                    onFocus={() => setIsMentionOpen(true)}
-                    onBlur={() => setIsMentionOpen(false)}
-                    onKeyUp={(event) => {
-                      const target = event.currentTarget
-                      setCursorIndex(target.selectionStart ?? target.value.length)
-                      if (!isMentionOpen) setIsMentionOpen(true)
-                    }}
-                    onClick={(event) => {
-                      const target = event.currentTarget
-                      setCursorIndex(target.selectionStart ?? target.value.length)
-                    }}
-                    placeholder="댓글을 입력해보세요"
-                    aria-label="댓글 입력"
-                  />
-                  <button type="submit" aria-label="댓글 등록">
-                    등록
-                  </button>
-                </form>
-              ) : null}
-              </div>
-            </div>
-          )
-        })}
-
-        {placeholderRowCount > 0
-          ? Array.from({ length: placeholderRowCount }).map((_, index) => (
-              <div className="comment_row is_placeholder" key={`comment-placeholder-${safePageIndex}-${index}`} aria-hidden="true">
-                <div className="avatar" />
-                <div>
-                  <div className="comment_header_row">
-                    <h4>
-                      &nbsp;<span className="comment_meta">&nbsp;</span>
-                      <span className={getTierClassName(currentUser.id)}>{getTierLabel(currentUser.id)}</span>
-                    </h4>
                   </div>
-                  <p>&nbsp;</p>
+                )
+              })}
+
                 </div>
-              </div>
-            ))
-          : null}
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <form
+          className="comment_input"
+          onSubmit={handleSubmit}
+          style={inlineReplyCommentId !== null ? { display: "none" } : undefined}
+        >
+          {isMentionPicking && mentionCandidates.length > 0 ? (
+            <div className="comment_mention_panel" role="listbox" aria-label="태그할 유저 목록">
+              {mentionCandidates.map((user) => (
+                <button
+                  key={user.id}
+                  type="button"
+                  className="comment_mention_item"
+                  role="option"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => applyMention(user)}
+                >
+                  <span className="comment_mention_name">@{user.name}</span>
+                  <span className="comment_mention_meta">{user.meta}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <input
+            ref={mainInputRef}
+            className="comment_input_field"
+            value={commentValue}
+            onChange={(event) => {
+              setCommentValue(event.target.value)
+              setAlertMessage(null)
+              setCursorIndex(event.target.selectionStart ?? event.target.value.length)
+              setIsMentionOpen(true)
+            }}
+            onFocus={() => setIsMentionOpen(true)}
+            onBlur={() => setIsMentionOpen(false)}
+            onKeyUp={(event) => {
+              const target = event.currentTarget
+              setCursorIndex(target.selectionStart ?? target.value.length)
+              if (!isMentionOpen) setIsMentionOpen(true)
+            }}
+            onClick={(event) => {
+              const target = event.currentTarget
+              setCursorIndex(target.selectionStart ?? target.value.length)
+            }}
+            placeholder="댓글을 입력해보세요"
+            aria-label="댓글 입력"
+          />
+          <button type="submit" aria-label="댓글 등록">
+            등록
+          </button>
+        </form>
 
         <div className="comment_pager comment_pager_bottom" aria-label="댓글 페이지 이동">
           <div className="comment_pager_left" aria-label="처음/이전 페이지">
@@ -755,59 +902,7 @@ export default function CommentSection({
             <img className="comment_pager_icon is_flipped" src={iconCaretLeft} alt="" aria-hidden="true" />
           </button>
         </div>
-      </div>
-
-      <form
-        className="comment_input"
-        onSubmit={handleSubmit}
-        style={inlineReplyCommentId !== null ? { display: "none" } : undefined}
-      >
-        {isMentionPicking && mentionCandidates.length > 0 ? (
-          <div className="comment_mention_panel" role="listbox" aria-label="태그할 유저 목록">
-            {mentionCandidates.map((user) => (
-              <button
-                key={user.id}
-                type="button"
-                className="comment_mention_item"
-                role="option"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => applyMention(user)}
-              >
-                <span className="comment_mention_name">@{user.name}</span>
-                <span className="comment_mention_meta">{user.meta}</span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        <input
-          ref={mainInputRef}
-          className="comment_input_field"
-          value={commentValue}
-          onChange={(event) => {
-            setCommentValue(event.target.value)
-            setAlertMessage(null)
-            setCursorIndex(event.target.selectionStart ?? event.target.value.length)
-            setIsMentionOpen(true)
-          }}
-          onFocus={() => setIsMentionOpen(true)}
-          onBlur={() => setIsMentionOpen(false)}
-          onKeyUp={(event) => {
-            const target = event.currentTarget
-            setCursorIndex(target.selectionStart ?? target.value.length)
-            if (!isMentionOpen) setIsMentionOpen(true)
-          }}
-          onClick={(event) => {
-            const target = event.currentTarget
-            setCursorIndex(target.selectionStart ?? target.value.length)
-          }}
-          placeholder="댓글을 입력해보세요"
-          aria-label="댓글 입력"
-        />
-        <button type="submit" aria-label="댓글 등록">
-          등록
-        </button>
-      </form>
+      </section>
     </>
   )
 }
