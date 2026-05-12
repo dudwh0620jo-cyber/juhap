@@ -1,69 +1,185 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router"
 import "../styles/ai-scan.css"
-
-type ScanMode = "drink" | "food"
-
-const recentScans: Array<{ emoji: string; label: string }> = [
-  { emoji: "🍶", label: "막걸리" },
-  { emoji: "🥩", label: "삼겹살" },
-  { emoji: "🍺", label: "카스" },
-]
+import { aiScanAssets, aiScanCopy, type ScanMode } from "../data/aiScanContent"
 
 export default function AiScan() {
+  const navigate = useNavigate()
   const [mode, setMode] = useState<ScanMode>("drink")
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null)
+  const [isScanning, setIsScanning] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const scanTimerRef = useRef<number | null>(null)
 
-  const hint = mode === "drink" ? "술병 라벨을 프레임 안에 맞춰주세요" : "음식을 프레임 안에 맞춰주세요"
+  const hint = mode === "drink" ? aiScanCopy.hint.drink : aiScanCopy.hint.food
+  const placeholderSrc = mode === "drink" ? aiScanAssets.scanPlaceholder : aiScanAssets.foodPlaceholder
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: mode === "drink" } }))
+    return () => {
+      window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: false } }))
+    }
+  }, [mode])
+
+  useEffect(() => {
+    return () => {
+      if (previewSrc?.startsWith("blob:")) URL.revokeObjectURL(previewSrc)
+    }
+  }, [previewSrc])
+
+  useEffect(() => {
+    return () => {
+      if (scanTimerRef.current) window.clearTimeout(scanTimerRef.current)
+    }
+  }, [])
+
+  function openPicker() {
+    fileInputRef.current?.click()
+  }
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null
+    if (!file) return
+    if (previewSrc?.startsWith("blob:")) URL.revokeObjectURL(previewSrc)
+    setPreviewSrc(URL.createObjectURL(file))
+  }
+
+  function handleScanStart() {
+    if (isScanning) return
+    setIsScanning(true)
+    scanTimerRef.current = window.setTimeout(() => {
+      setIsScanning(false)
+      scanTimerRef.current = null
+    }, 2200)
+  }
 
   return (
-    <section className="ai_scan_page page_screen" aria-label="AI 스캔">
-      <div className="ai_scan_header">
-        <h1 className="ai_scan_title">AI 스캔</h1>
-        <p className="ai_scan_subtitle">술병이나 음식을 스캔해 페어링을 추천받으세요</p>
+    <section className={isScanning ? "ai_scan_page page_screen is_scanning" : "ai_scan_page page_screen"} aria-label="AI 스캔">
+      <div className="ai_scan_stage" aria-hidden="true">
+        <img className="ai_scan_stage_img" src={previewSrc ?? placeholderSrc} alt="" />
+        <div className="ai_scan_stage_vignette" />
+        <div className="ai_scan_stage_bottom_fade" />
       </div>
 
-      <div className="ai_scan_tabs" role="tablist">
+      <header className="ai_scan_topbar" aria-label="상단 메뉴">
+        <button type="button" className="ai_scan_topbar_button" aria-label="뒤로가기" onClick={() => navigate(-1)}>
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path d="M15 5L8 12L15 19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div className="ai_scan_topbar_spacer" aria-hidden="true" />
+        <button type="button" className="ai_scan_topbar_button" aria-label="닫기" onClick={() => navigate(-1)}>
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path d="M6 6L18 18M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      </header>
+
+      <div className="ai_scan_mode_pill" role="tablist" aria-label="스캔 모드">
         <button
           role="tab"
           type="button"
-          className={`ai_scan_tab${mode === "drink" ? " is_active" : ""}`}
+          className={`ai_scan_mode_tab${mode === "drink" ? " is_active" : ""}`}
+          aria-selected={mode === "drink"}
           onClick={() => setMode("drink")}
+          disabled={isScanning}
         >
-          🍶 술 스캔
+          {aiScanCopy.tabs.drink}
         </button>
         <button
           role="tab"
           type="button"
-          className={`ai_scan_tab${mode === "food" ? " is_active" : ""}`}
+          className={`ai_scan_mode_tab${mode === "food" ? " is_active" : ""}`}
+          aria-selected={mode === "food"}
           onClick={() => setMode("food")}
+          disabled={isScanning}
         >
-          🍽️ 음식 스캔
+          {aiScanCopy.tabs.food}
         </button>
       </div>
 
-      <div className="ai_scan_viewfinder" aria-label="카메라 뷰파인더">
+      <button
+        type="button"
+        className="ai_scan_viewfinder"
+        aria-label="카메라 뷰파인더"
+        onClick={openPicker}
+        disabled={isScanning}
+      >
         <span className="ai_scan_corner top_left" aria-hidden="true" />
         <span className="ai_scan_corner top_right" aria-hidden="true" />
         <span className="ai_scan_corner bottom_left" aria-hidden="true" />
         <span className="ai_scan_corner bottom_right" aria-hidden="true" />
-        <div className="ai_scan_camera_circle" aria-hidden="true">📷</div>
-        <p className="ai_scan_hint">{hint}</p>
-      </div>
-
-      <button type="button" className="ai_scan_start_button">
-        ⚡ AI 스캔 시작
+        <span className="ai_scan_hint" aria-hidden="true">
+          {hint}
+        </span>
       </button>
 
-      <div>
-        <p className="ai_scan_recent_title">최근 스캔</p>
-        <div className="ai_scan_recent_chips">
-          {recentScans.map((item) => (
-            <button key={item.label} type="button" className="ai_scan_chip">
-              <span className="ai_scan_chip_emoji">{item.emoji}</span>
-              {item.label}
-            </button>
-          ))}
-        </div>
+      <input
+        ref={fileInputRef}
+        className="ai_scan_file_input"
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+      />
+
+      <div className="ai_scan_actions" aria-label="스캔 동작">
+        <button type="button" className="ai_scan_action ai_scan_action_upload" onClick={openPicker} disabled={isScanning}>
+          {aiScanCopy.upload}
+        </button>
+        <button type="button" className="ai_scan_action ai_scan_action_scan" onClick={handleScanStart} disabled={isScanning}>
+          {aiScanCopy.scan}
+        </button>
       </div>
+
+      {isScanning ? (
+        <div className="ai_scan_scanning_overlay" role="status" aria-live="polite" aria-label="스캔 중">
+          <div className="ai_scan_scanning_main">
+            <div className="ai_scan_scanning_viewfinder" aria-hidden="true">
+              <span className="ai_scan_corner top_left" />
+              <span className="ai_scan_corner top_right" />
+              <span className="ai_scan_corner bottom_left" />
+              <span className="ai_scan_corner bottom_right" />
+              <span className="ai_scan_scanning_line" />
+            </div>
+
+            <div className="ai_scan_scanning_center">
+              <div className="ai_scan_scanning_title">{aiScanCopy.scanningTitle}</div>
+              <div className="ai_scan_scanning_subtitle">{aiScanCopy.scanningSubtitle}</div>
+              <div className="ai_scan_scanning_mascot" aria-hidden="true">
+                <img src={aiScanAssets.scanScanningMascot} alt="" />
+              </div>
+            </div>
+          </div>
+
+          <div className="ai_scan_scanning_tips">
+            <div className="ai_scan_scanning_tip_lead">
+              <span className="ai_scan_scanning_tip_bulb" aria-hidden="true">
+                💡
+              </span>
+              <span>{aiScanCopy.scanningTipLead}</span>
+            </div>
+            <div className="ai_scan_scanning_tip_row" aria-label="스캔 팁">
+              {aiScanCopy.scanningTips.map((tip) => {
+                const iconSrc =
+                  tip.icon === "sun"
+                    ? aiScanAssets.iconSun
+                    : tip.icon === "barcode"
+                      ? aiScanAssets.iconBarcode
+                      : tip.icon === "shake"
+                        ? aiScanAssets.iconShake
+                        : null
+
+                return (
+                  <div key={tip.icon} className="ai_scan_scanning_tip">
+                    {iconSrc ? <img src={iconSrc} alt="" aria-hidden="true" /> : null}
+                    <div className="ai_scan_scanning_tip_text">{tip.title}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }

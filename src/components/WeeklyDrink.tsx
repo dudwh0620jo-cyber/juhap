@@ -1,4 +1,5 @@
 import { Link } from "react-router"
+import { resolveReviewImage } from "../utils/reviewImages"
 
 export type WeeklyDrinkItem = {
   id: string
@@ -8,6 +9,7 @@ export type WeeklyDrinkItem = {
   variety: string
   rating: number
   sweetness: string
+  thumbId?: string
 }
 
 type WeeklyDrinkProps = {
@@ -18,13 +20,17 @@ type WeeklyDrinkProps = {
 
 function DrinkInfo({ info }: { info: WeeklyDrinkItem }) {
   return (
-    <div className="drink_info">
-      <h4>{info.name}</h4>
-      <p>종류 : {info.type}</p>
-      <p>생산지 : {info.origin}</p>
-      <p>품종 : {info.variety}</p>
-      <p>평점 : {info.rating}</p>
-      <p>당도 : {info.sweetness}</p>
+    <div className="weekly_drink_info">
+      <h4 className="weekly_drink_name">{info.name}</h4>
+      <div className="weekly_drink_meta">
+        <span className="weekly_drink_chip">{info.type}</span>
+        <span className="weekly_drink_chip">평점: {info.rating.toFixed(1)}</span>
+        <span className="weekly_drink_chip">{info.sweetness}</span>
+      </div>
+      <div className="weekly_drink_specs">
+        <div>원산지: {info.origin}</div>
+        <div>품종: {info.variety}</div>
+      </div>
     </div>
   )
 }
@@ -38,12 +44,14 @@ export default function WeeklyDrink({ title, linkTo, items }: WeeklyDrinkProps) 
           자세히 보기
         </Link>
       </div>
-      <div className="drink_card_row" aria-label="금주의 주류 소개 목록">
+      <div className="drink_card_row weekly_drink_row" aria-label="금주의 주류 소개 목록">
         {items.map((item) => (
-          <article className="drink_card" key={item.id}>
+          <Link key={item.id} to={`/product/${item.id}`} className="weekly_drink_card">
+            <div className="weekly_drink_photo" aria-hidden="true">
+              {item.thumbId ? <img src={resolveReviewImage(item.thumbId)} alt="" /> : null}
+            </div>
             <DrinkInfo info={item} />
-            <div className="drink_bottle" aria-hidden="true" />
-          </article>
+          </Link>
         ))}
       </div>
     </section>

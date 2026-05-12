@@ -628,6 +628,35 @@ button:active .chat_suggestion_label,
   padding: 18px 0 8px;
 }
 
+.chat_matching_bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--color-bg-white);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 150%;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.chat_matching_bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  background: var(--color-bg-white);
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 3px;
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.06);
+}
+
 .chat_matching_mascot_wrap {
   width: 132px;
   height: 132px;
@@ -644,6 +673,7 @@ button:active .chat_suggestion_label,
 .chat_matching_chips {
   position: absolute;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
 }
 

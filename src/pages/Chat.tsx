@@ -6,7 +6,7 @@ import ChatStepPanel from "../components/ChatStepPanel"
 import introRecommendIcon from "../assets/banner_ai_recommend.png"
 import introGlossaryIcon from "../assets/banner_drink_glossary.png"
 import introScanIcon from "../assets/banner_label_scan.png"
-import mascotSearching from "../assets/chat_mascot_searching.png"
+import mascotSearching from "../assets/picture_mascot_searching.png"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import iconCaretRightWhite from "../assets/svg/caretright_w.svg"
 import iconMicrophone from "../assets/svg/microphone.svg"
@@ -799,6 +799,9 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
                 {state.step !== "done" && isTyping ? (
                   isMatchingRecommendations ? (
                     <div className="chat_matching_panel" aria-label="페어링 찾는 중">
+                      <div className="chat_matching_bubble" aria-hidden="true">
+                        찾고 있는 중…
+                      </div>
                       <div className="chat_matching_mascot_wrap" aria-hidden="true">
                         <img className="chat_matching_mascot" src={mascotSearching} alt="" />
                       </div>

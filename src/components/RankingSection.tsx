@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router"
 import PurchaseConfirmModal from "./PurchaseConfirmModal"
 
@@ -16,12 +16,10 @@ type RankingSectionProps = {
   items: [RankingItem, RankingItem, RankingItem, RankingItem, RankingItem]
 }
 
-const BADGE_COLORS = ["#ca9e52", "#9b9b9b", "#b87333", "#c4a882", "#c4a882"]
-
 function RankingCard({ item, rank }: { item: RankingItem; rank: number }) {
   return (
     <div className="ranking_card">
-      <div className="ranking_card_badge" style={{ background: BADGE_COLORS[rank - 1] }}>
+      <div className={`ranking_card_badge is_rank_${rank}`} aria-hidden="true">
         {rank}
       </div>
       <div className="ranking_card_images">
@@ -41,47 +39,21 @@ function RankingCard({ item, rank }: { item: RankingItem; rank: number }) {
 export default function RankingSection({ title, items }: RankingSectionProps) {
   const navigate = useNavigate()
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const trackRef = useRef<HTMLDivElement>(null)
-  const offsetRef = useRef(0)
-  const rafRef = useRef<number | undefined>(undefined)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
 
-  useEffect(() => {
-    const container = containerRef.current
-    const track = trackRef.current
-    if (!container || !track) return
+  const dotCount = items.length
+  const dots = useMemo(() => Array.from({ length: dotCount }, (_, index) => index), [dotCount])
 
-    const speed = 0.4
-
-    const animate = () => {
-      offsetRef.current += speed
-      const halfWidth = track.scrollWidth / 2
-      if (offsetRef.current >= halfWidth) {
-        offsetRef.current = 0
-      }
-      track.style.transform = `translateX(-${offsetRef.current}px)`
-
-      const centerX = container.clientWidth / 2
-      const cards = track.querySelectorAll<HTMLElement>(".ranking_card")
-      cards.forEach((card) => {
-        const cardCenter = card.offsetLeft + card.offsetWidth / 2 - offsetRef.current
-        const distance = Math.abs(cardCenter - centerX)
-        const t = Math.max(0, 1 - distance / (container.clientWidth * 0.5))
-        const scale = 0.75 + 0.25 * t
-        card.style.transform = `scale(${scale.toFixed(3)})`
-        card.style.zIndex = String(Math.round(t * 10))
-      })
-
-      rafRef.current = requestAnimationFrame(animate)
-    }
-
-    rafRef.current = requestAnimationFrame(animate)
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [])
-
-  const loopItems = [...items, ...items]
+  function handleScroll() {
+    const el = scrollRef.current
+    if (!el) return
+    const card = el.querySelector<HTMLElement>(".ranking_card")
+    if (!card) return
+    const cardWidth = card.getBoundingClientRect().width + 14
+    const nextIndex = Math.round(el.scrollLeft / cardWidth)
+    setActiveIndex((prev) => (prev === nextIndex ? prev : Math.max(0, Math.min(dotCount - 1, nextIndex))))
+  }
 
   return (
     <>
@@ -92,12 +64,17 @@ export default function RankingSection({ title, items }: RankingSectionProps) {
             더보기
           </button>
         </div>
-        <div className="ranking_carousel" ref={containerRef}>
-          <div className="ranking_track" ref={trackRef}>
-            {loopItems.map((item, index) => (
-              <RankingCard key={index} item={item} rank={(index % items.length) + 1} />
+        <div className="ranking_carousel" ref={scrollRef} onScroll={handleScroll}>
+          <div className="ranking_track">
+            {items.map((item, index) => (
+              <RankingCard key={item.drink + item.food + index} item={item} rank={index + 1} />
             ))}
           </div>
+        </div>
+        <div className="ranking_dots" aria-label="랭킹 페이지 표시">
+          {dots.map((index) => (
+            <span key={index} className={`ranking_dot${index === activeIndex ? " is_active" : ""}`} aria-hidden="true" />
+          ))}
         </div>
       </section>
 
