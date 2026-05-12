@@ -4,6 +4,7 @@ import { sakeProductsMock } from "../data/sakeProductsMock"
 export type ProductPurchaseShop = {
   id: string
   name: string
+  productName?: string
   delivery: string
   price: string
   url: string
@@ -25,8 +26,8 @@ const dassai23: ProductDetailData = {
   id: "sake-dassai-23",
   breadcrumb: "사케 > 준마이 다이긴죠 / 다이긴죠",
   name: "닷사이 23",
-  price: "200,000원",
-  rating: 4.5,
+  price: "98,900원",
+  rating: 5.0,
   basicInfo: [
     { label: "종류", value: "사케" },
     { label: "용량", value: "720ml" },
@@ -36,24 +37,40 @@ const dassai23: ProductDetailData = {
     { label: "일본도", value: "+4" },
   ],
   tasteNotes: [
-    { label: "Aroma", value: "은은한 배와 멜론 계열 과실향", subValue: "향" },
-    { label: "Taste", value: "부드럽고 깔끔한 균형감", subValue: "맛" },
-    { label: "Finish", value: "길고 깨끗하게 남는 피니시", subValue: "피니시" },
+    { label: "Aroma", value: "온화한, 꽃, 꿀, 은은한", subValue: "향" },
+    { label: "Taste", value: "경쾌한, 감칠맛, 섬세한", subValue: "맛" },
+    { label: "Finish", value: "부드러운, 시원한, 깔끔한", subValue: "피니시" },
   ],
   brandStory: [
-    "닷사이 23은 정미율 23%까지 깎아낸 쌀로 빚어 섬세한 향과 부드러운 질감을 강조한 준마이 다이긴죠 스타일입니다.",
-    "차갑게 8~12도에서 즐기면 과실향과 깔끔한 피니시가 더 또렷하게 느껴집니다.",
+    `"닷사이"의 뜻은 "수달 축제"로 제조 지역인 야마구치현에서 가까운 강가에 수달이 많이 노니던 곳에서 사용했던 단어입니다.
+이는 수달들이 마치 축제를 벌이듯 잡은 물고기를 해안가에 늘어놓은 모습이 마치 학자들이 서적들을 펼쳐놓고 연구하는 모습과 같아, 술을 빚기 위해 자료를 찾고 연구하며 사케의 새로운 시대를 열겠다는 닷사이의 포부가 담긴 이름입니다.
+“취하기 위한, 판매하기 위한 술이 아니라 맛보는 술을 추구"를 신념으로 정성으로 맛있는 술을 만들고 있는 장인 정신의 브랜드입니다.`,
   ],
   onlineShops: [
-    { id: "shop-kihya-1", name: "키햐", delivery: "무료배송", price: "75,900원", url: "https://example.com/kihya" },
+    {
+      id: "shop-kihya-1",
+      name: "키햐",
+      productName: "준마이 다이긴죠 닷사이 23",
+      delivery: "무료배송",
+      price: "75,900원",
+      url: "https://example.com/kihya",
+    },
     {
       id: "shop-marketkurly-1",
       name: "마켓컬리",
+      productName: "닷사이 23",
       delivery: "무료배송",
-      price: "139,000원",
+      price: "82,900원",
       url: "https://example.com/marketkurly",
     },
-    { id: "shop-kihya-2", name: "키햐", delivery: "무료배송", price: "158,500원", url: "https://example.com/kihya-2" },
+    {
+      id: "shop-kihya-2",
+      name: "키햐",
+      productName: "사케 준마이 다이긴죠 닷사이 23",
+      delivery: "무료배송",
+      price: "88,900원",
+      url: "https://example.com/kihya-2",
+    },
   ],
 }
 

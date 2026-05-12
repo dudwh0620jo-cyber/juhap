@@ -1,24 +1,40 @@
-﻿import { useMemo, useState } from "react"
-import { Link, useNavigate, useParams, useSearchParams } from "react-router"
+import { useMemo, useState } from "react"
+import { useNavigate, useParams, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import SakeGuideAccordion from "../components/SakeGuideAccordion"
+import imgOfflineEmptyCharacter from "../assets/fd_offline_empty_character.png"
+import imgProductHero from "../assets/fd_product_hero_image.png"
+import imgPurchaseThumb1 from "../assets/fd_purchase_thumb1.png"
+import imgPurchaseThumb2 from "../assets/fd_purchase_thumb2.png"
+import imgPurchaseThumb3 from "../assets/fd_purchase_thumb3.png"
+import iconBookmark from "../assets/svg/bookmarksimple.svg"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
-import iconHouse from "../assets/svg/house.svg"
-import verifiedIcon from "../assets/svg/ic_baseline-verified.svg"
+import iconCaretRight from "../assets/svg/caretright.svg"
 import iconShare from "../assets/svg/sharenetwork.svg"
-import imgDassai23 from "../assets/drink_dassai_23_detail.png"
+import iconTasteAroma from "../assets/svg/fd_product_taste_rows_aroma.svg"
+import iconTasteFinish from "../assets/svg/fd_product_taste_rows_finish.svg"
+import iconTasteTaste from "../assets/svg/fd_product_taste_rows_taste.svg"
+import iconStar from "../assets/svg/star.svg"
 import { useProductDetailPageData } from "../hooks/useProductDetailPageData"
 import "../styles/product-detail.css"
 
-const tabItems = ["상품정보", "후기", "페어링추천"] as const
+const tabItems = ["술정보", "후기", "페어링추천"] as const
+const reviewCount = "13,422"
+const purchaseThumbs = [imgPurchaseThumb1, imgPurchaseThumb2, imgPurchaseThumb3]
+const purchaseDiscounts = ["62%", "30%", "21%"]
+const tasteIconByLabel: Record<string, string> = {
+  Aroma: iconTasteAroma,
+  Taste: iconTasteTaste,
+  Finish: iconTasteFinish,
+}
 
 export default function ProductDetail() {
   const { mockProductById, defaultProduct } = useProductDetailPageData()
   const navigate = useNavigate()
   const { id } = useParams()
   const [searchParams] = useSearchParams()
-  const initialTab = searchParams.get("tab") === "pairing" ? "페어링추천" : searchParams.get("tab") === "review" ? "후기" : "상품정보"
+  const initialTab = searchParams.get("tab") === "pairing" ? "페어링추천" : searchParams.get("tab") === "review" ? "후기" : "술정보"
   const [activeTab, setActiveTab] = useState<(typeof tabItems)[number]>(initialTab)
   const [pendingPurchaseShopName, setPendingPurchaseShopName] = useState<string | null>(null)
   const [isPreparingModalOpen, setIsPreparingModalOpen] = useState(false)
@@ -29,61 +45,82 @@ export default function ProductDetail() {
   }, [defaultProduct, id, mockProductById])
 
   const ratingWidth = `${Math.max(0, Math.min(100, (product.rating / 5) * 100))}%`
+  const bestOnlinePrice = product.onlineShops[0]?.price ?? product.price
+  const breadcrumbItems = product.breadcrumb.split(">").map((item) => item.trim()).filter(Boolean)
 
   return (
     <section className="product_detail_page page_screen" aria-label="상품 상세">
-      <header className="product_detail_header" aria-label="상단 메뉴">
-        <button type="button" className="product_icon_button" aria-label="뒤로가기" onClick={() => navigate(-1)}>
-          <img src={iconCaretLeft} alt="" aria-hidden="true" />
-        </button>
-        <div className="product_header_actions">
-          <Link className="product_icon_button" to="/home" aria-label="홈으로 이동">
-            <img src={iconHouse} alt="" />
-          </Link>
-          <button type="button" className="product_icon_button" aria-label="공유">
-            <img src={iconShare} alt="" />
+      <div className="product_visual_intro">
+        <header className="product_detail_header" aria-label="상단 메뉴">
+          <button type="button" className="product_icon_button" aria-label="뒤로가기" onClick={() => navigate(-1)}>
+            <img src={iconCaretLeft} alt="" aria-hidden="true" />
           </button>
-        </div>
-      </header>
+          <button type="button" className="product_icon_button" aria-label="공유">
+            <img src={iconShare} alt="" aria-hidden="true" />
+          </button>
+        </header>
 
-      <div className="product_hero" aria-label="상품 이미지">
-        <img className="product_hero_image" src={imgDassai23} alt="닷사이 23" />
+        <div className="product_hero" aria-label="상품 이미지">
+          <img className="product_hero_image" src={imgProductHero} alt={product.name} />
+        </div>
       </div>
 
       <section className="product_summary" aria-label="상품 요약">
-        <p className="product_breadcrumb">
-          {product.breadcrumb} <img className="product_verified_icon" src={verifiedIcon} alt="" />{" "}
-          <span className="product_rating" aria-label={`평점 ${product.rating.toFixed(1)}점`}>
-            <span className="product_rating_track">★★★★★</span>
-            <span className="product_rating_fill" style={{ width: ratingWidth }}>
-              ★★★★★
-            </span>
-            <span className="product_rating_value">{product.rating.toFixed(1)}</span>
-          </span>
-        </p>
-        <h1 className="product_title">{product.name}</h1>
+        <div className="product_summary_top">
+          <div className="product_summary_main">
+            <p className="product_breadcrumb">
+              {breadcrumbItems.map((item, index) => (
+                <span className="product_breadcrumb_item" key={`${item}-${index}`}>
+                  {index > 0 ? <img src={iconCaretRight} alt="" aria-hidden="true" /> : null}
+                  <span>{item}</span>
+                </span>
+              ))}
+            </p>
+            <h1 className="product_title">{product.name}</h1>
+            <div className="product_rating" aria-label={`평점 ${product.rating.toFixed(1)}점, 리뷰 ${reviewCount}개`}>
+              <span className="product_rating_stars" aria-hidden="true">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <img key={index} src={iconStar} alt="" />
+                ))}
+              </span>
+              <span className="product_rating_value">{product.rating.toFixed(1)}</span>
+              <span className="product_rating_count">({reviewCount})</span>
+              <span className="product_rating_track" aria-hidden="true">
+                ★★★★★
+              </span>
+              <span className="product_rating_fill" style={{ width: ratingWidth }} aria-hidden="true">
+                ★★★★★
+              </span>
+            </div>
+          </div>
+          <button type="button" className="product_bookmark_button" aria-label="상품 저장">
+            <img src={iconBookmark} alt="" aria-hidden="true" />
+          </button>
+        </div>
         <p className="product_price_row">
-          <span>판매가</span>
+          <span>판매정가</span>
           <strong>{product.price}</strong>
         </p>
       </section>
 
       <nav className="product_tabs" aria-label="상세 탭">
-        {tabItems.map((item) => (
-          <button key={item} type="button" className={activeTab === item ? "is_active" : ""} onClick={() => setActiveTab(item)}>
-            {item}
-          </button>
-        ))}
+        <div className="product_tabs_inner">
+          {tabItems.map((item) => (
+            <button key={item} type="button" className={activeTab === item ? "is_active" : ""} onClick={() => setActiveTab(item)}>
+              {item}
+            </button>
+          ))}
+        </div>
       </nav>
 
-      {activeTab === "상품정보" ? (
+      {activeTab === "술정보" ? (
         <>
           <section className="product_card product_basic_info" aria-label="기본 정보">
-            <h2>기본 정보</h2>
+            <h2>기본정보</h2>
             <dl>
               {product.basicInfo.map((row) => (
                 <div key={row.label}>
-                  <dt>{row.label} :</dt>
+                  <dt>{row.label}</dt>
                   <dd>{row.value}</dd>
                 </div>
               ))}
@@ -95,9 +132,16 @@ export default function ProductDetail() {
             <div className="product_taste_rows">
               {product.tasteNotes.map((note) => (
                 <div className="product_taste_row" key={note.label}>
-                  <strong>{note.label}</strong>
-                  <span>{note.subValue}</span>
-                  <p>{note.value}</p>
+                  <span className="product_taste_icon" aria-hidden="true">
+                    <img src={tasteIconByLabel[note.label] ?? iconTasteTaste} alt="" />
+                  </span>
+                  <span className="product_taste_name">
+                    <strong>{note.label}</strong>
+                    <small>{note.subValue}</small>
+                  </span>
+                  <span className="product_taste_description">
+                    <p>{note.value}</p>
+                  </span>
                 </div>
               ))}
             </div>
@@ -114,24 +158,27 @@ export default function ProductDetail() {
 
           <section className="product_purchase" aria-label="온라인 구매처">
             <div className="product_purchase_title_row">
-              <h2>온라인구매처</h2>
-              <span>75,900원~</span>
+              <h2>온라인 구매처</h2>
+              <span>최저가 {bestOnlinePrice}~</span>
             </div>
             <div className="purchase_cards">
               {product.onlineShops.map((shop, index) => (
                 <button className="purchase_card" type="button" key={shop.id} onClick={() => setPendingPurchaseShopName(shop.name)}>
-                  <span className="purchase_rank">{index + 1}</span>
-                  <span className="purchase_thumb" aria-hidden="true" />
+                  <span className="purchase_thumb">
+                    <img src={purchaseThumbs[index] ?? purchaseThumbs[0]} alt="" aria-hidden="true" />
+                  </span>
                   <span className="purchase_text">
-                    <strong>{shop.name}</strong>
-                    <small>{shop.delivery}</small>
+                    <strong>
+                      <span className="purchase_shop_name">{shop.name}</span>
+                      <span className="purchase_product_name">{shop.productName ?? product.name}</span>
+                    </strong>
+                    <small>{product.price}</small>
+                    <span>
+                      <b>{purchaseDiscounts[index] ?? purchaseDiscounts[0]}</b> {shop.price}
+                    </span>
+                    <em>{shop.delivery}</em>
                   </span>
-                  <span className="purchase_price">{shop.price}</span>
-                  <span className="purchase_badge">
-                    주문하러
-                    <br />
-                    가기
-                  </span>
+                  <img className="purchase_arrow" src={iconCaretRight} alt="" aria-hidden="true" />
                 </button>
               ))}
             </div>
@@ -140,8 +187,12 @@ export default function ProductDetail() {
           <section className="product_offline" aria-label="오프라인 구매처">
             <h2>오프라인 구매처</h2>
             <div className="offline_empty">
-              <div className="offline_mascot" aria-hidden="true" />
-              <p>현재 주문할 수 있는 곳을 찾지 못했어요</p>
+              <p>
+                현재 주변에
+                <br />
+                <strong>살만한 곳을 찾지 못했어요</strong>
+              </p>
+              <img src={imgOfflineEmptyCharacter} alt="" aria-hidden="true" />
             </div>
           </section>
         </>
@@ -180,9 +231,10 @@ export default function ProductDetail() {
           onConfirm={() => setIsPreparingModalOpen(false)}
         />
       ) : null}
+
+      <button className="product_scroll_top" type="button" aria-label="맨 위로 이동" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+        ↑
+      </button>
     </section>
   )
 }
-
-
-
