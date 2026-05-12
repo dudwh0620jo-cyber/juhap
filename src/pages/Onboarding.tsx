@@ -7,6 +7,7 @@ import "../styles/onboarding.css"
 export default function Onboarding() {
   const navigate = useNavigate()
   const [activeIndex, setActiveIndex] = useState(0)
+  const [shouldSlideInFooter, setShouldSlideInFooter] = useState(false)
   const pointerStartX = useRef<number | null>(null)
   const isStart = activeIndex === 0
 
@@ -15,6 +16,11 @@ export default function Onboarding() {
   }
 
   function goNextSlide() {
+    if (activeIndex === 0) {
+      setShouldSlideInFooter(true)
+      window.setTimeout(() => setShouldSlideInFooter(false), 380)
+    }
+
     setActiveIndex((current) => {
       if (current >= onboardingInfoSlides.length) return current
       return current + 1
@@ -93,7 +99,7 @@ export default function Onboarding() {
         </div>
 
         {!isStart && (
-          <div className="onboarding_footer">
+          <div className={shouldSlideInFooter ? "onboarding_footer is_first_enter" : "onboarding_footer"}>
             <div className="onboarding_dots" aria-label="온보딩 페이지">
               {onboardingInfoSlides.map((_, index) => (
                 <button

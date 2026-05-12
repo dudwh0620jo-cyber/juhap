@@ -1,4 +1,7 @@
-import { useState } from "react"
+﻿import { useEffect, useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router"
+import AlertModal from "../components/AlertModal"
+import ProfileSummaryCard from "../components/ProfileSummaryCard"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import {
   MAX_MULTI_SELECTIONS,
@@ -11,57 +14,29 @@ import {
   updateUserTastePreferences,
   type UserTastePreferences,
 } from "../data/userProfile"
-import { COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
-import { useStoredNumberSet } from "../utils/storage"
-import { defaultFollowedUserIdsMock } from "../utils/usersMock"
+import {
+  EXCHANGE_VISIBLE_LIMIT,
+  TASTE_SHEET_CLOSE_MS,
+  activityStats,
+  discountItems,
+  exchangeTabs,
+  experienceItems,
+  myPagePointsSummary,
+  myPageProfileSummary,
+  pointMissions,
+  tasteBars,
+  type ExchangeItem,
+} from "../data/myPageContent"
+import { bookmarkLists } from "../data/communityFilterConfig"
+import { extractPairingTitle, feedPosts, getPairingSummaryText, type FeedPost } from "../utils/communityPosts"
+import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
+import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
+import { currentUserMock, defaultFollowedUserIdsMock, usersMockById } from "../utils/usersMock"
+import { resolveMyUserAvatar, resolveUserAvatar } from "../utils/userAvatars"
+import "../styles/community.css"
 import "../styles/my.css"
 
-type ExchangeItem = {
-  icon: string
-  title: string
-  description: string
-  tags: string[]
-  point: string
-}
-
-const activityStats = [
-  { value: 47, label: "기록" },
-  { value: 23, label: "투표 참여" },
-  { value: 8, label: "후기 작성" },
-  { value: 14, label: "저장" },
-]
-
-const tasteBars = [
-  { label: "바디", value: 35, level: "가벼움", className: "body" },
-  { label: "쓴맛", value: 75, level: "강함", className: "bitter" },
-  { label: "단맛", value: 30, level: "약함", className: "sweet" },
-  { label: "탄산", value: 60, level: "중간", className: "sparkle" },
-]
-
-const exchangeTabs = ["전체", "할인권", "프리미엄", "체험권", "광고 상점"] as const
 type ExchangeTab = (typeof exchangeTabs)[number]
-
-const discountItems: ExchangeItem[] = [
-  { icon: "🏪", title: "편의점 주류 500원 할인", description: "GS25 · CU · 세븐일레븐 적용", tags: ["즉시 사용", "편의점"], point: "500P" },
-  { icon: "🛒", title: "마트 주류 1,000원 할인", description: "이마트 · 홈플러스 · 롯데마트", tags: ["7일 유효", "마트"], point: "800P" },
-  { icon: "🍸", title: "파트너 바 10% 할인", description: "전국 파트너 바 30곳 적용", tags: ["14일 유효", "바·펍"], point: "1,200P" },
-  { icon: "🍷", title: "와인 전문점 15% 할인", description: "와인앤모어 · 보틀벙커", tags: ["30일 유효", "와인샵"], point: "2,000P" },
-]
-
-const experienceItems: ExchangeItem[] = [
-  { icon: "🎓", title: "주류 클래스 추첨권", description: "파트너 소믈리에 온라인 클래스", tags: ["추첨", "월 1회"], point: "500P" },
-  { icon: "🥂", title: "파트너 바 시음 체험권", description: "3종 페어링 시음 코스", tags: ["예약 필요", "오프라인"], point: "3000P" },
-]
-
-const pointMissions = [
-  { title: "기록 저장", reward: "+50P", action: "기록 둘러보기" },
-  { title: "투표 참여", reward: "+20P", action: "투표 참여하기" },
-  { title: "후기 작성", reward: "+50P", action: "후기 작성하기" },
-  { title: "광고 시청", reward: "+50P", action: "광고 보기" },
-]
-
-const TASTE_SHEET_CLOSE_MS = 220
-const EXCHANGE_VISIBLE_LIMIT = 5
 
 function normalizeTastePreferences(tastePreferences: UserTastePreferences) {
   return preferenceGroups.reduce<UserTastePreferences>((nextPreferences, group) => {
@@ -84,28 +59,8 @@ function normalizeTastePreferences(tastePreferences: UserTastePreferences) {
 
 const hiddenTagOptions = new Set(["기타", NONE_OPTION])
 
-const displayTagByOption: Record<string, string> = {
-  "가볍게 마시고 싶어요": "#가볍게",
-  "음식과 잘 맞는 술을 원해요": "#페어링 중요",
-  "실패 없는 무난한 술이 좋아요": "#무난한",
-  "새로운 술을 도전해보고 싶어요": "#새로운",
-  "선물/모임용 술이 필요해요": "#선물/모임",
-  편의점: "#편의점 구매",
-  대형마트: "#대형마트 구매",
-  "와인샵/바틀샵": "#와인샵/바틀샵 구매",
-  "술집/이자카야": "#술집/이자카야 구매",
-  "온라인/구독": "#온라인/ 구독 구매",
-}
-
-const quietTagByOption: Record<string, string> = {
-  "고도수는 싫어요": "기피 #고도수",
-  "너무 단 건 싫어요": "기피 #단 술",
-  "향이 강한 건 싫어요": "기피 #향이 강한 술",
-  "너무 비싼 건 싫어요": "기피 #비싼 술",
-}
-
 function toTagLabel(option: string) {
-  return displayTagByOption[option] ?? `#${option.replace(/\s+/g, "")}`
+  return `#${option.replace(/\s+/g, "")}`
 }
 
 function getTasteTags(tastePreferences: UserTastePreferences) {
@@ -116,12 +71,25 @@ function getTasteTags(tastePreferences: UserTastePreferences) {
 
   const quietTags = (tastePreferences.avoid ?? [])
     .filter((option) => option && !hiddenTagOptions.has(option))
-    .map((option) => quietTagByOption[option] ?? `기피 ${toTagLabel(option)}`)
+    .map((option) => `기피 ${toTagLabel(option)}`)
 
   return {
     activeTags: activeTags.length > 0 ? activeTags : ["#취향미설정"],
     quietTags,
   }
+}
+
+function getTasteSummary(tastePreferences: UserTastePreferences) {
+  const drinkType = (tastePreferences.drinkType ?? []).find((value) => value && !hiddenTagOptions.has(value)) ?? "주류"
+  const traits = (tastePreferences.trait ?? []).filter((value) => value && !hiddenTagOptions.has(value))
+  const situations = (tastePreferences.situation ?? []).filter((value) => value && !hiddenTagOptions.has(value))
+
+  const traitLine = traits.length > 0 ? traits.join(" · ") : "취향 미설정"
+  const situationLine = situations[0] ?? "상황 미설정"
+  const summaryTitle = `${drinkType} · ${traitLine}`
+  const summaryDescription = `${situationLine} 기준으로 추천을 받고 있어요.`
+
+  return { summaryTitle, summaryDescription }
 }
 
 function ExchangeItemCard({ item }: { item: ExchangeItem }) {
@@ -148,13 +116,17 @@ function ExchangeItemCard({ item }: { item: ExchangeItem }) {
 }
 
 export default function MyPage() {
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const profile = readUserProfile()
+  const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
   const [isTasteOpen, setIsTasteOpen] = useState(false)
   const [isTasteEditorOpen, setIsTasteEditorOpen] = useState(false)
   const [isTasteEditorClosing, setIsTasteEditorClosing] = useState(false)
   const [isPointExchangeOpen, setIsPointExchangeOpen] = useState(false)
   const [activeExchangeTab, setActiveExchangeTab] = useState<ExchangeTab>("전체")
   const [isExperienceExpanded, setIsExperienceExpanded] = useState(false)
+  const myAvatarSrc = resolveMyUserAvatar()
   const [selectedByGroup, setSelectedByGroup] = useState<UserTastePreferences>(() =>
     normalizeTastePreferences(profile.tastePreferences),
   )
@@ -163,8 +135,83 @@ export default function MyPage() {
   )
   const [warningByGroup, setWarningByGroup] = useState<Record<string, string>>({})
   const { value: followedUserIds } = useStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, defaultFollowedUserIdsMock)
+  const { value: bookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
+  const [userPosts, setUserPosts] = useState<FeedPost[]>([])
+  const bookmarkSavedCount = Object.values(bookmarkListById).filter(Boolean).length
+  const savedActivityLabel = activityStats[activityStats.length - 1]?.label
   const nickname = profile.personalInfo.nickname.trim() || "이름"
   const { activeTags, quietTags } = getTasteTags(savedTastePreferences)
+  const { summaryTitle, summaryDescription } = getTasteSummary(savedTastePreferences)
+  const bookmarkListLabelById = useMemo(
+    () => Object.fromEntries(bookmarkLists.map((item) => [item.id, item.label])) as Record<string, string>,
+    [],
+  )
+  const isSavedListOpen = searchParams.get("view") === "saved"
+
+  const bookmarkedPosts = useMemo(() => {
+    const combinedPosts = [...userPosts, ...feedPosts]
+    const postById = new Map<number, FeedPost>()
+
+    combinedPosts.forEach((post) => {
+      if (typeof post.id === "number" && Number.isFinite(post.id) && !postById.has(post.id)) {
+        postById.set(post.id, post)
+      }
+    })
+
+    return Object.entries(bookmarkListById)
+      .map(([postId, listId]) => {
+        if (!listId) return null
+        const post = postById.get(Number(postId))
+        if (!post) return null
+        return { post, listId }
+      })
+      .filter((item): item is { post: FeedPost; listId: string } => Boolean(item))
+      .sort((left, right) => new Date(right.post.createdAt).getTime() - new Date(left.post.createdAt).getTime())
+  }, [bookmarkListById, userPosts, bookmarkListLabelById])
+
+  useEffect(() => {
+    const handleGoHome = () => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete("view")
+        return next
+      })
+      setIsPointExchangeOpen(false)
+    }
+
+    window.addEventListener("my:go-home", handleGoHome)
+    return () => window.removeEventListener("my:go-home", handleGoHome)
+  }, [setSearchParams])
+
+  const openSavedList = () =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set("view", "saved")
+      return next
+    })
+
+  const closeSavedList = () =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete("view")
+      return next
+    })
+
+  useEffect(() => {
+    const readStoredUserPosts = () => {
+      try {
+        const raw = window.localStorage.getItem("community_user_posts")
+        const parsed = raw ? JSON.parse(raw) : []
+        setUserPosts(Array.isArray(parsed) ? (parsed as FeedPost[]) : [])
+      } catch {
+        setUserPosts([])
+      }
+    }
+
+    readStoredUserPosts()
+    window.addEventListener("community:user-posts-updated", readStoredUserPosts)
+    return () => window.removeEventListener("community:user-posts-updated", readStoredUserPosts)
+  }, [])
 
   function openTasteEditor() {
     setIsTasteEditorClosing(false)
@@ -215,7 +262,7 @@ export default function MyPage() {
     const nextWarnings: Record<string, string> = {}
     preferenceGroups.forEach((group) => {
       if ((selectedByGroup[group.key] ?? []).length === 0) {
-        nextWarnings[group.key] = "항목을 선택해 주세요."
+        nextWarnings[group.key] = "??ぉ???좏깮??二쇱꽭??"
       }
     })
 
@@ -234,10 +281,74 @@ export default function MyPage() {
     setIsExperienceExpanded(false)
   }
 
+  if (isSavedListOpen) {
+    return (
+      <section className="my_exchange_page my_saved_page" aria-label="저장한 리스트">
+        <header className="my_exchange_header">
+          <button
+            type="button"
+            className="my_exchange_back"
+            aria-label="마이페이지로 돌아가기"
+            onClick={closeSavedList}
+          />
+          <h1>저장한 리스트</h1>
+          <div />
+        </header>
+
+        {bookmarkedPosts.length > 0 ? (
+          <div className="my_saved_list">
+            {bookmarkedPosts.map(({ post, listId }) => {
+              const authorId = typeof post.authorId === "number" ? post.authorId : currentUserMock.id
+              const authorName = post.authorName?.trim() || usersMockById[authorId]?.name || "익명"
+              const title = post.isQna ? post.title : post.pairingSummary?.trim() || extractPairingTitle(post.title)
+              const description = post.locationLabel?.trim() || getPairingSummaryText(post)
+
+              return (
+                <ProfileSummaryCard
+                  key={`${post.id}-${listId}`}
+                  avatarSrc={authorId === currentUserMock.id ? resolveMyUserAvatar() : resolveUserAvatar(authorId)}
+                  title={title}
+                  accentText={authorName}
+                  description={description}
+                  stats={[
+                    { value: bookmarkListLabelById[listId] ?? listId, label: "리스트" },
+                    { value: String(post.commentCount ?? 0), label: "댓글" },
+                  ]}
+                  onClick={() =>
+                    navigate(`/community/pairing/${post.id}`, {
+                      state: {
+                        pairingTitle: extractPairingTitle(post.title),
+                        pairingSummary: post.pairingSummary ?? "",
+                        body: post.body,
+                        authorId,
+                        authorName,
+                        profile: usersMockById[authorId]?.profile ?? "",
+                        locationLabel: post.locationLabel ?? "",
+                        drinkType: post.drinkType ?? "",
+                        foods: post.foods,
+                        features: post.features ?? [],
+                        source: post.isQna ? "free" : "feed",
+                        feedFilter: post.isQna ? "free" : "review",
+                      },
+                    })
+                  }
+                />
+              )
+            })}
+          </div>
+        ) : (
+          <div className="my_saved_empty" role="status">
+            저장한 게시글이 아직 없어요.
+          </div>
+        )}
+      </section>
+    )
+  }
+
   if (isPointExchangeOpen) {
     const showDiscount = activeExchangeTab === "전체" || activeExchangeTab === "할인권"
     const showExperience = activeExchangeTab === "전체" || activeExchangeTab === "체험권"
-    const showPreparing = activeExchangeTab === "프리미엄" || activeExchangeTab === "광고 상점"
+    const showPreparing = activeExchangeTab === "프리미엄" || activeExchangeTab === "광고 적립"
     const isAllExchangeTab = activeExchangeTab === "전체"
     const totalExchangeItemCount = discountItems.length + experienceItems.length
     const canExpandExchange = isAllExchangeTab
@@ -254,10 +365,24 @@ export default function MyPage() {
     return (
       <section className="my_exchange_page" aria-label="포인트 교환소">
         <header className="my_exchange_header">
-          <button type="button" className="my_exchange_back" aria-label="마이페이지로 돌아가기" onClick={() => setIsPointExchangeOpen(false)} />
+          <button
+            type="button"
+            className="my_exchange_back"
+            aria-label="마이페이지로 돌아가기"
+            onClick={() => setIsPointExchangeOpen(false)}
+          />
           <h1>포인트 교환소</h1>
           <button type="button" className="my_exchange_history">포인트내역</button>
         </header>
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          title={"아직 준비 중인 서비스입니다.\n곧 만나보실 수 있어요!"}
+          confirmLabel="닫기"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
 
         <section className="my_exchange_balance" aria-label="보유 포인트">
           <div>
@@ -301,7 +426,6 @@ export default function MyPage() {
                 ))}
                 {canExpandExchange && !isExperienceExpanded ? (
                   <button type="button" className="my_exchange_more_button" onClick={() => setIsExperienceExpanded(true)}>
-                    더보기
                   </button>
                 ) : null}
               </div>
@@ -310,7 +434,7 @@ export default function MyPage() {
 
           {showPreparing ? (
             <section className="my_exchange_empty" aria-label={`${activeExchangeTab} 준비중`}>
-              <p>상품을 준비하고 있어요</p>
+              <p>상품을 준비하고 있어요.</p>
             </section>
           ) : null}
         </div>
@@ -334,23 +458,33 @@ export default function MyPage() {
   return (
     <section className="my_page" aria-label="마이페이지">
       <header className="my_profile_header">
-        <div className="my_profile_avatar" aria-hidden="true" />
+        <div className="my_profile_avatar" aria-hidden="true">
+          {myAvatarSrc ? <img className="my_profile_avatar_image" src={myAvatarSrc} alt="" aria-hidden="true" /> : null}
+        </div>
 
         <div className="my_profile_identity">
           <h1>{nickname}</h1>
           <div className="my_grade_line">
-            <span className="user_grade_badge is_tier3">큐레이터</span>
+            <span className="user_grade_badge is_tier3">{myPageProfileSummary.gradeLabel}</span>
           </div>
         </div>
 
         <div className="my_social_summary" aria-label="팔로우 정보">
-          <strong>팔로워 74</strong>
+          <strong>팔로워 {myPageProfileSummary.followerCount}</strong>
           <span>/</span>
           <strong>팔로잉 {followedUserIds.size}</strong>
         </div>
 
-        <button type="button" className="my_edit_button">수정</button>
+        <button type="button" className="my_edit_button" onClick={() => setIsProfileEditPreparingOpen(true)}>수정</button>
       </header>
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          message="준비중이에요"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
 
       <div className="my_page_body">
         <section className="my_activity_section" aria-labelledby="my-activity-title">
@@ -358,27 +492,42 @@ export default function MyPage() {
           <div className="my_activity_grid">
             {activityStats.map((stat) => (
               <article className="my_activity_card" key={stat.label}>
-                <strong>{stat.value}</strong>
+                <strong>{stat.label === savedActivityLabel ? bookmarkSavedCount : stat.value}</strong>
                 <span>{stat.label}</span>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="my_taste_summary" aria-label="취향 요약">
-          <span className="my_taste_drop" aria-hidden="true">💧</span>
+        <section
+          className="my_taste_summary"
+          aria-label="취향 요약"
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsTasteOpen((current) => !current)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              setIsTasteOpen((current) => !current)
+            }
+          }}
+        >
+          <span className="my_taste_drop" aria-hidden="true">🍶</span>
           <p>
-            <strong>쓴맛 중심·라이트 바디</strong> 선호, <strong>혼술 多</strong>, 과일향 좋아함.
+            <strong>{summaryTitle}</strong>
             <br />
-            <span>"빠르게 결정하는 가성비 탐험가 스타일이에요."</span>
+            <span>{summaryDescription}</span>
           </p>
           <button
             type="button"
             className={isTasteOpen ? "my_taste_toggle is_open" : "my_taste_toggle"}
-            aria-label={isTasteOpen ? "내 취향 프로필 접기" : "내 취향 프로필 펼치기"}
+            aria-label={isTasteOpen ? "내 취향 프로필 닫기" : "내 취향 프로필 펼치기"}
             aria-expanded={isTasteOpen}
             aria-controls="my-taste-profile"
-            onClick={() => setIsTasteOpen((current) => !current)}
+            onClick={(event) => {
+              event.stopPropagation()
+              setIsTasteOpen((current) => !current)
+            }}
           />
         </section>
 
@@ -418,19 +567,37 @@ export default function MyPage() {
 
               <p className="my_ai_note">
                 <span>AI 분석</span>
-                "빠르게 결정하는 스타일이에요. 가성비 중심으로 새로운 걸 자주 시도해요."
+                "빠르게 결정하는 스타일이에요. 가성비 중시로 새로운 경험도 자주 시도해요."
               </p>
             </div>
           </section>
         )}
 
         {isTasteEditorOpen ? (
-          <div className={isTasteEditorClosing ? "my_taste_sheet_overlay is_closing" : "my_taste_sheet_overlay"} role="presentation" onClick={closeTasteEditor}>
-            <section className="my_taste_sheet" role="dialog" aria-modal="true" aria-label="취향 수정" onClick={(event) => event.stopPropagation()}>
+          <div
+            className={isTasteEditorClosing ? "my_taste_sheet_overlay is_closing" : "my_taste_sheet_overlay"}
+            role="presentation"
+            onClick={closeTasteEditor}
+          >
+            <section
+              className="my_taste_sheet"
+              role="dialog"
+              aria-modal="true"
+              aria-label="취향 수정"
+              onClick={(event) => event.stopPropagation()}
+            >
               <header className="my_taste_sheet_header">
                 <h2>취향 수정</h2>
                 <button type="button" aria-label="닫기" onClick={closeTasteEditor} />
               </header>
+
+      {isProfileEditPreparingOpen ? (
+        <AlertModal
+          message="준비중이에요"
+          variant="preparing"
+          onConfirm={() => setIsProfileEditPreparingOpen(false)}
+        />
+      ) : null}
 
               <div className="my_taste_sheet_groups">
                 {preferenceGroups.map((group) => (
@@ -457,7 +624,7 @@ export default function MyPage() {
 
           <div className="my_point_card">
             <span>보유 포인트</span>
-            <strong>2,840 P</strong>
+            <strong>{myPagePointsSummary.balance.toLocaleString("ko-KR")} P</strong>
             <div className="my_point_progress" aria-hidden="true">
               <span />
               <span />
@@ -466,22 +633,26 @@ export default function MyPage() {
               <span className="is_empty" />
             </div>
             <p>
-              파트너 바 시음 체험권까지 <strong>160P</strong> 남았어요
+              {myPagePointsSummary.nextRewardLabel}까지 <strong>{myPagePointsSummary.remainingToNextReward}P</strong> 남아있어요.
             </p>
           </div>
         </section>
 
         <nav className="my_setting_list" aria-label="마이페이지 설정">
+          <button type="button" className="my_saved_menu_button" onClick={openSavedList}>
+            <span>저장한 리스트</span>
+            <small>북마크한 게시글 모아보기</small>
+          </button>
           <a href="/coupon">
-            <span>쿠폰 보관함</span>
-            <small>보유한 쿠폰 확인 · 사용</small>
+            <span>쿠폰 보기</span>
+            <small>보유 중인 쿠폰 확인 및 사용</small>
           </a>
           <a href="/profile-setup">
             <span>계정 / 보안 설정</span>
-            <small>프로필 편집 · 인증 · 탈퇴</small>
+            <small>프로필 편집 및 인증, 알림</small>
           </a>
           <a href="/home">
-            <span>도움말 & 문의</span>
+            <span>공지사항 & 문의</span>
             <small>고객 지원 센터</small>
           </a>
         </nav>
@@ -489,3 +660,5 @@ export default function MyPage() {
     </section>
   )
 }
+
+

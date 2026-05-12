@@ -6,10 +6,10 @@ import iconCaretLeft from "../assets/svg/caretleft.svg"
 import "../styles/community.css"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
-import { extractPairingTitle, feedPosts, getPairingTagsFromTitle } from "../utils/communityPosts"
-import { usersMockById } from "../utils/usersMock"
+import { extractPairingTitle, feedPosts, matchesCommunityTag, type CommunityTagType } from "../utils/communityPosts"
+import { currentUserMock, usersMockById } from "../utils/usersMock"
 
-type TagType = "liquor" | "food"
+type TagType = CommunityTagType
 
 type NavState = {
   tagType: TagType
@@ -29,16 +29,10 @@ export default function PairingTagList() {
 
   const filtered = useMemo(() => {
     if (!tagType || !tagValue) return []
-    const normalizedTag = tagValue.replace(/\s+/g, "").toLowerCase()
 
     return feedPosts.filter((post) => {
       if (post.isQna) return false
-      const pairingTitle = extractPairingTitle(post.title)
-      const tags = getPairingTagsFromTitle(pairingTitle)
-      const liquor = (tags.liquorTag ?? "").replace(/\s+/g, "").toLowerCase()
-      const food = (tags.foodTag ?? "").replace(/\s+/g, "").toLowerCase()
-      if (tagType === "liquor") return liquor === normalizedTag || liquor.includes(normalizedTag)
-      return food === normalizedTag || food.includes(normalizedTag)
+      return matchesCommunityTag(post, tagType, tagValue)
     })
   }, [tagType, tagValue])
 
@@ -63,8 +57,8 @@ export default function PairingTagList() {
             <RelatedContentPostCard
               key={item.id}
               postId={item.id}
-              showImages={item.authorId === 2001 ? Boolean(item.photoIds?.length) : true}
-              imageCount={item.authorId === 2001 ? Math.min(3, item.photoIds?.length ?? 0) : 2}
+              showImages={item.authorId === currentUserMock.id ? Boolean(item.photoIds?.length) : true}
+              imageCount={item.authorId === currentUserMock.id ? Math.min(3, item.photoIds?.length ?? 0) : 2}
               authorName={usersMockById[item.authorId]?.name ?? "익명"}
               profile={usersMockById[item.authorId]?.profile ?? ""}
               badgeClassName={getTierClassName(getPairingTierByUserId(item.authorId), "feed_post_badge")}

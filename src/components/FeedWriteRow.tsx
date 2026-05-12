@@ -1,4 +1,4 @@
-﻿import iconPencil from "../assets/svg/pencil.svg"
+import iconPencil from "../assets/svg/pencilsimple_p.svg"
 
 type Props = {
   ariaLabel: string
@@ -15,7 +15,7 @@ export default function FeedWriteRow({ ariaLabel, onClickReview, onClickFree }: 
         <div className="feed_write_split">
           <button type="button" className="feed_write_button" onClick={onClickReview}>
             <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
-            <span className="feed_write_label">후기 글쓰기</span>
+            <span className="feed_write_label">페어링 후기 글쓰기</span>
           </button>
           <button type="button" className="feed_write_button" onClick={onClickFree}>
             <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
@@ -25,7 +25,7 @@ export default function FeedWriteRow({ ariaLabel, onClickReview, onClickFree }: 
       ) : (
         <button type="button" className="feed_write_button" onClick={onClickReview ?? onClickFree}>
           <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
-          <span className="feed_write_label">글쓰기</span>
+          <span className="feed_write_label">페어링 후기 글쓰기</span>
         </button>
       )}
     </div>

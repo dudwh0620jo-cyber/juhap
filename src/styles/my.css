@@ -1,10 +1,9 @@
 .my_page {
   min-height: 100vh;
+  padding-top: 68px;
   padding-bottom: 120px;
-  background:
-    radial-gradient(circle at 50% 14%, rgba(112, 59, 38, 0.3), transparent 34%),
-    linear-gradient(180deg, #1b0710 0%, #17050c 54%, #12040a 100%);
-  color: #efe7d6;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
 }
 
 .my_profile_header {
@@ -17,9 +16,9 @@
   gap: 7px 16px;
   min-height: 142px;
   padding: 18px 20px;
-  background: #d9ceb9;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.75);
-  color: #050505;
+  background: var(--color-point-03-soft);
+  border-bottom: 2px dotted var(--color-point-02);
+  color: var(--color-text-primary);
 }
 
 .my_profile_avatar {
@@ -27,7 +26,15 @@
   width: 82px;
   height: 82px;
   border-radius: 24px;
-  background: #ffffff;
+  background: var(--color-bg-white);
+  overflow: hidden;
+}
+
+.my_profile_avatar_image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .my_profile_identity {
@@ -57,15 +64,22 @@
   padding: 0 7px;
   border-radius: 999px;
   background: #e8e8e8;
-  color: #222;
-  font-size: 10px;
+  color: var(--color-grade);
   font-weight: 600;
-  line-height: 18px;
   white-space: nowrap;
 }
 
-.user_grade_badge.is_tier3 {
-  background: #d9c7a2;
+.my_grade_line .user_grade_badge {
+  font-size: 10px;
+  line-height: 18px;
+}
+
+.user_grade_badge.is_tier1,
+.user_grade_badge.is_tier2,
+.user_grade_badge.is_tier3,
+.user_grade_badge.is_tier4,
+.user_grade_badge.is_tier5 {
+  background: transparent;
 }
 
 .my_social_summary {
@@ -109,11 +123,25 @@
 .my_activity_section h2,
 .my_section_header h2 {
   margin: 0;
-  color: #f4ead8;
+  color: var(--color-text-primary);
   font-family: var(--font-title);
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 0;
+}
+
+.my_saved_list {
+  display: grid;
+  gap: 12px;
+}
+
+.my_saved_empty {
+  padding: 18px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  color: var(--color-gray-06);
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .my_activity_grid {
@@ -129,12 +157,11 @@
   min-height: 78px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  background: linear-gradient(145deg, rgba(66, 53, 60, 0.88), rgba(43, 30, 38, 0.94));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .my_activity_card strong {
-  color: #d0aa37;
+  color: var(--color-primary);
   font-family: var(--font-title);
   font-size: 24px;
   font-weight: 400;
@@ -142,7 +169,7 @@
 }
 
 .my_activity_card span {
-  color: rgba(239, 231, 214, 0.66);
+  color: var(--color-gray-06);
   font-size: 11px;
   font-weight: 500;
 }
@@ -154,10 +181,8 @@
   gap: 8px;
   margin-inline: -20px;
   padding: 16px 20px;
-  border: 1px solid rgba(140, 91, 25, 0.45);
+  border: 1px solid var(--color-primary);
   border-radius: 18px;
-  background: rgba(64, 34, 25, 0.92);
-  box-shadow: 0 0 0 1px rgba(87, 55, 24, 0.26);
 }
 
 .my_taste_drop {
@@ -167,19 +192,19 @@
 
 .my_taste_summary p {
   margin: 0;
-  color: #dfd2bf;
+  color: var(--color-gray-06);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.5;
 }
 
 .my_taste_summary strong {
-  color: #cfa738;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 .my_taste_summary span:not(.my_taste_drop) {
-  color: #efe3d1;
+  color: var(--color-gray-06);
 }
 
 .my_taste_toggle {
@@ -194,8 +219,7 @@
   content: "";
   position: absolute;
   inset: 4px;
-  background: url("../assets/svg/caretleft.svg") center / 22px 22px no-repeat;
-  filter: invert(1);
+  background: url("../assets/svg/arrowright_p.svg") center / 22px 22px no-repeat;
   transform: rotate(-90deg);
 }
 
@@ -216,8 +240,7 @@
   padding: 0 14px;
   border: 1px solid rgba(177, 111, 16, 0.75);
   border-radius: 999px;
-  background: rgba(72, 39, 19, 0.58);
-  color: #d19a24;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 600;
 }
@@ -225,7 +248,7 @@
 .my_link_button {
   border: 0;
   background: transparent;
-  color: rgba(239, 231, 214, 0.72);
+  color: var(--color-gray-06);
   padding-right: 0;
 }
 
@@ -235,16 +258,14 @@
   width: 16px;
   height: 16px;
   margin-left: 8px;
-  background: url("../assets/svg/caretleft.svg") center / 16px 16px no-repeat;
-  filter: invert(1);
-  opacity: 0.72;
-  transform: rotate(180deg);
+  background: url("../assets/svg/caretright.svg") center / 16px 16px no-repeat;
   vertical-align: -3px;
 }
 
 .my_taste_card,
 .my_point_card,
-.my_setting_list a {
+.my_setting_list a,
+.my_setting_list button {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 18px;
   background: linear-gradient(145deg, rgba(54, 42, 50, 0.96), rgba(34, 22, 30, 0.98));
@@ -617,7 +638,29 @@
   text-decoration: none;
 }
 
-.my_setting_list a::after {
+.my_setting_list button {
+  position: relative;
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  min-height: 78px;
+  padding: 19px 52px 17px;
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(54, 42, 50, 0.96), rgba(34, 22, 30, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  text-align: left;
+  color: #efe7d6;
+  cursor: pointer;
+}
+
+.my_saved_menu_button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.my_setting_list a::after,
+.my_setting_list button::after {
   content: "";
   position: absolute;
   right: 22px;
@@ -641,9 +684,14 @@
   font-weight: 500;
 }
 
+.my_saved_page {
+  display: grid;
+  gap: 18px;
+}
+
 .my_exchange_page {
   min-height: 100vh;
-  padding: 28px 20px 128px;
+  padding: 68px 20px 128px;
   background:
     radial-gradient(circle at 50% 12%, rgba(112, 59, 38, 0.3), transparent 35%),
     linear-gradient(180deg, #1b0710 0%, #17050c 54%, #12040a 100%);

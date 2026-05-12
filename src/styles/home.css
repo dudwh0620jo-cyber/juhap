@@ -95,12 +95,18 @@
 }
 
 .recommendation_row {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, calc(100% - 56px));
   gap: 16px;
   margin-top: 18px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: 2px;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x;
 }
 
 .recommendation_row::-webkit-scrollbar {
@@ -108,11 +114,11 @@
 }
 
 .recommendation_card {
-  flex: 0 0 280px;
   border-radius: 14px;
   overflow: hidden;
   background: #262626;
   color: #fff;
+  scroll-snap-align: start;
 }
 
 .recommendation_thumb {
@@ -528,6 +534,30 @@
   align-items: end;
 }
 
+.drink_card_row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, calc(100% - 56px));
+  gap: 16px;
+  margin-top: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x;
+}
+
+.drink_card_row::-webkit-scrollbar {
+  display: none;
+}
+
+.drink_card_row .drink_card {
+  margin-top: 0;
+  scroll-snap-align: start;
+}
+
 .drink_info h4 {
   margin: 0 0 14px;
   font-size: 24px;
@@ -647,10 +677,10 @@
   .recommendation_row {
     gap: 10px;
     margin-top: 10px;
+    grid-auto-columns: minmax(170px, calc(100% - 40px));
   }
 
   .recommendation_card {
-    flex-basis: 170px;
     border-radius: 10px;
   }
 
@@ -772,6 +802,12 @@
     margin-top: 10px;
     padding: 10px;
     grid-template-columns: 1fr 60px;
+  }
+
+  .drink_card_row {
+    margin-top: 10px;
+    gap: 10px;
+    grid-auto-columns: minmax(170px, calc(100% - 40px));
   }
 
   .drink_info h4 {

@@ -1,0 +1,101 @@
+[
+  {
+    "id": "sake-dassai-23",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "닷사이 23",
+    "subtitle": "Dassai 23 Junmai Daiginjo",
+    "priceWon": 200000,
+    "tags": ["사케", "과일향", "부드러운", "16도"],
+    "keywords": ["닷사이23", "닷사이", "dassai23", "준마이", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  },
+  {
+    "id": "sake-kubota-manju",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "쿠보타 만쥬",
+    "subtitle": "Kubota Manju Junmai Daiginjo",
+    "priceWon": 53800,
+    "tags": ["사케", "가벼운", "부드러운", "15도"],
+    "keywords": ["쿠보타", "만쥬", "kubota", "준마이", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  },
+  {
+    "id": "sake-kamoshibito-kuheiji",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "카모시비토 쿠헤이지",
+    "subtitle": "Kamoshibito Kuheiji",
+    "priceWon": 53400,
+    "tags": ["사케", "과일향", "가벼운", "16도"],
+    "keywords": ["쿠헤이지", "카모시비토", "kuheiji", "준마이", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  },
+  {
+    "id": "sake-hakkaisan-daiginjo",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "핫카이산 다이긴죠",
+    "subtitle": "Hakkaisan Daiginjo",
+    "priceWon": 29800,
+    "tags": ["사케", "톡쏘는", "가벼운", "17도"],
+    "keywords": ["핫카이산", "hakkaisan", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  },
+  {
+    "id": "sake-nabeshima-daiginjo",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "나베시마 다이긴죠",
+    "subtitle": "Nabeshima Daiginjo",
+    "priceWon": 68000,
+    "tags": ["사케", "부드러운", "과일향", "16도"],
+    "keywords": ["나베시마", "nabeshima", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  },
+  {
+    "id": "sake-denshu-junmai-daiginjo",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "덴슈 준마이 다이긴죠",
+    "subtitle": "Denshu Junmai Daiginjo",
+    "priceWon": 92000,
+    "tags": ["사케", "무거운", "톡쏘는", "16도"],
+    "keywords": ["덴슈", "denshu", "준마이", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  },
+  {
+    "id": "sake-juyondai-series",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "쥬욘다이 시리즈",
+    "subtitle": "Juyondai Series",
+    "priceWon": 130000,
+    "tags": ["사케", "과일향", "부드러운", "16도"],
+    "keywords": ["쥬욘다이", "juyondai", "프리미엄", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  },
+  {
+    "id": "sake-gekkeikan-horin",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "겟케이칸 호린",
+    "subtitle": "Gekkeikan Horin",
+    "priceWon": 45000,
+    "tags": ["사케", "가벼운", "부드러운", "15도"],
+    "keywords": ["겟케이칸", "horin", "준마이", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  },
+  {
+    "id": "sake-onnanakase",
+    "categoryId": "sake",
+    "subcategory": "준마이 다이긴죠 / 다이긴죠",
+    "name": "온나나카세",
+    "subtitle": "Onnanakase",
+    "priceWon": 56000,
+    "tags": ["사케", "과일향", "가벼운", "16도"],
+    "keywords": ["온나나카세", "onnanakase", "다이긴죠"],
+    "chat": { "notes": [], "tastingNotes": [], "awards": [], "pairingFoods": [], "tips": [] }
+  }
+]

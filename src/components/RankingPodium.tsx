@@ -42,6 +42,12 @@ export default function RankingPodium<CategoryKey extends string>({ podiumRankOr
                   : "podium_card podium_third"
             }
             to={`/community/pairing/${podium.id}`}
+            state={{
+              pairingTitle: podium.pair,
+              rating: podium.score,
+              voteCount,
+              source: "ranking",
+            }}
           >
             <span className="podium_rank">{podium.rank}</span>
             <div className="podium_thumbs" aria-hidden="true">

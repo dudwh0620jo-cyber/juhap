@@ -1,27 +1,29 @@
-﻿import { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
+import { motion } from "motion/react"
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router"
+import StatusBar from "./components/StatusBar"
+import AiScan from "./pages/AiScan"
 import Category from "./pages/Category"
 import CategoryList from "./pages/CategoryList"
 import Chat from "./pages/Chat"
 import Community from "./pages/Community"
-import CommunityRanking from "./pages/Ranking"
 import CommunityWrite from "./pages/CommunityWrite"
+import { readUserProfile } from "./data/userProfile"
 import Home from "./pages/Home"
 import Login from "./pages/Login"
 import MyPage from "./pages/MyPage"
 import Onboarding from "./pages/Onboarding"
-import ProductDetail from "./pages/ProductDetail"
-import Quiz from "./pages/Quiz"
 import PairingDetail from "./pages/PairingDetail"
-import ProfileSetup from "./pages/ProfileSetup"
-import VoteList from "./pages/VoteList"
-import AiScan from "./pages/AiScan"
 import PairingTagList from "./pages/PairingTagList"
+import ProductDetail from "./pages/ProductDetail"
+import ProfileSetup from "./pages/ProfileSetup"
+import Quiz from "./pages/Quiz"
+import CommunityRanking from "./pages/Ranking"
 import TasteSetup from "./pages/TasteSetup"
-import StatusBar from "./components/StatusBar"
+import VoteList from "./pages/VoteList"
 import "./styles/common.css"
 
-import iconchatscircle_w from "./assets/svg/chatscircle_w.svg"
+import chatMascotButton from "./assets/chat_mascot_btn.png"
 import iconCirclesFour from "./assets/svg/circlesfour.svg"
 import iconCirclesFourActive from "./assets/svg/circlesfour_active.svg"
 import iconHouse from "./assets/svg/house.svg"
@@ -60,10 +62,14 @@ const rightNavItems = [
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const { pathname } = useLocation()
+  const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
+  const isChatHidden = pathname.startsWith("/product/")
+  const isWritePage = pathname === "/community/write" || /^\/product\/[^/]+\/write$/.test(pathname)
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
+
   const isAuthPage =
     pathname === "/onboarding" ||
     pathname === "/login" ||
@@ -76,21 +82,35 @@ export default function App() {
     <main className="app_root">
       <div className="app_viewport">
         <StatusBar />
-        {!isAuthPage && (
-        <div className="chat_corner_slot">
-          <button
-            type="button"
-            className="chat_corner_fab"
-            aria-label="AI 챗봇 열기"
-            onClick={() => setIsChatOpen(true)}
-          >
-            <span className="chat_corner_icon" aria-hidden="true">
-              <img className="chat_corner_icon_img" src={iconchatscircle_w} alt="" />
-            </span>
-            <span className="chat_corner_label">AI챗봇</span>
-          </button>
-        </div>
-        )}
+
+        {!isAuthPage && !isWritePage ? (
+          <div className="chat_corner_slot">
+            <button
+              type="button"
+              className="chat_corner_fab"
+              aria-label="AI 챗봇 열기"
+              onClick={() => setIsChatOpen(true)}
+            >
+              <span className="chat_corner_icon" aria-hidden="true">
+                <motion.img
+                  className="chat_corner_icon_img"
+                  src={chatMascotButton}
+                  alt=""
+                  animate={{
+                    y: [0, -8, 0],
+                    rotate: [0, -1.5, 0, 1.5, 0],
+                    scale: [1, 1.015, 1],
+                  }}
+                  transition={{
+                    duration: 3.8,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut",
+                  }}
+                />
+              </span>
+            </button>
+          </div>
+        ) : null}
 
         <Routes>
           <Route path="/" element={<Navigate to="/onboarding" replace />} />
@@ -105,6 +125,7 @@ export default function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/community/ranking" element={<CommunityRanking />} />
           <Route path="/community/write" element={<CommunityWrite />} />
+          <Route path="/product/:id/write" element={<CommunityWrite />} />
           <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
           <Route path="/community/tag" element={<PairingTagList />} />
           <Route path="/my" element={<MyPage />} />
@@ -115,66 +136,69 @@ export default function App() {
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
 
-        {!isAuthPage && isChatOpen ? <Chat onClose={() => setIsChatOpen(false)} /> : null}
+        {!isAuthPage && isChatOpen ? (
+          <Chat onClose={() => setIsChatOpen(false)} userName={chatUserName} isHidden={isChatHidden} />
+        ) : null}
 
-        {!isAuthPage && (
-        <nav className="bottom_nav" aria-label="주요 메뉴">
-          {leftNavItems.map((item) => (
+        {!isAuthPage ? (
+          <nav className="bottom_nav" aria-label="주요 메뉴">
+            {leftNavItems.map((item) => (
+              <NavLink
+                className={({ isActive }) => (isActive ? "bottom_nav_item is_active" : "bottom_nav_item")}
+                key={item.path}
+                to={item.path}
+              >
+                {({ isActive }) => (
+                  <>
+                    <img className="bottom_nav_icon" src={isActive ? item.activeIcon : item.icon} alt={item.label} />
+                    <span className="bottom_nav_label">{item.label}</span>
+                  </>
+                )}
+              </NavLink>
+            ))}
+
             <NavLink
-              className={({ isActive }) =>
-                isActive ? "bottom_nav_item is_active" : "bottom_nav_item"
-              }
-              key={item.path}
-              to={item.path}
-            >
-              {({ isActive }) => (
-                <>
-                  <img className="bottom_nav_icon" src={isActive ? item.activeIcon : item.icon} alt={item.label} />
-                  <span className="bottom_nav_label">{item.label}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
-
-          <NavLink
-            className={() =>
-              isRankingActive ? "bottom_nav_item is_active" : "bottom_nav_item"
-            }
-            to={centerNavItem.path}
-          >
-            <img
-              className="bottom_nav_icon"
-              src={isRankingActive ? centerNavItem.activeIcon : centerNavItem.icon}
-              alt={centerNavItem.label}
-            />
-            <span className="bottom_nav_label">{centerNavItem.label}</span>
-          </NavLink>
-
-          {rightNavItems.map((item) => (
-            <NavLink
-              className={() => {
-                if (item.path === "/community") {
-                  return isCommunityActive ? "bottom_nav_item is_active" : "bottom_nav_item"
-                }
-                return pathname.startsWith(item.path) ? "bottom_nav_item is_active" : "bottom_nav_item"
-              }}
-              key={item.path}
-              to={item.path}
+              className={() => (isRankingActive ? "bottom_nav_item is_active" : "bottom_nav_item")}
+              to={centerNavItem.path}
             >
               <img
                 className="bottom_nav_icon"
-                src={
-                  (item.path === "/community" ? isCommunityActive : pathname.startsWith(item.path))
-                    ? item.activeIcon
-                    : item.icon
-                }
-                alt={item.label}
+                src={isRankingActive ? centerNavItem.activeIcon : centerNavItem.icon}
+                alt={centerNavItem.label}
               />
-              <span className="bottom_nav_label">{item.label}</span>
+              <span className="bottom_nav_label">{centerNavItem.label}</span>
             </NavLink>
-          ))}
-        </nav>
-        )}
+
+            {rightNavItems.map((item) => (
+              <NavLink
+                className={() => {
+                  if (item.path === "/community") {
+                    return isCommunityActive ? "bottom_nav_item is_active" : "bottom_nav_item"
+                  }
+                  return pathname.startsWith(item.path) ? "bottom_nav_item is_active" : "bottom_nav_item"
+                }}
+                key={item.path}
+                to={item.path}
+                onClick={() => {
+                  if (item.path === "/my") {
+                    window.dispatchEvent(new Event("my:go-home"))
+                  }
+                }}
+              >
+                <img
+                  className="bottom_nav_icon"
+                  src={
+                    (item.path === "/community" ? isCommunityActive : pathname.startsWith(item.path))
+                      ? item.activeIcon
+                      : item.icon
+                  }
+                  alt={item.label}
+                />
+                <span className="bottom_nav_label">{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        ) : null}
       </div>
     </main>
   )

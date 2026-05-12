@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from "react"
 import { useNavigate } from "react-router"
+import AlertModal from "../components/AlertModal"
 import mascotImage from "../assets/onboarding-mascot.png"
 import eyeIcon from "../assets/svg/Eye.svg"
 import eyeSlashIcon from "../assets/svg/EyeSlash.svg"
@@ -10,12 +11,39 @@ const VALID_EMAIL = "juhap@gmail.com"
 const VALID_PASSWORD = "juhap1234"
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+const TEXT = {
+  pageLabel: "\uB85C\uADF8\uC778",
+  brandLabel: "\uC8FC\uD569",
+  logo: "\uC8FC\uD569",
+  hanja: "\u9152\u5408",
+  emailLabel: "\uC774\uBA54\uC77C \uC8FC\uC18C",
+  emailPlaceholder: "\uC774\uBA54\uC77C \uC8FC\uC18C\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694",
+  emailError: "\uC774\uBA54\uC77C \uD615\uC2DD\uC774 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  passwordLabel: "\uBE44\uBC00\uBC88\uD638",
+  passwordPlaceholder: "\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694",
+  hidePassword: "\uBE44\uBC00\uBC88\uD638 \uC228\uAE30\uAE30",
+  showPassword: "\uBE44\uBC00\uBC88\uD638 \uBCF4\uAE30",
+  login: "\uB85C\uADF8\uC778",
+  signupLink: "\uACC4\uC815\uC774 \uC5C6\uC73C\uC2E0\uAC00\uC694? \uD68C\uC6D0\uAC00\uC785",
+  socialLabel: "\uC18C\uC15C \uB85C\uADF8\uC778",
+  googleLabel: "Google\uB85C \uB85C\uADF8\uC778",
+  kakaoLabel: "KakaoTalk\uC73C\uB85C \uB85C\uADF8\uC778",
+  naverLabel: "Naver\uB85C \uB85C\uADF8\uC778",
+  terms: "\uACC4\uC18D \uC9C4\uD589\uD558\uBA74 \uC11C\uBE44\uC2A4 \uC774\uC6A9\uC57D\uAD00 \uBC0F \uAC1C\uC778\uC815\uBCF4 \uCC98\uB9AC\uBC29\uCE68\uC5D0\n\uB3D9\uC758\uD558\uB294 \uAC83\uC73C\uB85C \uAC04\uC8FC\uD569\uB2C8\uB2E4.",
+  invalidLogin: "\uC774\uBA54\uC77C \uB610\uB294 \uBE44\uBC00\uBC88\uD638\uAC00 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  signupModalTitle: "\uC785\uB825\uD558\uC2E0 \uC815\uBCF4\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC5B4\uC694.",
+  signupModalMessage: "\uD574\uB2F9 \uBA54\uC77C\uB85C \uD68C\uC6D0\uAC00\uC785\uC744 \uC9C4\uD589\uD560\uAE4C\uC694?",
+  otherLogin: "\uB2E4\uB978 \uBC29\uC2DD\uC73C\uB85C \uB85C\uADF8\uC778\uD558\uAE30",
+  signup: "\uD68C\uC6D0\uAC00\uC785\uD558\uAE30",
+}
+
 export default function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState(VALID_EMAIL)
   const [password, setPassword] = useState(VALID_PASSWORD)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [isSignupRequiredModalOpen, setIsSignupRequiredModalOpen] = useState(false)
 
   const trimmedEmail = email.trim()
   const isEmailFormatInvalid = trimmedEmail.length > 0 && !EMAIL_PATTERN.test(trimmedEmail)
@@ -30,31 +58,35 @@ export default function Login() {
 
     if (trimmedEmail === VALID_EMAIL && password === VALID_PASSWORD) {
       setErrorMessage("")
-      updateUserAccount({ email: trimmedEmail, password })
-      navigate("/profile-setup", { replace: true })
+      setIsSignupRequiredModalOpen(true)
       return
     }
 
-    setErrorMessage("이메일 또는 비밀번호가 올바르지 않습니다.")
+    setErrorMessage(TEXT.invalidLogin)
+  }
+
+  function goSignup() {
+    updateUserAccount({ email: trimmedEmail, password })
+    navigate("/profile-setup", { replace: true })
   }
 
   return (
-    <section className="login_page" aria-label="로그인">
+    <section className="login_page" aria-label={TEXT.pageLabel}>
       <div className="login_brand_row">
-        <div className="login_logo_group" aria-label="주합">
-          <h1 className="login_logo">주합</h1>
-          <p className="login_hanja">酒合</p>
+        <div className="login_logo_group" aria-label={TEXT.brandLabel}>
+          <h1 className="login_logo">{TEXT.logo}</h1>
+          <p className="login_hanja">{TEXT.hanja}</p>
         </div>
         <img className="login_mascot" src={mascotImage} alt="" />
       </div>
 
       <form className="login_form" onSubmit={handleSubmit} noValidate>
         <label className="login_field">
-          <span className="login_field_label">이메일 주소</span>
+          <span className="login_field_label">{TEXT.emailLabel}</span>
           <input
             type="text"
             inputMode="email"
-            placeholder="이메일 주소를 입력해주세요"
+            placeholder={TEXT.emailPlaceholder}
             autoComplete="email"
             value={email}
             aria-invalid={isEmailFormatInvalid}
@@ -66,18 +98,18 @@ export default function Login() {
           />
         </label>
 
-        {isEmailFormatInvalid && (
+        {isEmailFormatInvalid ? (
           <p className="login_error" id="login-email-error">
-            이메일 형식이 올바르지 않습니다.
+            {TEXT.emailError}
           </p>
-        )}
+        ) : null}
 
         <label className="login_field">
-          <span className="login_field_label">비밀번호</span>
+          <span className="login_field_label">{TEXT.passwordLabel}</span>
           <span className="login_password_input">
             <input
               type={isPasswordVisible ? "text" : "password"}
-              placeholder="비밀번호를 입력해주세요"
+              placeholder={TEXT.passwordPlaceholder}
               autoComplete="current-password"
               value={password}
               onChange={(event) => {
@@ -88,7 +120,7 @@ export default function Login() {
             <button
               className="login_password_toggle"
               type="button"
-              aria-label={isPasswordVisible ? "비밀번호 숨기기" : "비밀번호 보기"}
+              aria-label={isPasswordVisible ? TEXT.hidePassword : TEXT.showPassword}
               onClick={() => setIsPasswordVisible((current) => !current)}
             >
               <img src={isPasswordVisible ? eyeSlashIcon : eyeIcon} alt="" />
@@ -96,34 +128,43 @@ export default function Login() {
           </span>
         </label>
 
-        {errorMessage && <p className="login_error">{errorMessage}</p>}
+        {errorMessage ? <p className="login_error">{errorMessage}</p> : null}
 
         <button className="login_submit_button" type="submit">
-          로그인
+          {TEXT.login}
         </button>
       </form>
 
-      <button className="login_signup_link" type="button">
-        계정이 없으신가요? 회원가입
+      <button className="login_signup_link" type="button" onClick={() => navigate("/profile-setup", { replace: true })}>
+        {TEXT.signupLink}
       </button>
 
-      <div className="login_socials" aria-label="소셜 로그인">
-        <button className="login_social_button is_google" type="button" aria-label="Google로 로그인">
+      <div className="login_socials" aria-label={TEXT.socialLabel}>
+        <button className="login_social_button is_google" type="button" aria-label={TEXT.googleLabel}>
           G
         </button>
-        <button className="login_social_button is_kakao" type="button" aria-label="KakaoTalk으로 로그인">
+        <button className="login_social_button is_kakao" type="button" aria-label={TEXT.kakaoLabel}>
           TALK
         </button>
-        <button className="login_social_button is_naver" type="button" aria-label="Naver로 로그인">
+        <button className="login_social_button is_naver" type="button" aria-label={TEXT.naverLabel}>
           N
         </button>
       </div>
 
-      <p className="login_terms">
-        계속 진행하면 서비스 이용약관 및 개인정보 처리방침에
-        <br />
-        동의하는 것으로 간주됩니다.
-      </p>
+      <p className="login_terms">{TEXT.terms}</p>
+
+      {isSignupRequiredModalOpen ? (
+        <AlertModal
+          title={TEXT.signupModalTitle}
+          message={TEXT.signupModalMessage}
+          confirmLabel={TEXT.signup}
+          secondaryLabel={TEXT.otherLogin}
+          secondaryDisabled
+          variant="signup"
+          confirmTone="primary"
+          onConfirm={goSignup}
+        />
+      ) : null}
     </section>
   )
 }

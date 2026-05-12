@@ -1,0 +1,21 @@
+{
+  "maxRecentTerms": 10,
+  "priceMinWon": 0,
+  "priceMaxWon": 1000000,
+  "feedFilterItems": [
+    { "key": "review", "label": "후기" },
+    { "key": "free", "label": "질문" },
+    { "key": "follow", "label": "팔로우" }
+  ],
+  "reviewSortItems": [
+    { "key": "latest", "label": "최신순" },
+    { "key": "recommend", "label": "추천순" },
+    { "key": "popular", "label": "인기순" }
+  ],
+  "bookmarkLists": [
+    { "id": "default", "label": "기본 북마크" },
+    { "id": "wine", "label": "와인 페어링" },
+    { "id": "whisky", "label": "위스키 페어링" }
+  ],
+  "popupFoodCategories": ["육류", "해산물", "치즈", "튀김", "구이", "국물", "면", "디저트", "과일", "견과류", "채소"]
+}

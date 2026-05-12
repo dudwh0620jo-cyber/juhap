@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router"
 
 export type SituationItem = {
   id: number
@@ -32,11 +33,7 @@ function SituationButton({
 }) {
   return (
     <div className="situation_item_wrap">
-      <button
-        type="button"
-        className={`situation_item${isActive ? " situation_item_active" : ""}`}
-        onClick={onSelect}
-      >
+      <button type="button" className={`situation_item${isActive ? " situation_item_active" : ""}`} onClick={onSelect}>
         <span className="situation_emoji">{item.emoji}</span>
       </button>
       <span className="situation_label">{item.label}</span>
@@ -56,12 +53,7 @@ function SituationScroll({
   return (
     <div className="situation_scroll">
       {items.map((item) => (
-        <SituationButton
-          key={item.id}
-          item={item}
-          isActive={selectedId === item.id}
-          onSelect={() => onSelect(item.id)}
-        />
+        <SituationButton key={item.id} item={item} isActive={selectedId === item.id} onSelect={() => onSelect(item.id)} />
       ))}
     </div>
   )
@@ -77,14 +69,14 @@ function SituationProduct({ product }: { product: Product }) {
   )
 }
 
-function SituationRecCard({ rec }: { rec: SituationItem }) {
+function SituationRecCard({ rec, onOpenDetail }: { rec: SituationItem; onOpenDetail: () => void }) {
   return (
     <div className="situation_rec_card">
       <div className="situation_rec_head">
         <span className="situation_rec_title">
           {rec.emoji} {rec.label} 추천 1위
         </span>
-        <span className="situation_rec_badge">🏆 {rec.recommendCount.toLocaleString()}명 추천</span>
+        <span className="situation_rec_badge">총 {rec.recommendCount.toLocaleString()}명의 짠</span>
       </div>
       <div className="situation_rec_products">
         <SituationProduct product={rec.drink} />
@@ -93,8 +85,8 @@ function SituationRecCard({ rec }: { rec: SituationItem }) {
       </div>
       <div className="situation_rec_footer">
         <p>{rec.footer}</p>
-        <button type="button" className="situation_detail_btn">
-          → 자세히 보기
+        <button type="button" className="situation_detail_btn" onClick={onOpenDetail}>
+          더 자세히 보기
         </button>
       </div>
     </div>
@@ -102,14 +94,15 @@ function SituationRecCard({ rec }: { rec: SituationItem }) {
 }
 
 export default function SituationSection({ items }: { items: SituationItem[] }) {
+  const navigate = useNavigate()
   const [selectedId, setSelectedId] = useState(items[0].id)
-  const selected = items.find((s) => s.id === selectedId)!
+  const selected = items.find((item) => item.id === selectedId) ?? items[0]
 
   return (
     <section className="home_block">
       <SituationHeader />
       <SituationScroll items={items} selectedId={selectedId} onSelect={setSelectedId} />
-      <SituationRecCard rec={selected} />
+      <SituationRecCard rec={selected} onOpenDetail={() => navigate("/product/sake-dassai-23")} />
     </section>
   )
 }

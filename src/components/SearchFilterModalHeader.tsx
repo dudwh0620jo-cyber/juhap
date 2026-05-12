@@ -1,3 +1,4 @@
+import iconCaretLeft from "../assets/svg/caretleft.svg"
 import CommunitySearchInput from "./CommunitySearchInput"
 
 type Props = {
@@ -27,6 +28,9 @@ export default function SearchFilterModalHeader({
 }: Props) {
   return (
     <div className="feed_filter_popup_top">
+      <button type="button" className="feed_filter_close_button" aria-label="뒤로가기" onClick={onClose}>
+        <img src={iconCaretLeft} alt="" aria-hidden="true" />
+      </button>
       <CommunitySearchInput
         shellAriaLabel={shellAriaLabel}
         inputAriaLabel={inputAriaLabel}
@@ -38,10 +42,6 @@ export default function SearchFilterModalHeader({
         onEnter={onEnter}
         onClear={onClear}
       />
-      <button type="button" className="feed_filter_close_button" aria-label="취소" onClick={onClose}>
-        취소
-      </button>
     </div>
   )
 }
-

@@ -1,0 +1,22 @@
+{
+  "introPromptOptions": ["라벨 스캔하기", "나에게 맞는 추천받기", "주류문화 용어 알기"],
+  "situationOptions": ["혼술", "가족", "데이트", "친구/파티", "모임/단체", "선물용", "기타"],
+  "partyMoodOptions": ["혼술", "가족", "데이트", "친구/파티", "모임/단체", "선물용", "기타"],
+  "foodCategoryOptions": ["고기류", "해산물", "배달음식", "튀김/안주류", "음식을 아직 정하지 않았어요"],
+  "wineStyleOptions": ["실패 없는 무난한 술", "분위기 있는 술", "가볍게 마시기 좋은 술", "새로운 술", "특별한 술"],
+  "primaryRecommendationIds": ["sake-dassai-23", "sake-kubota-manju"],
+  "extraWineCandidates": [
+    {
+      "id": "cloudy-bay-sb-2022",
+      "name": "클라우디 베이 소비뇽 블랑",
+      "subtitle": "Cloudy Bay Sauvignon Blanc",
+      "priceWon": 32000,
+      "tags": ["화이트와인", "드라이", "해산물", "샐러드"],
+      "notes": ["시트러스와 허브 향이 선명하게 느껴지는 화이트 와인"],
+      "tastingNotes": ["라임", "자몽", "허브"],
+      "awards": [],
+      "pairingFoods": ["해산물", "샐러드", "치즈"],
+      "tips": ["8~10도 정도로 차갑게 서빙하면 좋아요."]
+    }
+  ]
+}

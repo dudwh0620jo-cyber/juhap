@@ -143,6 +143,20 @@
   padding: 0 22px;
 }
 
+.onboarding_footer.is_first_enter {
+  animation: onboarding_footer_slide_in 360ms ease both;
+}
+
+@keyframes onboarding_footer_slide_in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
 .onboarding_dots {
   display: flex;
   align-items: center;

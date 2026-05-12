@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import "../styles/community.css"
 import CommunityHeader from "../components/CommunityHeader"
 import CommunityRankingSection from "../components/CommunityRankingSection"
@@ -19,13 +19,12 @@ import { validatePostIdsExist } from "../utils/rankingValidation"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
 import { COMMUNITY_SEARCH_RECENT_KEY } from "../utils/communityStorage"
 import { usersMockById } from "../utils/usersMock"
+import { calculateRangePercent, isWithinRange } from "../utils/range"
 
 type PopupChipGroup = {
   title: string
   chips: string[]
 }
-
-const MAX_RECENT_TERMS = 10
 
 const getPodiumVotes = (podium: RankingPodium) => {
   const explicitVotes = podium.votes ?? podiumVotesById[podium.id]
@@ -40,7 +39,7 @@ const getPodiumVotes = (podium: RankingPodium) => {
 
 export default function CommunityRanking() {
   const { rankingPeriod, rankingCategory, setQueryParam } = useRankingQueryParams()
-  const { PRICE_MIN_WON, PRICE_MAX_WON, ABV_MIN, ABV_MAX, popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories } =
+  const { MAX_RECENT_TERMS, PRICE_MIN_WON, PRICE_MAX_WON, ABV_MIN, ABV_MAX, popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories } =
     useCommunityPageData()
 
   const [isFeedFilterPopupOpen, setIsFeedFilterPopupOpen] = useState(false)
@@ -75,15 +74,6 @@ export default function CommunityRanking() {
       console.warn("[ranking] missing posts for ranking ids:", missing)
     }
   }, [rankingPeriod])
-
-  const _legacyPopupChipGroups: PopupChipGroup[] = [
-    { title: "상황", chips: ["혼술", "데이트", "파티/모임", "홈파티", "기타"] },
-    { title: "음식", chips: ["고기류", "튀김", "매운음식", "해산물", "가벼운 안주"] },
-    { title: "스타일", chips: ["가볍게", "진하게", "분위기용", "가성비"] },
-    { title: "주종", chips: ["소주", "맥주", "와인", "위스키", "전통주", "기타"] },
-    { title: "카테고리", chips: ["럼", "진", "꼬냑", "위스키", "보드카", "데킬라", "브랜디"] },
-    { title: "특징", chips: ["부드러운", "무거운", "가벼운", "톡쏘는", "오크향", "과일향"] },
-  ]
 
   const availableCategories = useMemo(() => {
     if (!selectedDrinkType) return []
@@ -132,8 +122,6 @@ export default function CommunityRanking() {
     ]
   }, [popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories])
 
-  void _legacyPopupChipGroups
-
   const filteredPopupChipGroups = useMemo(() => {
     const query = feedSearchValue.trim().toLowerCase()
     if (!isFeedSearchConfirmed || !query) {
@@ -172,27 +160,19 @@ export default function CommunityRanking() {
     abvRange[1] !== ABV_MAX
 
   const priceMinPct = useMemo(() => {
-    const denom = PRICE_MAX_WON - PRICE_MIN_WON
-    if (denom <= 0) return 0
-    return Math.round(((priceRange[0] - PRICE_MIN_WON) / denom) * 1000) / 10
+    return calculateRangePercent(priceRange[0], PRICE_MIN_WON, PRICE_MAX_WON)
   }, [PRICE_MAX_WON, PRICE_MIN_WON, priceRange])
 
   const priceMaxPct = useMemo(() => {
-    const denom = PRICE_MAX_WON - PRICE_MIN_WON
-    if (denom <= 0) return 100
-    return Math.round(((priceRange[1] - PRICE_MIN_WON) / denom) * 1000) / 10
+    return calculateRangePercent(priceRange[1], PRICE_MIN_WON, PRICE_MAX_WON)
   }, [PRICE_MAX_WON, PRICE_MIN_WON, priceRange])
 
   const abvMinPct = useMemo(() => {
-    const denom = ABV_MAX - ABV_MIN
-    if (denom <= 0) return 0
-    return Math.round(((abvRange[0] - ABV_MIN) / denom) * 1000) / 10
+    return calculateRangePercent(abvRange[0], ABV_MIN, ABV_MAX)
   }, [ABV_MAX, ABV_MIN, abvRange])
 
   const abvMaxPct = useMemo(() => {
-    const denom = ABV_MAX - ABV_MIN
-    if (denom <= 0) return 100
-    return Math.round(((abvRange[1] - ABV_MIN) / denom) * 1000) / 10
+    return calculateRangePercent(abvRange[1], ABV_MIN, ABV_MAX)
   }, [ABV_MAX, ABV_MIN, abvRange])
 
   const searchSuggestionTags = useMemo(() => {
@@ -325,10 +305,9 @@ export default function CommunityRanking() {
       const featureMatches =
         selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
       const priceValue = typeof post.priceWon === "number" && Number.isFinite(post.priceWon) ? post.priceWon : 0
-      const priceMatches =
-        priceValue >= priceRange[0] && (priceRange[1] >= PRICE_MAX_WON ? true : priceValue <= priceRange[1])
+      const priceMatches = isWithinRange(priceValue, priceRange[0], priceRange[1], priceRange[1] >= PRICE_MAX_WON)
       const abvValue = typeof post.abv === "number" && Number.isFinite(post.abv) ? post.abv : 0
-      const abvMatches = abvValue >= abvRange[0] && (abvRange[1] >= ABV_MAX ? true : abvValue <= abvRange[1])
+      const abvMatches = isWithinRange(abvValue, abvRange[0], abvRange[1], abvRange[1] >= ABV_MAX)
 
       return queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches && priceMatches && abvMatches
     })
@@ -380,10 +359,9 @@ export default function CommunityRanking() {
       const featureMatches =
         selectedFeatures.size === 0 || (post.features ?? []).some((item) => selectedFeatures.has(item))
       const priceValue = typeof post.priceWon === "number" && Number.isFinite(post.priceWon) ? post.priceWon : 0
-      const priceMatches =
-        priceValue >= priceRange[0] && (priceRange[1] >= PRICE_MAX_WON ? true : priceValue <= priceRange[1])
+      const priceMatches = isWithinRange(priceValue, priceRange[0], priceRange[1], priceRange[1] >= PRICE_MAX_WON)
       const abvValue = typeof post.abv === "number" && Number.isFinite(post.abv) ? post.abv : 0
-      const abvMatches = abvValue >= abvRange[0] && (abvRange[1] >= ABV_MAX ? true : abvValue <= abvRange[1])
+      const abvMatches = isWithinRange(abvValue, abvRange[0], abvRange[1], abvRange[1] >= ABV_MAX)
 
       return queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches && priceMatches && abvMatches
     })
@@ -666,5 +644,4 @@ export default function CommunityRanking() {
     </section>
   )
 }
-
 

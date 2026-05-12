@@ -12,7 +12,7 @@ export default function ChatChoiceRow({ echoText, echoAriaLabel = "방금 선택
       <div className="chat_chip_group">{children}</div>
       {echoText ? (
         <div className="chat_choice_echo chat_bubble_row user_bubble_row" aria-label={echoAriaLabel}>
-          <p style={{ whiteSpace: "pre-line" }}>{echoText}</p>
+          <p>{echoText}</p>
         </div>
       ) : null}
     </div>

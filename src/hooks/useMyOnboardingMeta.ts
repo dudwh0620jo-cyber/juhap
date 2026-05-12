@@ -12,9 +12,9 @@ export function useMyOnboardingMeta() {
     const traitA = (traits[0] ?? "").trim()
     const traitB = (traits[1] ?? "").trim()
 
-    const parts = ["20대/ 여자", drinkType, traitA, traitB].filter(Boolean)
-    const base = parts.join("/ ")
-    return `${base} 선호`
+    const parts = [drinkType, traitA, traitB].filter(Boolean)
+    if (parts.length === 0) return "취향 미설정"
+    return `${parts.join(" / ")} 선호`
   }, [profile.tastePreferences.drinkType, profile.tastePreferences.trait])
 
   return { nickname, metaLine } as const
