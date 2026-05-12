@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
 
@@ -21,8 +21,6 @@ import "../styles/my.css"
 
 type RecordTab = "alcohol" | "pairing" | "question"
 
-const TAB_ORDER: RecordTab[] = ["alcohol", "pairing", "question"]
-
 const parseTab = (value: string | null): RecordTab => {
   if (value === "pairing" || value === "question" || value === "alcohol") return value
   return "alcohol"
@@ -34,8 +32,6 @@ export default function MyRecord() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = parseTab(searchParams.get("tab"))
-  const [slideDirection, setSlideDirection] = useState(0)
-  const prevTabRef = useRef<RecordTab>(tab)
   const [userPosts, setUserPosts] = useState<FeedPost[]>([])
 
   useEffect(() => {
@@ -85,15 +81,6 @@ export default function MyRecord() {
       return next
     })
 
-  useEffect(() => {
-    const prevIndex = TAB_ORDER.indexOf(prevTabRef.current)
-    const nextIndex = TAB_ORDER.indexOf(tab)
-    if (prevIndex === -1 || nextIndex === -1) return
-    if (prevIndex === nextIndex) return
-    setSlideDirection(nextIndex > prevIndex ? 1 : -1)
-    prevTabRef.current = tab
-  }, [tab])
-
   return (
     <section className="my_record_page" aria-label="기록">
       <div className="my_record_tabs_shell" aria-label="기록 탭">
@@ -130,18 +117,12 @@ export default function MyRecord() {
         </div>
       </div>
 
-      <AnimatePresence mode="wait" initial={false} custom={slideDirection}>
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={tab}
-          custom={slideDirection}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          variants={{
-            enter: (direction: number) => ({ opacity: 0, x: direction * 22 }),
-            center: { opacity: 1, x: 0 },
-            exit: (direction: number) => ({ opacity: 0, x: direction * -22 }),
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
         >
           {tab === "alcohol" ? (
