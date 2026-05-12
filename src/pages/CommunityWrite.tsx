@@ -20,7 +20,7 @@ import situationGroupImage from "../assets/situation_group.png"
 import situationDateImage from "../assets/situation_date.png"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
 import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
-import { getPairingTagsFromTitle, normalizeCommunityFeatures } from "../utils/communityPosts"
+import { feedPosts, getPairingTagsFromTitle, normalizeCommunityFeatures } from "../utils/communityPosts"
 import { readUserProfile } from "../data/userProfile"
 import { sakeProductsMock } from "../data/sakeProductsMock"
 import { useProductDetailPageData } from "../hooks/useProductDetailPageData"
@@ -28,6 +28,7 @@ import { currentUserMock } from "../utils/usersMock"
 import communityPostsRaw from "../data/communityPosts.json"
 import { pairingWriteDrinkMocks, pairingWriteFoodMocks } from "../data/pairingWriteMocks"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
+import { drinkCategories, subcategoryInfoByCategoryId } from "../data/categoryData"
 
 const PAIRING_SCAN_MS = 1200
 
@@ -192,7 +193,7 @@ export default function CommunityWrite() {
   const [searchParams] = useSearchParams()
   const { mockProductById, defaultProduct } = useProductDetailPageData()
   const mode = getModeFromSearch(searchParams.get("mode"))
-  const { popupCategoryByDrinkType, popupFeaturesByDrinkType } = useCommunityPageData()
+  const { popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories } = useCommunityPageData()
   const isQuestionWrite = mode === "free"
   const isProductReviewWrite = location.pathname.startsWith("/product/") && location.pathname.endsWith("/write")
   const writeKind: WriteKind = isQuestionWrite ? "question" : isProductReviewWrite ? "drink-review" : "pairing-review"
@@ -210,13 +211,30 @@ export default function CommunityWrite() {
   const [selectedFoodParentCategory, setSelectedFoodParentCategory] = useState<FoodParentCategory | null>(null)
   const [selectedFoodCategoryTags, setSelectedFoodCategoryTags] = useState<Set<FoodParentCategory>>(() => new Set())
   const [isDrinkPickerOpen, setIsDrinkPickerOpen] = useState(false)
-const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
-  const [isPairingDrinkEditing, setIsPairingDrinkEditing] = useState(false)
-  const [pairingDrinkSuggestionsOpen, setPairingDrinkSuggestionsOpen] = useState(false)
-  const [isPairingFoodEditing, setIsPairingFoodEditing] = useState(false)
+  const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
+  const [isPairingDrinkModalOpen, setIsPairingDrinkModalOpen] = useState(false)
+  const [activeDrinkCategoryId, setActiveDrinkCategoryId] = useState(() => drinkCategories[0]?.id ?? "sake")
+  const [isDrinkCategoryMenuOpen, setIsDrinkCategoryMenuOpen] = useState(false)
+  const [activeDrinkSubcategory, setActiveDrinkSubcategory] = useState<string | null>(null)
+  const [pairingDrinkTagSelection, setPairingDrinkTagSelection] = useState<Set<string>>(() => new Set())
+  const [pendingPairingDrinkTagSelection, setPendingPairingDrinkTagSelection] = useState<Set<string>>(() => new Set())
+  const [isPairingFoodModalOpen, setIsPairingFoodModalOpen] = useState(false)
+  const [isPairingFoodSuggestionsOpen, setIsPairingFoodSuggestionsOpen] = useState(false)
   const [pairingFoodSearch, setPairingFoodSearch] = useState("")
+  const [pendingFoodCategoryTags, setPendingFoodCategoryTags] = useState<Set<FoodParentCategory>>(() => new Set())
   const [isPhotoActionSheetOpen, setIsPhotoActionSheetOpen] = useState(false)
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
+  useEffect(() => {
+    const isAnyModalOpen = isPairingDrinkModalOpen || isPairingFoodModalOpen || isDrinkPickerOpen
+    if (!isAnyModalOpen) return
+
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      document.body.style.overflow = prevOverflow
+    }
+  }, [isDrinkPickerOpen, isPairingDrinkModalOpen, isPairingFoodModalOpen])
 
   // 술만 후기 쓰기(또는 질문 글쓰기 공용)
   const [drinkName, setDrinkName] = useState("")
@@ -583,6 +601,24 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     )
   }, [pairingDrinkName, pairingDrinkSuggestions])
 
+  const inferredPairingDrinkType = useMemo(() => {
+    const query = pairingDrinkName.trim().toLowerCase()
+    if (!query) return null
+    const normalizedQuery = query === "heineken" ? "하이네켄" : query
+    const match = pairingDrinkSuggestions.find(
+      ({ label, subCategory }) =>
+        label.toLowerCase().includes(normalizedQuery) || subCategory.toLowerCase().includes(normalizedQuery),
+    )
+    return match?.type ?? null
+  }, [pairingDrinkName, pairingDrinkSuggestions])
+
+  useEffect(() => {
+    if (!inferredPairingDrinkType) return
+    const resolved = drinkCategories.find((category) => category.label === inferredPairingDrinkType)
+    if (resolved && resolved.id !== activeDrinkCategoryId) setActiveDrinkCategoryId(resolved.id)
+    if (selectedDrinkType !== inferredPairingDrinkType) setSelectedDrinkType(inferredPairingDrinkType)
+  }, [activeDrinkCategoryId, inferredPairingDrinkType, selectedDrinkType])
+
   const pairingDrinkSubCategory = useMemo(() => {
     const found = pairingDrinkSuggestions.find(({ label }) => label === pairingDrinkName)
     return found?.subCategory ?? null
@@ -600,12 +636,57 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     return { rating, reviewCount }
   }, [pairingDrinkSuggestions, pairingDrinkName])
 
+  const activeDrinkCategory = useMemo(
+    () => drinkCategories.find((category) => category.id === activeDrinkCategoryId) ?? drinkCategories[0] ?? null,
+    [activeDrinkCategoryId],
+  )
+
+  const activeDrinkSubcategories = useMemo(() => {
+    if (!activeDrinkCategory) return []
+    return popupCategoryByDrinkType[activeDrinkCategory.label] ?? []
+  }, [activeDrinkCategory, popupCategoryByDrinkType])
+
+  const activeDrinkSubcategoryInfo = useMemo(() => {
+    if (!activeDrinkCategory) return {}
+    return subcategoryInfoByCategoryId[activeDrinkCategory.id] ?? {}
+  }, [activeDrinkCategory])
+
   const pairingFoodRatingMeta = useMemo(() => {
     const found = pairingWriteFoodMocks.find((mock) => mock.name === selectedFoodCategory)
     const rating = typeof found?.rating === "number" && Number.isFinite(found.rating) ? found.rating : null
     const reviewCount = typeof found?.reviewCount === "number" && Number.isFinite(found.reviewCount) ? found.reviewCount : null
     return { rating, reviewCount }
   }, [selectedFoodCategory])
+
+  const allFoodNameSuggestions = useMemo(() => {
+    const unique = new Set<string>()
+
+    pairingWriteFoodMocks.forEach((mock) => {
+      if (typeof mock?.name === "string" && mock.name.trim()) unique.add(mock.name.trim())
+    })
+
+    feedPosts.forEach((post) => {
+      if (!Array.isArray(post.foods)) return
+      post.foods.forEach((food) => {
+        if (typeof food === "string" && food.trim()) unique.add(food.trim())
+      })
+    })
+
+    popupFoodCategories.forEach((food) => {
+      if (typeof food === "string" && food.trim()) unique.add(food.trim())
+    })
+
+    return Array.from(unique.values())
+  }, [popupFoodCategories])
+
+  const filteredFoodNameSuggestions = useMemo(() => {
+    const query = pairingFoodSearch.trim().toLowerCase()
+    if (!query) return []
+
+    return allFoodNameSuggestions
+      .filter((name) => name.toLowerCase().includes(query))
+      .slice(0, 3)
+  }, [allFoodNameSuggestions, pairingFoodSearch])
 
   const selectPairingDrinkByQuery = useCallback(
     (query: string) => {
@@ -627,8 +708,6 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
       if (!exact) return false
       setPairingDrinkName(exact.label)
       setSelectedDrinkType(exact.type)
-      setPairingDrinkSuggestionsOpen(false)
-      setIsPairingDrinkEditing(false)
       return true
     },
     [pairingDrinkSuggestions],
@@ -637,8 +716,11 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
   function handlePairingDrinkSuggestionSelect(label: string, type: string) {
     setPairingDrinkName(label)
     if (type !== selectedDrinkType) setSelectedDrinkType(type)
-    setPairingDrinkSuggestionsOpen(false)
-    setIsPairingDrinkEditing(false)
+    const found = pairingDrinkSuggestions.find((item) => item.label === label)
+    setActiveDrinkSubcategory(found?.subCategory ?? null)
+    setPendingPairingDrinkTagSelection(
+      new Set([type, found?.subCategory].filter((value): value is string => Boolean(value && value.trim()))),
+    )
   }
 
 
@@ -1323,7 +1405,13 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                   aria-label="주류 선택"
                   onClick={() => {
                     pairingDrinkNameSnapshotRef.current = pairingDrinkName
-                    setIsPairingDrinkEditing(true)
+                    const resolvedLabel = pairingDrinkTypeLabel ?? selectedDrinkType ?? SAKE_LABEL
+                    const resolvedCategory = drinkCategories.find((category) => category.label === resolvedLabel)
+                    setActiveDrinkCategoryId(resolvedCategory?.id ?? (drinkCategories[0]?.id ?? "sake"))
+                    setActiveDrinkSubcategory(pairingDrinkSubCategory ?? null)
+                    setPendingPairingDrinkTagSelection(new Set(pairingDrinkTagSelection))
+                    setIsDrinkCategoryMenuOpen(false)
+                    setIsPairingDrinkModalOpen(true)
                   }}
                 >
                   <div className="write_pairing_pick_card_head">
@@ -1370,6 +1458,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                         {isPairingDrinkScanning ? (
                           <motion.div
                             key="drink_scanning"
+                            className="write_pairing_pick_card_content"
                             initial={{ opacity: 0, y: 2 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 2 }}
@@ -1381,6 +1470,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                         ) : isPairingDrinkScanDone && !isPairingDrinkRevealed ? (
                           <motion.div
                             key="drink_loading"
+                            className="write_pairing_pick_card_content"
                             initial={{ opacity: 0, y: 2 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 2 }}
@@ -1392,6 +1482,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                         ) : (
                           <motion.div
                             key="drink_result"
+                            className="write_pairing_pick_card_content"
                             initial={{ opacity: 0, y: 2 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 2 }}
@@ -1400,7 +1491,14 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                             <div className="write_pairing_pick_card_title">{pairingDrinkName || "상품명"}</div>
                             <div className="write_pairing_pick_card_subtitle">
                               {pairingDrinkName
-                                ? [pairingDrinkTypeLabel, pairingDrinkSubCategory].filter(Boolean).join(" · ")
+                                ? Array.from(
+                                    (pairingDrinkTagSelection.size > 0
+                                      ? pairingDrinkTagSelection
+                                      : new Set([pairingDrinkTypeLabel, pairingDrinkSubCategory].filter(Boolean))) as Set<string>,
+                                  )
+                                    .slice(0, 2)
+                                    .filter((value) => value.trim())
+                                    .join(" · ")
                                 : "주종 · 하위 카테고리"}
                             </div>
                           </motion.div>
@@ -1414,7 +1512,12 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                   type="button"
                   className="write_pairing_pick_card"
                   aria-label="음식 선택"
-                  onClick={() => setIsPairingFoodEditing(true)}
+                  onClick={() => {
+                    setPairingFoodSearch(selectedFoodCategory?.trim() ?? "")
+                    setIsPairingFoodSuggestionsOpen(false)
+                    setPendingFoodCategoryTags(new Set(selectedFoodCategoryTags))
+                    setIsPairingFoodModalOpen(true)
+                  }}
                 >
                   <div className="write_pairing_pick_card_head">
                     <strong>음식 선택</strong>
@@ -1460,6 +1563,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                         {isPairingFoodScanning ? (
                           <motion.div
                             key="food_scanning"
+                            className="write_pairing_pick_card_content"
                             initial={{ opacity: 0, y: 2 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 2 }}
@@ -1471,6 +1575,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                         ) : isPairingFoodScanDone && !isPairingFoodRevealed ? (
                           <motion.div
                             key="food_loading"
+                            className="write_pairing_pick_card_content"
                             initial={{ opacity: 0, y: 2 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 2 }}
@@ -1482,6 +1587,7 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                         ) : (
                           <motion.div
                             key="food_result"
+                            className="write_pairing_pick_card_content"
                             initial={{ opacity: 0, y: 2 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 2 }}
@@ -1497,83 +1603,510 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                 </button>
               </div>
 
-              {isPairingDrinkEditing ? (
-                <div className="write_section">
-                  <label className="write_field">
-                    <span className="write_field_label">주류 검색</span>
-                    <div className="write_drink_input_wrap">
-                      <input
-                        className="write_input"
-                        value={pairingDrinkName}
-                        placeholder="술 이름을 검색하세요"
-                        autoFocus
-                        onChange={(e) => setPairingDrinkName(e.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key !== "Enter") return
-                          event.preventDefault()
-                          selectPairingDrinkByQuery(pairingDrinkName)
+              {isPairingDrinkModalOpen ? (
+                <div
+                  className="write_modal_backdrop"
+                  role="presentation"
+                  onMouseDown={(event) => {
+                    event.stopPropagation()
+                    setIsPairingDrinkModalOpen(false)
+                    setIsDrinkCategoryMenuOpen(false)
+                  }}
+                >
+                  <div
+                    className="write_modal_panel write_drink_picker_modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="주류"
+                    onMouseDown={(event) => event.stopPropagation()}
+                  >
+                    <div className="write_modal_header">
+                      <h4 className="write_modal_title">주류</h4>
+                      <button
+                        type="button"
+                        className="write_modal_close"
+                        aria-label="닫기"
+                        onClick={() => {
+                          setIsPairingDrinkModalOpen(false)
+                          setIsDrinkCategoryMenuOpen(false)
                         }}
-                        onFocus={() => setPairingDrinkSuggestionsOpen(true)}
-                        onBlur={() =>
-                          window.setTimeout(() => {
-                            setPairingDrinkSuggestionsOpen(false)
-                            setIsPairingDrinkEditing(false)
-                            const q = pairingDrinkName.trim().toLowerCase()
-                            const matchesLabel = pairingDrinkSuggestions.some(({ label }) => label.toLowerCase().includes(q))
-                            const matchesCategoryOnly =
-                              !matchesLabel && pairingDrinkSuggestions.some(({ subCategory }) => subCategory.toLowerCase().includes(q))
-                            if (matchesCategoryOnly) setPairingDrinkName(pairingDrinkNameSnapshotRef.current)
-                          }, 150)
-                        }
-                      />
-                      {pairingDrinkSuggestionsOpen && filteredPairingDrinkSuggestions.length > 0 && (
-                        <ul className="write_drink_autocomplete" role="listbox" aria-label="술 이름 추천">
-                          {filteredPairingDrinkSuggestions.slice(0, 8).map(({ label, type, subCategory }) => (
-                            <li key={`${type}-${label}`} role="option" aria-selected={pairingDrinkName === label}>
+                      >
+                        <img src={iconX} alt="" aria-hidden="true" />
+                      </button>
+                    </div>
+
+                    <div className="write_modal_body write_drink_picker_body" aria-label="주류 선택 내용">
+                      <div className="write_drink_picker_input_block" aria-label="주류 검색">
+                        <div className="write_drink_picker_search_group" aria-label="주류 검색 및 추천">
+                          <div className="write_drink_picker_input_row">
+                            {pairingDrinkName.trim().length > 0 ? (
+                              <span className="write_drink_picker_autocomplete_hint" aria-hidden="true">
+                                {(() => {
+                                  const query = pairingDrinkName.trim()
+                                  const lower = query.toLowerCase()
+                                  const first = filteredPairingDrinkSuggestions.find(
+                                    (item) => item.label.toLowerCase().startsWith(lower) && item.label.length > query.length,
+                                  )
+                                  return first ? first.label : ""
+                                })()}
+                              </span>
+                            ) : null}
+                            <input
+                              className="write_input write_drink_picker_input"
+                              value={pairingDrinkName}
+                              placeholder="술 이름을 입력하세요"
+                              autoFocus
+                              onChange={(e) => {
+                                setPairingDrinkName(e.target.value)
+                              }}
+                              onKeyDown={(event) => {
+                                if ((event.nativeEvent as unknown as { isComposing?: boolean }).isComposing) return
+                                if (event.key !== "Enter") return
+                                event.preventDefault()
+                                selectPairingDrinkByQuery(pairingDrinkName)
+                              }}
+                              onBlur={() =>
+                                window.setTimeout(() => {
+                                  const q = pairingDrinkName.trim().toLowerCase()
+                                  const matchesLabel = pairingDrinkSuggestions.some(({ label }) => label.toLowerCase().includes(q))
+                                  const matchesCategoryOnly =
+                                    !matchesLabel && pairingDrinkSuggestions.some(({ subCategory }) => subCategory.toLowerCase().includes(q))
+                                  if (matchesCategoryOnly) setPairingDrinkName(pairingDrinkNameSnapshotRef.current)
+                                }, 150)
+                              }
+                            />
+                            <img className="write_drink_picker_search_icon" src={iconSearch} alt="" aria-hidden="true" />
+                            {pairingDrinkName.trim().length > 0 ? (
                               <button
                                 type="button"
-                                className="write_drink_suggestion_item"
-                                onMouseDown={() => handlePairingDrinkSuggestionSelect(label, type)}
+                                className="write_drink_picker_clear"
+                                aria-label="입력 지우기"
+                                onClick={() => setPairingDrinkName("")}
                               >
-                                <span className="write_drink_suggestion_label">{label}</span>
-                                <span className="write_drink_suggestion_type">{[type, subCategory].filter(Boolean).join(" · ")}</span>
+                                <img src={iconX} alt="" aria-hidden="true" />
                               </button>
-                            </li>
-                          ))}
-                        </ul>
+                            ) : null}
+                          </div>
+
+                          {pairingDrinkName.trim().length > 0 && inferredPairingDrinkType ? (
+                            <div className="write_drink_picker_category_hint" aria-label="추천 카테고리">
+                              <span className="write_drink_picker_category_hint_label">{inferredPairingDrinkType}</span>
+                            </div>
+                          ) : null}
+
+                          {pairingDrinkName.trim().length > 0 && filteredPairingDrinkSuggestions.length > 0 ? (
+                            <ul className="write_drink_autocomplete" role="listbox" aria-label="술 이름 추천">
+                              {filteredPairingDrinkSuggestions.slice(0, 8).map(({ label, type, subCategory }) => (
+                                <li key={`${type}-${label}`} role="option" aria-selected={pairingDrinkName === label}>
+                                  <button
+                                    type="button"
+                                    className="write_drink_suggestion_item"
+                                    onMouseDown={() => handlePairingDrinkSuggestionSelect(label, type)}
+                                    onClick={() => {
+                                      const resolvedCategory = drinkCategories.find((category) => category.label === type)
+                                      setActiveDrinkCategoryId(resolvedCategory?.id ?? (drinkCategories[0]?.id ?? "sake"))
+                                    }}
+                                  >
+                                    <span className="write_drink_suggestion_label">{label}</span>
+                                    <span className="write_drink_suggestion_type">
+                                      {[type, subCategory].filter(Boolean).join(" · ")}
+                                    </span>
+                                  </button>
+
+                                  <div className="write_drink_suggestion_tag_row" aria-label="추천 태그">
+                                    {[type, subCategory]
+                                      .filter((value): value is string => Boolean(value && value.trim()))
+                                      .map((tag) => {
+                                        const active = pendingPairingDrinkTagSelection.has(tag)
+                                        const isDisabled = !active && pendingPairingDrinkTagSelection.size >= 2
+                                        return (
+                                          <button
+                                            key={`${label}-${tag}`}
+                                            type="button"
+                                            disabled={isDisabled}
+                                            className={
+                                              isDisabled
+                                                ? active
+                                                  ? "write_chip is_active is_disabled"
+                                                  : "write_chip is_disabled"
+                                                : active
+                                                  ? "write_chip is_active"
+                                                  : "write_chip"
+                                            }
+                                            onMouseDown={(event) => event.preventDefault()}
+                                            onClick={() =>
+                                              setPendingPairingDrinkTagSelection((prev) => {
+                                                const next = new Set(prev)
+                                                if (next.has(tag)) {
+                                                  next.delete(tag)
+                                                  return next
+                                                }
+                                                if (next.size >= 2) return prev
+                                                next.add(tag)
+                                                return next
+                                              })
+                                            }
+                                          >
+                                            {tag}
+                                          </button>
+                                        )
+                                      })}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </div>
+
+                        <div className="write_drink_picker_selected_tags" aria-label="선택된 주류 태그">
+                          {pairingDrinkName.trim().length > 0 ? (
+                            <div className="write_drink_picker_selected_category_tags" aria-label="선택된 주류 카테고리">
+                              {[activeDrinkSubcategory, pairingDrinkTypeLabel].filter(Boolean).slice(0, 2).map((tag) => (
+                                <span key={tag} className="write_drink_picker_tag">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+
+                          <div className="write_drink_picker_tag_meta_row" aria-label="등록할 수 있는 태그 안내">
+                            <span className="write_drink_picker_tag_label">선택한 태그:</span>
+                          </div>
+                          <div className="write_chip_row write_drink_picker_tag_row" aria-label="선택한 태그 목록">
+                            {Array.from(pendingPairingDrinkTagSelection).map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                className="write_chip is_active write_chip_with_remove"
+                                aria-label={`${tag} 삭제`}
+                                onClick={() =>
+                                  setPendingPairingDrinkTagSelection((prev) => {
+                                    const next = new Set(prev)
+                                    next.delete(tag)
+                                    return next
+                                  })
+                                }
+                              >
+                                <span className="write_chip_text">{tag}</span>
+                                <img className="write_chip_remove_icon" src={iconX} alt="" aria-hidden="true" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {!isDrinkCategoryMenuOpen ? (
+                        <div className="write_drink_picker_main" aria-label="카테고리 선택">
+                          <div className="write_drink_picker_category_row" aria-label="주류 카테고리">
+                            {drinkCategories.slice(0, 8).map((category) => {
+                              const isActive = category.id === activeDrinkCategoryId
+                              const isDimmed = category.id !== "sake"
+                              const isDisabled = category.id !== "sake"
+                              return (
+                                <button
+                                  type="button"
+                                  key={category.id}
+                                  disabled={isDisabled}
+                                  className={
+                                    isActive
+                                      ? "write_drink_picker_category is_active"
+                                      : isDimmed
+                                        ? "write_drink_picker_category is_dimmed"
+                                        : "write_drink_picker_category"
+                                  }
+                                  onClick={() => {
+                                    if (isDisabled) return
+                                    setActiveDrinkCategoryId(category.id)
+                                    setSelectedDrinkType(category.label)
+                                    setActiveDrinkSubcategory(null)
+                                    setPendingPairingDrinkTagSelection(new Set([category.label]))
+                                    setIsDrinkCategoryMenuOpen(true)
+                                  }}
+                                >
+                                  <span className="write_drink_picker_category_thumb" aria-hidden="true" />
+                                  <span className="write_drink_picker_category_label">{category.label}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+
+                          <div className="write_drink_picker_product_grid" aria-label="추천 주류">
+                            {activeDrinkCategoryId === "sake"
+                              ? sakeProductsMock.slice(0, 8).map((item) => (
+                                  <button
+                                    type="button"
+                                    key={item.id}
+                                    className="write_drink_picker_product"
+                                    aria-label={item.name}
+                                    onClick={() => {
+                                      setPairingDrinkName(item.name)
+                                      setSelectedDrinkType(SAKE_LABEL)
+                                      setActiveDrinkSubcategory(item.subcategory)
+                                      setPairingDrinkThumbSrc(null)
+                                      setIsPairingDrinkModalOpen(false)
+                                      setIsDrinkCategoryMenuOpen(false)
+                                    }}
+                                  >
+                                    <span className="write_drink_picker_product_image" aria-hidden="true" />
+                                  </button>
+                                ))
+                              : Array.from({ length: 8 }).map((_, index) => (
+                                  <div className="write_drink_picker_product is_placeholder" key={index} aria-hidden="true">
+                                    <span className="write_drink_picker_product_image" aria-hidden="true" />
+                                  </div>
+                                ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="write_drink_picker_menu" aria-label="카테고리 메뉴">
+                          <div className="write_drink_picker_menu_head" aria-label="카테고리 헤더">
+                            <button
+                              type="button"
+                              className="write_drink_picker_menu_back"
+                              aria-label="카테고리 목록으로"
+                              onClick={() => setIsDrinkCategoryMenuOpen(false)}
+                            >
+                              <img src={iconCaretLeft} alt="" aria-hidden="true" />
+                            </button>
+                            <div className="write_drink_picker_menu_title">
+                              <span>{activeDrinkCategory?.label ?? ""}</span>
+                              <span className="write_drink_picker_menu_title_en">{activeDrinkCategory?.englishLabel ?? ""}</span>
+                            </div>
+                          </div>
+
+                          <div className="write_drink_picker_menu_list" aria-label="하위 카테고리">
+                            {activeDrinkSubcategories.map((sub) => (
+                              <button
+                                type="button"
+                                key={sub}
+                                className="write_drink_picker_subcategory"
+                                onClick={() => {
+                                  if (activeDrinkCategory) setSelectedDrinkType(activeDrinkCategory.label)
+                                  setActiveDrinkSubcategory(sub)
+                                  setPendingPairingDrinkTagSelection(
+                                    new Set(
+                                      [activeDrinkCategory?.label, sub].filter((value): value is string => Boolean(value && value.trim())),
+                                    ),
+                                  )
+                                  setIsDrinkCategoryMenuOpen(false)
+                                }}
+                              >
+                                <strong>{sub}</strong>
+                                {activeDrinkSubcategoryInfo[sub] ? <p>{activeDrinkSubcategoryInfo[sub]}</p> : null}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
+
+                      <div className="write_picker_footer" aria-label="주류 태그 적용">
+                        <button
+                          type="button"
+                          className="write_picker_reset"
+                          onClick={() => setPendingPairingDrinkTagSelection(new Set())}
+                        >
+                          태그 리셋
+                        </button>
+                        <button
+                          type="button"
+                          className={pendingPairingDrinkTagSelection.size > 0 ? "write_picker_apply" : "write_picker_apply is_disabled"}
+                          disabled={pendingPairingDrinkTagSelection.size === 0}
+                          onClick={() => {
+                            setPairingDrinkTagSelection(new Set(pendingPairingDrinkTagSelection))
+                            setIsPairingDrinkModalOpen(false)
+                            setIsDrinkCategoryMenuOpen(false)
+                          }}
+                        >
+                          적용
+                        </button>
+                      </div>
                     </div>
-                  </label>
+                  </div>
                 </div>
               ) : null}
 
-              {isPairingFoodEditing ? (
-                <div className="write_section">
-                  <label className="write_field">
-                    <span className="write_field_label">음식 검색</span>
-                    <div className="write_drink_input_wrap">
-                      <input
-                        className="write_input"
-                        value={pairingFoodSearch}
-                        placeholder="음식 이름을 검색하세요"
-                        autoFocus
-                        onChange={(e) => setPairingFoodSearch(e.target.value)}
-                        onBlur={() =>
-                          window.setTimeout(() => {
-                            setIsPairingFoodEditing(false)
-                            if (pairingFoodSearch.trim()) {
-                              const foodName = pairingFoodSearch.trim()
-                              setSelectedFoodCategory(foodName)
-                              const parentCategory = deriveFoodParentCategory(foodName)
-                              setSelectedFoodParentCategory(parentCategory)
-                              setSelectedFoodCategoryTags(new Set([parentCategory]))
-                            }
-                            setPairingFoodSearch("")
-                          }, 150)
-                        }
-                      />
+              {isPairingFoodModalOpen ? (
+                <div
+                  className="write_modal_backdrop"
+                  role="presentation"
+                  onMouseDown={(event) => {
+                    event.stopPropagation()
+                    setIsPairingFoodModalOpen(false)
+                    setIsPairingFoodSuggestionsOpen(false)
+                  }}
+                >
+                  <div
+                    className="write_modal_panel write_food_picker_modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="음식"
+                    onMouseDown={(event) => event.stopPropagation()}
+                  >
+                    <div className="write_modal_header">
+                      <h4 className="write_modal_title">음식</h4>
+                      <button
+                        type="button"
+                        className="write_modal_close"
+                        aria-label="닫기"
+                        onClick={() => {
+                          setIsPairingFoodModalOpen(false)
+                          setIsPairingFoodSuggestionsOpen(false)
+                        }}
+                      >
+                        <img src={iconX} alt="" aria-hidden="true" />
+                      </button>
                     </div>
-                  </label>
+
+                    <div className="write_modal_body write_food_picker_body" aria-label="음식 선택 내용">
+                      <div className="write_food_picker_search_group" aria-label="음식 검색 및 추천">
+                        <div className="write_food_picker_input_row" aria-label="음식 검색">
+                          <input
+                            className="write_input write_food_picker_input"
+                            value={pairingFoodSearch}
+                            placeholder="음식명을 입력하세요"
+                            autoFocus
+                            onChange={(e) => setPairingFoodSearch(e.target.value)}
+                            onFocus={() => setIsPairingFoodSuggestionsOpen(true)}
+                          />
+                          <img className="write_food_picker_search_icon" src={iconSearch} alt="" aria-hidden="true" />
+                          {pairingFoodSearch.trim().length > 0 ? (
+                            <button
+                              type="button"
+                              className="write_food_picker_clear"
+                              aria-label="입력 지우기"
+                              onClick={() => {
+                                setPairingFoodSearch("")
+                                setSelectedFoodCategory(null)
+                                setSelectedFoodParentCategory(null)
+                                setSelectedFoodCategoryTags(new Set())
+                              }}
+                            >
+                              <img src={iconX} alt="" aria-hidden="true" />
+                            </button>
+                          ) : null}
+                        </div>
+
+                        {isPairingFoodSuggestionsOpen && filteredFoodNameSuggestions.length > 0 ? (
+                          <div className="write_food_picker_suggestions" aria-label="추천 음식">
+                            {filteredFoodNameSuggestions.map((name) => (
+                              <button
+                                type="button"
+                                key={name}
+                                className="write_food_picker_suggestion_item"
+                                onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => {
+                                setPairingFoodSearch(name)
+                                setSelectedFoodCategory(name)
+                                const parentCategory = deriveFoodParentCategory(name)
+                                setSelectedFoodParentCategory(parentCategory)
+                                setPendingFoodCategoryTags(new Set([parentCategory]))
+                                setIsPairingFoodSuggestionsOpen(false)
+                              }}
+                            >
+                              {(() => {
+                                const query = pairingFoodSearch.trim()
+                                if (!query) return <span className="write_food_picker_suggestion_rest">{name}</span>
+                                const lowerName = name.toLowerCase()
+                                const lowerQuery = query.toLowerCase()
+                                  const index = lowerName.indexOf(lowerQuery)
+                                  if (index < 0) return <span className="write_food_picker_suggestion_rest">{name}</span>
+                                  const before = name.slice(0, index)
+                                  const match = name.slice(index, index + query.length)
+                                  const after = name.slice(index + query.length)
+                                  return (
+                                    <span className="write_food_picker_suggestion_text">
+                                      {before ? <span className="write_food_picker_suggestion_rest">{before}</span> : null}
+                                      <span className="write_food_picker_suggestion_match">{match}</span>
+                                      {after ? <span className="write_food_picker_suggestion_rest">{after}</span> : null}
+                                    </span>
+                                  )
+                                })()}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div className="write_food_picker_category_block" aria-label="음식카테고리 선택">
+                        <div className="write_picker_tag_section" aria-label="음식 태그 선택 영역">
+                          <div className="write_food_picker_selected_tags" aria-label="선택한 태그">
+                            <div className="write_food_picker_tag_meta_row">
+                              <span className="write_food_picker_tag_label">
+                                <span className="write_food_picker_required_star" aria-hidden="true">*</span> 선택한 태그:
+                              </span>
+                              <div className="write_chip_row write_food_picker_tag_row" aria-label="선택한 태그 목록">
+                                {Array.from(pendingFoodCategoryTags).map((tag) => (
+                                  <button
+                                    key={tag}
+                                    type="button"
+                                    className="write_chip is_active write_chip_with_remove"
+                                    aria-label={`${tag} 삭제`}
+                                    onClick={() =>
+                                      setPendingFoodCategoryTags((prev) => {
+                                        const next = new Set(prev)
+                                        next.delete(tag)
+                                        return next
+                                      })
+                                    }
+                                  >
+                                    <span className="write_chip_text">{tag}</span>
+                                    <img className="write_chip_remove_icon" src={iconX} alt="" aria-hidden="true" />
+                                  </button>
+                                ))}
+                              </div>
+                              <span className="write_food_picker_category_counter" aria-label="선택 개수">
+                                {pendingFoodCategoryTags.size}/1
+                              </span>
+                            </div>
+                          </div>
+                          <div className="write_chip_row write_food_picker_category_row" aria-label="음식 카테고리">
+                            {FOOD_PARENT_CATEGORIES.map((chip) => {
+                              const active = pendingFoodCategoryTags.has(chip)
+                              return (
+                                <button
+                                  key={chip}
+                                  type="button"
+                                  className={active ? "write_chip is_active" : "write_chip"}
+                                  onClick={() =>
+                                    setPendingFoodCategoryTags((prev) => {
+                                      if (prev.has(chip)) return new Set()
+                                      return new Set([chip])
+                                    })
+                                  }
+                                >
+                                  {chip}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="write_picker_footer" aria-label="음식 태그 적용">
+                        <button
+                          type="button"
+                          className="write_picker_reset"
+                          onClick={() => setPendingFoodCategoryTags(new Set())}
+                        >
+                          태그 리셋
+                        </button>
+                        <button
+                          type="button"
+                          className={pendingFoodCategoryTags.size > 0 ? "write_picker_apply" : "write_picker_apply is_disabled"}
+                          disabled={pendingFoodCategoryTags.size === 0}
+                          onClick={() => {
+                            setSelectedFoodCategoryTags(new Set(pendingFoodCategoryTags))
+                            const first = Array.from(pendingFoodCategoryTags)[0] ?? null
+                            setSelectedFoodParentCategory(first)
+                            setIsPairingFoodModalOpen(false)
+                            setIsPairingFoodSuggestionsOpen(false)
+                          }}
+                        >
+                          적용
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : null}
 
@@ -1595,32 +2128,6 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
                         <span className="write_pill_text">{chip}</span>
                       </button>
                     ))}
-                  </div>
-                </div>
-
-                <div className="write_pairing_taste_group">
-                  <div className="write_pairing_taste_title">
-                    음식카테고리 <span className="write_pairing_taste_hint">(1개 선택)</span>
-                  </div>
-                  <div className="write_chip_row is_pairing_preview" aria-label="음식 카테고리 선택">
-                    {FOOD_PARENT_CATEGORIES.map((chip) => {
-                      const active = selectedFoodCategoryTags.has(chip)
-                      return (
-                        <button
-                          key={chip}
-                          type="button"
-                          className={active ? "write_chip is_active" : "write_chip"}
-                          onClick={() =>
-                            setSelectedFoodCategoryTags((prev) => {
-                              if (prev.has(chip)) return new Set()
-                              return new Set([chip])
-                            })
-                          }
-                        >
-                          {chip}
-                        </button>
-                      )
-                    })}
                   </div>
                 </div>
 
@@ -1912,6 +2419,3 @@ const [drinkSuggestionsOpen, setDrinkSuggestionsOpen] = useState(false)
     </section>
   )
 }
-
-
-

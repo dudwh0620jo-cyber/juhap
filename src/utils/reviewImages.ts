@@ -1,11 +1,18 @@
-import { getPairingDetailSimilarPostById } from "./pairingDetailMock"
-
-const reviewImageModules = import.meta.glob("../assets/review_image_*.png", {
+const assetModules = import.meta.glob("../assets/*.{png,jpg,jpeg,webp,gif,svg}", {
   eager: true,
   import: "default",
 }) as Record<string, string>
 
-const sortedReviewImages = Object.entries(reviewImageModules)
+const assetById = Object.fromEntries(
+  Object.entries(assetModules).map(([path, src]) => {
+    const fileName = path.split("/").pop() ?? ""
+    const baseName = fileName.replace(/\.[^.]+$/, "")
+    return [baseName, src]
+  }),
+) as Record<string, string>
+
+const sortedReviewImages = Object.entries(assetModules)
+  .filter(([path]) => /\/review_image_\d+\.png$/i.test(path))
   .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
   .map(([, src]) => src)
 
@@ -27,12 +34,8 @@ export function resolveReviewImage(photoId: string): string | undefined {
     return trimmed
   }
 
-  if (photoId.startsWith("similar_image_")) {
-    const similarId = Number.parseInt(photoId.replace("similar_image_", ""), 10)
-    if (Number.isFinite(similarId)) {
-      return getPairingDetailSimilarPostById(similarId)?.imageSrc
-    }
-  }
+  const matchedAsset = assetById[trimmed]
+  if (matchedAsset) return matchedAsset
 
   const match = photoId.match(/(\d+)$/)
   if (!match) return undefined

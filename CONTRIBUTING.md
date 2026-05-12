@@ -20,6 +20,7 @@
 - Do not use inline `style={{ ... }}` for normal UI styling.
 - Put styles in the matching CSS file for that page or component.
 - Use inline styles only for unavoidable runtime-calculated values, and leave a short reason if it is not obvious.
+- For progress indicators that depend on runtime values, prefer semantic elements like `<progress>` (styled in CSS) over segmented bars or inline-width styling.
 
 ## Layout rules
 - Mobile-first layout.
@@ -63,6 +64,7 @@
 - Do not rely on editor-only workspace settings for shared rules.
 - If using AI tools (Codex, Claude, etc.), require them to read this file first and follow these rules before editing.
 - Avoid bulk overwrite commands for Korean-heavy files; prefer patch-based edits and immediate verification.
+- Windows PowerShell 5.1 may misread UTF-8 **without BOM** files when using `Get-Content` without an explicit encoding; use `Get-Content -Raw -Encoding UTF8 <file> | ConvertFrom-Json` when inspecting JSON in the terminal.
 
 ## Korean text safety rules
 - Korean-heavy files must be edited with small patch-based changes only.

@@ -14,7 +14,7 @@ import iconStar from "../assets/svg/star.svg"
 import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
-import { deriveCommunityTagBundle, extractPairingTitle, feedPosts, getPairingSummaryText, normalizeCommunityFeatures, resolvePairingTags } from "../utils/communityPosts"
+import { deriveCommunityTagBundle, extractPairingTitle, feedPosts, getPairingSummaryText, normalizeCommunityFeatures, resolvePairingTags, type FeedPost } from "../utils/communityPosts"
 import {
   COMMUNITY_BOOKMARK_LIST_BY_POST_KEY,
   COMMUNITY_BOOKMARKED_POSTS_KEY,
@@ -35,7 +35,7 @@ import { currentUserMock, usersMockById } from "../utils/usersMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
 import { resolveReviewImage } from "../utils/reviewImages"
-import { getPairingDetailMock, getPairingDetailSimilarPostById } from "../utils/pairingDetailMock"
+import { getPairingDetailMock } from "../utils/pairingDetailMock"
 
 type PairingDetailNavState = {
   pairingTitle?: string
@@ -72,7 +72,7 @@ export default function PairingDetail() {
   const navState = (location.state ?? {}) as PairingDetailNavState
 
   const numericId = typeof pairingId === "string" ? Number(pairingId) : NaN
-  const post = useMemo(() => {
+  const post = useMemo<FeedPost | undefined>(() => {
     if (!Number.isFinite(numericId)) return undefined
     const fromSeed = feedPosts.find((item) => item.id === numericId)
     if (fromSeed) return fromSeed
@@ -81,7 +81,7 @@ export default function PairingDetail() {
       const raw = window.localStorage.getItem(COMMUNITY_USER_POSTS_KEY)
       const parsed = raw ? JSON.parse(raw) : []
       if (!Array.isArray(parsed)) return undefined
-      return parsed.find((item) => typeof item?.id === "number" && item.id === numericId)
+      return parsed.find((item) => typeof item?.id === "number" && item.id === numericId) as FeedPost | undefined
     } catch {
       return undefined
     }
@@ -206,31 +206,31 @@ export default function PairingDetail() {
   }, [navState.source, navState.voteCount])
 
   const similarItems = useMemo<SimilarPairingItem[]>(() => {
-    if (detailMock?.similarPostIds?.length) {
-      return detailMock.similarPostIds.flatMap((similarId) => {
+    const similarPostIds = post?.similarPostIds ?? detailMock?.similarPostIds ?? []
+    if (similarPostIds.length) {
+      return similarPostIds.flatMap((similarId) => {
         const matchedPost = feedPosts.find((post) => post.id === similarId)
-        const similarSeed = getPairingDetailSimilarPostById(similarId)
-        if (!matchedPost && !similarSeed) return []
+        if (!matchedPost) return []
         const tagBundle = deriveCommunityTagBundle({
-          pairingTitle: matchedPost ? extractPairingTitle(matchedPost.title) : similarSeed?.pairingTitle ?? "",
-          title: matchedPost?.title ?? similarSeed?.title ?? similarSeed?.pairingTitle ?? "",
-          drinkType: matchedPost?.drinkType ?? similarSeed?.drinkType ?? "",
+          pairingTitle: extractPairingTitle(matchedPost.title),
+          title: matchedPost.title,
+          drinkType: matchedPost.drinkType ?? "",
           foods: matchedPost?.foods,
           features: matchedPost?.features,
         })
         return [{
           id: similarId,
-          pairingTitle: matchedPost ? extractPairingTitle(matchedPost.title) : similarSeed?.pairingTitle ?? "",
-          authorId: matchedPost?.authorId ?? similarSeed?.authorId ?? 0,
-          authorName: matchedPost?.authorName ?? usersMockById[similarSeed?.authorId ?? 0]?.name ?? "익명",
-          profile: usersMockById[matchedPost?.authorId ?? similarSeed?.authorId ?? 0]?.profile ?? "",
-          locationLabel: matchedPost?.locationLabel ?? similarSeed?.locationLabel ?? "",
+          pairingTitle: extractPairingTitle(matchedPost.title),
+          authorId: matchedPost.authorId,
+          authorName: matchedPost.authorName ?? usersMockById[matchedPost.authorId]?.name ?? "익명",
+          profile: usersMockById[matchedPost.authorId]?.profile ?? "",
+          locationLabel: matchedPost.locationLabel ?? "",
           drinkType: tagBundle.liquorTag || "기타",
           foodTag: tagBundle.foodTag,
-          imageSrc: matchedPost?.imageSrc ?? similarSeed?.imageSrc,
-          title: matchedPost?.title ?? similarSeed?.title,
-          rating: matchedPost?.rating ?? similarSeed?.rating,
-          reviewCount: matchedPost?.reviewCount ?? similarSeed?.reviewCount,
+          imageSrc: matchedPost.imageSrc ?? (matchedPost.photoIds?.[0] ? resolveReviewImage(matchedPost.photoIds[0]) : undefined),
+          title: matchedPost.title,
+          rating: matchedPost.rating,
+          reviewCount: matchedPost.reviewCount,
         }
         ]
       })
@@ -257,7 +257,7 @@ export default function PairingDetail() {
           foodTag,
         }
       })
-  }, [detailMock?.similarPostIds, numericId])
+  }, [detailMock?.similarPostIds, numericId, post?.similarPostIds])
 
   const { liquorTag, foodTag } = pairingTagBundle
 
@@ -382,7 +382,7 @@ export default function PairingDetail() {
         onBack={() => {
           if (navState.source === "ranking") return navigate("/community/ranking")
           if (navState.source === "feed") return navigate(`/community?filter=${navState.feedFilter ?? (isQnaDetail ? "free" : "review")}`)
-          if (isQnaDetail) return navigate("/community?filter=free")
+          if (navState.source === "free") return navigate("/community?filter=free")
           navigate(-1)
         }}
         onToggleFollow={toggleFollow}

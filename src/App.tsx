@@ -12,6 +12,7 @@ import { readUserProfile } from "./data/userProfile"
 import Home from "./pages/Home"
 import Login from "./pages/Login"
 import MyPage from "./pages/MyPage"
+import MyRecord from "./pages/MyRecord"
 import Onboarding from "./pages/Onboarding"
 import PairingDetail from "./pages/PairingDetail"
 import PairingTagList from "./pages/PairingTagList"
@@ -147,6 +148,7 @@ export default function App() {
           <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
           <Route path="/community/tag" element={<PairingTagList />} />
           <Route path="/my" element={<MyPage />} />
+          <Route path="/my/record" element={<MyRecord />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/vote" element={<VoteList />} />
