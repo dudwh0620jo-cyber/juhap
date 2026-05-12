@@ -66,6 +66,7 @@ export default function App() {
   const prevPathnameRef = useRef("")
   const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
   const isChatHidden = pathname.startsWith("/product/")
+  const isProductDetailPage = /^\/product\/[^/]+$/.test(pathname)
   const isWritePage = pathname === "/community/write" || /^\/product\/[^/]+\/write$/.test(pathname)
 
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function App() {
       <div className="app_viewport">
         <StatusBar />
 
-        {!isAuthPage && !isWritePage ? (
+        {!isAuthPage && !isWritePage && !isProductDetailPage ? (
           <div className="chat_corner_slot">
             <button
               type="button"
