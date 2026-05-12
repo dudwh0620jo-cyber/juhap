@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
 import { motion } from "motion/react"
-import { Navigate, NavLink, Route, Routes, useLocation } from "react-router"
+import { useEffect, useRef, useState } from "react"
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigationType } from "react-router"
 import StatusBar from "./components/StatusBar"
 import AiScan from "./pages/AiScan"
 import Category from "./pages/Category"
@@ -62,6 +62,8 @@ const rightNavItems = [
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const { pathname } = useLocation()
+  const navigationType = useNavigationType()
+  const prevPathnameRef = useRef("")
   const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
   const isChatHidden = pathname.startsWith("/product/")
   const isWritePage = pathname === "/community/write" || /^\/product\/[^/]+\/write$/.test(pathname)
@@ -69,6 +71,22 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
+
+  useEffect(() => {
+    const prevPathname = prevPathnameRef.current
+    prevPathnameRef.current = pathname
+
+    if (!isChatOpen) return
+
+    const wasProductDetail = prevPathname.startsWith("/product/")
+    const isProductDetail = pathname.startsWith("/product/")
+
+    if (!wasProductDetail || isProductDetail) return
+
+    if (navigationType !== "POP") {
+      setIsChatOpen(false)
+    }
+  }, [isChatOpen, navigationType, pathname])
 
   const isAuthPage =
     pathname === "/onboarding" ||
