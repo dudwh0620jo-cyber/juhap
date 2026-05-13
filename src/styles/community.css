@@ -4220,6 +4220,13 @@
   font-weight: 400;
 }
 
+.community_review_hashtags a,
+.community_review_hashtags span {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}
+
 .community_review_location {
   display: flex;
   align-items: center;

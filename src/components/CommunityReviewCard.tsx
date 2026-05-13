@@ -185,8 +185,6 @@ export default function CommunityReviewCard({
           locationLabel={locationLabel}
           titleClassName="community_review_title_wrap"
           bodyClassName="community_review_body"
-          hashtagLinkTo="/community/tag"
-          getHashtagState={(tag) => ({ tagType: "hashtag", tagValue: tag })}
           liquorTo="/community/tag"
           foodTo="/community/tag"
           liquorState={{ tagType: "liquor", tagValue: liquorTag }}

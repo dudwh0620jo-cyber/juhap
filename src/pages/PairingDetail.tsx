@@ -15,7 +15,7 @@ import iconStar from "../assets/svg/star.svg"
 import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
-import { deriveCommunityTagBundle, extractPairingTitle, getPairingSummaryText, normalizeCommunityFeatures, type FeedPost } from "../utils/communityPosts"
+import { deriveCommunityTagBundle, extractPairingTitle, getPairingSummaryText, type FeedPost } from "../utils/communityPosts"
 import {
   COMMUNITY_BOOKMARK_LIST_BY_POST_KEY,
   COMMUNITY_BOOKMARKED_POSTS_KEY,
@@ -77,19 +77,12 @@ export default function PairingDetail() {
     return deriveCommunityTagBundle({
       pairingTitle,
       title: post?.title ?? "",
-      drinkType: navState.drinkType ?? post?.drinkType ?? "",
+      drinkType: navState.drinkType ?? post?.categories?.[0] ?? "",
       foods: Array.isArray(navState.foods) ? navState.foods : post?.foods,
       features: fromNavFeatures.length > 0 ? fromNavFeatures : post?.features,
     })
   }, [navState.drinkType, navState.features, navState.foods, pairingTitle, post])
 
-  const pairingFeatures = useMemo((): string[] => {
-    const fromNavRaw: unknown[] = Array.isArray(navState.features) ? navState.features : []
-    const fromPostRaw: unknown[] = Array.isArray(post?.features) ? post.features : []
-    const fromNav = normalizeCommunityFeatures(fromNavRaw, 2)
-    const fromPost = normalizeCommunityFeatures(fromPostRaw, 2)
-    return fromNav.length > 0 ? fromNav : fromPost
-  }, [navState.features, post])
 
   const authorId = typeof navState.authorId === "number" ? navState.authorId : typeof post?.authorId === "number" ? post.authorId : null
   const authorMock = authorId !== null ? usersMockById[authorId] : undefined
@@ -161,6 +154,8 @@ export default function PairingDetail() {
 
   const hasPairingTags = Boolean(liquorTag) && Boolean(foodTag)
   const isQnaDetail = Boolean(post?.isQna) || navState.source === "free"
+  const hideDetailSections = Boolean(navState.hideDetailSections)
+  const bottomNavActive = navState.bottomNavActive
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
@@ -308,13 +303,21 @@ export default function PairingDetail() {
             liquorTag={hasPairingTags ? liquorTag : ""}
             foodTag={hasPairingTags ? foodTag : ""}
             body={detailBodyText}
-            hashtags={pairingFeatures}
+            hashtags={post?.searchTags}
             locationLabel={locationLabel}
             bodyClassName="detail_text"
             locationClassName="detail_content_location"
             locationIconClassName="detail_content_location_icon"
-            onSelectLiquor={hasPairingTags ? () => navigate("/community/tag", { state: { tagType: "liquor", tagValue: liquorTag } }) : undefined}
-            onSelectFood={hasPairingTags ? () => navigate("/community/tag", { state: { tagType: "food", tagValue: foodTag } }) : undefined}
+            onSelectLiquor={
+              hasPairingTags
+                ? () => navigate("/community/tag", { state: { tagType: "liquor", tagValue: liquorTag, bottomNavActive } })
+                : undefined
+            }
+            onSelectFood={
+              hasPairingTags
+                ? () => navigate("/community/tag", { state: { tagType: "food", tagValue: foodTag, bottomNavActive } })
+                : undefined
+            }
           />
 
           <FeedActions
@@ -333,34 +336,38 @@ export default function PairingDetail() {
 
           {detailMock?.product ? <PairingDetailProductCard product={detailMock.product} /> : null}
 
-          <SimilarPairingList
-            items={similarItems}
-            titleVariant="text"
-            onSelect={(item) =>
-              navigate(`/community/pairing/${item.id}`, {
-                state: {
-                  pairingTitle: item.pairingTitle,
-                  authorId: item.authorId,
-                  authorName: item.authorName,
-                  profile: item.profile,
-                  locationLabel: item.locationLabel,
-                  drinkType: item.drinkType,
-                  foods: item.foodTag ? [item.foodTag] : undefined,
-                  source: "feed",
-                  feedFilter: navState.feedFilter,
-                } satisfies PairingDetailNavState,
-              })
-            }
-          />
+          {!hideDetailSections ? (
+            <>
+              <SimilarPairingList
+                items={similarItems}
+                titleVariant="text"
+                onSelect={(item) =>
+                  navigate(`/community/pairing/${item.id}`, {
+                    state: {
+                      pairingTitle: item.pairingTitle,
+                      authorId: item.authorId,
+                      authorName: item.authorName,
+                      profile: item.profile,
+                      locationLabel: item.locationLabel,
+                      drinkType: item.drinkType,
+                      foods: item.foodTag ? [item.foodTag] : undefined,
+                      source: "feed",
+                      feedFilter: navState.feedFilter,
+                    } satisfies PairingDetailNavState,
+                  })
+                }
+              />
 
-          <CommentSection
-            pairingId={pairingId}
-            currentUser={currentUser}
-            getTierClassName={getUserGradeBadgeClassNameByUserId}
-            getTierLabel={getPairingTierLabelByUserId}
-            onCountChange={handleCommentCountChange}
-            emptyByDefault={isMyPost}
-          />
+              <CommentSection
+                pairingId={pairingId}
+                currentUser={currentUser}
+                getTierClassName={getUserGradeBadgeClassNameByUserId}
+                getTierLabel={getPairingTierLabelByUserId}
+                onCountChange={handleCommentCountChange}
+                emptyByDefault={isMyPost}
+              />
+            </>
+          ) : null}
         </>
       )}
 

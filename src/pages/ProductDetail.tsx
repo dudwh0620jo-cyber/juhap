@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { useNavigate, useParams, useSearchParams } from "react-router"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ProductReviewLikeButton from "../components/ProductReviewLikeButton"
@@ -14,6 +14,8 @@ import imgPurchaseThumb1 from "../assets/fd_purchase_thumb1.png"
 import imgPurchaseThumb2 from "../assets/fd_purchase_thumb2.png"
 import imgPurchaseThumb3 from "../assets/fd_purchase_thumb3.png"
 import iconBookmark from "../assets/svg/bookmarksimple.svg"
+import iconBookmarkPoint from "../assets/svg/bookmarksimple_p.svg"
+import iconLocation from "../assets/svg/mappin.svg"
 import iconCaretDown from "../assets/svg/caretdown.png"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
@@ -35,7 +37,9 @@ import {
 import { productDetailPageData } from "../data/productDetailData"
 import { drinkReviews } from "../data/productReviewsMock"
 import { useProductReviewInteractions } from "../hooks/useProductReviewInteractions"
+import type { PairingDetailNavState } from "../utils/pairingDetail"
 import { getVisibleProductReviews } from "../utils/productReviews"
+import type { DrinkReview } from "../utils/productReviews"
 import "../styles/product-detail.css"
 import imgFoodMatch1 from "../assets/fd_food_match1.svg"
 import imgFoodMatch2 from "../assets/fd_food_match2.svg"
@@ -55,11 +59,19 @@ const tasteIconByLabel: Record<string, string> = {
   Finish: iconTasteFinish,
 }
 
+const normalizeHashTagValue = (tag: string) => tag.replace(/^#/, "").trim()
+
+const getPairingReviewPostId = (review: DrinkReview) => {
+  if (typeof review.pairingPostId === "number" && Number.isFinite(review.pairingPostId)) return review.pairingPostId
+  const matchedId = review.id.match(/^pairing-review-(\d+)$/)?.[1]
+  return matchedId ? Number(matchedId) : NaN
+}
+
 export default function ProductDetail() {
   const { mockProductById, defaultProduct } = productDetailPageData
   const navigate = useNavigate()
   const { id } = useParams()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const initialTab = searchParams.get("tab") === "pairing" ? "페어링추천" : searchParams.get("tab") === "review" ? "후기" : "술정보"
   const [activeTab, setActiveTab] = useState<(typeof tabItems)[number]>(initialTab)
   const [pendingPurchaseShopName, setPendingPurchaseShopName] = useState<string | null>(null)
@@ -96,6 +108,40 @@ export default function ProductDetail() {
     () => getVisibleProductReviews(drinkReviews, { photoOnly: isPhotoReviewOnly, sortKey: reviewSort }),
     [isPhotoReviewOnly, reviewSort],
   )
+
+  const changeActiveTab = (nextTab: (typeof tabItems)[number]) => {
+    setActiveTab(nextTab)
+    const nextParams = new URLSearchParams(searchParams)
+
+    if (nextTab === "페어링추천") {
+      nextParams.set("tab", "pairing")
+    } else if (nextTab === "후기") {
+      nextParams.set("tab", "review")
+    } else {
+      nextParams.delete("tab")
+    }
+
+    setSearchParams(nextParams, { replace: true })
+  }
+
+  const openPairingReviewDetail = (review: DrinkReview) => {
+    const postId = getPairingReviewPostId(review)
+    if (!Number.isFinite(postId)) return
+
+    navigate(`/community/pairing/${postId}`, {
+      state: {
+        pairingTitle: [review.alcoholTag, review.foodTag].filter(Boolean).join(" + "),
+        pairingSummary: review.title,
+        body: review.body,
+        authorName: review.author.name,
+        profile: review.author.preference,
+        locationLabel: review.location ?? "",
+        drinkType: review.alcoholTag ?? "",
+        foods: review.foodTag ? [review.foodTag] : undefined,
+        bottomNavActive: "category",
+      } satisfies PairingDetailNavState,
+    })
+  }
 
   return (
     <section className="product_detail_page page_screen" aria-label="상품 상세">
@@ -155,7 +201,7 @@ export default function ProductDetail() {
       <nav className="product_tabs" aria-label="상세 탭">
         <div className="product_tabs_inner">
           {tabItems.map((item) => (
-            <button key={item} type="button" className={activeTab === item ? "is_active" : ""} onClick={() => setActiveTab(item)}>
+            <button key={item} type="button" className={activeTab === item ? "is_active" : ""} onClick={() => changeActiveTab(item)}>
               {item}
             </button>
           ))}
@@ -359,12 +405,13 @@ export default function ProductDetail() {
                   <p>{review.body}</p>
                   <div className="review_tags">
                     {review.tags.map((tag) => (
-                      <span key={tag}>{tag}</span>
+                      <span key={tag}>#{normalizeHashTagValue(tag)}</span>
                     ))}
                   </div>
                 </div>
 
                 <div className="review_actions">
+                  <div className="review_actions_left">
                   <ProductReviewLikeButton
                     baseCount={review.likes}
                     isActive={Boolean(likedReviewIds[review.id])}
@@ -377,6 +424,10 @@ export default function ProductDetail() {
                   </span>
                   <button type="button" aria-label="공유">
                     <img src={iconSharePoint} alt="" aria-hidden="true" />
+                  </button>
+                  </div>
+                  <button type="button" aria-label="저장">
+                    <img src={iconBookmarkPoint} alt="" aria-hidden="true" />
                   </button>
                 </div>
               </article>
@@ -414,7 +465,18 @@ export default function ProductDetail() {
             </div>
             <div className="product_related_list">
               {pairingReviews.map((review) => (
-                <article className="pairing_review_card" key={review.id}>
+                <article
+                  className="pairing_review_card"
+                  key={review.id}
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => openPairingReviewDetail(review)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" && event.key !== " ") return
+                    event.preventDefault()
+                    openPairingReviewDetail(review)
+                  }}
+                >
                   <div className="review_author_row">
                     <img className="review_profile" src={review.author.avatar} alt="" aria-hidden="true" />
                     <div className="review_author_meta">
@@ -426,7 +488,10 @@ export default function ProductDetail() {
                           type="button"
                           className={followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"}
                           aria-pressed={followedAuthorNames.has(review.author.name)}
-                          onClick={() => requestToggleFollow(review.author.name)}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            requestToggleFollow(review.author.name)
+                          }}
                         >
                           {followedAuthorNames.has(review.author.name) ? "언팔로우" : "팔로우"}
                         </button>
@@ -446,29 +511,45 @@ export default function ProductDetail() {
                   <div className="pairing_card_text">
                     <h2>{review.title}</h2>
                     <div className="pairing_drink_chips">
-                      {review.alcoholTag ? <span className="pairing_chip_alcohol">{review.alcoholTag}</span> : null}
-                      {review.foodTag ? <span className="pairing_chip_food">{review.foodTag}</span> : null}
+                      {review.alcoholTag ? (
+                        <Link
+                          className="pairing_chip_alcohol"
+                          to="/community/tag"
+                          state={{ tagType: "liquor", tagValue: review.alcoholTag, bottomNavActive: "category" }}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {review.alcoholTag}
+                        </Link>
+                      ) : null}
+                      {review.foodTag ? (
+                        <Link
+                          className="pairing_chip_food"
+                          to="/community/tag"
+                          state={{ tagType: "food", tagValue: review.foodTag, bottomNavActive: "category" }}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {review.foodTag}
+                        </Link>
+                      ) : null}
                     </div>
                     <p>{review.body}</p>
                   </div>
 
                   <div className="pairing_card_meta">
-                    <div className="review_tags">
+                    <div className="community_review_hashtags" aria-label="해시태그">
                       {review.tags.map((tag) => (
-                        <span key={tag}>{tag}</span>
+                        <span key={tag}>#{normalizeHashTagValue(tag)}</span>
                       ))}
                     </div>
                     {review.location ? (
-                      <div className="pairing_location">
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                          <path d="M9 1.5C6.51472 1.5 4.5 3.51472 4.5 6C4.5 9.75 9 16.5 9 16.5C9 16.5 13.5 9.75 13.5 6C13.5 3.51472 11.4853 1.5 9 1.5ZM9 8.25C7.75736 8.25 6.75 7.24264 6.75 6C6.75 4.75736 7.75736 3.75 9 3.75C10.2426 3.75 11.25 4.75736 11.25 6C11.25 7.24264 10.2426 8.25 9 8.25Z" fill="#6e6e6e" />
-                        </svg>
+                      <div className="community_review_location">
+                        <img className="community_review_location_icon" src={iconLocation} alt="" aria-hidden="true" />
                         <span>{review.location}</span>
                       </div>
                     ) : null}
                   </div>
 
-                  <div className="pairing_card_actions">
+                  <div className="pairing_card_actions" onClick={(event) => event.stopPropagation()}>
                     <div className="pairing_card_actions_left">
                       <ProductReviewLikeButton
                         baseCount={review.likes}
@@ -485,7 +566,7 @@ export default function ProductDetail() {
                       </button>
                     </div>
                     <button type="button" aria-label="저장">
-                      <img src={iconBookmark} alt="" aria-hidden="true" />
+                      <img src={iconBookmarkPoint} alt="" aria-hidden="true" />
                     </button>
                   </div>
                 </article>

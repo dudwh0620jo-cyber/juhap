@@ -25,6 +25,8 @@ export type PairingDetailNavState = {
   voteCount?: number
   source?: "feed" | "ranking" | "free"
   feedFilter?: "review" | "follow" | "free"
+  hideDetailSections?: boolean
+  bottomNavActive?: "category"
 }
 
 export const readStoredNumberSet = (storageKey: string) => {

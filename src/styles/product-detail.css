@@ -9,16 +9,18 @@
 }
 
 .product_visual_intro {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: contents;
 }
 
 .product_detail_header {
+  position: sticky;
+  top: 50px;
+  z-index: 19;
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 64px;
+  margin-bottom: -36px;
   padding: 0 20px;
   background: var(--color-bg-base);
 }
@@ -204,12 +206,16 @@
 }
 
 .product_tabs {
+  position: sticky;
+  top: 114px;
+  z-index: 18;
   display: flex;
   width: 100%;
   padding: 0 36px;
   justify-content: center;
   align-items: flex-start;
   border-bottom: 0.5px solid #b0b0b0;
+  background: var(--color-bg-base);
 }
 
 .product_tabs_inner {
@@ -1812,12 +1818,14 @@
   padding-top: 4px;
 }
 
-.review_tags span {
+.review_tags span,
+.review_tags a {
   color: #c2977b;
   font-size: 14px;
   font-weight: 400;
   line-height: 1;
   letter-spacing: -0.28px;
+  text-decoration: none;
 }
 
 .review_actions {
@@ -1827,7 +1835,13 @@
   padding: 0 20px;
 }
 
-.review_actions > span,
+.review_actions_left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.review_actions_left > span,
 .review_toast_button {
   display: inline-flex;
   align-items: center;
@@ -1841,9 +1855,10 @@
   line-height: 1.4;
 }
 
-.review_actions > span {
-  margin-left: 16px;
-  margin-right: auto;
+.review_actions_left > span img {
+  width: 19px;
+  height: 19px;
+  display: block;
 }
 
 .review_toast_button {
@@ -1952,6 +1967,14 @@
   border: 0;
   padding: 0;
   background: transparent;
+  cursor: pointer;
+}
+
+.review_actions > button img,
+.review_actions_left > button img {
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 
 @keyframes review_like_bubble_rise {
@@ -2177,6 +2200,15 @@
   background: #fbfaf9;
 }
 
+.pairing_review_card[role="link"] {
+  cursor: pointer;
+}
+
+.pairing_review_card[role="link"]:focus-visible {
+  outline: 2px solid #c2977b;
+  outline-offset: 3px;
+}
+
 .pairing_review_card::after {
   content: "";
   position: absolute;
@@ -2238,6 +2270,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid #a1b9cb;
@@ -2249,12 +2282,14 @@
   line-height: 1.3;
   letter-spacing: -0.28px;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .pairing_chip_food {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid #efba85;
@@ -2266,6 +2301,17 @@
   line-height: 1.3;
   letter-spacing: -0.28px;
   white-space: nowrap;
+  text-decoration: none;
+}
+
+.pairing_chip_alcohol::after,
+.pairing_chip_food::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  transform: rotate(45deg);
 }
 
 .pairing_card_text p {

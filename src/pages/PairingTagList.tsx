@@ -1,17 +1,56 @@
 import { useLayoutEffect, useMemo } from "react"
 import { useLocation, useNavigate } from "react-router"
 
-import RelatedContentPostCard from "../components/RelatedContentPostCard"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
+import CommunityReviewCard from "../components/CommunityReviewCard"
 import "../styles/community.css"
-import { extractPairingTitle, feedPosts, matchesCommunityTag, type CommunityTagType } from "../utils/communityPosts"
+import {
+  deriveCommunityTagBundle,
+  extractPairingTitle,
+  feedPosts,
+  matchesCommunityTag,
+  type CommunityTagType,
+  type FeedPost,
+} from "../utils/communityPosts"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
+import type { PairingDetailNavState } from "../utils/pairingDetail"
 import { getTierClassName } from "../utils/tier"
-import { currentUserMock, usersMockById } from "../utils/usersMock"
+import { usersMockById } from "../utils/usersMock"
 
 type NavState = {
   tagType: CommunityTagType
   tagValue: string
+  bottomNavActive?: "category"
+}
+
+function getReviewLinkState(post: FeedPost, bottomNavActive?: "category"): PairingDetailNavState {
+  const pairingTitle = extractPairingTitle(post.title)
+  const authorId = post.authorId
+  const authorName = usersMockById[authorId]?.name ?? post.authorName ?? "익명"
+  const tagBundle = deriveCommunityTagBundle({
+    pairingTitle,
+    title: post.title,
+    drinkType: post.drinkType ?? "",
+    foods: post.foods,
+    features: post.features,
+  })
+
+  return {
+    pairingTitle,
+    body: post.body,
+    pairingSummary: post.pairingSummary ?? "",
+    authorId,
+    authorName,
+    profile: usersMockById[authorId]?.profile ?? "",
+    locationLabel: post.locationLabel ?? "",
+    drinkType: post.drinkType ?? "",
+    foods: post.foods,
+    features: tagBundle.featureTags,
+    source: "feed",
+    feedFilter: "review",
+    hideDetailSections: true,
+    bottomNavActive,
+  }
 }
 
 export default function PairingTagList() {
@@ -20,6 +59,7 @@ export default function PairingTagList() {
   const state = (location.state ?? {}) as Partial<NavState>
   const tagType = state.tagType
   const tagValue = state.tagValue?.trim() ?? ""
+  const bottomNavActive = state.bottomNavActive
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
@@ -52,17 +92,24 @@ export default function PairingTagList() {
           filtered.map((post) => {
             const pairingTitle = extractPairingTitle(post.title)
             const authorId = post.authorId
-            const authorName = usersMockById[authorId]?.name ?? "익명"
+            const authorName = usersMockById[authorId]?.name ?? post.authorName ?? "익명"
             const profile = usersMockById[authorId]?.profile ?? ""
-            const hasPhotos = Boolean(post.photoIds?.length)
-            const body = post.locationLabel?.trim() || post.pairingSummary?.trim() || post.body
+            const tagBundle = deriveCommunityTagBundle({
+              pairingTitle,
+              title: post.title,
+              drinkType: post.drinkType ?? "",
+              foods: post.foods,
+              features: post.features,
+            })
+            const linkState = getReviewLinkState(post, bottomNavActive)
 
             return (
-              <RelatedContentPostCard
+              <CommunityReviewCard
                 key={post.id}
                 postId={post.id}
+                authorId={authorId}
                 authorName={authorName}
-                profile={profile}
+                authorMeta={profile}
                 badgeClassName={getTierClassName(getPairingTierByUserId(authorId), "feed_post_badge")}
                 badgeText={getPairingTierLabelByUserId(authorId)}
                 followButtonClassName="follow_toggle_button"
@@ -70,38 +117,21 @@ export default function PairingTagList() {
                 followText="팔로우"
                 onToggleFollow={() => {}}
                 linkTo={`/community/pairing/${post.id}`}
-                linkState={{
-                  pairingTitle,
-                  authorId,
-                  authorName,
-                  profile,
-                  locationLabel: post.locationLabel ?? "",
-                  drinkType: post.drinkType ?? "",
-                  features: post.features ?? [],
-                  source: "feed",
-                }}
-                title={pairingTitle}
-                body={body}
-                showImages={authorId === currentUserMock.id ? hasPhotos : true}
+                linkState={linkState}
+                title={post.pairingSummary ?? post.title}
+                pairingTitle={pairingTitle}
+                body={post.body}
+                liquorTag={tagBundle.liquorTag}
+                foodTag={tagBundle.foodTag}
                 photoIds={post.photoIds}
+                hashtags={post.searchTags ?? tagBundle.featureTags}
+                locationLabel={post.locationLabel ?? ""}
                 likeActive={false}
                 likeAriaLabel="좋아요"
-                likeText="0"
+                likeText={`${post.likeCount}`}
                 onToggleLike={() => {}}
-                commentText="0"
-                onViewComments={() =>
-                  navigate(`/community/pairing/${post.id}`, {
-                    state: {
-                      pairingTitle,
-                      authorId,
-                      authorName,
-                      profile,
-                      locationLabel: post.locationLabel ?? "",
-                      drinkType: post.drinkType ?? "",
-                      source: "feed",
-                    },
-                  })
-                }
+                commentText={`${post.commentCount}`}
+                onViewComments={() => navigate(`/community/pairing/${post.id}`, { state: linkState })}
                 bookmarkActive={false}
                 bookmarkAriaLabel="북마크"
                 onOpenBookmarkPicker={() => {}}
@@ -113,4 +143,3 @@ export default function PairingTagList() {
     </section>
   )
 }
-

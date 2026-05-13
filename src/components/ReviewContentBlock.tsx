@@ -1,5 +1,4 @@
 import type { ReactNode } from "react"
-import { Link } from "react-router"
 import iconLocation from "../assets/svg/mappin.svg"
 import PairingTagRow from "./PairingTagRow"
 
@@ -16,8 +15,6 @@ type Props = {
   titleClassName?: string
   bodyClassName?: string
   hashtagsClassName?: string
-  hashtagLinkTo?: string
-  getHashtagState?: (tag: string) => unknown
   locationClassName?: string
   locationIconClassName?: string
   liquorTo?: string
@@ -43,8 +40,6 @@ export default function ReviewContentBlock({
   titleClassName,
   bodyClassName,
   hashtagsClassName = "community_review_hashtags",
-  hashtagLinkTo,
-  getHashtagState,
   locationClassName = "community_review_location",
   locationIconClassName,
   liquorTo,
@@ -56,7 +51,7 @@ export default function ReviewContentBlock({
   tagRowClassName = "community_review_pair_tags",
   tagClassName = "community_review_pair_chip",
 }: Props) {
-  const visibleHashtags = (hashtags ?? []).slice(0, 2)
+  const visibleHashtags = hashtags ?? []
 
   return (
     <div className={className}>
@@ -79,15 +74,9 @@ export default function ReviewContentBlock({
         <p className={bodyClassName}>{body}</p>
         {visibleHashtags.length > 0 ? (
           <div className={hashtagsClassName} aria-label="해시태그">
-            {visibleHashtags.map((tag) =>
-              hashtagLinkTo ? (
-                <Link key={tag} to={hashtagLinkTo} state={getHashtagState ? getHashtagState(tag) : undefined}>
-                  #{tag}
-                </Link>
-              ) : (
-                <span key={tag}>#{tag}</span>
-              ),
-            )}
+            {visibleHashtags.map((tag) => (
+              <span key={tag}>#{tag}</span>
+            ))}
           </div>
         ) : null}
       </div>
