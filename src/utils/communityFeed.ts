@@ -13,7 +13,11 @@ export type CommunityFeedFilters = {
   selectedCategories: Set<string>
   selectedFeatures: Set<string>
   selectedFoods: Set<string>
+  selectedSituations: Set<string>
 }
+
+export const COMMUNITY_FOOD_FILTER_CHIPS = ["한식", "양식", "일식", "중식", "스낵", "기타"] as const
+export const COMMUNITY_SITUATION_FILTER_CHIPS = ["혼술", "가족", "데이트", "친구/파티", "모임/단체"] as const
 
 export const readStoredCommunityUserPosts = (storageKey: string): FeedPost[] => {
   try {
@@ -43,20 +47,17 @@ export const getEffectiveSelectedFeatures = (selectedFeatures: Set<string>, avai
 export const buildPopupChipGroups = ({
   popupCategoryByDrinkType,
   popupFeaturesByDrinkType,
-  popupFoodCategories,
   selectedDrinkType,
   selectedCategories,
 }: {
   popupCategoryByDrinkType: Record<string, string[]>
   popupFeaturesByDrinkType: Record<string, string[]>
-  popupFoodCategories: string[]
   selectedDrinkType: string | null
   selectedCategories: Set<string>
 }) => {
   const availableCategories = selectedDrinkType ? popupCategoryByDrinkType[selectedDrinkType] ?? [] : []
   const availableFeatures =
     selectedDrinkType && selectedCategories.size > 0 ? popupFeaturesByDrinkType[selectedDrinkType] ?? [] : []
-  const availableFoods = selectedDrinkType ? popupFoodCategories : []
 
   return {
     availableFeatures,
@@ -64,7 +65,8 @@ export const buildPopupChipGroups = ({
       { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
       { title: "카테고리", chips: availableCategories },
       { title: "특징", chips: availableFeatures },
-      { title: "음식", chips: availableFoods },
+      { title: "음식", chips: [...COMMUNITY_FOOD_FILTER_CHIPS] },
+      { title: "상황", chips: [...COMMUNITY_SITUATION_FILTER_CHIPS] },
     ] satisfies PopupChipGroup[],
   }
 }
@@ -72,7 +74,6 @@ export const buildPopupChipGroups = ({
 export const buildSearchAllChipGroups = (
   popupCategoryByDrinkType: Record<string, string[]>,
   popupFeaturesByDrinkType: Record<string, string[]>,
-  popupFoodCategories: string[],
 ) => {
   const categorySet = new Set<string>()
   for (const list of Object.values(popupCategoryByDrinkType)) {
@@ -88,7 +89,8 @@ export const buildSearchAllChipGroups = (
     { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
     { title: "카테고리", chips: Array.from(categorySet) },
     { title: "특징", chips: Array.from(featureSet) },
-    { title: "음식", chips: popupFoodCategories },
+    { title: "음식", chips: [...COMMUNITY_FOOD_FILTER_CHIPS] },
+    { title: "상황", chips: [...COMMUNITY_SITUATION_FILTER_CHIPS] },
   ] satisfies PopupChipGroup[]
 }
 
@@ -136,7 +138,8 @@ export const filterPopupChipGroups = ({
     addRelated("주종", post.categories?.length ? [post.categories[0]] : [])
     addRelated("카테고리", post.detailCategories ?? [])
     addRelated("특징", post.features ?? [])
-    addRelated("음식", post.foods ?? [])
+    addRelated("음식", getFoodFilterValues(post))
+    addRelated("상황", getSituationFilterValues(post))
   }
 
   const results: PopupChipGroup[] = []
@@ -165,13 +168,57 @@ export const isCommunityFeedSearchActive = ({
   selectedCategories,
   selectedFeatures,
   selectedFoods,
+  selectedSituations,
 }: CommunityFeedFilters) =>
   Boolean(query.trim()) ||
   isSearchConfirmed ||
   Boolean(selectedDrinkType) ||
   selectedCategories.size > 0 ||
   selectedFeatures.size > 0 ||
-  selectedFoods.size > 0
+  selectedFoods.size > 0 ||
+  selectedSituations.size > 0
+
+const normalizeFilterAlias = (value: string) => (value.trim() === "그외" ? "기타" : value.trim())
+
+const isFoodFilterChip = (value: string) => COMMUNITY_FOOD_FILTER_CHIPS.includes(normalizeFilterAlias(value) as (typeof COMMUNITY_FOOD_FILTER_CHIPS)[number])
+const isSituationFilterChip = (value: string) =>
+  COMMUNITY_SITUATION_FILTER_CHIPS.includes(normalizeFilterAlias(value) as (typeof COMMUNITY_SITUATION_FILTER_CHIPS)[number])
+
+const getFoodFilterValues = (post: FeedPost) =>
+  [post.foodParentCategory, ...(post.searchTags ?? [])]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .map(normalizeFilterAlias)
+    .filter(isFoodFilterChip)
+
+const getSituationFilterValues = (post: FeedPost) =>
+  [post.situation, ...(post.searchTags ?? [])]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .map(normalizeFilterAlias)
+    .filter(isSituationFilterChip)
+
+const matchesSelectedText = (value: string, selectedValue: string) => {
+  const aliasedValue = normalizeFilterAlias(value)
+  const aliasedSelectedValue = normalizeFilterAlias(selectedValue)
+  return includesNormalized(aliasedValue, aliasedSelectedValue) || includesNormalized(aliasedSelectedValue, aliasedValue)
+}
+
+const matchesSelectedSet = (values: string[] | undefined, selectedValues: Set<string>) => {
+  if (selectedValues.size === 0) return true
+  const candidates = values ?? []
+  return candidates.some((value) => Array.from(selectedValues).some((selectedValue) => matchesSelectedText(value, selectedValue)))
+}
+
+const matchesSelectedFilters = (post: FeedPost, filters: CommunityFeedFilters) => {
+  const drinkTypeMatches = !filters.selectedDrinkType || (post.categories ?? []).includes(filters.selectedDrinkType)
+  if (!drinkTypeMatches) return false
+
+  return (
+    matchesSelectedSet(post.detailCategories, filters.selectedCategories) &&
+    matchesSelectedSet(post.features, filters.selectedFeatures) &&
+    matchesSelectedSet(getFoodFilterValues(post), filters.selectedFoods) &&
+    matchesSelectedSet(getSituationFilterValues(post), filters.selectedSituations)
+  )
+}
 
 export const sortCommunityFeedPosts = (items: FeedPost[], reviewSort: ReviewSortKey) => {
   const copy = [...items]
@@ -231,17 +278,13 @@ export const filterCommunityFeedPosts = ({
       ...(post.categories ?? []),
       ...(post.features ?? []),
       ...(post.foods ?? []),
+      post.foodParentCategory ?? "",
+      post.situation ?? "",
       ...(post.searchTags ?? []),
     ]
     const queryMatches = !query || includesNormalized(targets.join(" "), query)
-    const drinkTypeMatches = !filters.selectedDrinkType || (post.categories ?? []).includes(filters.selectedDrinkType)
-    const categoryMatches =
-      filters.selectedCategories.size === 0 || (post.detailCategories ?? []).some((item) => filters.selectedCategories.has(item))
-    const foodMatches = filters.selectedFoods.size === 0 || (post.foods ?? []).some((item) => filters.selectedFoods.has(item))
-    const featureMatches =
-      filters.selectedFeatures.size === 0 || (post.features ?? []).some((item) => filters.selectedFeatures.has(item))
 
-    return queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
+    return queryMatches && matchesSelectedFilters(post, filters)
   })
 }
 
@@ -257,13 +300,7 @@ export const getCommunitySearchSuggestionTags = ({
 
   const normalizedQuery = normalizeSearchText(query)
   const filterPostWithoutQuery = (post: FeedPost) => {
-    const drinkTypeMatches = !filters.selectedDrinkType || (post.categories ?? []).includes(filters.selectedDrinkType)
-    const categoryMatches =
-      filters.selectedCategories.size === 0 || (post.detailCategories ?? []).some((item) => filters.selectedCategories.has(item))
-    const foodMatches = filters.selectedFoods.size === 0 || (post.foods ?? []).some((item) => filters.selectedFoods.has(item))
-    const featureMatches =
-      filters.selectedFeatures.size === 0 || (post.features ?? []).some((item) => filters.selectedFeatures.has(item))
-    return drinkTypeMatches && categoryMatches && foodMatches && featureMatches
+    return matchesSelectedFilters(post, filters)
   }
 
   const candidates = new Map<string, number>()
@@ -280,6 +317,8 @@ export const getCommunitySearchSuggestionTags = ({
       ...(post.categories ?? []),
       ...(post.features ?? []),
       ...(post.foods ?? []),
+      post.foodParentCategory ?? "",
+      post.situation ?? "",
       ...(post.searchTags ?? []),
     ].filter(Boolean)
 
@@ -289,6 +328,8 @@ export const getCommunitySearchSuggestionTags = ({
       ...(post.categories ?? []),
       ...(post.features ?? []),
       ...(post.foods ?? []),
+      post.foodParentCategory ?? "",
+      post.situation ?? "",
       ...(post.searchTags ?? []),
     ].filter(Boolean)
 
@@ -309,6 +350,8 @@ export const getCommunitySearchSuggestionTags = ({
         ...(post.categories ?? []),
         ...(post.features ?? []),
         ...(post.foods ?? []),
+        post.foodParentCategory ?? "",
+        post.situation ?? "",
         ...(post.searchTags ?? []),
       ].filter(Boolean)
 
@@ -324,6 +367,7 @@ export const getCommunitySearchSuggestionTags = ({
       if (filters.selectedCategories.has(tag)) return false
       if (filters.selectedFeatures.has(tag)) return false
       if (filters.selectedFoods.has(tag)) return false
+      if (filters.selectedSituations.has(tag)) return false
       return true
     })
     .sort((a, b) => b[1] - a[1])

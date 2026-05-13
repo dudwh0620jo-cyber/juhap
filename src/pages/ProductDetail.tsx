@@ -4,6 +4,7 @@ import AlertModal from "../components/AlertModal"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ProductReviewLikeButton from "../components/ProductReviewLikeButton"
+import ScrollTopButton from "../components/ScrollTopButton"
 import SakeGuideAccordion from "../components/SakeGuideAccordion"
 import imgGallery1 from "../assets/fd_img_gallery1.png"
 import imgGallery2 from "../assets/fd_img_gallery2.png"
@@ -58,6 +59,7 @@ const reviewGalleryImages = [imgGallery1, imgGallery2, imgGallery3, imgGallery4]
 const reviewSortItems = productReviewSortItems
 type ReviewSortKey = (typeof reviewSortItems)[number]["key"]
 const reviewScoreRows = productReviewScoreRows
+const REVIEW_PAGE_SIZE = 5
 type ProductBookmarkPicker =
   | { kind: "review"; reviewId: string }
   | { kind: "pairing"; reviewId: string; postId: number; selectedListId: string }
@@ -92,8 +94,8 @@ export default function ProductDetail() {
   const [pairingSort, setPairingSort] = useState<ReviewSortKey>("recommend")
   const [isReviewSortSheetOpen, setIsReviewSortSheetOpen] = useState(false)
   const [sortSheetTarget, setSortSheetTarget] = useState<"review" | "pairing">("review")
-  const [reviewVisibleCount, setReviewVisibleCount] = useState(4)
-  const [pairingVisibleCount, setPairingVisibleCount] = useState(1)
+  const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE)
+  const [pairingVisibleCount, setPairingVisibleCount] = useState(REVIEW_PAGE_SIZE)
   const [bookmarkPicker, setBookmarkPicker] = useState<ProductBookmarkPicker | null>(null)
   const [bookmarkedProductReviewIds, setBookmarkedProductReviewIds] = useState<Record<string, boolean>>({})
   const { value: bookmarkListById, setValue: setBookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
@@ -423,7 +425,14 @@ export default function ProductDetail() {
 
           <div className="review_filter_bar">
             <label className="review_photo_filter">
-              <input type="checkbox" checked={isPhotoReviewOnly} onChange={(event) => setIsPhotoReviewOnly(event.target.checked)} />
+              <input
+                type="checkbox"
+                checked={isPhotoReviewOnly}
+                onChange={(event) => {
+                  setIsPhotoReviewOnly(event.target.checked)
+                  setReviewVisibleCount(REVIEW_PAGE_SIZE)
+                }}
+              />
               <span aria-hidden="true" />
               포토리뷰 모아보기
             </label>
@@ -522,7 +531,11 @@ export default function ProductDetail() {
             ))}
           </div>
           {reviewVisibleCount < visibleReviews.length ? (
-            <button type="button" className="review_more_button" onClick={() => setReviewVisibleCount((prev) => prev + 1)}>
+            <button
+              type="button"
+              className="review_more_button"
+              onClick={() => setReviewVisibleCount((prev) => Math.min(visibleReviews.length, prev + REVIEW_PAGE_SIZE))}
+            >
               후기 더보기
             </button>
           ) : null}
@@ -558,7 +571,7 @@ export default function ProductDetail() {
                   checked={isPairingPhotoOnly}
                   onChange={(event) => {
                     setIsPairingPhotoOnly(event.target.checked)
-                    setPairingVisibleCount(1)
+                    setPairingVisibleCount(REVIEW_PAGE_SIZE)
                   }}
                 />
                 <span aria-hidden="true" />
@@ -692,11 +705,17 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          <div className="pairing_more_wrap" hidden={pairingVisibleCount >= visiblePairingReviews.length}>
-            <button type="button" className="review_more_button" onClick={() => setPairingVisibleCount((prev) => Math.min(visiblePairingReviews.length, prev + 1))}>
-              페어링 추천 더보기
-            </button>
-          </div>
+          {pairingVisibleCount < visiblePairingReviews.length ? (
+            <div className="pairing_more_wrap">
+              <button
+                type="button"
+                className="review_more_button"
+                onClick={() => setPairingVisibleCount((prev) => Math.min(visiblePairingReviews.length, prev + REVIEW_PAGE_SIZE))}
+              >
+                페어링 추천 더보기
+              </button>
+            </div>
+          ) : null}
         </section>
       )}
 
@@ -773,9 +792,10 @@ export default function ProductDetail() {
                     onClick={() => {
                       if (sortSheetTarget === "pairing") {
                         setPairingSort(item.key)
-                        setPairingVisibleCount(1)
+                        setPairingVisibleCount(REVIEW_PAGE_SIZE)
                       } else {
                         setReviewSort(item.key)
+                        setReviewVisibleCount(REVIEW_PAGE_SIZE)
                       }
                       setIsReviewSortSheetOpen(false)
                     }}
@@ -790,9 +810,7 @@ export default function ProductDetail() {
         </div>
       ) : null}
 
-      <button className="product_scroll_top" type="button" aria-label="맨 위로 이동" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-        ↑
-      </button>
+      <ScrollTopButton />
     </section>
   )
 }

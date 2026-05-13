@@ -1,10 +1,12 @@
-import type { RefObject } from "react"
+import type { ReactNode, RefObject } from "react"
 import SearchFilterChipsPanel from "./SearchFilterChipsPanel"
 
 type PopupChipGroup = {
   title: string
   chips: string[]
 }
+
+const EMPTY_SELECTED_SITUATIONS = new Set<string>()
 
 type Props = {
   shellAriaLabel?: string
@@ -20,6 +22,7 @@ type Props = {
   onClose: () => void
 
   isNoResults: boolean
+  bodyContent?: ReactNode
 
   chipGroups: PopupChipGroup[]
   collapsibleGroupTitles: Set<string>
@@ -30,6 +33,7 @@ type Props = {
   selectedCategories: Set<string>
   selectedFeatures: Set<string>
   selectedFoods: Set<string>
+  selectedSituations?: Set<string>
   onChipClick: (groupTitle: string, chip: string) => void
 
   recentSearchTerms: string[]
@@ -53,6 +57,7 @@ type Props = {
   onChangeAbvMin?: (nextMin: number) => void
   onChangeAbvMax?: (nextMax: number) => void
 
+  hideFooter?: boolean
   onReset: () => void
   onApply: () => void
 }
@@ -69,6 +74,7 @@ export default function CommunityFilterPanel({
   onClearSearch,
   onClose,
   isNoResults,
+  bodyContent,
   chipGroups,
   collapsibleGroupTitles,
   expandedGroupTitles,
@@ -78,10 +84,12 @@ export default function CommunityFilterPanel({
   selectedCategories,
   selectedFeatures,
   selectedFoods,
+  selectedSituations,
   onChipClick,
   recentSearchTerms,
   onSelectRecentSearch,
   onDeleteRecentSearch,
+  hideFooter = false,
   onReset,
   onApply,
 }: Props) {
@@ -99,6 +107,7 @@ export default function CommunityFilterPanel({
         onClearSearch={onClearSearch}
         onClose={onClose}
         isNoResults={isNoResults}
+        bodyContent={bodyContent}
         chipGroups={chipGroups}
         collapsibleGroupTitles={collapsibleGroupTitles}
         expandedGroupTitles={expandedGroupTitles}
@@ -108,22 +117,25 @@ export default function CommunityFilterPanel({
         selectedCategories={selectedCategories}
         selectedFeatures={selectedFeatures}
         selectedFoods={selectedFoods}
+        selectedSituations={selectedSituations ?? EMPTY_SELECTED_SITUATIONS}
         onChipClick={onChipClick}
         recentSearchTerms={recentSearchTerms}
         onSelectRecentSearch={onSelectRecentSearch}
         onDeleteRecentSearch={onDeleteRecentSearch}
       />
 
-      <div className="feed_filter_footer" aria-label="필터 적용">
-        <button type="button" className="feed_filter_reset" onClick={onReset}>
-          선택 초기화
-        </button>
-        <button type="button" className="feed_filter_apply" onClick={onApply}>
-          선택 완료
-          <br />
-          검색하기
-        </button>
-      </div>
+      {hideFooter ? null : (
+        <div className="feed_filter_footer" aria-label="필터 적용">
+          <button type="button" className="feed_filter_reset" onClick={onReset}>
+            선택 초기화
+          </button>
+          <button type="button" className="feed_filter_apply" onClick={onApply}>
+            선택 완료
+            <br />
+            검색하기
+          </button>
+        </div>
+      )}
     </>
   )
 }
