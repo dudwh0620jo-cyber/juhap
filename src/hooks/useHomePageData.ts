@@ -4,6 +4,9 @@ import type { SituationItem } from "../components/SituationSection"
 import type { WeeklyDrinkItem } from "../components/WeeklyDrink"
 import { readUserProfile } from "../data/userProfile"
 import { weeklyAllTop5 } from "../utils/rankingData"
+import { extractPairingTitle, feedPosts } from "../utils/communityPosts"
+import { resolveReviewImage } from "../utils/reviewImages"
+import { homeTodayPairingBanners, homeTodayPairingCopy } from "../data/homeContent"
 
 type SituationMatchMeta = {
   situationKeywords: string[]
@@ -15,41 +18,41 @@ type SituationSourceItem = SituationItem & {
   match: SituationMatchMeta
 }
 
-const homeRecommendations: RecommendationItem[] = [
-  {
-    id: 1,
-    badge: "사케",
-    score: "4.7",
-    title: "사케 + 소고기 타다키",
-    description: "준마이 다이긴죠의 섬세한 향과 감칠맛이 붉은 살 고기의 결을 부드럽게 받쳐줘요.",
-  },
-  {
-    id: 2,
-    badge: "화이트와인",
-    score: "4.3",
-    title: "화이트와인 + 복숭아 브리 치즈",
-    description: "샤르도네 계열의 산뜻함이 복숭아의 과일향과 브리 치즈의 크리미함을 산뜻하게 정리해줘요.",
-  },
-  {
-    id: 3,
-    badge: "하이볼",
-    score: "4.2",
-    title: "하이볼 + 새우꼬치",
-    description: "탄산감 있는 하이볼이 새우의 고소함을 깔끔하게 털어내줘요.",
-  },
-  {
-    id: 4,
-    badge: "소주",
-    score: "4.6",
-    title: "소주 + 보쌈",
-    description: "데일리 소주의 깔끔한 목넘김이 보쌈의 기름진 여운을 담백하게 정리해줘요.",
-  },
-]
+const buildRecommendationItems = (count: number): RecommendationItem[] => {
+  const candidates: Array<RecommendationItem & { popularityScore: number }> = feedPosts
+    .filter((post) => !post.isQna)
+    .map((post) => {
+      const pairingTitle = extractPairingTitle(post.title)
+      const hasPairing = pairingTitle.includes("+")
+      const badge = post.drinkType?.trim() || post.categories?.[0]?.trim() || ""
+      const score = typeof post.rating === "number" ? post.rating : undefined
+      const scoreLabel = typeof score === "number" ? `★ ${score.toFixed(1)}` : "★ --"
+      const descriptionSource = post.pairingSummary?.trim() || post.body?.trim() || ""
+      const description = descriptionSource.length > 60 ? `${descriptionSource.slice(0, 60).trim()}…` : descriptionSource
+
+      const photoId = Array.isArray(post.photoIds) ? post.photoIds[0] : undefined
+      const imageSrc = typeof photoId === "string" ? resolveReviewImage(photoId) : undefined
+
+      return {
+        popularityScore: typeof post.popularityScore === "number" ? post.popularityScore : 0,
+        id: post.id,
+        badge: badge || "추천",
+        scoreLabel,
+        title: hasPairing ? pairingTitle : post.title,
+        description: description || "오늘은 어떤 조합이 어울릴까요?",
+        imageSrc,
+      }
+    })
+
+  return [...candidates]
+    .sort((a, b) => b.popularityScore - a.popularityScore)
+    .slice(0, count)
+    .map(({ popularityScore: _, ...rest }) => rest)
+}
 
 const situationItemsSource: SituationSourceItem[] = [
   {
     id: 1,
-    emoji: "🍶",
     label: "혼술",
     recommendCount: 1284,
     drink: { emoji: "🍶", name: "준마이 사케", desc: "300ml 타입으로 가볍게" },
@@ -63,7 +66,6 @@ const situationItemsSource: SituationSourceItem[] = [
   },
   {
     id: 2,
-    emoji: "🏠",
     label: "홈파티",
     recommendCount: 983,
     drink: { emoji: "🍺", name: "캔맥주 6입", desc: "여럿이 나누기 좋은 기본 맥주" },
@@ -77,7 +79,6 @@ const situationItemsSource: SituationSourceItem[] = [
   },
   {
     id: 3,
-    emoji: "🌧️",
     label: "비오는날",
     recommendCount: 2107,
     drink: { emoji: "🍶", name: "막걸리", desc: "비 오는 날 생각나는 클래식" },
@@ -91,7 +92,6 @@ const situationItemsSource: SituationSourceItem[] = [
   },
   {
     id: 4,
-    emoji: "🎁",
     label: "선물",
     recommendCount: 756,
     drink: { emoji: "🍾", name: "스파클링 와인", desc: "패키지까지 깔끔한 선택" },
@@ -105,7 +105,6 @@ const situationItemsSource: SituationSourceItem[] = [
   },
   {
     id: 5,
-    emoji: "🏕️",
     label: "캠핑",
     recommendCount: 1329,
     drink: { emoji: "🥃", name: "하이볼 캔", desc: "휴대가 간편해서 좋아요" },
@@ -119,7 +118,6 @@ const situationItemsSource: SituationSourceItem[] = [
   },
   {
     id: 6,
-    emoji: "🥩",
     label: "고기먹을때",
     recommendCount: 1894,
     drink: { emoji: "🍷", name: "레드 와인", desc: "탄닌감 있는 스타일 추천" },
@@ -142,6 +140,7 @@ const weeklyDrinkItems: WeeklyDrinkItem[] = [
     variety: "Cabernet Sauvignon",
     rating: 4.0,
     sweetness: "낮은 당도",
+    thumbId: "drink_caymus_napa_valley",
   },
   {
     id: "weekly-dassai-23",
@@ -151,6 +150,7 @@ const weeklyDrinkItems: WeeklyDrinkItem[] = [
     variety: "준마이 다이긴죠",
     rating: 4.5,
     sweetness: "낮은 당도",
+    thumbId: "drink_dassai_45",
   },
   {
     id: "weekly-kendall-jackson",
@@ -160,6 +160,7 @@ const weeklyDrinkItems: WeeklyDrinkItem[] = [
     variety: "Chardonnay",
     rating: 4.0,
     sweetness: "낮은 당도",
+    thumbId: "drink_kendall_jackson",
   },
 ]
 
@@ -202,7 +203,23 @@ function scoreSituation(item: SituationSourceItem, selectedSituations: string[],
 
 export function useHomePageData() {
   const profile = readUserProfile()
-  const recommendationItems = useMemo(() => homeRecommendations, [])
+  const recommendationItems = useMemo(() => {
+    const fallbackItems = buildRecommendationItems(4)
+
+    const base = homeTodayPairingCopy.map((copy, index) => {
+      const fallback = fallbackItems[index]
+      return {
+        id: fallback?.id ?? 900000 + index,
+        badge: fallback?.badge ?? "오늘의 추천 페어링",
+        scoreLabel: fallback?.scoreLabel ?? "★ --",
+        title: copy.title,
+        description: copy.description,
+        imageSrc: homeTodayPairingBanners[index % homeTodayPairingBanners.length],
+      }
+    })
+
+    return base
+  }, [])
 
   const orderedSituationItems = useMemo(() => {
     const selectedSituations = (profile.tastePreferences.situation ?? [])
@@ -226,7 +243,6 @@ export function useHomePageData() {
       })
       .map((item) => ({
         id: item.id,
-        emoji: item.emoji,
         label: item.label,
         recommendCount: item.recommendCount,
         drink: item.drink,

@@ -23,6 +23,7 @@ import CommunityRanking from "./pages/Ranking"
 import TasteSetup from "./pages/TasteSetup"
 import VoteList from "./pages/VoteList"
 import "./styles/common.css"
+import { useChatFabVisibility } from "./hooks/useChatFabVisibility"
 
 import chatMascotButton from "./assets/chat_mascot_btn.png"
 import iconCirclesFour from "./assets/svg/circlesfour.svg"
@@ -97,13 +98,14 @@ export default function App() {
     pathname === "/taste-setup"
   const isRankingActive = pathname === "/community/ranking"
   const isCommunityActive = pathname.startsWith("/community") && !isRankingActive
+  const isChatFabHidden = useChatFabVisibility({ pathname, isAuthPage, isWritePage, isProductDetailPage })
 
   return (
     <main className="app_root">
       <div className="app_viewport">
         <StatusBar />
 
-        {!isAuthPage && !isWritePage && !isProductDetailPage ? (
+        {!isChatFabHidden ? (
           <div className="chat_corner_slot">
             <button
               type="button"
