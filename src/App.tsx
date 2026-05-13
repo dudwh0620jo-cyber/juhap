@@ -20,6 +20,7 @@ import ProfileSetup from "./pages/ProfileSetup"
 import Quiz from "./pages/Quiz"
 import CommunityRanking from "./pages/Ranking"
 import TasteSetup from "./pages/TasteSetup"
+import TodayPairingDetail from "./pages/TodayPairingDetail"
 import VoteList from "./pages/VoteList"
 import "./styles/common.css"
 import { useChatFabVisibility } from "./hooks/useChatFabVisibility"
@@ -208,6 +209,7 @@ export default function App() {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/vote" element={<VoteList />} />
+          <Route path="/today-pairing/:pairingId" element={<TodayPairingDetail />} />
           <Route path="/ai-scan" element={<AiScan />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>

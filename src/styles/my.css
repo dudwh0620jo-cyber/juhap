@@ -767,10 +767,9 @@
   width: 100%;
   max-height: 82vh;
   padding: 24px 24px 22px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 28px 28px 0 0;
-  background: #1b0d13;
-  color: #efe7d6;
+  background: var(--color-bg-base);
+  color: var(--design-black_text);
   box-shadow: 0 -18px 38px rgba(0, 0, 0, 0.42);
   animation: my_taste_sheet_slide_up 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -842,9 +841,7 @@
   position: relative;
   width: 42px;
   height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
 }
 
 .my_taste_sheet_header button::before,
@@ -856,7 +853,7 @@
   width: 20px;
   height: 2px;
   border-radius: 999px;
-  background: rgba(239, 231, 214, 0.72);
+  background: var(--color-point-01);
 }
 
 .my_taste_sheet_header button::before {
@@ -876,7 +873,7 @@
 
 .my_taste_sheet .taste_setup_group h2 {
   margin: 0 0 14px;
-  color: rgba(239, 231, 214, 0.72);
+  color: var(--design-black_text);
   font-family: var(--font-main);
   font-size: 13px;
   font-weight: 500;
@@ -898,10 +895,10 @@
 .my_taste_sheet .taste_chip {
   min-height: 40px;
   padding: 0 17px;
-  border: 1px solid rgba(239, 231, 214, 0.12);
+  border: 1px solid var(--color-gray-03);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.02);
-  color: rgba(239, 231, 214, 0.62);
+  color: var(--color-text-primary);
   font-family: var(--font-main);
   font-size: 14px;
   font-weight: 500;
@@ -909,9 +906,9 @@
 }
 
 .my_taste_sheet .taste_chip.is_selected {
-  border-color: rgba(184, 111, 19, 0.8);
-  background: rgba(83, 48, 17, 0.78);
-  color: #d59b24;
+  border: 0;
+  background: var(--color-primary);
+  color: var(--color-gray-00);
 }
 
 .my_taste_sheet .taste_setup_warning {
