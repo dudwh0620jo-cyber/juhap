@@ -20,19 +20,10 @@
   object-fit: cover;
 }
 
-.ai_scan_page.is_scanning .ai_scan_stage_img {
-  filter: blur(12px) saturate(0.92);
-  transform: scale(1.05);
-}
-
 .ai_scan_stage_vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.55));
-}
-
-.ai_scan_page.is_scanning .ai_scan_stage_vignette {
-  background: rgba(0, 0, 0, 0.42);
 }
 
 .ai_scan_stage_bottom_fade {
@@ -56,7 +47,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 52px 20px 0;
 }
 
 .ai_scan_page.is_scanning .ai_scan_topbar {
@@ -88,7 +78,7 @@
 .ai_scan_mode_pill {
   position: relative;
   z-index: 2;
-  margin: 10px auto 0;
+  margin: 24px auto 0;
   width: fit-content;
   height: 56px;
   padding: 4px;
@@ -106,8 +96,8 @@
 }
 
 .ai_scan_mode_tab {
-  width: 73px;
-  padding: 8px 4px;
+  width: 100%;
+  padding: 8px 8px;
   border: 0;
   border-radius: 999px;
   font-size: 16px;
@@ -145,14 +135,48 @@
 .ai_scan_viewfinder {
   position: relative;
   z-index: 2;
-  margin: 16px 20px 0;
   aspect-ratio: 3 / 4;
   background: transparent;
   border-radius: 28px;
-  overflow: hidden;
   border: 0;
   padding: 0;
   cursor: pointer;
+  overflow: hidden;
+}
+
+.ai_scan_page.is_scanning .ai_scan_viewfinder {
+  z-index: 7;
+}
+
+.ai_scan_viewfinder_scanning_area {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 34%;
+  bottom: 18%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ai_scan_viewfinder_beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 140px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--color-point-01) 18%, transparent),
+    color-mix(in srgb, var(--color-point-01) 45%, transparent),
+    color-mix(in srgb, var(--color-point-01) 18%, transparent),
+    transparent
+  );
+  filter: blur(2px);
+  border-radius: 28px;
+  mix-blend-mode: screen;
+  box-shadow: 0 0 26px color-mix(in srgb, var(--color-point-01) 55%, transparent);
+  will-change: transform, opacity;
 }
 
 .ai_scan_corner {
@@ -165,22 +189,22 @@
 }
 
 .ai_scan_corner.top_left {
-  top: 34%;
+  top: 8%;
   left: 18px;
 }
 
 .ai_scan_corner.top_right {
-  top: 34%;
+  top: 8%;
   right: 18px;
 }
 
 .ai_scan_corner.bottom_left {
-  bottom: 18%;
+  bottom: 8%;
   left: 18px;
 }
 
 .ai_scan_corner.bottom_right {
-  bottom: 18%;
+  bottom: 8%;
   right: 18px;
 }
 
@@ -200,19 +224,19 @@
 
 .ai_scan_action {
   flex: 1;
-  height: 56px;
-  border-radius: 18px;
-  font-size: 18px;
-  font-weight: 800;
+  padding: 16px 20px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
 }
 
 .ai_scan_action_upload {
-  border: 1px solid rgba(214, 149, 107, 0.95);
+  border: 1px solid var(--color-point-01);
   background: var(--color-bg-white);
   color: var(--color-point-01);
+  
+
 }
 
 .ai_scan_action_scan {
@@ -246,8 +270,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(1px);
 }
 
 .ai_scan_scanning_main {
@@ -347,7 +371,7 @@
   box-shadow:
     0 0 26px color-mix(in srgb, var(--color-point-01) 75%, transparent),
     0 0 44px color-mix(in srgb, var(--color-point-01) 30%, transparent);
-  animation: ai_scan_scanning_line 1.25s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes ai_scan_scanning_line {
@@ -364,15 +388,15 @@
   }
 }
 
-.ai_scan_scanning_viewfinder .ai_scan_corner {
+.ai_scan_scanning_viewfinder .ai_scan_corner,
+.ai_scan_page.is_scanning .ai_scan_viewfinder .ai_scan_corner {
   filter:
     drop-shadow(0 10px 22px rgba(0, 0, 0, 0.18))
     drop-shadow(0 0 18px color-mix(in srgb, var(--color-point-01) 28%, transparent));
 }
 
-.ai_scan_scanning_viewfinder .ai_scan_corner {
-  opacity: 0.9;
-  animation: ai_scan_focus_pulse 1.4s cubic-bezier(0.34, 1.25, 0.56, 1) infinite;
+.ai_scan_scanning_viewfinder .ai_scan_corner,
+.ai_scan_page.is_scanning .ai_scan_viewfinder .ai_scan_corner {
   will-change: transform, opacity;
 }
 

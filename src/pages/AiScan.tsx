@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router"
+import { AnimatePresence, motion } from "framer-motion"
 import "../styles/ai-scan.css"
 import { aiScanAssets, aiScanCopy, type ScanMode } from "../data/aiScanContent"
 
@@ -8,9 +9,7 @@ export default function AiScan() {
   const [mode, setMode] = useState<ScanMode>("drink")
   const [previewSrc, setPreviewSrc] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
-  const [scanOverlayRect, setScanOverlayRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const viewfinderRef = useRef<HTMLButtonElement | null>(null)
   const scanTimerRef = useRef<number | null>(null)
 
   const stageSrc = previewSrc ?? aiScanAssets.scanSample01
@@ -33,32 +32,6 @@ export default function AiScan() {
       if (scanTimerRef.current) window.clearTimeout(scanTimerRef.current)
     }
   }, [])
-
-  useEffect(() => {
-    if (!isScanning) {
-      setScanOverlayRect(null)
-      return
-    }
-
-    const target = viewfinderRef.current
-    if (!target) return
-
-    const update = () => {
-      const rect = target.getBoundingClientRect()
-      setScanOverlayRect({ left: rect.left, top: rect.top, width: rect.width, height: rect.height })
-    }
-
-    update()
-    const raf = window.requestAnimationFrame(update)
-    window.addEventListener("resize", update)
-    window.addEventListener("scroll", update, { passive: true })
-
-    return () => {
-      window.cancelAnimationFrame(raf)
-      window.removeEventListener("resize", update)
-      window.removeEventListener("scroll", update)
-    }
-  }, [isScanning])
 
   function openPicker() {
     fileInputRef.current?.click()
@@ -83,8 +56,22 @@ export default function AiScan() {
   return (
     <section className={isScanning ? "ai_scan_page page_screen is_scanning" : "ai_scan_page page_screen"} aria-label="AI 스캔">
       <div className="ai_scan_stage" aria-hidden="true">
-        <img className="ai_scan_stage_img" src={stageSrc} alt="" />
-        <div className="ai_scan_stage_vignette" />
+        <motion.img
+          className="ai_scan_stage_img"
+          src={stageSrc}
+          alt=""
+          animate={
+            isScanning
+              ? { scale: 1.06, filter: "blur(12px) saturate(0.92)" }
+              : { scale: 1, filter: "blur(0px) saturate(1)" }
+          }
+          transition={{ duration: 0.28, ease: "easeOut" }}
+        />
+        <motion.div
+          className="ai_scan_stage_vignette"
+          animate={isScanning ? { opacity: 0.7 } : { opacity: 1 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        />
         <div className="ai_scan_stage_bottom_fade" />
       </div>
 
@@ -133,12 +120,78 @@ export default function AiScan() {
         aria-label="카메라 뷰파인더"
         onClick={openPicker}
         disabled={isScanning}
-        ref={viewfinderRef}
       >
-        <img className="ai_scan_corner top_left" src={aiScanAssets.cornerRadius01} alt="" aria-hidden="true" />
-        <img className="ai_scan_corner top_right" src={aiScanAssets.cornerRadius02} alt="" aria-hidden="true" />
-        <img className="ai_scan_corner bottom_right" src={aiScanAssets.cornerRadius03} alt="" aria-hidden="true" />
-        <img className="ai_scan_corner bottom_left" src={aiScanAssets.cornerRadius04} alt="" aria-hidden="true" />
+        <motion.img
+          className="ai_scan_corner top_left"
+          src={isScanning ? aiScanAssets.cornerRadiusP01 : aiScanAssets.cornerRadius01}
+          alt=""
+          aria-hidden="true"
+          animate={
+            isScanning
+              ? { scale: [0.955, 1.02, 0.955], opacity: [0.55, 1, 0.55] }
+              : { scale: 1, opacity: 0.95 }
+          }
+          transition={isScanning ? { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: [0.34, 1.25, 0.56, 1] } : { duration: 0.2 }}
+        />
+        <motion.img
+          className="ai_scan_corner top_right"
+          src={isScanning ? aiScanAssets.cornerRadiusP02 : aiScanAssets.cornerRadius02}
+          alt=""
+          aria-hidden="true"
+          animate={
+            isScanning
+              ? { scale: [0.955, 1.02, 0.955], opacity: [0.55, 1, 0.55] }
+              : { scale: 1, opacity: 0.95 }
+          }
+          transition={isScanning ? { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: [0.34, 1.25, 0.56, 1] } : { duration: 0.2 }}
+        />
+        <motion.img
+          className="ai_scan_corner bottom_right"
+          src={isScanning ? aiScanAssets.cornerRadiusP03 : aiScanAssets.cornerRadius03}
+          alt=""
+          aria-hidden="true"
+          animate={
+            isScanning
+              ? { scale: [0.955, 1.02, 0.955], opacity: [0.55, 1, 0.55] }
+              : { scale: 1, opacity: 0.95 }
+          }
+          transition={isScanning ? { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: [0.34, 1.25, 0.56, 1] } : { duration: 0.2 }}
+        />
+        <motion.img
+          className="ai_scan_corner bottom_left"
+          src={isScanning ? aiScanAssets.cornerRadiusP04 : aiScanAssets.cornerRadius04}
+          alt=""
+          aria-hidden="true"
+          animate={
+            isScanning
+              ? { scale: [0.955, 1.02, 0.955], opacity: [0.55, 1, 0.55] }
+              : { scale: 1, opacity: 0.95 }
+          }
+          transition={isScanning ? { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: [0.34, 1.25, 0.56, 1] } : { duration: 0.2 }}
+        />
+        {isScanning ? (
+          <motion.div
+            className="ai_scan_viewfinder_scanning_area"
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            <motion.div
+              className="ai_scan_viewfinder_beam"
+              initial={{ y: "-40%", opacity: 0.55 }}
+              animate={{ y: ["-40%", "calc(100% - 140px)"], opacity: [0.55, 1, 0.55] }}
+              transition={{ duration: 1.25, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+            />
+            <motion.span
+              className="ai_scan_scanning_line"
+              initial={{ y: 0, opacity: 0.35 }}
+              animate={{ y: [0, "calc(100% - 3px)"], opacity: [0.35, 1, 0.35] }}
+              transition={{ duration: 1.25, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+            />
+          </motion.div>
+        ) : null}
       </button>
 
       <input
@@ -158,71 +211,70 @@ export default function AiScan() {
         </button>
       </div>
 
-      {isScanning ? (
-        <div className="ai_scan_scanning_overlay" role="status" aria-live="polite" aria-label="스캔 중">
-          <div className="ai_scan_scanning_main">
-            <div
-              className="ai_scan_scanning_viewfinder"
-              aria-hidden="true"
-              style={
-                scanOverlayRect
-                  ? {
-                      position: "fixed",
-                      left: scanOverlayRect.left,
-                      top: scanOverlayRect.top,
-                      width: scanOverlayRect.width,
-                      height: scanOverlayRect.height,
-                    }
-                  : { opacity: 0 }
-              }
+      <AnimatePresence>
+        {isScanning ? (
+          <motion.div
+            className="ai_scan_scanning_overlay"
+            role="status"
+            aria-live="polite"
+            aria-label="스캔 중"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            <div className="ai_scan_scanning_main">
+              <motion.div
+                className="ai_scan_scanning_center"
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 6, opacity: 0 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+              >
+                <div className="ai_scan_scanning_title">{aiScanCopy.scanningTitle}</div>
+                <div className="ai_scan_scanning_subtitle">{aiScanCopy.scanningSubtitle}</div>
+                <div className="ai_scan_scanning_mascot" aria-hidden="true">
+                  <img src={aiScanAssets.scanScanningMascot} alt="" />
+                </div>
+              </motion.div>
+            </div>
+
+            <motion.div
+              className="ai_scan_scanning_tips"
+              initial={{ y: 12, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 8, opacity: 0 }}
+              transition={{ duration: 0.22, ease: "easeOut", delay: 0.05 }}
             >
-              <img className="ai_scan_corner top_left" src={aiScanAssets.cornerRadiusP01} alt="" />
-              <img className="ai_scan_corner top_right" src={aiScanAssets.cornerRadiusP02} alt="" />
-              <img className="ai_scan_corner bottom_right" src={aiScanAssets.cornerRadiusP03} alt="" />
-              <img className="ai_scan_corner bottom_left" src={aiScanAssets.cornerRadiusP04} alt="" />
-              <div className="ai_scan_scanning_area" aria-hidden="true">
-                <span className="ai_scan_scanning_line" />
+              <div className="ai_scan_scanning_tip_lead">
+                <span className="ai_scan_scanning_tip_bulb" aria-hidden="true">
+                  💡
+                </span>
+                <span>{aiScanCopy.scanningTipLead}</span>
               </div>
-            </div>
+              <div className="ai_scan_scanning_tip_row" aria-label="스캔 팁">
+                {aiScanCopy.scanningTips.map((tip) => {
+                  const iconSrc =
+                    tip.icon === "sun"
+                      ? aiScanAssets.iconSun
+                      : tip.icon === "barcode"
+                        ? aiScanAssets.iconBarcode
+                        : tip.icon === "shake"
+                          ? aiScanAssets.iconShake
+                          : null
 
-            <div className="ai_scan_scanning_center">
-              <div className="ai_scan_scanning_title">{aiScanCopy.scanningTitle}</div>
-              <div className="ai_scan_scanning_subtitle">{aiScanCopy.scanningSubtitle}</div>
-              <div className="ai_scan_scanning_mascot" aria-hidden="true">
-                <img src={aiScanAssets.scanScanningMascot} alt="" />
+                  return (
+                    <div key={tip.icon} className="ai_scan_scanning_tip">
+                      {iconSrc ? <img src={iconSrc} alt="" aria-hidden="true" /> : null}
+                      <div className="ai_scan_scanning_tip_text">{tip.title}</div>
+                    </div>
+                  )
+                })}
               </div>
-            </div>
-          </div>
-
-          <div className="ai_scan_scanning_tips">
-            <div className="ai_scan_scanning_tip_lead">
-              <span className="ai_scan_scanning_tip_bulb" aria-hidden="true">
-                💡
-              </span>
-              <span>{aiScanCopy.scanningTipLead}</span>
-            </div>
-            <div className="ai_scan_scanning_tip_row" aria-label="스캔 팁">
-              {aiScanCopy.scanningTips.map((tip) => {
-                const iconSrc =
-                  tip.icon === "sun"
-                    ? aiScanAssets.iconSun
-                    : tip.icon === "barcode"
-                      ? aiScanAssets.iconBarcode
-                      : tip.icon === "shake"
-                        ? aiScanAssets.iconShake
-                        : null
-
-                return (
-                  <div key={tip.icon} className="ai_scan_scanning_tip">
-                    {iconSrc ? <img src={iconSrc} alt="" aria-hidden="true" /> : null}
-                    <div className="ai_scan_scanning_tip_text">{tip.title}</div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      ) : null}
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </section>
   )
 }
