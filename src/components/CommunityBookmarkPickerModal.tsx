@@ -1,9 +1,10 @@
+import type { ReactNode } from "react"
 import PurchaseConfirmModal from "./PurchaseConfirmModal"
 
 type Props = {
   ariaLabel: string
   titleText: string
-  helperText: string
+  helperText: ReactNode
   primaryLabel: string
   secondaryLabel: string
   onDismiss: () => void

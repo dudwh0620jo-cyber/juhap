@@ -1,27 +1,27 @@
-﻿import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
+﻿import { useCallback, useLayoutEffect, useMemo, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import CommentSection from "../components/CommentSection"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import FeedActions from "../components/FeedActions"
 import PairingDetailHeader from "../components/PairingDetailHeader"
+import PairingDetailMedia from "../components/PairingDetailMedia"
+import PairingDetailProductCard from "../components/PairingDetailProductCard"
 import PostOwnerActionModal from "../components/PostOwnerActionModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ReviewContentBlock from "../components/ReviewContentBlock"
-import SimilarPairingList, { type SimilarPairingItem } from "../components/SimilarPairingList"
-import iconArrowRight from "../assets/svg/arrowright_p.svg"
+import SimilarPairingList from "../components/SimilarPairingList"
 import iconChat from "../assets/svg/chatcircledots_p.svg"
 import iconStar from "../assets/svg/star.svg"
 import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
-import { deriveCommunityTagBundle, extractPairingTitle, feedPosts, getPairingSummaryText, normalizeCommunityFeatures, resolvePairingTags, type FeedPost } from "../utils/communityPosts"
+import { deriveCommunityTagBundle, extractPairingTitle, getPairingSummaryText, normalizeCommunityFeatures, type FeedPost } from "../utils/communityPosts"
 import {
   COMMUNITY_BOOKMARK_LIST_BY_POST_KEY,
   COMMUNITY_BOOKMARKED_POSTS_KEY,
   COMMUNITY_FOLLOWED_USERS_KEY,
   COMMUNITY_LIKED_POSTS_KEY,
   COMMUNITY_USER_POSTS_KEY,
-  getPairingCommentsStorageKey,
 } from "../utils/communityStorage"
 import {
   getPairingTierByUserId,
@@ -34,35 +34,17 @@ import { useStoredBooleanRecordFromIds, useStoredNullableStringRecord } from "..
 import { currentUserMock, usersMockById } from "../utils/usersMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { useCommunityPageData } from "../hooks/useCommunityPageData"
-import { resolveReviewImage } from "../utils/reviewImages"
 import { getPairingDetailMock } from "../utils/pairingDetailMock"
-
-type PairingDetailNavState = {
-  pairingTitle?: string
-  pairingSummary?: string
-  body?: string
-  authorId?: number
-  authorName?: string
-  profile?: string
-  locationLabel?: string
-  drinkType?: string
-  foods?: string[]
-  features?: string[]
-  rating?: number
-  voteCount?: number
-  source?: "feed" | "ranking" | "free"
-  feedFilter?: "review" | "follow" | "free"
-}
-
-const readStoredLikedPostIds = () => {
-  try {
-    const raw = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
-    const parsed = raw ? JSON.parse(raw) : []
-    return new Set<number>(Array.isArray(parsed) ? parsed.filter((v): v is number => typeof v === "number") : [])
-  } catch {
-    return new Set<number>()
-  }
-}
+import {
+  deleteStoredUserPost,
+  findPairingDetailPost,
+  getInitialPairingCommentCount,
+  getInitialPairingLikeCount,
+  type PairingDetailNavState,
+  readStoredNumberSet,
+  resolveSimilarPairingItems,
+  writeStoredNumberSet,
+} from "../utils/pairingDetail"
 
 export default function PairingDetail() {
   const location = useLocation()
@@ -73,18 +55,7 @@ export default function PairingDetail() {
 
   const numericId = typeof pairingId === "string" ? Number(pairingId) : NaN
   const post = useMemo<FeedPost | undefined>(() => {
-    if (!Number.isFinite(numericId)) return undefined
-    const fromSeed = feedPosts.find((item) => item.id === numericId)
-    if (fromSeed) return fromSeed
-
-    try {
-      const raw = window.localStorage.getItem(COMMUNITY_USER_POSTS_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
-      if (!Array.isArray(parsed)) return undefined
-      return parsed.find((item) => typeof item?.id === "number" && item.id === numericId) as FeedPost | undefined
-    } catch {
-      return undefined
-    }
+    return findPairingDetailPost(numericId, COMMUNITY_USER_POSTS_KEY)
   }, [numericId])
 
   const pairingTitle = useMemo(() => {
@@ -133,15 +104,7 @@ export default function PairingDetail() {
   const mySubProfile = isMyPost ? myMetaLine : profile
   const currentUser = useMemo(() => ({ ...currentUserMock, id: currentUserMock.id, name: myNickname, meta: "작성자" }), [myNickname])
 
-  const [followedUserIds, setFollowedUserIds] = useState<Set<number>>(() => {
-    try {
-      const raw = window.localStorage.getItem(COMMUNITY_FOLLOWED_USERS_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
-      return new Set(Array.isArray(parsed) ? parsed.filter((v): v is number => typeof v === "number") : [])
-    } catch {
-      return new Set<number>()
-    }
-  })
+  const [followedUserIds, setFollowedUserIds] = useState<Set<number>>(() => readStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY))
 
   const isFollowing = authorId !== null && followedUserIds.has(authorId)
 
@@ -152,46 +115,30 @@ export default function PairingDetail() {
 
   const [likedByPostId, setLikedByPostId] = useState<Record<number, boolean>>(() => {
     if (!Number.isFinite(numericId)) return {}
-    return { [numericId]: readStoredLikedPostIds().has(numericId) }
+    return { [numericId]: readStoredNumberSet(COMMUNITY_LIKED_POSTS_KEY).has(numericId) }
   })
 
-  const isLiked = Number.isFinite(numericId) ? likedByPostId[numericId] ?? readStoredLikedPostIds().has(numericId) : false
+  const isLiked = Number.isFinite(numericId)
+    ? likedByPostId[numericId] ?? readStoredNumberSet(COMMUNITY_LIKED_POSTS_KEY).has(numericId)
+    : false
 
   const { value: bookmarkedById, toggle: toggleBookmark } = useStoredBooleanRecordFromIds(COMMUNITY_BOOKMARKED_POSTS_KEY)
   const { value: bookmarkListById, setValue: setBookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
   const isBookmarked = Number.isFinite(numericId) ? Boolean(bookmarkListById[numericId] ?? bookmarkedById[numericId]) : false
 
-  const initialLikeCount = useMemo(() => {
-    const fromRanking = navState.source === "ranking" ? navState.voteCount : undefined
-    if (typeof fromRanking === "number" && Number.isFinite(fromRanking)) {
-      return Math.max(0, Math.round(fromRanking))
-    }
-    const value = (post as { likeCount?: unknown } | undefined)?.likeCount
-    return typeof value === "number" && Number.isFinite(value) ? value : 0
-  }, [navState.source, navState.voteCount, post])
+  const initialLikeCount = useMemo(
+    () => getInitialPairingLikeCount(post, navState.source, navState.voteCount),
+    [navState.source, navState.voteCount, post],
+  )
 
   const [likeCountByPostId, setLikeCountByPostId] = useState<Record<number, number>>({})
   const likeCount = Number.isFinite(numericId) ? likeCountByPostId[numericId] ?? initialLikeCount : initialLikeCount
 
-  const initialCommentCount = useMemo(() => {
-    const fromPost = (post as { commentCount?: unknown } | undefined)?.commentCount
-    if (typeof fromPost === "number" && Number.isFinite(fromPost)) return fromPost
-    if (!pairingId) return 0
-    try {
-      const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
-      const parsed = raw ? JSON.parse(raw) : []
-      return Array.isArray(parsed) ? parsed.length : 0
-    } catch {
-      return 0
-    }
-  }, [pairingId, post])
+  const initialCommentCount = useMemo(() => getInitialPairingCommentCount(post, pairingId), [pairingId, post])
 
   const [commentCountByPairingId, setCommentCountByPairingId] = useState<Record<string, number>>({})
   const commentCount = pairingId ? commentCountByPairingId[pairingId] ?? initialCommentCount : initialCommentCount
-  const detailImageListRef = useRef<HTMLDivElement | null>(null)
   const detailPhotoIds = Array.isArray(post?.photoIds) ? post.photoIds.slice(0, 3) : []
-  const detailImageTotal = detailPhotoIds.length
-  const [activeDetailImageIndex, setActiveDetailImageIndex] = useState(0)
 
   const detailMock = useMemo(() => getPairingDetailMock(post?.detailMockKey ?? null), [post?.detailMockKey])
 
@@ -205,59 +152,10 @@ export default function PairingDetail() {
     return typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.round(value)) : null
   }, [navState.source, navState.voteCount])
 
-  const similarItems = useMemo<SimilarPairingItem[]>(() => {
-    const similarPostIds = post?.similarPostIds ?? detailMock?.similarPostIds ?? []
-    if (similarPostIds.length) {
-      return similarPostIds.flatMap((similarId) => {
-        const matchedPost = feedPosts.find((post) => post.id === similarId)
-        if (!matchedPost) return []
-        const tagBundle = deriveCommunityTagBundle({
-          pairingTitle: extractPairingTitle(matchedPost.title),
-          title: matchedPost.title,
-          drinkType: matchedPost.drinkType ?? "",
-          foods: matchedPost?.foods,
-          features: matchedPost?.features,
-        })
-        return [{
-          id: similarId,
-          pairingTitle: extractPairingTitle(matchedPost.title),
-          authorId: matchedPost.authorId,
-          authorName: matchedPost.authorName ?? usersMockById[matchedPost.authorId]?.name ?? "익명",
-          profile: usersMockById[matchedPost.authorId]?.profile ?? "",
-          locationLabel: matchedPost.locationLabel ?? "",
-          drinkType: tagBundle.liquorTag || "기타",
-          foodTag: tagBundle.foodTag,
-          imageSrc: matchedPost.imageSrc ?? (matchedPost.photoIds?.[0] ? resolveReviewImage(matchedPost.photoIds[0]) : undefined),
-          title: matchedPost.title,
-          rating: matchedPost.rating,
-          reviewCount: matchedPost.reviewCount,
-        }
-        ]
-      })
-    }
-    return feedPosts
-      .filter((item) => !item.isQna && item.id !== numericId)
-      .slice(0, 3)
-      .map((item) => {
-        const pairingTitle = extractPairingTitle(item.title)
-        const { liquorTag, foodTag } = resolvePairingTags({
-          pairingTitle,
-          title: item.title,
-          drinkType: item.drinkType,
-          foods: item.foods,
-        })
-        return {
-          id: item.id,
-          pairingTitle,
-          authorId: item.authorId,
-          authorName: usersMockById[item.authorId]?.name ?? "익명",
-          profile: usersMockById[item.authorId]?.profile ?? "",
-          locationLabel: item.locationLabel ?? "",
-          drinkType: liquorTag || "기타",
-          foodTag,
-        }
-      })
-  }, [detailMock?.similarPostIds, numericId, post?.similarPostIds])
+  const similarItems = useMemo(
+    () => resolveSimilarPairingItems(post, detailMock?.similarPostIds, numericId),
+    [detailMock?.similarPostIds, numericId, post],
+  )
 
   const { liquorTag, foodTag } = pairingTagBundle
 
@@ -273,22 +171,10 @@ export default function PairingDetail() {
     document.getElementById("comments")?.scrollIntoView({ behavior: "auto", block: "start" })
   }, [location.hash])
 
-  useLayoutEffect(() => {
-    setActiveDetailImageIndex(0)
-    detailImageListRef.current?.scrollTo({ left: 0, behavior: "auto" })
-  }, [numericId])
-
   const handleCommentCountChange = useCallback((nextCount: number) => {
     if (!pairingId) return
     setCommentCountByPairingId((prev) => (prev[pairingId] === nextCount ? prev : { ...prev, [pairingId]: nextCount }))
   }, [pairingId])
-
-  const handleDetailImageScroll = useCallback(() => {
-    const target = detailImageListRef.current
-    if (!target || detailImageTotal === 0) return
-    const nextIndex = Math.round(target.scrollLeft / Math.max(1, target.clientWidth))
-    setActiveDetailImageIndex(Math.min(detailImageTotal - 1, Math.max(0, nextIndex)))
-  }, [detailImageTotal])
 
   const toggleFollow = () => {
     if (authorId === null) return
@@ -300,12 +186,7 @@ export default function PairingDetail() {
       const next = new Set(prev)
       if (next.has(authorId)) next.delete(authorId)
       else next.add(authorId)
-      try {
-        window.localStorage.setItem(COMMUNITY_FOLLOWED_USERS_KEY, JSON.stringify(Array.from(next)))
-        window.dispatchEvent(new Event(`${COMMUNITY_FOLLOWED_USERS_KEY}:updated`))
-      } catch {
-        // ignore
-      }
+      writeStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, next, `${COMMUNITY_FOLLOWED_USERS_KEY}:updated`)
       return next
     })
   }
@@ -315,16 +196,10 @@ export default function PairingDetail() {
     const nextLiked = !isLiked
     setLikedByPostId((prev) => ({ ...prev, [numericId]: nextLiked }))
     setLikeCountByPostId((prev) => ({ ...prev, [numericId]: Math.max(0, (prev[numericId] ?? initialLikeCount) + (nextLiked ? 1 : -1)) }))
-    try {
-      const raw = window.localStorage.getItem(COMMUNITY_LIKED_POSTS_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
-      const set = new Set<number>(Array.isArray(parsed) ? parsed : [])
-      if (nextLiked) set.add(numericId)
-      else set.delete(numericId)
-      window.localStorage.setItem(COMMUNITY_LIKED_POSTS_KEY, JSON.stringify(Array.from(set)))
-    } catch {
-      // ignore
-    }
+    const nextLikedIds = readStoredNumberSet(COMMUNITY_LIKED_POSTS_KEY)
+    if (nextLiked) nextLikedIds.add(numericId)
+    else nextLikedIds.delete(numericId)
+    writeStoredNumberSet(COMMUNITY_LIKED_POSTS_KEY, nextLikedIds)
   }
 
   const openBookmarkPicker = () => {
@@ -355,11 +230,7 @@ export default function PairingDetail() {
   const handleDeleteCurrentPost = useCallback(() => {
     if (!Number.isFinite(numericId)) return
     try {
-      const raw = window.localStorage.getItem(COMMUNITY_USER_POSTS_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
-      if (!Array.isArray(parsed)) return
-      window.localStorage.setItem(COMMUNITY_USER_POSTS_KEY, JSON.stringify(parsed.filter((item) => item?.id !== numericId).slice(0, 50)))
-      window.dispatchEvent(new Event("community:user-posts-updated"))
+      deleteStoredUserPost(numericId, COMMUNITY_USER_POSTS_KEY)
     } catch {
       // ignore
     }
@@ -414,33 +285,7 @@ export default function PairingDetail() {
         </>
       ) : (
         <>
-          {detailImageTotal > 0 ? (
-            <div className="detail_media">
-              <div
-                ref={detailImageListRef}
-                className="detail_images"
-                aria-label="페어링 리뷰 이미지"
-                onScroll={handleDetailImageScroll}
-              >
-                {detailPhotoIds.map((photoId: string) => {
-                  const imageSrc = resolveReviewImage(photoId)
-                  return (
-                    <figure className="detail_image_item" key={photoId}>
-                      {imageSrc ? <img className="detail_image" src={imageSrc} alt="" aria-hidden="true" /> : null}
-                    </figure>
-                  )
-                })}
-              </div>
-              <span className="detail_image_count">{activeDetailImageIndex + 1}/{detailImageTotal}</span>
-              {detailImageTotal > 1 ? (
-                <div className="detail_image_dots" aria-label={`이미지 ${detailImageTotal}장`}>
-                  {detailPhotoIds.map((photoId: string, index: number) => (
-                    <span key={photoId} className={index === activeDetailImageIndex ? "is_active" : ""} />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
+          <PairingDetailMedia key={numericId} numericId={numericId} photoIds={detailPhotoIds} />
 
           <ReviewContentBlock
             className="detail_content_group"
@@ -486,29 +331,7 @@ export default function PairingDetail() {
             onBookmark={openBookmarkPicker}
           />
 
-          {detailMock?.product ? (
-            <section className="detail_product_shell" aria-label="연결 상품">
-              <div className="detail_product_card">
-                <div className="product_thumb" aria-hidden="true">
-                  <img className="product_thumb_image" src={detailMock.product.imageSrc} alt="" aria-hidden="true" />
-                </div>
-                <div className="product_info">
-                  <div className="product_text">
-                    <h3>{detailMock.product.name}</h3>
-                    <p>{detailMock.product.priceText}</p>
-                  </div>
-                  <div className="chips">
-                    {detailMock.product.chips.map((chip) => (
-                      <span key={chip}>{chip}</span>
-                    ))}
-                  </div>
-                </div>
-                <button className="detail_product_arrow" type="button" aria-label="상품 상세로 이동">
-                  <img src={iconArrowRight} alt="" aria-hidden="true" />
-                </button>
-              </div>
-            </section>
-          ) : null}
+          {detailMock?.product ? <PairingDetailProductCard product={detailMock.product} /> : null}
 
           <SimilarPairingList
             items={similarItems}
@@ -582,12 +405,7 @@ export default function PairingDetail() {
               setFollowedUserIds((prev) => {
                 const next = new Set(prev)
                 next.delete(authorId)
-                try {
-                  window.localStorage.setItem(COMMUNITY_FOLLOWED_USERS_KEY, JSON.stringify(Array.from(next)))
-                  window.dispatchEvent(new Event(`${COMMUNITY_FOLLOWED_USERS_KEY}:updated`))
-                } catch {
-                  // ignore
-                }
+                writeStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, next, `${COMMUNITY_FOLLOWED_USERS_KEY}:updated`)
                 return next
               })
             }
@@ -602,8 +420,8 @@ export default function PairingDetail() {
           titleText={bookmarkListById[bookmarkPicker.postId] ? "저장한 게시글을 취소할까요?" : "게시글을 저장할까요?"}
           helperText={
             bookmarkListById[bookmarkPicker.postId]
-              ? "취소하면 내 정보 > 저장한 리스트에서 이 게시글이 사라져요."
-              : "저장한 게시글은 내 정보 > 저장한 리스트에서 확인할 수 있어요."
+              ? <>취소하면 내 정보 &gt; 저장한 리스트에서<br />이 게시글이 사라져요.</>
+              : <>저장한 게시글은 내 정보 &gt; 저장한 리스트에서<br />확인할 수 있어요.</>
           }
           secondaryLabel="취소"
           primaryLabel={bookmarkListById[bookmarkPicker.postId] ? "저장 취소하기" : "저장하기"}
