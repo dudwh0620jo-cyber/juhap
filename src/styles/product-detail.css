@@ -1462,7 +1462,10 @@
 }
 
 .review_more_button {
+  margin: 0 20px;
   display: flex;
+  width: calc(100% - 40px);
+  box-sizing: border-box;
   padding: 16px 20px;
   justify-content: center;
   align-items: center;
@@ -1473,10 +1476,10 @@
   color: var(--design-point_main, #ca804f);
   font-family: "Pretendard Variable";
   font-size: 16px;
-  font-style: normal;
   font-weight: 500;
-  line-height: normal;
   letter-spacing: -0.16px;
+  background: var(--color-bg-white);
+  cursor: pointer;
 }
 
 .review_write_button {
@@ -1506,6 +1509,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
+}
+
+.pairing_filter_bar {
+  padding-top: 20px;
+  padding-bottom: 28px;
 }
 
 .review_photo_filter {
@@ -1970,11 +1978,18 @@
   cursor: pointer;
 }
 
-.review_actions > button img,
-.review_actions_left > button img {
+.review_actions > button > img,
+.review_actions_left > button > img {
   width: 24px;
   height: 24px;
   display: block;
+}
+
+.bookmark_picker_helper {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 @keyframes review_like_bubble_rise {
@@ -2399,7 +2414,12 @@
 }
 
 .pairing_more_wrap {
-  padding: 0 20px;
+  padding: 28px 20px 0;
+}
+
+.pairing_more_wrap .review_more_button {
+  width: 100%;
+  margin: 0;
 }
 
 @media (max-width: 350px) {

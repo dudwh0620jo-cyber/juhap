@@ -212,6 +212,10 @@
   margin: 12px -24px 10px;
 }
 
+.detail_media.is_single_image {
+  margin-bottom: 32px;
+}
+
 .detail_images {
   display: flex;
   gap: 0;
@@ -264,7 +268,7 @@
   display: flex;
   justify-content: center;
   gap: 8px;
-  padding: 10px 0 0;
+  padding: 16px 0;
 }
 
 .detail_image_dots span {
@@ -279,7 +283,6 @@
 }
 
 .pairing_detail_page h2 {
-  margin: 0 0 8px;
   font-size: 20px;
   line-height: 1.15;
   white-space: normal;
