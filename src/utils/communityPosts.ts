@@ -27,6 +27,7 @@ export type FeedPost = {
   answerPreview?: string
   answerCount?: number
   searchTags?: string[]
+  situation?: string
   drinkType?: string
   categories?: string[]
   detailCategories?: string[]
@@ -86,8 +87,8 @@ export const resolvePairingTags = ({
   const foodTag = Array.isArray(foods) ? (foods.find((item) => typeof item === "string" && item.trim())?.trim() ?? "") : ""
 
   return {
-    liquorTag: drinkType.trim() || fromTitle.liquorTag,
-    foodTag: foodTag || fromTitle.foodTag,
+    liquorTag: fromTitle.liquorTag || drinkType.trim(),
+    foodTag: fromTitle.foodTag || foodTag,
   }
 }
 
@@ -118,29 +119,69 @@ export const deriveCommunityTagBundle = ({
   }
 }
 
-export const getCommunityTagBundleFromPost = (post: Pick<FeedPost, "title" | "drinkType" | "foods" | "features">) =>
+export const getCommunityTagBundleFromPost = (post: Pick<FeedPost, "title" | "categories" | "foods" | "features">) =>
   deriveCommunityTagBundle({
     pairingTitle: extractPairingTitle(post.title),
     title: post.title,
-    drinkType: post.drinkType ?? "",
+    drinkType: post.categories?.[0] ?? "",
     foods: post.foods,
     features: post.features,
   })
 
 export const matchesCommunityTag = (post: FeedPost, tagType: CommunityTagType, tagValue: string) => {
-  const normalizedTag = tagValue.replace(/\s+/g, "").toLowerCase()
-  if (!normalizedTag) return false
+  const normalizeTag = (value: string) => value.replace(/\s+/g, "").toLowerCase()
+  const expandTagVariants = (value: string) => {
+    const normalized = normalizeTag(value)
+    if (!normalized) return []
+
+    const variants = new Set([normalized])
+    if (normalized.endsWith("함")) variants.add(`${normalized.slice(0, -1)}한`)
+    if (normalized.endsWith("한")) variants.add(`${normalized.slice(0, -1)}함`)
+    if (normalized.endsWith("움")) variants.add(`${normalized.slice(0, -1)}운`)
+    if (normalized.endsWith("운")) variants.add(`${normalized.slice(0, -1)}움`)
+
+    return Array.from(variants)
+  }
+  const normalizedTags = expandTagVariants(tagValue)
+  if (normalizedTags.length === 0) return false
 
   const tagBundle = getCommunityTagBundleFromPost(post)
-
-  if (tagType === "hashtag") {
-    return tagBundle.featureTags
-      .map((tag) => tag.replace(/\s+/g, "").toLowerCase())
-      .some((tag) => tag === normalizedTag || tag.includes(normalizedTag))
+  const matchesAnyTag = (value: string) => {
+    const candidate = normalizeTag(value)
+    return normalizedTags.some((tag) => candidate === tag || candidate.includes(tag) || tag.includes(candidate))
   }
 
-  const candidate = (tagType === "liquor" ? tagBundle.liquorTag : tagBundle.foodTag).replace(/\s+/g, "").toLowerCase()
-  return candidate === normalizedTag || candidate.includes(normalizedTag)
+  if (tagType === "hashtag") {
+    const titleTags = getPairingTagsFromTitle(post.title)
+    const candidates = [
+      ...tagBundle.featureTags,
+      ...(post.features ?? []),
+      ...(post.searchTags ?? []),
+      ...(post.categories ?? []),
+      ...(post.detailCategories ?? []),
+      ...(post.foods ?? []),
+      post.categories?.[0] ?? "",
+      titleTags.liquorTag,
+      titleTags.foodTag,
+      post.title,
+      post.pairingSummary ?? "",
+      post.body,
+    ]
+
+    return candidates
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      .some(matchesAnyTag)
+  }
+
+  const titleTags = getPairingTagsFromTitle(post.title)
+  const candidates =
+    tagType === "liquor"
+      ? [tagBundle.liquorTag, titleTags.liquorTag, ...(post.categories ?? []), ...(post.searchTags ?? [])]
+      : [tagBundle.foodTag, titleTags.foodTag, ...(post.foods ?? []), ...(post.searchTags ?? [])]
+
+  return candidates
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .some(matchesAnyTag)
 }
 
 export const resolveQuestionThumbVariant = (post: Pick<FeedPost, "photoIds" | "drinkType" | "categories" | "detailCategories">): QuestionThumbVariant => {
@@ -243,4 +284,3 @@ export const feedPosts: FeedPost[] = [...questionMockPosts, ...basePosts].map((p
   const withPhotos = ensureReviewPhotoIds(post)
   return applyUserDerivedFields(withPhotos)
 })
-

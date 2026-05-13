@@ -32,7 +32,7 @@ function RenderTag({ label, toneClassName, tagClassName, to, state, onClick }: R
 
   if (to) {
     return (
-      <Link className={className} to={to} state={state}>
+      <Link className={className} to={to} state={state} onClick={(event) => event.stopPropagation()}>
         {label}
       </Link>
     )
@@ -40,7 +40,14 @@ function RenderTag({ label, toneClassName, tagClassName, to, state, onClick }: R
 
   if (onClick) {
     return (
-      <button type="button" className={className} onClick={onClick}>
+      <button
+        type="button"
+        className={className}
+        onClick={(event) => {
+          event.stopPropagation()
+          onClick()
+        }}
+      >
         {label}
       </button>
     )

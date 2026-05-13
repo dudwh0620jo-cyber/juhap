@@ -117,7 +117,9 @@ function StatusBar() {
 
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const { pathname } = location
+  const navState = (location.state ?? {}) as { bottomNavActive?: "category" }
   const navigationType = useNavigationType()
   const prevPathnameRef = useRef("")
   const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
@@ -151,7 +153,12 @@ export default function App() {
     pathname === "/profile-setup" ||
     pathname === "/taste-setup"
   const isRankingActive = pathname === "/community/ranking"
-  const isCommunityActive = pathname.startsWith("/community") && !isRankingActive
+  const isCategoryActive =
+    pathname === "/category" ||
+    pathname.startsWith("/category/") ||
+    pathname.startsWith("/product/") ||
+    navState.bottomNavActive === "category"
+  const isCommunityActive = pathname.startsWith("/community") && !isRankingActive && !isCategoryActive
   const isChatFabHidden = useChatFabVisibility({ pathname, isAuthPage, isWritePage, isProductDetailPage })
 
   return (
@@ -222,13 +229,20 @@ export default function App() {
           <nav className="bottom_nav" aria-label="주요 메뉴">
             {leftNavItems.map((item) => (
               <NavLink
-                className={({ isActive }) => (isActive ? "bottom_nav_item is_active" : "bottom_nav_item")}
+                className={({ isActive }) => {
+                  const active = item.path === "/category" ? isCategoryActive : isActive
+                  return active ? "bottom_nav_item is_active" : "bottom_nav_item"
+                }}
                 key={item.path}
                 to={item.path}
               >
                 {({ isActive }) => (
                   <>
-                    <img className="bottom_nav_icon" src={isActive ? item.activeIcon : item.icon} alt={item.label} />
+                    <img
+                      className="bottom_nav_icon"
+                      src={(item.path === "/category" ? isCategoryActive : isActive) ? item.activeIcon : item.icon}
+                      alt={item.label}
+                    />
                     <span className="bottom_nav_label">{item.label}</span>
                   </>
                 )}

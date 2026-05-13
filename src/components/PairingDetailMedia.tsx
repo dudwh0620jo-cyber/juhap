@@ -25,7 +25,7 @@ export default function PairingDetailMedia({ numericId, photoIds }: Props) {
   if (imageTotal === 0) return null
 
   return (
-    <div className="detail_media">
+    <div className={imageTotal > 1 ? "detail_media" : "detail_media is_single_image"}>
       <div ref={imageListRef} className="detail_images" aria-label="페어링 리뷰 이미지" onScroll={handleScroll}>
         {photoIds.map((photoId) => {
           const imageSrc = resolveReviewImage(photoId)

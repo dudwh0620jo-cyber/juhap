@@ -1,5 +1,6 @@
 export type DrinkReview = {
   id: string
+  pairingPostId?: number
   title: string
   body: string
   tags: string[]

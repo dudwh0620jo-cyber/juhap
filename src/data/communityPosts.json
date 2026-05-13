@@ -11,17 +11,23 @@
     "commentCount": 253,
     "popularityScore": 970,
     "locationLabel": "이자카야 유메",
-    "drinkType": "사케",
     "categories": ["사케"],
+    "detailCategories": ["다이긴죠/준마이 다이긴죠"],
+    "foods": ["우니"],
+    "searchTags": ["사케", "다이긴죠/준마이 다이긴죠", "부드러운", "가벼운", "우니", "데이트"],
+    "situation": "데이트",
     "features": ["부드러운", "가벼운"],
-    "foods": ["해산물"],
-    "searchTags": ["닷사이 23", "사케", "우니", "일식", "이자카야", "사시미"]
+    "priceWon": 75000,
+    "abv": 15.5,
+    "rating": 5,
+    "reviewCount": 500,
+    "similarPostIds": [1102]
   },
   {
     "id": 1102,
     "authorId": 2120,
     "title": "닷사이 23 + 사시미",
-    "body": "닷사이23이 사시미의 담백한 감칠맛을 깔끔하게 정리해줘서 회식 자리에서 부담 없이 계속 마시기 좋았어요. 향이 과하게 튀지 않아서 음식 흐름을 깨지 않고 자연스럽게 이어지고, 끝맛이 깨끗해서 기름진 부위 먹고 나서도 입안이 무겁지 않았습니다. 특히 방어나 도미 같은 흰살생선이랑 궁합이 좋았고, 술 잘 못 마시는 사람들도 부드럽게 넘어간다고 반응 괜찮았어요.",
+    "body": "닷사이23이 사시미의 담백한 감칠맛을 깔끔하게 정리해줘서 회식 자리에서 부담 없이 계속 마시기 좋았어요. 향이 과하게 튀지 않아서 음식 흐름을 깨지 않고 자연스럽게 이어지고, 끝맛이 깨끗해서 기름진 부위 먹고 나서도 입안이 무겁지 않았습니다. 특히 방어나 도미 같은 흰살생선이랑 궁합이 좋았고, 술 잘 못 마시는 사람들도 부드럽게 넘어간다고 반응 괜찮았어요. 가격대는 있는 편이지만 분위기 있는 회식 자리에서 오늘 술 잘 골랐다는 얘기 나오기 좋은 조합 같습니다.",
     "pairingSummary": "회식에서 부담없이 계속 마시기 좋음",
     "photoIds": ["fd_pairing_review_img2_1", "fd_pairing_review_img2_2"],
     "createdAt": "2026-05-12T11:00:00+09:00",
@@ -29,11 +35,17 @@
     "commentCount": 10,
     "popularityScore": 750,
     "locationLabel": "이자카야 와사비",
-    "drinkType": "사케",
     "categories": ["사케"],
+    "detailCategories": ["다이긴죠/준마이 다이긴죠"],
+    "foods": ["사시미"],
+    "searchTags": ["사케", "다이긴죠/준마이 다이긴죠", "가벼운", "부드러운", "사시미", "모임/단체"],
+    "situation": "모임/단체",
     "features": ["가벼운", "부드러운"],
-    "foods": ["생선"],
-    "searchTags": ["닷사이 23", "사케", "사시미", "일식", "이자카야", "회식"]
+    "priceWon": 75000,
+    "abv": 15.5,
+    "rating": 5,
+    "reviewCount": 100,
+    "similarPostIds": [1101, 99001]
   },
   {
     "id": 1001,
@@ -41,42 +53,23 @@
     "title": "장수 생막걸리 + 해물파전",
     "body": "한국 와서 처음 먹어봤는데 해물파전 바삭하고 안에 해물도 많아서 정말 맛있어요.",
     "pairingSummary": "빗소리 이기는 파전 굽는 소리",
-    "photoIds": [
-      "review_image_01",
-      "review_image_02"
-    ],
+    "photoIds": ["review_image_01", "review_image_02"],
     "createdAt": "2026-05-09T19:42:00+09:00",
     "likeCount": 847,
     "commentCount": 124,
     "popularityScore": 980,
     "locationLabel": "검단산입구",
-    "drinkType": "전통주",
-    "categories": [
-      "막걸리/탁주"
-    ],
-    "detailCategories": [
-      "막걸리"
-    ],
-    "features": [
-      "달콤한",
-      "탄산감 있는",
-      "가벼운"
-    ],
-    "foods": [
-      "해물",
-      "전"
-    ],
-    "searchTags": [
-      "막걸리",
-      "달콤한",
-      "탄산감 있는",
-      "한식",
-      "친구/파티"
-    ],
+    "categories": ["전통주"],
+    "detailCategories": ["막걸리/탁주"],
+    "foods": ["해물파전"],
+    "searchTags": ["전통주", "막걸리/탁주", "톡쏘는", "가벼운", "해물파전", "친구/파티"],
+    "situation": "친구/파티",
+    "features": ["톡쏘는", "가벼운"],
     "priceWon": 5000,
     "abv": 6,
-    "similarPostIds": [91011, 91012, 91013],
-    "detailMockKey": "jangsu_haemulpajeon"
+    "rating": 4.8,
+    "reviewCount": 847,
+    "similarPostIds": [1003, 1006, 91012]
   },
   {
     "id": 1002,
@@ -84,37 +77,23 @@
     "title": "모엣 샹동 브뤼 임페리얼 + 트러플 크림 파스타",
     "body": "친구들과 생일파티 분위기 내기 좋고 사진도 잘 나와서 만족했어요.",
     "pairingSummary": "친구들과의 럭셔리 파티",
-    "photoIds": [
-      "review_image_03",
-      "review_image_04"
-    ],
+    "photoIds": ["review_image_03", "review_image_04"],
     "createdAt": "2026-05-08T22:18:00+09:00",
     "likeCount": 665,
     "commentCount": 802,
     "popularityScore": 920,
     "locationLabel": "강남 스페이스클루",
-    "drinkType": "와인",
-    "categories": [
-      "스파클링"
-    ],
-    "detailCategories": [
-      "샴페인"
-    ],
-    "features": [
-      "과일향",
-      "부드러운"
-    ],
-    "foods": [
-      "파스타",
-      "치즈"
-    ],
-    "searchTags": [
-      "스파클링",
-      "양식",
-      "친구/파티"
-    ],
+    "categories": ["와인"],
+    "detailCategories": ["스파클링"],
+    "foods": ["트러플 크림 파스타"],
+    "searchTags": ["와인", "스파클링", "과일향", "부드러운", "트러플 크림 파스타", "친구/파티"],
+    "situation": "친구/파티",
+    "features": ["과일향", "부드러운"],
     "priceWon": 85000,
-    "abv": 12
+    "abv": 12,
+    "rating": 4.7,
+    "reviewCount": 665,
+    "similarPostIds": [1010, 1008]
   },
   {
     "id": 1003,
@@ -122,37 +101,23 @@
     "title": "국순당 밤막걸리 + 도토리묵",
     "body": "자연스러운 향이 나고 묵이랑 같이 먹으니 구수하네요.",
     "pairingSummary": "담백하게 넘어가는 주말 한 상",
-    "photoIds": [
-      "review_image_05",
-      "review_image_06"
-    ],
+    "photoIds": ["review_image_05", "review_image_06"],
     "createdAt": "2026-05-08T13:15:00+09:00",
     "likeCount": 456,
     "commentCount": 122,
     "popularityScore": 712,
     "locationLabel": "산아래주막",
-    "drinkType": "전통주",
-    "categories": [
-      "막걸리/탁주"
-    ],
-    "detailCategories": [
-      "막걸리"
-    ],
-    "features": [
-      "담백한",
-      "고소한"
-    ],
-    "foods": [
-      "도토리묵",
-      "전"
-    ],
-    "searchTags": [
-      "막걸리",
-      "도토리묵",
-      "한식"
-    ],
+    "categories": ["전통주"],
+    "detailCategories": ["막걸리/탁주"],
+    "foods": ["도토리묵"],
+    "searchTags": ["전통주", "막걸리/탁주", "부드러운", "도토리묵", "가족"],
+    "situation": "가족",
+    "features": ["부드러운"],
     "priceWon": 6500,
-    "abv": 6
+    "abv": 6,
+    "rating": 4.5,
+    "reviewCount": 456,
+    "similarPostIds": [1001, 1006, 91012]
   },
   {
     "id": 1004,
@@ -160,37 +125,23 @@
     "title": "하이네켄 + 치킨&감자튀김",
     "body": "치킨의 짭짤함이 라거의 청량함이랑 잘 붙어서 계속 들어가요. 달콩이도 궁금하다고 다가오네요",
     "pairingSummary": "치맥이 진리죠",
-    "photoIds": [
-      "review_image_09",
-      "review_image_10"
-    ],
+    "photoIds": ["review_image_09", "review_image_10"],
     "createdAt": "2026-05-07T20:20:00+09:00",
     "likeCount": 602,
     "commentCount": 920,
     "popularityScore": 870,
     "locationLabel": "따뜻한우리집",
-    "drinkType": "맥주",
-    "categories": [
-      "라거"
-    ],
-    "detailCategories": [
-      "페일 라거"
-    ],
-    "features": [
-      "청량한",
-      "깔끔한"
-    ],
-    "foods": [
-      "치킨",
-      "감자튀김"
-    ],
-    "searchTags": [
-      "라거",
-      "캠핑",
-      "맥주"
-    ],
+    "categories": ["맥주"],
+    "detailCategories": ["라거/필스너"],
+    "foods": ["치킨"],
+    "searchTags": ["맥주", "라거/필스너", "가벼운", "톡쏘는", "치킨", "가족"],
+    "situation": "가족",
+    "features": ["가벼운", "톡쏘는"],
     "priceWon": 3900,
-    "abv": 5
+    "abv": 5,
+    "rating": 4.9,
+    "reviewCount": 602,
+    "similarPostIds": [1005, 1025, 1007]
   },
   {
     "id": 1005,
@@ -198,36 +149,23 @@
     "title": "카스 + 닭목살 소금구이",
     "body": "캠핑 불멍 보면서 먹으니까 소금구이 풍미가 더 진해졌어요.",
     "pairingSummary": "캠핑장, 낭만에 취하다",
-    "photoIds": [
-      "review_image_16"
-    ],
+    "photoIds": ["review_image_16"],
     "createdAt": "2026-05-07T18:02:00+09:00",
     "likeCount": 665,
     "commentCount": 281,
     "popularityScore": 801,
     "locationLabel": "청계산캠핑장",
-    "drinkType": "맥주",
-    "categories": [
-      "라거"
-    ],
-    "detailCategories": [
-      "페일 라거"
-    ],
-    "features": [
-      "청량한",
-      "탄산감 있는"
-    ],
-    "foods": [
-      "닭목살",
-      "구이"
-    ],
-    "searchTags": [
-      "캠핑",
-      "치맥",
-      "데이트"
-    ],
+    "categories": ["맥주"],
+    "detailCategories": ["라거/필스너"],
+    "foods": ["닭목살 소금구이"],
+    "searchTags": ["맥주", "라거/필스너", "가벼운", "톡쏘는", "닭목살 소금구이", "데이트"],
+    "situation": "데이트",
+    "features": ["가벼운", "톡쏘는"],
     "priceWon": 3400,
-    "abv": 4.5
+    "abv": 4.5,
+    "rating": 4.8,
+    "reviewCount": 665,
+    "similarPostIds": [1004, 1025]
   },
   {
     "id": 1006,
@@ -235,36 +173,23 @@
     "title": "느린마을 막걸리 + 감자전",
     "body": "비 오는 날 감자전이랑 막걸리를 먹으니까 계속 들어가서 달림.",
     "pairingSummary": "오늘따라 감자전에 진심모드",
-    "photoIds": [
-      "review_image_20"
-    ],
+    "photoIds": ["review_image_20"],
     "createdAt": "2026-05-06T21:40:00+09:00",
     "likeCount": 530,
     "commentCount": 144,
     "popularityScore": 744,
     "locationLabel": "서울 성북구",
-    "drinkType": "전통주",
-    "categories": [
-      "막걸리/탁주"
-    ],
-    "detailCategories": [
-      "막걸리"
-    ],
-    "features": [
-      "은은한",
-      "부드러운"
-    ],
-    "foods": [
-      "감자전",
-      "전"
-    ],
-    "searchTags": [
-      "막걸리",
-      "감자전",
-      "비오는날"
-    ],
+    "categories": ["전통주"],
+    "detailCategories": ["막걸리/탁주"],
+    "foods": ["감자전"],
+    "searchTags": ["전통주", "막걸리/탁주", "부드러운", "가벼운", "감자전", "혼술"],
+    "situation": "혼술",
+    "features": ["부드러운", "가벼운"],
     "priceWon": 7000,
-    "abv": 6
+    "abv": 6,
+    "rating": 4.7,
+    "reviewCount": 530,
+    "similarPostIds": [1001, 1003, 91012]
   },
   {
     "id": 1007,
@@ -272,36 +197,23 @@
     "title": "기네스 + 수제 버거",
     "body": "흑맥주의 묵직함이 패티 육즙이랑 잘 맞아서 느끼하지 않았어요.",
     "pairingSummary": "묵직하게 즐기는 저녁",
-    "photoIds": [
-      "review_image_11"
-    ],
+    "photoIds": ["review_image_11"],
     "createdAt": "2026-05-06T19:10:00+09:00",
     "likeCount": 318,
     "commentCount": 86,
     "popularityScore": 620,
     "locationLabel": "수원 행궁동",
-    "drinkType": "맥주",
-    "categories": [
-      "스타우트"
-    ],
-    "detailCategories": [
-      "드라이 스타우트"
-    ],
-    "features": [
-      "묵직한",
-      "고소한"
-    ],
-    "foods": [
-      "버거",
-      "감자튀김"
-    ],
-    "searchTags": [
-      "흑맥주",
-      "버거",
-      "저녁"
-    ],
+    "categories": ["맥주"],
+    "detailCategories": ["흑맥주(스타우트)"],
+    "foods": ["수제 버거"],
+    "searchTags": ["맥주", "흑맥주(스타우트)", "무거운", "부드러운", "수제 버거", "데이트"],
+    "situation": "데이트",
+    "features": ["무거운", "부드러운"],
     "priceWon": 9000,
-    "abv": 4.2
+    "abv": 4.2,
+    "rating": 4.5,
+    "reviewCount": 318,
+    "similarPostIds": [1004]
   },
   {
     "id": 1008,
@@ -309,36 +221,23 @@
     "title": "샤도네이 + 화이트 라자냐",
     "body": "버터리한 향이 라자냐 크림소스와 부딪히지 않고 조화로웠습니다.",
     "pairingSummary": "부드러운 크림과 와인의 균형",
-    "photoIds": [
-      "review_image_12"
-    ],
+    "photoIds": ["review_image_25"],
     "createdAt": "2026-05-05T22:33:00+09:00",
     "likeCount": 274,
     "commentCount": 73,
     "popularityScore": 592,
     "locationLabel": "부산 전포동",
-    "drinkType": "와인",
-    "categories": [
-      "화이트"
-    ],
-    "detailCategories": [
-      "샤도네이"
-    ],
-    "features": [
-      "부드러운",
-      "은은한"
-    ],
-    "foods": [
-      "파스타",
-      "치즈"
-    ],
-    "searchTags": [
-      "화이트와인",
-      "크림파스타",
-      "저녁"
-    ],
+    "categories": ["와인"],
+    "detailCategories": ["화이트"],
+    "foods": ["화이트 라자냐"],
+    "searchTags": ["와인", "화이트", "부드러운", "오크향", "화이트 라자냐", "데이트"],
+    "situation": "데이트",
+    "features": ["부드러운", "오크향"],
     "priceWon": 32000,
-    "abv": 13
+    "abv": 13,
+    "rating": 4.6,
+    "reviewCount": 274,
+    "similarPostIds": [1002, 1010]
   },
   {
     "id": 1009,
@@ -346,36 +245,23 @@
     "title": "복순도가 + 해물탕",
     "body": "톡 쏘는 탄산감이 해물탕 매운맛을 깔끔하게 정리해줘요.오랜만에 만났더니 할 얘기가 많더군요",
     "pairingSummary": "친구녀석과 함께 해물탕에 막걸리 한잔",
-    "photoIds": [
-      "review_image_13"
-    ],
+    "photoIds": ["review_image_13"],
     "createdAt": "2026-05-05T20:11:00+09:00",
     "likeCount": 390,
     "commentCount": 112,
     "popularityScore": 680,
     "locationLabel": "인천 송도",
-    "drinkType": "전통주",
-    "categories": [
-      "막걸리/탁주"
-    ],
-    "detailCategories": [
-      "스파클링 막걸리"
-    ],
-    "features": [
-      "탄산감 있는",
-      "깔끔한"
-    ],
-    "foods": [
-      "해물탕",
-      "해물"
-    ],
-    "searchTags": [
-      "복순도가",
-      "해물탕",
-      "한식"
-    ],
+    "categories": ["전통주"],
+    "detailCategories": ["막걸리/탁주"],
+    "foods": ["해물탕"],
+    "searchTags": ["전통주", "막걸리/탁주", "톡쏘는", "가벼운", "해물탕", "친구/파티"],
+    "situation": "친구/파티",
+    "features": ["톡쏘는", "가벼운"],
     "priceWon": 15000,
-    "abv": 6
+    "abv": 6,
+    "rating": 4.7,
+    "reviewCount": 390,
+    "similarPostIds": [1001, 1003, 1006]
   },
   {
     "id": 1010,
@@ -383,79 +269,29 @@
     "title": "브뤼 샴페인 + 브리치즈",
     "body": "짭짤한 치즈랑 샴페인 산도가 입안을 정리해줘서 계속 먹게 돼요.",
     "pairingSummary": "브런치에 어울리는 산뜻한 조합",
-    "photoIds": [
-      "review_image_14"
-    ],
+    "photoIds": ["review_image_14"],
     "createdAt": "2026-05-04T11:45:00+09:00",
     "likeCount": 244,
     "commentCount": 55,
     "popularityScore": 530,
     "locationLabel": "서울 연남동",
-    "drinkType": "와인",
-    "categories": [
-      "스파클링"
-    ],
-    "detailCategories": [
-      "샴페인"
-    ],
-    "features": [
-      "산뜻한",
-      "과일향"
-    ],
-    "foods": [
-      "치즈",
-      "브런치"
-    ],
-    "searchTags": [
-      "샴페인",
-      "치즈",
-      "브런치"
-    ],
+    "categories": ["와인"],
+    "detailCategories": ["스파클링"],
+    "foods": ["브리치즈"],
+    "searchTags": ["와인", "스파클링", "가벼운", "과일향", "브리치즈", "데이트"],
+    "situation": "데이트",
+    "features": ["가벼운", "과일향"],
     "priceWon": 54000,
-    "abv": 12
+    "abv": 12,
+    "rating": 4.5,
+    "reviewCount": 244,
+    "similarPostIds": [1002, 1008]
   },
-  {
-    "id": 91001,
-    "authorId": 2116,
-    "title": "버번 입문 추천 부탁드려요",
-    "body": "메이커스 마크 다음으로 마시기 좋은 버번이 궁금해요.",
-    "createdAt": "2026-05-05T21:20:00+09:00",
-    "likeCount": 42,
-    "commentCount": 7,
-    "popularityScore": 118,
-    "locationLabel": "일산",
-    "isQna": true,
-    "answerCount": 7,
-    "answerPreview": "와일드 터키 101, 버팔로 트레이스 많이 추천해요.",
-    "drinkType": "위스키",
-    "categories": [
-      "아메리칸(버번/라이/테네시)"
-    ],
-    "detailCategories": [
-      "버번"
-    ],
-    "features": [
-      "스파이시",
-      "묵직한"
-    ],
-    "foods": [
-      "치즈"
-    ],
-    "searchTags": [
-      "위스키",
-      "버번",
-      "입문"
-    ],
-    "priceWon": 60000,
-    "abv": 45
-  }
-  ,
   {
     "id": 91011,
     "authorId": 2102,
     "title": "일품진로 + 육회",
     "body": "일품진로랑 육회 조합으로 깔끔하게 즐기기 좋아요.",
-    
     "pairingSummary": "육회좋았는데 낙지는 품절이라",
     "photoIds": ["review_image_18"],
     "createdAt": "2026-05-06T21:42:00+09:00",
@@ -463,18 +299,22 @@
     "commentCount": 336,
     "popularityScore": 13422,
     "locationLabel": "서울 강남구",
-    "drinkType": "소주",
     "categories": ["소주"],
-    "detailCategories": ["소주"],
+    "detailCategories": ["프리미엄(증류식)"],
     "foods": ["육회"],
+    "searchTags": ["소주", "프리미엄(증류식)", "가벼운", "부드러운", "육회", "모임/단체"],
+    "situation": "모임/단체",
+    "features": ["가벼운", "부드러운"],
+    "priceWon": 5000,
+    "abv": 25,
     "rating": 4.6,
     "reviewCount": 13422,
-    "searchTags": ["일품진로", "소주", "육회"]
+    "similarPostIds": []
   },
   {
     "id": 91012,
     "authorId": 2104,
-    "title": "막걸리랑 감자전",
+    "title": "장수 막걸리 + 감자전",
     "body": "막걸리랑 감자전먹음.",
     "pairingSummary": "감자전 여기 좀 괜찮은듯",
     "photoIds": ["review_image_19"],
@@ -483,33 +323,41 @@
     "commentCount": 261,
     "popularityScore": 10422,
     "locationLabel": "인천 연수구",
-    "drinkType": "전통주",
-    "categories": ["막걸리/약주"],
-    "detailCategories": ["막걸리"],
+    "categories": ["전통주"],
+    "detailCategories": ["막걸리/탁주"],
     "foods": ["감자전"],
+    "searchTags": ["전통주", "막걸리/탁주", "가벼운", "톡쏘는", "감자전", "혼술"],
+    "situation": "혼술",
+    "features": ["가벼운", "톡쏘는"],
+    "priceWon": 3500,
+    "abv": 6,
     "rating": 4.1,
     "reviewCount": 10422,
-    "searchTags": ["막걸리", "감자전"]
+    "similarPostIds": [1001, 1003, 1006]
   },
   {
     "id": 91013,
     "authorId": 2025,
     "title": "카스 + 닭꼬치 소금구이",
     "body": "시원한 라거에 닭꼬치 소금구이 조합으로 가볍게 즐기기 좋아요.",
-    "pairingSummary": "카스 + 닭꼬치 소금구이",
+    "pairingSummary": "오랜만에 친구들 만나서 한 잔",
     "photoIds": ["review_image_17"],
     "createdAt": "2026-05-06T16:55:00+09:00",
     "likeCount": 9422,
     "commentCount": 236,
     "popularityScore": 9422,
     "locationLabel": "경기 성남시",
-    "drinkType": "맥주",
-    "categories": ["라거"],
+    "categories": ["맥주"],
     "detailCategories": ["라거/필스너"],
-    "foods": ["닭꼬치", "소금구이"],
-    "rating": 4.0,
+    "foods": ["닭꼬치 소금구이"],
+    "searchTags": ["맥주", "라거/필스너", "가벼운", "톡쏘는", "닭꼬치 소금구이", "친구/파티"],
+    "situation": "친구/파티",
+    "features": ["가벼운", "톡쏘는"],
+    "priceWon": 3000,
+    "abv": 4.5,
+    "rating": 4,
     "reviewCount": 9422,
-    "searchTags": ["카스", "맥주", "닭꼬치"]
+    "similarPostIds": [1004, 1005, 1025]
   },
   {
     "id": 1025,
@@ -517,86 +365,70 @@
     "title": "하이네켄 + 토마토 파스타",
     "body": "라거의 청량함이 토마토 파스타의 산미랑 잘 맞아서, 느끼함 없이 깔끔하게 마무리돼요.",
     "pairingSummary": "파스타에 맥주도 궁합이 좋아요!",
-    "photoIds": [
-      "review_image_15"
-    ],
+    "photoIds": ["review_image_15"],
     "createdAt": "2026-05-10T20:20:00+09:00",
     "likeCount": 412,
     "commentCount": 128,
     "popularityScore": 740,
     "locationLabel": "따뜻한우리집",
-    "drinkType": "맥주",
-    "categories": ["라거 / 필스너"],
-    "detailCategories": ["페일 라거"],
-    "drinkEnglishName": "heineken",
-    "drinkCountry": "네덜란드",
+    "categories": ["맥주"],
+    "detailCategories": ["라거/필스너"],
     "foods": ["토마토 파스타"],
-    "foodParentCategory": "양식",
-    "features": ["깔끔한", "청량한"],
+    "searchTags": ["맥주", "라거/필스너", "가벼운", "톡쏘는", "토마토 파스타", "가족"],
+    "situation": "가족",
+    "features": ["가벼운", "톡쏘는"],
+    "priceWon": 3900,
+    "abv": 5,
     "rating": 4.2,
     "reviewCount": 13422,
-    "searchTags": ["하이네켄", "heineken", "토마토 파스타", "양식", "라거", "맥주"]
+    "similarPostIds": [1004, 1005]
   },
   {
     "id": 99001,
     "authorId": 9999,
-    "title": "조용히 오래 기억에 남는 사케",
+    "title": "주욘다이 혼마루 + 사시미",
     "body": "주욘다이 시리즈는 처음 마셨을 때 향이 엄청 화려하게 튀는 스타일이라기보단, 입안에서 천천히 퍼지는 부드러운 단맛과 은은한 과일향이 굉장히 인상적이었어요. 전체적인 밸런스가 정말 안정적이라 부담 없이 계속 마시게 되고, 끝맛도 깔끔해서 담백한 일식이나 사시미랑 특히 잘 어울렸습니다. 가격대는 높은 편이지만 왜 유명한지 한 잔만 마셔봐도 이해되는 느낌이었고, 조용한 홈파티나 분위기 있는 자리에서 꺼내면 확실히 만족감이 큰 술 같아요.",
     "pairingSummary": "사케 한 잔으로 마무리",
-    "photoIds": ["review_image_03"],
+    "photoIds": ["review_image_24"],
     "createdAt": "2026-05-11T20:10:00+09:00",
     "likeCount": 451,
     "commentCount": 402,
     "popularityScore": 910,
     "locationLabel": "서울",
-    "drinkType": "사케",
     "categories": ["사케"],
-    "detailCategories": ["사케"],
-    "features": ["부드러운", "깔끔한"],
-    "foods": [],
+    "detailCategories": ["혼죠조/후츠슈"],
+    "foods": ["사시미"],
+    "searchTags": ["사케", "혼죠조/후츠슈", "부드러운", "가벼운", "사시미", "혼술"],
+    "situation": "혼술",
+    "features": ["부드러운", "가벼운"],
+    "priceWon": 100000,
+    "abv": 15,
     "rating": 4.6,
     "reviewCount": 13422,
-    "searchTags": ["사케", "부드러운", "깔끔한"]
+    "similarPostIds": [99002, 1102]
   },
   {
     "id": 99002,
     "authorId": 9999,
-    "title": "매콤한 음식엔 역시 사케 + 닭발",
+    "title": "쿠보타 만쥬 + 닭발",
     "body": "매운 닭발이랑 같이 먹었을 때 자극적인 맛을 부드럽게 잡아줘서 좋았어요.",
-    "pairingSummary": "사케 + 닭발",
+    "pairingSummary": "매콤한 음식엔 역시 쿠보타 만쥬",
     "photoIds": ["review_image_21"],
     "createdAt": "2026-05-11T18:40:00+09:00",
     "likeCount": 125,
     "commentCount": 658,
     "popularityScore": 880,
     "locationLabel": "집",
-    "drinkType": "사케",
     "categories": ["사케"],
-    "detailCategories": ["사케"],
-    "features": ["부드러운"],
+    "detailCategories": ["다이긴죠/준마이 다이긴죠"],
     "foods": ["닭발"],
+    "searchTags": ["사케", "다이긴죠/준마이 다이긴죠", "부드러운", "닭발", "혼술"],
+    "situation": "혼술",
+    "features": ["부드러운"],
+    "priceWon": 20000,
+    "abv": 15,
     "rating": 4.3,
     "reviewCount": 9422,
-    "searchTags": ["사케", "집술", "친구/모임"]
-  },
-  {
-    "id": 99003,
-    "authorId": 9999,
-    "title": "혼술할 때 부담 없이 마시기 좋은 술 추천해주세요",
-    "body": "퇴근하고 집에서 간단하게 한잔하는 걸 좋아해요. 너무 달지 않은 걸로 추천 부탁해요.",
-    "photoIds": ["question_post_image_03"],
-    "createdAt": "2026-05-01T21:10:00+09:00",
-    "likeCount": 23,
-    "commentCount": 4,
-    "popularityScore": 120,
-    "locationLabel": "서울",
-    "isQna": true,
-    "answerCount": 4,
-    "answerPreview": "사케 입문이면 준마이부터 천천히 가보는 것도 좋아요.",
-    "drinkType": "사케",
-    "categories": ["사케"],
-    "detailCategories": ["사케"],
-    "foods": [],
-    "searchTags": ["혼술", "사케", "입문"]
+    "similarPostIds": [99001]
   }
 ]

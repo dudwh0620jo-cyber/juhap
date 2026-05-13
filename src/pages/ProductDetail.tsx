@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
-import { useNavigate, useParams, useSearchParams } from "react-router"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
+import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ProductReviewLikeButton from "../components/ProductReviewLikeButton"
 import SakeGuideAccordion from "../components/SakeGuideAccordion"
@@ -14,6 +15,9 @@ import imgPurchaseThumb1 from "../assets/fd_purchase_thumb1.png"
 import imgPurchaseThumb2 from "../assets/fd_purchase_thumb2.png"
 import imgPurchaseThumb3 from "../assets/fd_purchase_thumb3.png"
 import iconBookmark from "../assets/svg/bookmarksimple.svg"
+import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
+import iconBookmarkPoint from "../assets/svg/bookmarksimple_p.svg"
+import iconLocation from "../assets/svg/mappin.svg"
 import iconCaretDown from "../assets/svg/caretdown.png"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
@@ -32,10 +36,15 @@ import {
   productReviewScoreRows,
   productReviewSortItems,
 } from "../data/productDetailContent"
+import { communityPageData } from "../data/communityPageData"
 import { productDetailPageData } from "../data/productDetailData"
 import { drinkReviews } from "../data/productReviewsMock"
 import { useProductReviewInteractions } from "../hooks/useProductReviewInteractions"
+import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY } from "../utils/communityStorage"
+import type { PairingDetailNavState } from "../utils/pairingDetail"
 import { getVisibleProductReviews } from "../utils/productReviews"
+import type { DrinkReview } from "../utils/productReviews"
+import { useStoredNullableStringRecord } from "../utils/storage"
 import "../styles/product-detail.css"
 import imgFoodMatch1 from "../assets/fd_food_match1.svg"
 import imgFoodMatch2 from "../assets/fd_food_match2.svg"
@@ -49,25 +58,45 @@ const reviewGalleryImages = [imgGallery1, imgGallery2, imgGallery3, imgGallery4]
 const reviewSortItems = productReviewSortItems
 type ReviewSortKey = (typeof reviewSortItems)[number]["key"]
 const reviewScoreRows = productReviewScoreRows
+type ProductBookmarkPicker =
+  | { kind: "review"; reviewId: string }
+  | { kind: "pairing"; reviewId: string; postId: number; selectedListId: string }
+
 const tasteIconByLabel: Record<string, string> = {
   Aroma: iconTasteAroma,
   Taste: iconTasteTaste,
   Finish: iconTasteFinish,
 }
 
+const normalizeHashTagValue = (tag: string) => tag.replace(/^#/, "").trim()
+
+const getPairingReviewPostId = (review: DrinkReview) => {
+  if (typeof review.pairingPostId === "number" && Number.isFinite(review.pairingPostId)) return review.pairingPostId
+  const matchedId = review.id.match(/^pairing-review-(\d+)$/)?.[1]
+  return matchedId ? Number(matchedId) : NaN
+}
+
 export default function ProductDetail() {
   const { mockProductById, defaultProduct } = productDetailPageData
+  const { bookmarkLists } = communityPageData
   const navigate = useNavigate()
   const { id } = useParams()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const initialTab = searchParams.get("tab") === "pairing" ? "페어링추천" : searchParams.get("tab") === "review" ? "후기" : "술정보"
   const [activeTab, setActiveTab] = useState<(typeof tabItems)[number]>(initialTab)
   const [pendingPurchaseShopName, setPendingPurchaseShopName] = useState<string | null>(null)
   const [isPreparingModalOpen, setIsPreparingModalOpen] = useState(false)
   const [isPhotoReviewOnly, setIsPhotoReviewOnly] = useState(false)
+  const [isPairingPhotoOnly, setIsPairingPhotoOnly] = useState(false)
   const [reviewSort, setReviewSort] = useState<ReviewSortKey>("latest")
+  const [pairingSort, setPairingSort] = useState<ReviewSortKey>("recommend")
   const [isReviewSortSheetOpen, setIsReviewSortSheetOpen] = useState(false)
+  const [sortSheetTarget, setSortSheetTarget] = useState<"review" | "pairing">("review")
   const [reviewVisibleCount, setReviewVisibleCount] = useState(4)
+  const [pairingVisibleCount, setPairingVisibleCount] = useState(1)
+  const [bookmarkPicker, setBookmarkPicker] = useState<ProductBookmarkPicker | null>(null)
+  const [bookmarkedProductReviewIds, setBookmarkedProductReviewIds] = useState<Record<string, boolean>>({})
+  const { value: bookmarkListById, setValue: setBookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
   const {
     animatingReviewId,
     confirmUnfollow,
@@ -92,10 +121,103 @@ export default function ProductDetail() {
   const bestOnlinePrice = product.onlineShops[0]?.price ?? product.price
   const breadcrumbItems = product.breadcrumb.split(">").map((item) => item.trim()).filter(Boolean)
   const reviewSortLabel = reviewSortItems.find((item) => item.key === reviewSort)?.label ?? "최신순"
+  const pairingSortLabel = reviewSortItems.find((item) => item.key === pairingSort)?.label ?? "추천순"
   const visibleReviews = useMemo(
     () => getVisibleProductReviews(drinkReviews, { photoOnly: isPhotoReviewOnly, sortKey: reviewSort }),
     [isPhotoReviewOnly, reviewSort],
   )
+  const visiblePairingReviews = useMemo(
+    () => getVisibleProductReviews(pairingReviews, { photoOnly: isPairingPhotoOnly, sortKey: pairingSort }),
+    [isPairingPhotoOnly, pairingReviews, pairingSort],
+  )
+
+  const changeActiveTab = (nextTab: (typeof tabItems)[number]) => {
+    setActiveTab(nextTab)
+    const nextParams = new URLSearchParams(searchParams)
+
+    if (nextTab === "페어링추천") {
+      nextParams.set("tab", "pairing")
+    } else if (nextTab === "후기") {
+      nextParams.set("tab", "review")
+    } else {
+      nextParams.delete("tab")
+    }
+
+    setSearchParams(nextParams, { replace: true })
+  }
+
+  const openPairingReviewDetail = (review: DrinkReview) => {
+    const postId = getPairingReviewPostId(review)
+    if (!Number.isFinite(postId)) return
+
+    navigate(`/community/pairing/${postId}`, {
+      state: {
+        pairingTitle: [review.alcoholTag, review.foodTag].filter(Boolean).join(" + "),
+        pairingSummary: review.title,
+        body: review.body,
+        authorName: review.author.name,
+        profile: review.author.preference,
+        locationLabel: review.location ?? "",
+        drinkType: review.alcoholTag ?? "",
+        foods: review.foodTag ? [review.foodTag] : undefined,
+        bottomNavActive: "category",
+      } satisfies PairingDetailNavState,
+    })
+  }
+
+  const isReviewBookmarked = (review: DrinkReview) => {
+    const postId = getPairingReviewPostId(review)
+    if (Number.isFinite(postId)) return Boolean(bookmarkListById[postId])
+    return Boolean(bookmarkedProductReviewIds[review.id])
+  }
+
+  const openReviewBookmarkPicker = (review: DrinkReview) => {
+    const postId = getPairingReviewPostId(review)
+
+    if (Number.isFinite(postId)) {
+      setBookmarkPicker({
+        kind: "pairing",
+        reviewId: review.id,
+        postId,
+        selectedListId: bookmarkListById[postId] ?? bookmarkLists[0]?.id ?? "default",
+      })
+      return
+    }
+
+    setBookmarkPicker({ kind: "review", reviewId: review.id })
+  }
+
+  const isBookmarkPickerActive = bookmarkPicker
+    ? bookmarkPicker.kind === "pairing"
+      ? Boolean(bookmarkListById[bookmarkPicker.postId])
+      : Boolean(bookmarkedProductReviewIds[bookmarkPicker.reviewId])
+    : false
+
+  const confirmBookmark = () => {
+    if (!bookmarkPicker) return
+
+    if (bookmarkPicker.kind === "pairing") {
+      setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: bookmarkPicker.selectedListId }))
+    } else {
+      setBookmarkedProductReviewIds((prev) => ({ ...prev, [bookmarkPicker.reviewId]: true }))
+    }
+
+    setBookmarkPicker(null)
+  }
+
+  const removeBookmark = () => {
+    if (!bookmarkPicker) return
+
+    if (bookmarkPicker.kind === "pairing") {
+      setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: null }))
+    } else {
+      setBookmarkedProductReviewIds((prev) => ({ ...prev, [bookmarkPicker.reviewId]: false }))
+    }
+
+    setBookmarkPicker(null)
+  }
+
+  const cancelBookmark = () => setBookmarkPicker(null)
 
   return (
     <section className="product_detail_page page_screen" aria-label="상품 상세">
@@ -155,7 +277,7 @@ export default function ProductDetail() {
       <nav className="product_tabs" aria-label="상세 탭">
         <div className="product_tabs_inner">
           {tabItems.map((item) => (
-            <button key={item} type="button" className={activeTab === item ? "is_active" : ""} onClick={() => setActiveTab(item)}>
+            <button key={item} type="button" className={activeTab === item ? "is_active" : ""} onClick={() => changeActiveTab(item)}>
               {item}
             </button>
           ))}
@@ -305,7 +427,14 @@ export default function ProductDetail() {
               <span aria-hidden="true" />
               포토리뷰 모아보기
             </label>
-            <button type="button" className="review_sort_button" onClick={() => setIsReviewSortSheetOpen(true)}>
+            <button
+              type="button"
+              className="review_sort_button"
+              onClick={() => {
+                setSortSheetTarget("review")
+                setIsReviewSortSheetOpen(true)
+              }}
+            >
               {reviewSortLabel}
               <img src={iconCaretDown} alt="" aria-hidden="true" />
             </button>
@@ -359,12 +488,13 @@ export default function ProductDetail() {
                   <p>{review.body}</p>
                   <div className="review_tags">
                     {review.tags.map((tag) => (
-                      <span key={tag}>{tag}</span>
+                      <span key={tag}>#{normalizeHashTagValue(tag)}</span>
                     ))}
                   </div>
                 </div>
 
                 <div className="review_actions">
+                  <div className="review_actions_left">
                   <ProductReviewLikeButton
                     baseCount={review.likes}
                     isActive={Boolean(likedReviewIds[review.id])}
@@ -377,6 +507,15 @@ export default function ProductDetail() {
                   </span>
                   <button type="button" aria-label="공유">
                     <img src={iconSharePoint} alt="" aria-hidden="true" />
+                  </button>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={isReviewBookmarked(review) ? "저장 취소" : "저장"}
+                    aria-pressed={isReviewBookmarked(review)}
+                    onClick={() => openReviewBookmarkPicker(review)}
+                  >
+                    <img src={isReviewBookmarked(review) ? iconBookmarkActive : iconBookmarkPoint} alt="" aria-hidden="true" />
                   </button>
                 </div>
               </article>
@@ -412,9 +551,45 @@ export default function ProductDetail() {
             <div className="product_related_header">
               <h2>연관컨텐츠</h2>
             </div>
+            <div className="review_filter_bar pairing_filter_bar">
+              <label className="review_photo_filter">
+                <input
+                  type="checkbox"
+                  checked={isPairingPhotoOnly}
+                  onChange={(event) => {
+                    setIsPairingPhotoOnly(event.target.checked)
+                    setPairingVisibleCount(1)
+                  }}
+                />
+                <span aria-hidden="true" />
+                포토리뷰 모아보기
+              </label>
+              <button
+                type="button"
+                className="review_sort_button"
+                onClick={() => {
+                  setSortSheetTarget("pairing")
+                  setIsReviewSortSheetOpen(true)
+                }}
+              >
+                {pairingSortLabel}
+                <img src={iconCaretDown} alt="" aria-hidden="true" />
+              </button>
+            </div>
             <div className="product_related_list">
-              {pairingReviews.map((review) => (
-                <article className="pairing_review_card" key={review.id}>
+              {visiblePairingReviews.slice(0, pairingVisibleCount).map((review) => (
+                <article
+                  className="pairing_review_card"
+                  key={review.id}
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => openPairingReviewDetail(review)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" && event.key !== " ") return
+                    event.preventDefault()
+                    openPairingReviewDetail(review)
+                  }}
+                >
                   <div className="review_author_row">
                     <img className="review_profile" src={review.author.avatar} alt="" aria-hidden="true" />
                     <div className="review_author_meta">
@@ -426,7 +601,10 @@ export default function ProductDetail() {
                           type="button"
                           className={followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"}
                           aria-pressed={followedAuthorNames.has(review.author.name)}
-                          onClick={() => requestToggleFollow(review.author.name)}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            requestToggleFollow(review.author.name)
+                          }}
                         >
                           {followedAuthorNames.has(review.author.name) ? "언팔로우" : "팔로우"}
                         </button>
@@ -446,29 +624,45 @@ export default function ProductDetail() {
                   <div className="pairing_card_text">
                     <h2>{review.title}</h2>
                     <div className="pairing_drink_chips">
-                      {review.alcoholTag ? <span className="pairing_chip_alcohol">{review.alcoholTag}</span> : null}
-                      {review.foodTag ? <span className="pairing_chip_food">{review.foodTag}</span> : null}
+                      {review.alcoholTag ? (
+                        <Link
+                          className="pairing_chip_alcohol"
+                          to="/community/tag"
+                          state={{ tagType: "liquor", tagValue: review.alcoholTag, bottomNavActive: "category" }}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {review.alcoholTag}
+                        </Link>
+                      ) : null}
+                      {review.foodTag ? (
+                        <Link
+                          className="pairing_chip_food"
+                          to="/community/tag"
+                          state={{ tagType: "food", tagValue: review.foodTag, bottomNavActive: "category" }}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {review.foodTag}
+                        </Link>
+                      ) : null}
                     </div>
                     <p>{review.body}</p>
                   </div>
 
                   <div className="pairing_card_meta">
-                    <div className="review_tags">
+                    <div className="community_review_hashtags" aria-label="해시태그">
                       {review.tags.map((tag) => (
-                        <span key={tag}>{tag}</span>
+                        <span key={tag}>#{normalizeHashTagValue(tag)}</span>
                       ))}
                     </div>
                     {review.location ? (
-                      <div className="pairing_location">
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                          <path d="M9 1.5C6.51472 1.5 4.5 3.51472 4.5 6C4.5 9.75 9 16.5 9 16.5C9 16.5 13.5 9.75 13.5 6C13.5 3.51472 11.4853 1.5 9 1.5ZM9 8.25C7.75736 8.25 6.75 7.24264 6.75 6C6.75 4.75736 7.75736 3.75 9 3.75C10.2426 3.75 11.25 4.75736 11.25 6C11.25 7.24264 10.2426 8.25 9 8.25Z" fill="#6e6e6e" />
-                        </svg>
+                      <div className="community_review_location">
+                        <img className="community_review_location_icon" src={iconLocation} alt="" aria-hidden="true" />
                         <span>{review.location}</span>
                       </div>
                     ) : null}
                   </div>
 
-                  <div className="pairing_card_actions">
+                  <div className="pairing_card_actions" onClick={(event) => event.stopPropagation()}>
                     <div className="pairing_card_actions_left">
                       <ProductReviewLikeButton
                         baseCount={review.likes}
@@ -484,8 +678,13 @@ export default function ProductDetail() {
                         <img src={iconSharePoint} alt="" aria-hidden="true" />
                       </button>
                     </div>
-                    <button type="button" aria-label="저장">
-                      <img src={iconBookmark} alt="" aria-hidden="true" />
+                    <button
+                      type="button"
+                      aria-label={isReviewBookmarked(review) ? "저장 취소" : "저장"}
+                      aria-pressed={isReviewBookmarked(review)}
+                      onClick={() => openReviewBookmarkPicker(review)}
+                    >
+                      <img src={isReviewBookmarked(review) ? iconBookmarkActive : iconBookmarkPoint} alt="" aria-hidden="true" />
                     </button>
                   </div>
                 </article>
@@ -493,13 +692,30 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          <div className="pairing_more_wrap">
-            <button type="button" className="review_more_button" onClick={() => setIsPreparingModalOpen(true)}>
+          <div className="pairing_more_wrap" hidden={pairingVisibleCount >= visiblePairingReviews.length}>
+            <button type="button" className="review_more_button" onClick={() => setPairingVisibleCount((prev) => Math.min(visiblePairingReviews.length, prev + 1))}>
               페어링 추천 더보기
             </button>
           </div>
         </section>
       )}
+
+      {bookmarkPicker ? (
+        <CommunityBookmarkPickerModal
+          ariaLabel="북마크 리스트 선택"
+          titleText={isBookmarkPickerActive ? "저장한 게시글을 취소할까요?" : "게시글을 저장할까요?"}
+          helperText={
+            isBookmarkPickerActive
+              ? <>취소하면 내 정보 &gt; 저장한 리스트에서<br />이 게시글이 사라져요.</>
+              : <>저장한 게시글은 내 정보 &gt; 저장한 리스트에서<br />확인할 수 있어요.</>
+          }
+          secondaryLabel="취소"
+          primaryLabel={isBookmarkPickerActive ? "저장 취소하기" : "저장하기"}
+          onDismiss={cancelBookmark}
+          onSecondary={cancelBookmark}
+          onPrimary={isBookmarkPickerActive ? removeBookmark : confirmBookmark}
+        />
+      ) : null}
 
       {pendingUnfollowName ? (
         <PurchaseConfirmModal
@@ -547,14 +763,20 @@ export default function ProductDetail() {
             <span className="product_review_sort_handle" aria-hidden="true" />
             <div className="product_review_sort_options">
               {reviewSortItems.map((item) => {
-                const isActive = item.key === reviewSort
+                const activeSort = sortSheetTarget === "pairing" ? pairingSort : reviewSort
+                const isActive = item.key === activeSort
                 return (
                   <button
                     key={item.key}
                     type="button"
                     className={isActive ? "product_review_sort_option is_active" : "product_review_sort_option"}
                     onClick={() => {
-                      setReviewSort(item.key)
+                      if (sortSheetTarget === "pairing") {
+                        setPairingSort(item.key)
+                        setPairingVisibleCount(1)
+                      } else {
+                        setReviewSort(item.key)
+                      }
                       setIsReviewSortSheetOpen(false)
                     }}
                   >

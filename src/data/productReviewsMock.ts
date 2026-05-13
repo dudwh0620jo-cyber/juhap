@@ -6,10 +6,49 @@ import imgDrinkReviewProfile5 from "../assets/fd_drink_review_profile5.png"
 import imgDrinkReview1 from "../assets/fd_drink_review_img1.png"
 import imgDrinkReview2 from "../assets/fd_drink_review_img2.png"
 import imgDrinkReview3 from "../assets/fd_drink_review_img3.png"
-import imgPairingReview1_1 from "../assets/fd_pairing_review_img1_1.png"
-import imgPairingReview2_1 from "../assets/fd_pairing_review_img2_1.png"
-import imgPairingReview2_2 from "../assets/fd_pairing_review_img2_2.png"
+import { feedPosts, type FeedPost } from "../utils/communityPosts"
 import type { DrinkReview } from "../utils/productReviews"
+import { resolveReviewImage } from "../utils/reviewImages"
+import { resolveUserAvatar } from "../utils/userAvatars"
+import { usersMockById } from "../utils/usersMock"
+
+const productPairingReviewIds = [1101, 1102]
+const productReviewAuthorGradeByUserId: Record<number, string> = {
+  2119: "셀렉터",
+  2120: "셀렉터",
+}
+
+const toProductPairingReview = (post: FeedPost): DrinkReview => {
+  const user = usersMockById[post.authorId]
+
+  return {
+    id: `pairing-review-${post.id}`,
+    pairingPostId: post.id,
+    title: post.pairingSummary?.trim() || post.title,
+    body: post.body,
+    tags: post.searchTags ?? [],
+    images: (post.photoIds ?? []).map((photoId) => resolveReviewImage(photoId)).filter((src): src is string => Boolean(src)),
+    likes: post.likeCount,
+    comments: post.commentCount,
+    rating: (post.rating ?? 5).toFixed(1),
+    createdAt: post.createdAt,
+    recommendScore: post.popularityScore,
+    alcoholTag: post.title.split("+")[0]?.trim(),
+    foodTag: post.title.split("+")[1]?.trim() || post.foods?.[0],
+    location: post.locationLabel,
+    author: {
+      name: user?.name ?? post.authorName ?? "익명",
+      grade: productReviewAuthorGradeByUserId[post.authorId] ?? "리뷰어",
+      preference: user?.profile ?? "",
+      avatar: resolveUserAvatar(post.authorId) ?? "",
+    },
+  }
+}
+
+const productPairingReviews = productPairingReviewIds
+  .map((id) => feedPosts.find((post) => post.id === id))
+  .filter((post): post is FeedPost => Boolean(post))
+  .map(toProductPairingReview)
 
 export const drinkReviews: DrinkReview[] = [
   {
@@ -107,48 +146,5 @@ export const drinkReviews: DrinkReview[] = [
       avatar: imgDrinkReviewProfile5,
     },
   },
-  {
-    id: "pairing-review-1",
-    title: "닷사이의 은은한 단맛과 우니의 진한 고소함",
-    body:
-      "닷사이23이 우니 특유의 진하고 바다향 강한 맛을 깔끔하게 정리해줘서 생각보다 훨씬 밸런스가 좋았어요. 은은한 단맛이 우니의 고소함이랑 자연스럽게 이어지고 끝맛이 깨끗해서 느끼하지 않게 계속 들어가는 느낌이었습니다. 가격대는 있는 조합이지만 조용한 이자카야나 분위기 있는 자리에서 먹으면 만족감 꽤 높은 페어링 같아요.",
-    tags: ["#사케", "#비오는날"],
-    images: [imgPairingReview1_1],
-    likes: 542,
-    comments: 253,
-    rating: "5.0",
-    createdAt: "2026-05-07T14:00:00+09:00",
-    recommendScore: 95,
-    alcoholTag: "닷사이 23",
-    foodTag: "우니",
-    location: "이자카야 유메",
-    author: {
-      name: "옹심이",
-      grade: "셀렉터",
-      preference: "50대 / 남 / 막걸리 / 달달하고 부드러운 맛 선호",
-      avatar: imgDrinkReviewProfile3,
-    },
-  },
-  {
-    id: "pairing-review-2",
-    title: "회식에서 부담없이 계속 마시기 좋음",
-    body:
-      "닷사이23이 사시미의 담백한 감칠맛을 깔끔하게 정리해줘서 회식 자리에서 부담 없이 계속 마시기 좋았어요. 향이 과하게 튀지 않아서 음식 흐름을 깨지 않고 자연스럽게 이어지고, 끝맛이 깨끗해서 기름진 부위 먹고 나서도 입안이 무겁지 않았습니다. 특히 방어나 도미 같은 흰살생선이랑 궁합이 좋았고, 술 잘 못 마시는 사람들도 부드럽게 넘어간다고 반응 괜찮았어요. 가격대는 있는 편이지만 분위기 있는 회식 자리에서 오늘 술 잘 골랐다는 얘기 나오기 좋은 조합 같습니다.",
-    tags: ["#사케", "#회식"],
-    images: [imgPairingReview2_1, imgPairingReview2_2],
-    likes: 50,
-    comments: 10,
-    rating: "5.0",
-    createdAt: "2026-05-06T11:00:00+09:00",
-    recommendScore: 88,
-    alcoholTag: "닷사이 23",
-    foodTag: "사시미",
-    location: "이자카야 와사비",
-    author: {
-      name: "사케가 좋아",
-      grade: "셀렉터",
-      preference: "40대 / 남 / 사케 / 깔끔하고 부드러운 맛 선호",
-      avatar: imgDrinkReviewProfile4,
-    },
-  },
+  ...productPairingReviews,
 ]

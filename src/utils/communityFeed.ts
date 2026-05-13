@@ -125,7 +125,6 @@ export const filterPopupChipGroups = ({
     const postTargets = [
       post.title,
       post.body,
-      post.drinkType ?? "",
       ...(post.categories ?? []),
       ...(post.features ?? []),
       ...(post.foods ?? []),
@@ -134,8 +133,8 @@ export const filterPopupChipGroups = ({
 
     if (!includesNormalized(postTargets.join(" "), trimmedQuery)) continue
 
-    addRelated("주종", post.drinkType ? [post.drinkType] : [])
-    addRelated("카테고리", post.categories ?? [])
+    addRelated("주종", post.categories?.length ? [post.categories[0]] : [])
+    addRelated("카테고리", post.detailCategories ?? [])
     addRelated("특징", post.features ?? [])
     addRelated("음식", post.foods ?? [])
   }
@@ -229,16 +228,15 @@ export const filterCommunityFeedPosts = ({
       post.title,
       post.body,
       usersMockById[post.authorId]?.profile ?? "",
-      post.drinkType ?? "",
       ...(post.categories ?? []),
       ...(post.features ?? []),
       ...(post.foods ?? []),
       ...(post.searchTags ?? []),
     ]
     const queryMatches = !query || includesNormalized(targets.join(" "), query)
-    const drinkTypeMatches = !filters.selectedDrinkType || post.drinkType === filters.selectedDrinkType
+    const drinkTypeMatches = !filters.selectedDrinkType || (post.categories ?? []).includes(filters.selectedDrinkType)
     const categoryMatches =
-      filters.selectedCategories.size === 0 || (post.categories ?? []).some((item) => filters.selectedCategories.has(item))
+      filters.selectedCategories.size === 0 || (post.detailCategories ?? []).some((item) => filters.selectedCategories.has(item))
     const foodMatches = filters.selectedFoods.size === 0 || (post.foods ?? []).some((item) => filters.selectedFoods.has(item))
     const featureMatches =
       filters.selectedFeatures.size === 0 || (post.features ?? []).some((item) => filters.selectedFeatures.has(item))
@@ -259,9 +257,9 @@ export const getCommunitySearchSuggestionTags = ({
 
   const normalizedQuery = normalizeSearchText(query)
   const filterPostWithoutQuery = (post: FeedPost) => {
-    const drinkTypeMatches = !filters.selectedDrinkType || post.drinkType === filters.selectedDrinkType
+    const drinkTypeMatches = !filters.selectedDrinkType || (post.categories ?? []).includes(filters.selectedDrinkType)
     const categoryMatches =
-      filters.selectedCategories.size === 0 || (post.categories ?? []).some((item) => filters.selectedCategories.has(item))
+      filters.selectedCategories.size === 0 || (post.detailCategories ?? []).some((item) => filters.selectedCategories.has(item))
     const foodMatches = filters.selectedFoods.size === 0 || (post.foods ?? []).some((item) => filters.selectedFoods.has(item))
     const featureMatches =
       filters.selectedFeatures.size === 0 || (post.features ?? []).some((item) => filters.selectedFeatures.has(item))
@@ -279,7 +277,6 @@ export const getCommunitySearchSuggestionTags = ({
     const postTargets = [
       post.title,
       post.body,
-      post.drinkType ?? "",
       ...(post.categories ?? []),
       ...(post.features ?? []),
       ...(post.foods ?? []),
@@ -289,7 +286,6 @@ export const getCommunitySearchSuggestionTags = ({
     if (!includesNormalized(postTargets.join(" "), query)) continue
 
     const relatedTags = [
-      post.drinkType ?? "",
       ...(post.categories ?? []),
       ...(post.features ?? []),
       ...(post.foods ?? []),
@@ -310,7 +306,6 @@ export const getCommunitySearchSuggestionTags = ({
       const tagPool = [
         post.title,
         post.body,
-        post.drinkType ?? "",
         ...(post.categories ?? []),
         ...(post.features ?? []),
         ...(post.foods ?? []),
@@ -345,7 +340,7 @@ export const getPairingCommentNavigationState = (post: FeedPost | undefined) => 
     authorName: usersMockById[post.authorId]?.name ?? "익명",
     profile: usersMockById[post.authorId]?.profile ?? "",
     locationLabel: post.locationLabel?.trim() ?? "",
-    drinkType: post.drinkType ?? "",
+    drinkType: post.categories?.[0] ?? "",
     source: "feed",
   }
 }

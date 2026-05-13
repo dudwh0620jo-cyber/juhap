@@ -41,7 +41,6 @@
   display: block;
 }
 
-
 .user_identity_row {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) auto;
@@ -213,6 +212,10 @@
   margin: 12px -24px 10px;
 }
 
+.detail_media.is_single_image {
+  margin-bottom: 32px;
+}
+
 .detail_images {
   display: flex;
   gap: 0;
@@ -265,7 +268,7 @@
   display: flex;
   justify-content: center;
   gap: 8px;
-  padding: 10px 0 0;
+  padding: 16px 0;
 }
 
 .detail_image_dots span {
@@ -280,7 +283,6 @@
 }
 
 .pairing_detail_page h2 {
-  margin: 0 0 8px;
   font-size: 20px;
   line-height: 1.15;
   white-space: normal;
@@ -349,11 +351,14 @@
 
 .detail_text {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 14px;
   color: var(--color-gray-05);
   overflow-wrap: anywhere;
   word-break: break-word;
+  color: #696969;
+  font-weight: 400;
+  line-height: 140%; /* 19.6px */
+  letter-spacing: 0.14px;
 }
 
 .feed_actions.is_detail {
@@ -991,7 +996,6 @@
   border-color: #d99561;
   color: #fff;
 }
-
 
 .comment_meta {
   margin-left: 6px;

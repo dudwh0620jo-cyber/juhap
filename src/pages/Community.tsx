@@ -701,7 +701,7 @@ export default function Community() {
               const tagBundle = deriveCommunityTagBundle({
                 pairingTitle,
                 title: post.title,
-                drinkType: post.drinkType ?? "",
+                drinkType: post.categories?.[0] ?? "",
                 foods: post.foods,
                 features: post.features,
               })
@@ -732,7 +732,7 @@ export default function Community() {
                     authorName,
                     profile: usersMockById[post.authorId]?.profile ?? "",
                     locationLabel: post.locationLabel?.trim() ?? "",
-                    drinkType: post.drinkType ?? "",
+                    drinkType: post.categories?.[0] ?? "",
                     features: tagBundle.featureTags,
                     source: "feed",
                     feedFilter: feedFilter,
@@ -743,7 +743,7 @@ export default function Community() {
                   liquorTag={tagBundle.liquorTag}
                   foodTag={tagBundle.foodTag}
                   photoIds={post.photoIds}
-                  hashtags={tagBundle.featureTags}
+                  hashtags={post.searchTags}
                   locationLabel={post.locationLabel?.trim() ?? ""}
                   likeActive={Boolean(likedById[post.id])}
                   likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
