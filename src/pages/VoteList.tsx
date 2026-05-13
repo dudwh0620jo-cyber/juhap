@@ -3,10 +3,9 @@ import { useNavigate } from "react-router"
 import "../styles/vote-list.css"
 import VoteListCard from "../components/VoteListCard"
 import { getStoredPicks } from "../utils/votePicks"
-import { useVoteData, VOTE_INITIAL_COUNT } from "../hooks/useVoteData"
+import { voteItems, VOTE_INITIAL_COUNT } from "../data/voteData"
 
 export default function VoteList() {
-  const { voteItems } = useVoteData()
   const navigate = useNavigate()
   const [showAll, setShowAll] = useState(false)
 

@@ -1,5 +1,5 @@
 import type { FeedFilter, ReviewSortKey } from "../data/communityFilterConfig"
-import type { PopupChipGroup } from "../hooks/useCommunityPageData"
+import type { PopupChipGroup } from "../data/communityPageData"
 import { type FeedPost, extractPairingTitle } from "./communityPosts"
 import { includesNormalized, normalizeSearchText } from "./text"
 import { usersMockById } from "./usersMock"

@@ -9,8 +9,8 @@ import SituationSection from "../components/SituationSection"
 import WeeklyDrink from "../components/WeeklyDrink"
 import { getStoredPicks, storePick } from "../utils/votePicks"
 import { homeAssets, homeWeeklyRankingCards, resolveVoteOptionIconSrc } from "../data/homeContent"
+import { FEATURED_VOTE_ID, voteItems } from "../data/voteData"
 import { useHomePageData } from "../hooks/useHomePageData"
-import { FEATURED_VOTE_ID, useVoteData } from "../hooks/useVoteData"
 
 type AiCardProps = {
   title: string
@@ -334,7 +334,6 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
 
 export default function Home() {
   const { recommendationItems, situationItems, weeklyDrinkItems } = useHomePageData()
-  const { voteItems } = useVoteData()
   const featuredVote = voteItems.find((v) => v.id === FEATURED_VOTE_ID) ?? voteItems[0]
 
   return (

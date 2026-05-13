@@ -21,7 +21,7 @@ import {
   resolveQuestionThumbVariant,
   type FeedPost,
 } from "../utils/communityPosts"
-import { type FeedFilter, type ReviewSortKey, useCommunityPageData } from "../hooks/useCommunityPageData"
+import { communityPageData, type FeedFilter, type ReviewSortKey } from "../data/communityPageData"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
 import {
@@ -215,7 +215,7 @@ export default function Community() {
     popupFeaturesByDrinkType,
     popupFoodCategories,
     defaultFollowedUserIdsMock,
-  } = useCommunityPageData()
+  } = communityPageData
 
   const filterParam = searchParams.get("filter")
   const stateFilterRaw = (location.state as { initialFilter?: string } | null)?.initialFilter

@@ -1,5 +1,4 @@
-import { useMemo } from "react"
-import { sakeProductsMock } from "../data/sakeProductsMock"
+import { sakeProductsMock } from "./sakeProductsMock"
 
 export type ProductPurchaseShop = {
   id: string
@@ -22,7 +21,7 @@ export type ProductDetailData = {
   onlineShops: ProductPurchaseShop[]
 }
 
-const dassai23: ProductDetailData = {
+export const defaultProduct: ProductDetailData = {
   id: "sake-dassai-23",
   breadcrumb: "사케 > 준마이 다이긴죠 / 다이긴죠",
   name: "닷사이 23",
@@ -74,11 +73,11 @@ const dassai23: ProductDetailData = {
   ],
 }
 
-const mockProductById: Record<string, ProductDetailData> = {
-  [dassai23.id]: dassai23,
+export const mockProductById: Record<string, ProductDetailData> = {
+  [defaultProduct.id]: defaultProduct,
   ...Object.fromEntries(
     sakeProductsMock
-      .filter((product) => product.id !== dassai23.id)
+      .filter((product) => product.id !== defaultProduct.id)
       .map((product) => [
         product.id,
         {
@@ -125,6 +124,4 @@ const mockProductById: Record<string, ProductDetailData> = {
   ),
 }
 
-export function useProductDetailPageData() {
-  return useMemo(() => ({ mockProductById, defaultProduct: dassai23 }), [])
-}
+export const productDetailPageData = { mockProductById, defaultProduct } as const

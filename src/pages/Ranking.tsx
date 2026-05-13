@@ -16,7 +16,7 @@ import { feedPosts, type FeedPost } from "../utils/communityPosts"
 import { includesNormalized, normalizeSearchText } from "../utils/text"
 import { useStoredStringArray } from "../utils/storage"
 import { validatePostIdsExist } from "../utils/rankingValidation"
-import { useCommunityPageData } from "../hooks/useCommunityPageData"
+import { communityPageData } from "../data/communityPageData"
 import { COMMUNITY_SEARCH_RECENT_KEY } from "../utils/communityStorage"
 import { usersMockById } from "../utils/usersMock"
 import { calculateRangePercent, isWithinRange } from "../utils/range"
@@ -40,7 +40,7 @@ const getPodiumVotes = (podium: RankingPodium) => {
 export default function CommunityRanking() {
   const { rankingPeriod, rankingCategory, setQueryParam } = useRankingQueryParams()
   const { MAX_RECENT_TERMS, PRICE_MIN_WON, PRICE_MAX_WON, ABV_MIN, ABV_MAX, popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories } =
-    useCommunityPageData()
+    communityPageData
 
   const [isFeedFilterPopupOpen, setIsFeedFilterPopupOpen] = useState(false)
   const [selectedDrinkType, setSelectedDrinkType] = useState<string | null>(null)
@@ -644,4 +644,3 @@ export default function CommunityRanking() {
     </section>
   )
 }
-

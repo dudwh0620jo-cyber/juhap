@@ -18,12 +18,12 @@ import situationFriendsImage from "../assets/situation_friends.png"
 import situationFamilyImage from "../assets/situation_family.png"
 import situationGroupImage from "../assets/situation_group.png"
 import situationDateImage from "../assets/situation_date.png"
-import { useCommunityPageData } from "../hooks/useCommunityPageData"
+import { communityPageData } from "../data/communityPageData"
 import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
 import { feedPosts, getPairingTagsFromTitle, normalizeCommunityFeatures } from "../utils/communityPosts"
 import { readUserProfile } from "../data/userProfile"
 import { sakeProductsMock } from "../data/sakeProductsMock"
-import { useProductDetailPageData } from "../hooks/useProductDetailPageData"
+import { productDetailPageData } from "../data/productDetailData"
 import { currentUserMock } from "../utils/usersMock"
 import communityPostsRaw from "../data/communityPosts.json"
 import { pairingWriteDrinkMocks, pairingWriteFoodMocks } from "../data/pairingWriteMocks"
@@ -295,9 +295,9 @@ export default function CommunityWrite() {
   const location = useLocation()
   const { id: productId } = useParams()
   const [searchParams] = useSearchParams()
-  const { mockProductById, defaultProduct } = useProductDetailPageData()
+  const { mockProductById, defaultProduct } = productDetailPageData
   const mode = getModeFromSearch(searchParams.get("mode"))
-  const { popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories } = useCommunityPageData()
+  const { popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories } = communityPageData
   const isQuestionWrite = mode === "free"
   const isProductReviewWrite = location.pathname.startsWith("/product/") && location.pathname.endsWith("/write")
   const writeKind: WriteKind = isQuestionWrite ? "question" : isProductReviewWrite ? "drink-review" : "pairing-review"

@@ -1,8 +1,14 @@
-import { useMemo } from "react"
-import type { VoteItem } from "../components/VoteListCard"
-
 export const VOTE_INITIAL_COUNT = 5
 export const FEATURED_VOTE_ID = 1
+
+export type VoteItem = {
+  id: number
+  question: string
+  date: string
+  options: [{ title: string; percent: number }, { title: string; percent: number }]
+  totalVotes: number
+  myPickIndex: 0 | 1 | null
+}
 
 function daysAgo(n: number) {
   const d = new Date()
@@ -10,7 +16,7 @@ function daysAgo(n: number) {
   return d.toISOString().slice(0, 10)
 }
 
-const voteItems: VoteItem[] = [
+export const voteItems: VoteItem[] = [
   {
     id: 1,
     question: "불금에 어울리는 조합은?",
@@ -100,7 +106,3 @@ const voteItems: VoteItem[] = [
     myPickIndex: null,
   },
 ]
-
-export function useVoteData() {
-  return useMemo(() => ({ voteItems }), [])
-}

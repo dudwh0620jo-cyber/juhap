@@ -33,7 +33,7 @@ import {
 import { useStoredBooleanRecordFromIds, useStoredNullableStringRecord } from "../utils/storage"
 import { currentUserMock, usersMockById } from "../utils/usersMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
-import { useCommunityPageData } from "../hooks/useCommunityPageData"
+import { communityPageData } from "../data/communityPageData"
 import { getPairingDetailMock } from "../utils/pairingDetailMock"
 import {
   deleteStoredUserPost,
@@ -50,7 +50,7 @@ export default function PairingDetail() {
   const location = useLocation()
   const navigate = useNavigate()
   const { pairingId } = useParams()
-  const { bookmarkLists } = useCommunityPageData()
+  const { bookmarkLists } = communityPageData
   const navState = (location.state ?? {}) as PairingDetailNavState
 
   const numericId = typeof pairingId === "string" ? Number(pairingId) : NaN

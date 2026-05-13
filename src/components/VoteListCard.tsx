@@ -1,11 +1,4 @@
-export type VoteItem = {
-  id: number
-  question: string
-  date: string
-  options: [{ title: string; percent: number }, { title: string; percent: number }]
-  totalVotes: number
-  myPickIndex: 0 | 1 | null
-}
+import type { VoteItem } from "../data/voteData"
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr)
