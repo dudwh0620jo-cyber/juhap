@@ -1,4 +1,4 @@
-import mainScanButton from "../assets/main_scan_button.png"
+﻿import mainScanButton from "../assets/main_scan_button.png"
 import scanIcon from "../assets/svg/scan.svg"
 import todayPairingBanner from "../assets/today_pairing_banner01.png"
 import todayPairingBanner02 from "../assets/today_pairing_banner02.png"
@@ -13,14 +13,24 @@ import momentPickFriends from "../assets/situation_friends.png"
 import momentPickFamily from "../assets/situation_family.png"
 import momentPickDate from "../assets/situation_date.png"
 import momentPickGroup from "../assets/situation_group.png"
-import pairingRedWineCheesePlatter from "../assets/pairing_red_wine_cheese_platter.svg"
-import pairingWhiteWineTomato from "../assets/pairing_white_wine_tomato.svg"
-import pairingBestBadge from "../assets/pairing_best_badge.png"
+import pairingRedWineCheesePlatter from "../assets/pairing_red_wine_cheese_platter.png"
+import pairingWhiteWineTomato from "../assets/pairing_white_wine_tomato.png"
 import weeklyRankingBadge01 from "../assets/weekly_ranking_badge_01.png"
+import weeklyRankingBadge02 from "../assets/weekly_ranking_badge_02.png"
 import weeklyRankingBadge03 from "../assets/weekly_ranking_badge_03.png"
+import weeklyRankingBadge04 from "../assets/weekly_ranking_badge_04.png"
+import weeklyRankingBadge05 from "../assets/weekly_ranking_badge_05.png"
 import weeklyBestMascot from "../assets/weekly_best_mascot.png"
 import drinkJinroIsBack from "../assets/drink_jinro_is_back.png"
+import drinkHwayo25 from "../assets/drink_hwayo_25.png"
+import drinkBoksoondogaMakgeolli from "../assets/drink_boksoondoga_makgeolli.png"
+import drinkCass from "../assets/drink_cass.png"
+import drinkClaret2010 from "../assets/drink_claret_2010.png"
 import foodSamgyeopsal from "../assets/food_samgyeopsal.png"
+import foodHoeMuchim from "../assets/food_hoe_muchim.png"
+import foodHaemulPajeon from "../assets/food_haemul_pajeon.png"
+import foodFriedChicken from "../assets/food_fried_chicken.png"
+import foodSirloinSteak from "../assets/food_sirloin_steak.png"
 
 export const homeAssets = {
   mainScanButton,
@@ -40,12 +50,22 @@ export const homeAssets = {
   momentPickGroup,
   pairingRedWineCheesePlatter,
   pairingWhiteWineTomato,
-  pairingBestBadge,
   weeklyRankingBadge01,
+  weeklyRankingBadge02,
   weeklyRankingBadge03,
+  weeklyRankingBadge04,
+  weeklyRankingBadge05,
   weeklyBestMascot,
   drinkJinroIsBack,
   foodSamgyeopsal,
+  drinkHwayo25,
+  drinkBoksoondogaMakgeolli,
+  drinkCass,
+  drinkClaret2010,
+  foodHoeMuchim,
+  foodHaemulPajeon,
+  foodFriedChicken,
+  foodSirloinSteak,
 } as const
 
 export const homeTodayPairingBanners = [
@@ -62,15 +82,15 @@ export const homeTodayPairingCopy = [
   },
   {
     title: "복숭아브리치즈 × 소비뇽블랑",
-    description: "달콤함과 고소함 사이를 가로지르는\n산뜻한 와인의 터치, 훌륭한 미식의 순간",
+    description: "달콤함과 고소함 사이를 가로지르는\n산뜻한 와인의 터치",
   },
   {
     title: "소세지나초 × 산토리하이볼",
-    description: "신선한 탄산과 적절한 산미의 균형으로 완성된,\n실패 없는 미식 공식",
+    description: "신선한 탄산과 적절한 산미의 균형으로\n실패 없는 미식 공식",
   },
   {
     title: "보쌈 × 소주",
-    description: "맑고 깨끗한 조화, 담백한 보쌈과 투명한 소주가 만드는\n미니멀한 미식",
+    description: "맑고 깨끗한 조화, 담백한 보쌈과 투명한\n소주가 만드는 미묘한 미식",
   },
 ] as const
 
@@ -79,14 +99,14 @@ function normalizeKey(value: string) {
     .toLowerCase()
     .replace(/\s+/g, "")
     .replace(/[()]/g, "")
-    .replace(/[·/,_-]/g, "")
+    .replace(/[쨌/,_-]/g, "")
     .trim()
 }
 
 export function resolveVoteOptionIconSrc(title: string): string | undefined {
   const key = normalizeKey(title)
   if (!key) return undefined
-  if (key.includes("맥주") && key.includes("피자")) return homeAssets.voteBeerPizza
+  if (key.includes("맥주") && (key.includes("피자") || key.includes("치킨"))) return homeAssets.voteBeerPizza
   if (key.includes("스테이크") && key.includes("와인")) return homeAssets.voteSteakWine
   return undefined
 }
@@ -102,23 +122,43 @@ export const homeMomentPickItems = [
 export const homeMomentPickCards = [
   {
     id: "moment-pick-1",
-    title: "레드와인 × 치즈플래터",
-    subtitle: "깊은 풍미와 고소함의 조화",
+    title: "레드와인 × 치즈 플래터",
+    subtitle: "깊고 진한 풍미, 고소함의 조화",
     thumbSrc: homeAssets.pairingRedWineCheesePlatter,
-    tags: ["부드러운 맛", "고소함"],
-    badgeSrc: homeAssets.pairingBestBadge,
+    tags: ["부드러운맛", "고소함"],
+    badgeText: "BEST",
   },
   {
     id: "moment-pick-2",
     title: "화이트와인 × 토마토",
-    subtitle: "산뜻한 산미가 깔끔하게",
+    subtitle: "상큼함이 톡 터지는 순간",
     thumbSrc: homeAssets.pairingWhiteWineTomato,
     tags: ["상큼함", "깔끔함"],
-    badgeSrc: undefined,
+    badgeText: undefined,
   },
 ] as const
 
 export const homeWeeklyRankingCards = [
+  {
+    id: "weekly-rank-2",
+    badgeSrc: homeAssets.weeklyRankingBadge02,
+    title: "화요25",
+    subtitle: "회무침",
+    drinkSrc: homeAssets.drinkHwayo25,
+    foodSrc: homeAssets.foodHoeMuchim,
+    scoreLabel: "6,124잔",
+    isCenter: false,
+  },
+  {
+    id: "weekly-rank-3",
+    badgeSrc: homeAssets.weeklyRankingBadge03,
+    title: "복순도가 막걸리",
+    subtitle: "해물파전",
+    drinkSrc: homeAssets.drinkBoksoondogaMakgeolli,
+    foodSrc: homeAssets.foodHaemulPajeon,
+    scoreLabel: "6,321잔",
+    isCenter: false,
+  },
   {
     id: "weekly-rank-1",
     badgeSrc: homeAssets.weeklyRankingBadge01,
@@ -126,27 +166,29 @@ export const homeWeeklyRankingCards = [
     subtitle: "삼겹살",
     drinkSrc: homeAssets.drinkJinroIsBack,
     foodSrc: homeAssets.foodSamgyeopsal,
-    scoreLabel: "★ 5",
+    scoreLabel: "7,621잔",
     isCenter: true,
   },
   {
-    id: "weekly-rank-2",
-    badgeSrc: homeAssets.weeklyRankingBadge03,
-    title: "추천 페어링",
-    subtitle: "오늘의 안주",
-    drinkSrc: homeAssets.drinkJinroIsBack,
-    foodSrc: homeAssets.foodSamgyeopsal,
-    scoreLabel: "★ 4.5",
+    id: "weekly-rank-4",
+    badgeSrc: homeAssets.weeklyRankingBadge04,
+    title: "카스",
+    subtitle: "후라이드 치킨",
+    drinkSrc: homeAssets.drinkCass,
+    foodSrc: homeAssets.foodFriedChicken,
+    scoreLabel: "5,921잔",
     isCenter: false,
   },
   {
-    id: "weekly-rank-3",
-    badgeSrc: homeAssets.weeklyRankingBadge03,
-    title: "추천 페어링",
-    subtitle: "오늘의 안주",
-    drinkSrc: homeAssets.drinkJinroIsBack,
-    foodSrc: homeAssets.foodSamgyeopsal,
-    scoreLabel: "★ 4.9",
+    id: "weekly-rank-5",
+    badgeSrc: homeAssets.weeklyRankingBadge05,
+    title: "클라렛 2010",
+    subtitle: "등심 스테이크",
+    drinkSrc: homeAssets.drinkClaret2010,
+    foodSrc: homeAssets.foodSirloinSteak,
+    scoreLabel: "5,421잔",
     isCenter: false,
   },
 ] as const
+
+

@@ -59,14 +59,14 @@ function MomentPickCard({
   subtitle,
   thumbSrc,
   tags,
-  badgeSrc,
+  badgeText,
   isActive,
 }: {
   title: string
   subtitle: string
   thumbSrc: string
   tags: readonly string[]
-  badgeSrc?: string
+  badgeText?: string
   isActive: boolean
 }) {
   return (
@@ -75,21 +75,24 @@ function MomentPickCard({
       animate={{ scale: isActive ? 1 : 0.92, opacity: isActive ? 1 : 0.9 }}
       transition={{ type: "spring", stiffness: 520, damping: 36, mass: 0.6 }}
     >
+      <div className="moment_pick_card_surface">
+        <div className="moment_pick_card_body">
+          <div className="moment_pick_card_title">{title}</div>
+          <div className="moment_pick_card_desc">{subtitle}</div>
+          <div className="moment_pick_card_tags" aria-label="추천 태그">
+            {tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+          <Link to="/community" className="moment_pick_card_link">
+            자세히 보기 →
+          </Link>
+        </div>
+      </div>
+
       <div className="moment_pick_card_photo" aria-hidden="true">
         <img className="moment_pick_card_img" src={thumbSrc} alt="" />
-        {badgeSrc ? <img className="moment_pick_card_badge" src={badgeSrc} alt="" /> : null}
-      </div>
-      <div className="moment_pick_card_body">
-        <div className="moment_pick_card_title">{title}</div>
-        <div className="moment_pick_card_desc">{subtitle}</div>
-        <div className="moment_pick_card_tags" aria-label="추천 태그">
-          {tags.map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </div>
-        <Link to="/community" className="moment_pick_card_link">
-          자세히 보기 →
-        </Link>
+        {badgeText ? <span className="moment_pick_card_badge">{badgeText}</span> : null}
       </div>
     </motion.article>
   )
@@ -148,7 +151,7 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
                 subtitle={card.subtitle}
                 thumbSrc={card.thumbSrc}
                 tags={card.tags}
-                badgeSrc={card.badgeSrc}
+                badgeText={card.badgeText}
                 isActive={index === activeCardIndex}
               />
             </div>
