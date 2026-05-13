@@ -1,10 +1,10 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router"
-import type { CSSProperties } from "react"
+import type { CSSProperties, RefObject } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import "../styles/community.css"
+import CommunityHeader from "../components/CommunityHeader"
 import CommunityWriteBasicSection from "../components/CommunityWriteBasicSection"
-import CommunityWritePostForm from "../components/CommunityWritePostForm"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
@@ -92,6 +92,110 @@ const SITUATION_ICON_BY_LABEL: Record<(typeof situationChips)[number], string> =
 const COMMUNITY_WRITE_DRAFT_KEY_BY_MODE: Record<WriteMode, string> = {
   review: "community_write_draft_v1_review",
   free: "community_write_draft_v1_free",
+}
+
+function CommunityWritePostForm({
+  title,
+  body,
+  photoIds,
+  canSubmit,
+  photoUploadInputRef,
+  onTitleChange,
+  onBodyChange,
+  onPhotoFileChange,
+  onOpenPhotoPicker,
+  onRemovePhoto,
+  onSubmit,
+  onTempSave,
+  onClose,
+  titleText,
+  photoTitle,
+  titleLabel,
+  titlePlaceholder,
+  bodyLabel,
+  bodyPlaceholder,
+  bodyMaxLength,
+}: {
+  title: string
+  body: string
+  photoIds: string[]
+  canSubmit: boolean
+  photoUploadInputRef: RefObject<HTMLInputElement | null>
+  onTitleChange: (value: string) => void
+  onBodyChange: (value: string) => void
+  onPhotoFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onOpenPhotoPicker: () => void
+  onRemovePhoto: (photoId: string) => void
+  onSubmit: () => void
+  onTempSave: () => void
+  onClose: () => void
+  titleText: string
+  photoTitle: string
+  titleLabel: string
+  titlePlaceholder: string
+  bodyLabel: string
+  bodyPlaceholder: string
+  bodyMaxLength: number
+}) {
+  return (
+    <section className="community_page page_screen" aria-label="湲?곌린">
+      <CommunityHeader
+        title={titleText}
+        topTab="feed"
+        openFilterAriaLabel="寃???닿린"
+        openNotificationsAriaLabel="?뚮┝ ?닿린"
+        onOpenFilter={() => {}}
+        onOpenNotifications={() => {}}
+      />
+
+      <div className="write_sheet" aria-label="湲?곌린 ?쒗듃">
+        <div className="write_sheet_inner">
+          <div className="write_section">
+            <div className="write_section_header">
+              <div className="write_section_header_main">
+                <button type="button" className="write_back_button" aria-label="?ㅻ줈媛湲?" onClick={onClose}>
+                  <img src={iconCaretLeft} alt="" aria-hidden="true" />
+                </button>
+                <h4 className="write_section_title">{titleText}</h4>
+              </div>
+            </div>
+
+            <CommunityWriteBasicSection
+              sectionTitle=""
+              photoTitle={photoTitle}
+              photoIds={photoIds}
+              photoInputRef={photoUploadInputRef}
+              onPhotoFileChange={onPhotoFileChange}
+              onOpenPhotoPicker={onOpenPhotoPicker}
+              onRemovePhoto={onRemovePhoto}
+              titleLabel={titleLabel}
+              titleValue={title}
+              titlePlaceholder={titlePlaceholder}
+              onTitleChange={onTitleChange}
+              bodyLabel={bodyLabel}
+              bodyValue={body}
+              bodyPlaceholder={bodyPlaceholder}
+              bodyMaxLength={bodyMaxLength}
+              onBodyChange={onBodyChange}
+            />
+          </div>
+
+          <div className="write_bottom_actions" aria-label="?묒꽦 ?듭뀡">
+            <button
+              type="button"
+              className={canSubmit ? "write_primary_button" : "write_primary_button is_disabled"}
+              disabled={!canSubmit}
+              onClick={onSubmit}
+            >
+              怨듭쑀?섍린
+            </button>
+            <button type="button" className="write_secondary_button" onClick={onTempSave}>
+              ?꾩떆 ???            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 const getModeFromSearch = (value: string | null): WriteMode => {

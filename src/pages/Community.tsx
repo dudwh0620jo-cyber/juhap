@@ -1,19 +1,18 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router"
+import type { KeyboardEvent as ReactKeyboardEvent } from "react"
 import "../styles/community.css"
 import askQuestionBanner from "../assets/ask_question_banner.png"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
+import iconPencil from "../assets/svg/pencilsimple_p.svg"
 import AlertModal from "../components/AlertModal"
 import CommunityHeader from "../components/CommunityHeader"
-import FeedSegmentTabs from "../components/FeedSegmentTabs"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import CommunityReviewCard from "../components/CommunityReviewCard"
-import ProfileSummaryCard from "../components/ProfileSummaryCard"
 import QuestionPostRow from "../components/QuestionPostRow"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import SearchFilterModal from "../components/SearchFilterModal"
 import CommunityFilterPanel from "../components/CommunityFilterPanel"
-import FeedWriteRow from "../components/FeedWriteRow"
 import PostOwnerActionModal from "../components/PostOwnerActionModal"
 import {
   deriveCommunityTagBundle,
@@ -22,8 +21,7 @@ import {
   resolveQuestionThumbVariant,
   type FeedPost,
 } from "../utils/communityPosts"
-import { type FeedFilter, type PopupChipGroup, type ReviewSortKey, useCommunityPageData } from "../hooks/useCommunityPageData"
-import { includesNormalized, normalizeSearchText } from "../utils/text"
+import { type FeedFilter, type ReviewSortKey, useCommunityPageData } from "../hooks/useCommunityPageData"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
 import {
@@ -33,20 +31,172 @@ import {
   useStoredStringArray,
 } from "../utils/storage"
 import { usersMockById } from "../utils/usersMock"
-import {
-  COMMUNITY_BOOKMARK_LIST_BY_POST_KEY,
-  COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT,
-  COMMUNITY_USER_POSTS_KEY,
-  readStoredPairingCommentCount,
-} from "../utils/communityStorage"
+import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY } from "../utils/communityStorage"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
+import { useCommunityStoredPosts } from "../hooks/useCommunityStoredPosts"
 import { QUESTION_BANNER_COPY } from "../utils/communityQuestionData"
 import { myPageProfileSummary } from "../data/myPageContent"
 import { resolveMyUserAvatar } from "../utils/userAvatars"
 import { currentUserMock } from "../utils/usersMock"
+import {
+  buildPopupChipGroups,
+  buildSearchAllChipGroups,
+  filterCommunityFeedPosts,
+  filterPopupChipGroups,
+  getCommunityFeedPosts,
+  getCommunitySearchSuggestionTags,
+  getEffectiveSelectedFeatures,
+  getPairingCommentNavigationState,
+  isCommunityFeedSearchActive,
+} from "../utils/communityFeed"
 
 const feedPosts: FeedPost[] = communityFeedPosts
-const USER_POSTS_UPDATED_EVENT = "community:user-posts-updated"
+
+type SegmentTabItem = {
+  key: string
+  label: string
+}
+
+function FeedSegmentTabs({
+  ariaLabel,
+  items,
+  activeKey,
+  onChange,
+}: {
+  ariaLabel: string
+  items: SegmentTabItem[]
+  activeKey: string
+  onChange: (key: string) => void
+}) {
+  return (
+    <div className="feed_segment_row" aria-label={ariaLabel}>
+      {items.map((item) => (
+        <button
+          key={item.key}
+          type="button"
+          className={activeKey === item.key ? "is_active" : ""}
+          onClick={() => onChange(item.key)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function FeedWriteRow({
+  ariaLabel,
+  onClickReview,
+  onClickFree,
+}: {
+  ariaLabel: string
+  onClickReview?: () => void
+  onClickFree?: () => void
+}) {
+  const hasSplit = Boolean(onClickReview) && Boolean(onClickFree)
+
+  return (
+    <div className="feed_write_row" aria-label={ariaLabel}>
+      {hasSplit ? (
+        <div className="feed_write_split">
+          <button type="button" className="feed_write_button" onClick={onClickReview}>
+            <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
+            <span className="feed_write_label">?섏뼱留??꾧린 湲?곌린</span>
+          </button>
+          <button type="button" className="feed_write_button" onClick={onClickFree}>
+            <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
+            <span className="feed_write_label">吏덈Ц 湲?곌린</span>
+          </button>
+        </div>
+      ) : (
+        <button type="button" className="feed_write_button" onClick={onClickReview ?? onClickFree}>
+          <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
+          <span className="feed_write_label">?섏뼱留??꾧린 湲?곌린</span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+type SummaryStat = {
+  value: string
+  label: string
+}
+
+function ProfileSummaryCard({
+  avatarSrc,
+  title,
+  accentText,
+  description,
+  stats,
+  menuAriaLabel,
+  menuIconSrc,
+  onMenuClick,
+  onClick,
+}: {
+  avatarSrc?: string
+  title: string
+  accentText?: string
+  description?: string
+  stats: SummaryStat[]
+  menuAriaLabel?: string
+  menuIconSrc?: string
+  onMenuClick?: () => void
+  onClick?: () => void
+}) {
+  const clickableProps =
+    typeof onClick === "function"
+      ? {
+          role: "button" as const,
+          tabIndex: 0,
+          onClick,
+          onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              onClick()
+            }
+          },
+        }
+      : {}
+
+  return (
+    <article className={`community_follow_me_card${onClick ? " is_clickable" : ""}`} {...clickableProps}>
+      <div className="community_follow_me_avatar" aria-hidden="true">
+        {avatarSrc ? <img className="community_follow_me_avatar_image" src={avatarSrc} alt="" aria-hidden="true" /> : null}
+      </div>
+      <div className="community_follow_me_body">
+        <div className="community_follow_me_top">
+          <div className="community_follow_me_identity">
+            <strong className="community_follow_me_name">{title}</strong>
+            {accentText ? <span className="community_follow_me_grade">{accentText}</span> : null}
+          </div>
+          {menuAriaLabel && menuIconSrc && onMenuClick ? (
+            <button
+              type="button"
+              className="community_follow_me_menu_button"
+              aria-label={menuAriaLabel}
+              onClick={(event) => {
+                event.stopPropagation()
+                onMenuClick()
+              }}
+            >
+              <img className="community_follow_me_menu_icon" src={menuIconSrc} alt="" aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+        {description ? <p className="community_follow_me_description">{description}</p> : null}
+        <div className="community_follow_me_stats" aria-label="?붿빟 ?뺣낫">
+          {stats.map((stat) => (
+            <div className="community_follow_me_stat" key={`${stat.label}-${stat.value}`}>
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </article>
+  )
+}
 
 export default function Community() {
   const location = useLocation()
@@ -106,30 +256,7 @@ export default function Community() {
   const myUserId = currentUserMock.id
   const myAvatarSrc = resolveMyUserAvatar()
   const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
-
-  const readStoredUserPosts = useCallback((): FeedPost[] => {
-    try {
-      const raw = window.localStorage.getItem(COMMUNITY_USER_POSTS_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
-      return Array.isArray(parsed) ? (parsed as FeedPost[]) : []
-    } catch {
-      return []
-    }
-  }, [])
-
-  const [userPosts, setUserPosts] = useState<FeedPost[]>(() => readStoredUserPosts())
-  const [commentCountByPostId, setCommentCountByPostId] = useState<Record<number, number>>({})
-  const userPostIdSet = useMemo(() => new Set(userPosts.map((post) => post.id)), [userPosts])
-
-  const persistUserPosts = useCallback((next: FeedPost[]) => {
-    setUserPosts(next)
-    try {
-      window.localStorage.setItem(COMMUNITY_USER_POSTS_KEY, JSON.stringify(next.slice(0, 50)))
-      window.dispatchEvent(new Event(USER_POSTS_UPDATED_EVENT))
-    } catch {
-      // ignore storage errors
-    }
-  }, [])
+  const { commentCountByPostId, persistUserPosts, userPostIdSet, userPosts } = useCommunityStoredPosts(feedPosts)
 
   const deleteUserPost = useCallback(
     (postId: number) => {
@@ -160,341 +287,82 @@ export default function Community() {
     [navigate],
   )
 
-  useEffect(() => {
-    const syncFromStorage = () => {
-      setUserPosts(readStoredUserPosts())
-    }
-
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== COMMUNITY_USER_POSTS_KEY) return
-      syncFromStorage()
-    }
-
-    window.addEventListener(USER_POSTS_UPDATED_EVENT, syncFromStorage)
-    window.addEventListener("storage", handleStorage)
-    return () => {
-      window.removeEventListener(USER_POSTS_UPDATED_EVENT, syncFromStorage)
-      window.removeEventListener("storage", handleStorage)
-    }
-  }, [readStoredUserPosts])
-
-  useEffect(() => {
-    const allPosts = [...userPosts, ...feedPosts]
-
-    const syncCommentCount = (post: FeedPost) => {
-      const nextCount = readStoredPairingCommentCount(String(post.id), post.commentCount)
-      setCommentCountByPostId((prev) => (prev[post.id] === nextCount ? prev : { ...prev, [post.id]: nextCount }))
-    }
-
-    const syncAllCommentCounts = () => {
-      for (const post of allPosts) {
-        syncCommentCount(post)
-      }
-    }
-
-    const handleCommentUpdate = (event: Event) => {
-      const detail = (event as CustomEvent<{ pairingId?: string }>).detail
-      if (!detail?.pairingId) return
-      const postId = Number(detail.pairingId)
-      if (!Number.isFinite(postId)) return
-      const targetPost = allPosts.find((post) => post.id === postId)
-      if (!targetPost) return
-      syncCommentCount(targetPost)
-    }
-
-    syncAllCommentCounts()
-    window.addEventListener(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, handleCommentUpdate)
-    window.addEventListener("storage", syncAllCommentCounts)
-    return () => {
-      window.removeEventListener(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, handleCommentUpdate)
-      window.removeEventListener("storage", syncAllCommentCounts)
-    }
-  }, [userPosts])
-
-  const availableCategories = useMemo(() => {
-    if (!selectedDrinkType) return []
-    return popupCategoryByDrinkType[selectedDrinkType] ?? []
-  }, [popupCategoryByDrinkType, selectedDrinkType])
-
-  const availableFeatures = useMemo(() => {
-    if (!selectedDrinkType) return []
-    if (selectedCategories.size === 0) return []
-    return popupFeaturesByDrinkType[selectedDrinkType] ?? []
-  }, [popupFeaturesByDrinkType, selectedCategories, selectedDrinkType])
-
-  const availableFoods = useMemo(() => {
-    if (!selectedDrinkType) return []
-    return popupFoodCategories
-  }, [popupFoodCategories, selectedDrinkType])
-
-  const effectiveSelectedFeatures = useMemo(() => {
-    if (selectedFeatures.size === 0) return selectedFeatures
-    const valid = new Set(availableFeatures)
-    return new Set(Array.from(selectedFeatures).filter((item) => valid.has(item)))
-  }, [availableFeatures, selectedFeatures])
-
-  const popupChipGroups: PopupChipGroup[] = useMemo(
-    () => [
-      { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
-      { title: "카테고리", chips: availableCategories },
-      { title: "특징", chips: availableFeatures },
-      { title: "음식", chips: availableFoods },
-    ],
-    [availableCategories, availableFeatures, availableFoods, popupCategoryByDrinkType],
+  const { availableFeatures, popupChipGroups } = useMemo(
+    () =>
+      buildPopupChipGroups({
+        popupCategoryByDrinkType,
+        popupFeaturesByDrinkType,
+        popupFoodCategories,
+        selectedDrinkType,
+        selectedCategories,
+      }),
+    [popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories, selectedCategories, selectedDrinkType],
   )
 
-  const searchAllChipGroups: PopupChipGroup[] = useMemo(() => {
-    const categorySet = new Set<string>()
-    for (const list of Object.values(popupCategoryByDrinkType)) {
-      for (const item of list) categorySet.add(item)
-    }
-    const featureSet = new Set<string>()
-    for (const list of Object.values(popupFeaturesByDrinkType)) {
-      for (const item of list) featureSet.add(item)
-    }
+  const effectiveSelectedFeatures = useMemo(
+    () => getEffectiveSelectedFeatures(selectedFeatures, availableFeatures),
+    [availableFeatures, selectedFeatures],
+  )
 
-    return [
-      { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
-      { title: "카테고리", chips: Array.from(categorySet) },
-      { title: "특징", chips: Array.from(featureSet) },
-      { title: "음식", chips: popupFoodCategories },
-    ]
-  }, [popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories])
+  const searchAllChipGroups = useMemo(
+    () => buildSearchAllChipGroups(popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories),
+    [popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories],
+  )
 
-  const filteredPopupChipGroups = useMemo(() => {
-    const query = feedSearchValue.trim()
-    if (!isFeedSearchConfirmed || !query) {
-      return popupChipGroups
-    }
-
-    const relatedByGroup = new Map<string, Set<string>>()
-    for (const group of searchAllChipGroups) {
-      relatedByGroup.set(group.title, new Set())
-    }
-
-    const addRelated = (groupTitle: string, values: string[]) => {
-      const target = relatedByGroup.get(groupTitle)
-      if (!target) return
-      for (const value of values) {
-        if (value?.trim()) target.add(value)
-      }
-    }
-
-    for (const post of feedPosts) {
-      const postTargets = [
-        post.title,
-        post.body,
-        post.drinkType ?? "",
-        ...(post.categories ?? []),
-        ...(post.features ?? []),
-        ...(post.foods ?? []),
-        ...(post.searchTags ?? []),
-      ]
-
-      if (!includesNormalized(postTargets.join(" "), query)) continue
-
-      addRelated("주종", post.drinkType ? [post.drinkType] : [])
-      addRelated("카테고리", post.categories ?? [])
-      addRelated("특징", post.features ?? [])
-      addRelated("음식", post.foods ?? [])
-    }
-
-    const results: PopupChipGroup[] = []
-    for (const group of searchAllChipGroups) {
-      const directMatches = group.chips.filter((chip) => includesNormalized(chip, query))
-      const relatedMatches = Array.from(relatedByGroup.get(group.title) ?? [])
-      const merged = Array.from(new Set([...directMatches, ...relatedMatches]))
-
-      if (group.title.includes(query)) {
-        results.push(group)
-        continue
-      }
-
-      if (merged.length > 0) {
-        results.push({ title: group.title, chips: merged })
-      }
-    }
-
-    return results
-  }, [feedSearchValue, isFeedSearchConfirmed, popupChipGroups, searchAllChipGroups])
+  const filteredPopupChipGroups = useMemo(
+    () =>
+      filterPopupChipGroups({
+        feedPosts,
+        popupChipGroups,
+        searchAllChipGroups,
+        query: feedSearchValue,
+        isSearchConfirmed: isFeedSearchConfirmed,
+      }),
+    [feedSearchValue, isFeedSearchConfirmed, popupChipGroups, searchAllChipGroups],
+  )
 
   const isPopupSearchNoResults =
     isFeedSearchConfirmed && Boolean(feedSearchValue.trim()) && filteredPopupChipGroups.length === 0
 
-  const isCommunitySearchActive =
-    Boolean(feedSearchValue.trim()) ||
-    isFeedSearchConfirmed ||
-    Boolean(selectedDrinkType) ||
-    selectedCategories.size > 0 ||
-    effectiveSelectedFeatures.size > 0 ||
-    selectedFoods.size > 0
-
-  const sortByReviewSort = useCallback(
-    (items: FeedPost[]) => {
-      const copy = [...items]
-      if (reviewSort === "popular") {
-        return copy.sort((a, b) => b.likeCount + b.commentCount - (a.likeCount + a.commentCount))
-      }
-      if (reviewSort === "recommend") {
-        return copy.sort((a, b) => b.popularityScore - a.popularityScore)
-      }
-      return copy.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    },
-    [reviewSort],
+  const communityFeedFilters = useMemo(
+    () => ({
+      query: feedSearchValue,
+      isSearchConfirmed: isFeedSearchConfirmed,
+      selectedDrinkType,
+      selectedCategories,
+      selectedFeatures: effectiveSelectedFeatures,
+      selectedFoods,
+    }),
+    [
+      effectiveSelectedFeatures,
+      feedSearchValue,
+      isFeedSearchConfirmed,
+      selectedCategories,
+      selectedDrinkType,
+      selectedFoods,
+    ],
   )
 
+  const isCommunitySearchActive = isCommunityFeedSearchActive(communityFeedFilters)
+
   const posts = useMemo(() => {
-    const copy = [...userPosts, ...feedPosts]
-
-    if (feedFilter === "review") {
-      return sortByReviewSort(copy.filter((post) => !post.isQna))
-    }
-
-    if (feedFilter === "free") {
-      return sortByReviewSort(copy.filter((post) => post.isQna))
-    }
-
-    if (feedFilter === "follow") {
-      return sortByReviewSort(copy.filter((post) => !post.isQna && followedUserIds.has(post.authorId) && post.authorId !== myUserId))
-    }
-
-    return []
-  }, [feedFilter, followedUserIds, sortByReviewSort, userPosts])
+    return getCommunityFeedPosts({
+      feedPosts,
+      userPosts,
+      feedFilter,
+      followedUserIds,
+      myUserId,
+      reviewSort,
+    })
+  }, [feedFilter, followedUserIds, myUserId, reviewSort, userPosts])
 
   const filteredPosts = useMemo(() => {
-    if (!isCommunitySearchActive) {
-      return posts
-    }
-
-    const query = feedSearchValue.trim()
-    return posts.filter((post) => {
-      const targets = [
-        post.title,
-        post.body,
-        usersMockById[post.authorId]?.profile ?? "",
-        post.drinkType ?? "",
-        ...(post.categories ?? []),
-        ...(post.features ?? []),
-        ...(post.foods ?? []),
-        ...(post.searchTags ?? []),
-      ]
-      const queryMatches = !query || includesNormalized(targets.join(" "), query)
-
-      const drinkTypeMatches = !selectedDrinkType || post.drinkType === selectedDrinkType
-      const categoryMatches =
-        selectedCategories.size === 0 || (post.categories ?? []).some((item) => selectedCategories.has(item))
-      const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
-      const featureMatches =
-        effectiveSelectedFeatures.size === 0 ||
-        (post.features ?? []).some((item) => effectiveSelectedFeatures.has(item))
-
-      return queryMatches && drinkTypeMatches && categoryMatches && foodMatches && featureMatches
-    })
-  }, [
-    feedSearchValue,
-    isCommunitySearchActive,
-    posts,
-    selectedCategories,
-    selectedDrinkType,
-    effectiveSelectedFeatures,
-    selectedFoods,
-  ])
+    return filterCommunityFeedPosts({ posts, filters: communityFeedFilters })
+  }, [communityFeedFilters, posts])
 
   const searchSuggestionTags = useMemo(() => {
-    const query = feedSearchValue.trim()
-    if (!query) {
-      return []
-    }
-
-    const normalizedQuery = normalizeSearchText(query)
-    const filterPostWithoutQuery = (post: FeedPost) => {
-      const drinkTypeMatches = !selectedDrinkType || post.drinkType === selectedDrinkType
-      const categoryMatches =
-        selectedCategories.size === 0 || (post.categories ?? []).some((item) => selectedCategories.has(item))
-      const foodMatches = selectedFoods.size === 0 || (post.foods ?? []).some((item) => selectedFoods.has(item))
-      const featureMatches =
-        effectiveSelectedFeatures.size === 0 ||
-        (post.features ?? []).some((item) => effectiveSelectedFeatures.has(item))
-      return drinkTypeMatches && categoryMatches && foodMatches && featureMatches
-    }
-
-    const candidates = new Map<string, number>()
-    const bump = (tag: string, score: number) => {
-      const trimmed = tag.trim()
-      if (!trimmed) return
-      candidates.set(trimmed, Math.max(candidates.get(trimmed) ?? 0, score))
-    }
-
-    for (const post of feedPosts) {
-      const postTargets = [
-        post.title,
-        post.body,
-        post.drinkType ?? "",
-        ...(post.categories ?? []),
-        ...(post.features ?? []),
-        ...(post.foods ?? []),
-        ...(post.searchTags ?? []),
-      ].filter(Boolean)
-
-      if (!includesNormalized(postTargets.join(" "), query)) continue
-
-      const relatedTags = [
-        post.drinkType ?? "",
-        ...(post.categories ?? []),
-        ...(post.features ?? []),
-        ...(post.foods ?? []),
-        ...(post.searchTags ?? []),
-      ].filter(Boolean)
-
-      for (const tag of relatedTags) {
-        const normalizedTag = normalizeSearchText(tag)
-        let score = 3
-        if (normalizedTag.includes(normalizedQuery) || normalizedQuery.includes(normalizedTag)) {
-          score += 5
-        }
-        bump(tag, score)
-      }
-    }
-
-    const hasResultsForTag = (tag: string) => {
-      for (const post of feedPosts) {
-        if (!filterPostWithoutQuery(post)) continue
-        const tagPool = [
-          post.title,
-          post.body,
-          post.drinkType ?? "",
-          ...(post.categories ?? []),
-          ...(post.features ?? []),
-          ...(post.foods ?? []),
-          ...(post.searchTags ?? []),
-        ].filter(Boolean)
-
-        if (includesNormalized(tagPool.join(" "), tag)) {
-          return true
-        }
-      }
-      return false
-    }
-
-    return Array.from(candidates.entries())
-      .filter(([tag]) => hasResultsForTag(tag))
-      .filter(([tag]) => {
-        if (selectedDrinkType && tag === selectedDrinkType) return false
-        if (selectedCategories.has(tag)) return false
-        if (effectiveSelectedFeatures.has(tag)) return false
-        if (selectedFoods.has(tag)) return false
-        return true
-      })
-      .sort((a, b) => b[1] - a[1])
-      .map(([tag]) => tag)
-      .slice(0, 8)
-  }, [
-    feedSearchValue,
-    selectedCategories,
-    selectedDrinkType,
-    effectiveSelectedFeatures,
-    selectedFoods,
-  ])
+    return getCommunitySearchSuggestionTags({ feedPosts, filters: communityFeedFilters })
+  }, [communityFeedFilters])
 
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
 
@@ -543,20 +411,8 @@ export default function Community() {
 
   const goToComments = (postId: number) => {
     const post = feedPosts.find((item) => item.id === postId)
-    const pairingTitle = post?.title ? extractPairingTitle(post.title) : ""
-    const locationLabel = post?.locationLabel?.trim() ?? ""
     navigate(`/community/pairing/${postId}#comments`, {
-      state: post
-        ? {
-            pairingTitle,
-            authorId: post.authorId,
-            authorName: usersMockById[post.authorId]?.name ?? "??ъ구",
-            profile: usersMockById[post.authorId]?.profile ?? "",
-            locationLabel,
-            drinkType: post.drinkType ?? "",
-            source: "feed",
-          }
-        : undefined,
+      state: getPairingCommentNavigationState(post),
     })
   }
 
@@ -909,8 +765,8 @@ export default function Community() {
           titleText={bookmarkListById[bookmarkPicker.postId] ? "저장한 게시글을 취소할까요?" : "게시글을 저장할까요?"}
           helperText={
             bookmarkListById[bookmarkPicker.postId]
-              ? "취소하면 내 정보 > 저장한 리스트에서 이 게시글이 사라져요."
-              : "저장한 게시글은 내 정보 > 저장한 리스트에서 확인할 수 있어요."
+              ? <>취소하면 내 정보 &gt; 저장한 리스트에서<br />이 게시글이 사라져요.</>
+              : <>저장한 게시글은 내 정보 &gt; 저장한 리스트에서<br />확인할 수 있어요.</>
           }
           secondaryLabel="취소"
           primaryLabel={bookmarkListById[bookmarkPicker.postId] ? "저장 취소하기" : "저장하기"}

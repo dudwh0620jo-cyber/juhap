@@ -70,6 +70,8 @@ const userSeeds: MockUserSeed[] = [
   { id: 2116, name: "오크데이", ageGroup: "30대", gender: "남", preferredDrink: "위스키", preferredTraits: ["무거운", "부드러운"], bio: "버번과 초콜릿처럼 달콤한 조합을 자주 시도해요." },
   { id: 2117, name: "브리앤버블", ageGroup: "20대", gender: "여", preferredDrink: "와인", preferredTraits: ["과일향", "가벼운"], bio: "치즈 플래터와 스파클링 와인 조합을 꾸준히 공유합니다." },
   { id: 2118, name: "안주연구소", ageGroup: "30대", gender: "남", preferredDrink: "소주", preferredTraits: ["톡쏘는", "무거운"], bio: "늦은 밤 잘 어울리는 소주 안주 조합을 연구해요." },
+  { id: 2119, name: "옹심이", ageGroup: "50대", gender: "남", preferredDrink: "전통주", preferredTraits: ["부드러운", "가벼운"], bio: "막걸리와 사케를 좋아하는 50대입니다." },
+  { id: 2120, name: "사케가 좋아", ageGroup: "40대", gender: "남", preferredDrink: "사케", preferredTraits: ["가벼운", "부드러운"], bio: "사케와 일식 페어링을 즐겨 기록합니다." },
 ]
 
 userSeeds.forEach(assertOnboardingTasteRule)

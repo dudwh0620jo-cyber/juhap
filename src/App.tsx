@@ -1,7 +1,6 @@
 import { motion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigationType } from "react-router"
-import StatusBar from "./components/StatusBar"
 import AiScan from "./pages/AiScan"
 import Category from "./pages/Category"
 import CategoryList from "./pages/CategoryList"
@@ -26,6 +25,7 @@ import "./styles/common.css"
 import { useChatFabVisibility } from "./hooks/useChatFabVisibility"
 
 import chatMascotButton from "./assets/chat_mascot_btn.png"
+import iconCellular from "./assets/svg/Cellular Connection.svg"
 import iconCirclesFour from "./assets/svg/circlesfour.svg"
 import iconCirclesFourActive from "./assets/svg/circlesfour_active.svg"
 import iconHouse from "./assets/svg/house.svg"
@@ -36,12 +36,24 @@ import iconRanking from "./assets/svg/ranking.svg"
 import iconRankingActive from "./assets/svg/ranking_active.svg"
 import iconUser from "./assets/svg/user.svg"
 import iconUserActive from "./assets/svg/user_active.svg"
+import iconWifi from "./assets/svg/Wifi.svg"
 
 type BottomNavItem = {
   label: string
   path: string
   icon: string
   activeIcon: string
+}
+
+interface BatteryManager extends EventTarget {
+  readonly level: number
+  readonly charging: boolean
+}
+
+declare global {
+  interface Navigator {
+    getBattery?: () => Promise<BatteryManager>
+  }
 }
 
 const leftNavItems = [
@@ -60,6 +72,47 @@ const rightNavItems = [
   { label: "커뮤니티", path: "/community", icon: iconCirclesFour, activeIcon: iconCirclesFourActive },
   { label: "MY", path: "/my", icon: iconUser, activeIcon: iconUserActive },
 ] satisfies BottomNavItem[]
+
+function getTime() {
+  const now = new Date()
+  return `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
+}
+
+function StatusBar() {
+  const [time, setTime] = useState(getTime)
+  const [battery, setBattery] = useState<number>(80)
+
+  useEffect(() => {
+    const id = setInterval(() => setTime(getTime()), 10_000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    if (!navigator.getBattery) return
+    navigator.getBattery().then((bat) => {
+      const update = () => setBattery(Math.round(bat.level * 100))
+      update()
+      bat.addEventListener("levelchange", update)
+    })
+  }, [])
+
+  const fillWidth = Math.round((battery / 100) * 21)
+
+  return (
+    <div className="status_bar">
+      <span className="status_bar_time">{time}</span>
+      <div className="status_bar_icons">
+        <img src={iconCellular} width={20} height={13} alt="" aria-hidden="true" />
+        <img src={iconWifi} width={18} height={13} alt="" aria-hidden="true" />
+        <svg width="28" height="13" viewBox="0 0 28 13" fill="none" aria-label={`諛고꽣由?${battery}%`}>
+          <rect opacity="0.35" x="0.5" y="0.5" width="24" height="12" rx="3.8" stroke="#0F1012" />
+          <path opacity="0.4" d="M26 4.5V8.57547C26.8047 8.2303 27.328 7.42734 27.328 6.53774C27.328 5.64813 26.8047 4.84517 26 4.5Z" fill="#0F1012" />
+          <rect x="2" y="2" width={fillWidth} height="9" rx="2.5" fill="#0F1012" />
+        </svg>
+      </div>
+    </div>
+  )
+}
 
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
