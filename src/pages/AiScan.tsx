@@ -1,31 +1,30 @@
 import { useEffect, useRef, useState } from "react"
+import type { ChangeEvent } from "react"
 import { useNavigate } from "react-router"
-import { AnimatePresence, motion } from "framer-motion"
+import AiScanCamera from "../components/ai-scan/AiScanCamera"
+import AiScanResult from "../components/ai-scan/AiScanResult"
+import { aiScanAssets, aiScanCopy, aiScanResult, type AiScanStatus, type ScanMode } from "../data/aiScanContent"
 import "../styles/ai-scan.css"
-import { aiScanAssets, aiScanCopy, type ScanMode } from "../data/aiScanContent"
 
 export default function AiScan() {
   const navigate = useNavigate()
   const [mode, setMode] = useState<ScanMode>("drink")
+  const [status, setStatus] = useState<AiScanStatus>("ready")
   const [previewSrc, setPreviewSrc] = useState<string | null>(null)
-  const [isScanning, setIsScanning] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const scanTimerRef = useRef<number | null>(null)
 
   const stageSrc = previewSrc ?? aiScanAssets.scanSample01
+  const isScanning = status === "scanning"
+  const isResult = status === "success" || status === "failure"
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: mode === "drink" } }))
+    window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: true } }))
+
     return () => {
       window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: false } }))
     }
-  }, [mode])
-
-  useEffect(() => {
-    return () => {
-      if (previewSrc?.startsWith("blob:")) URL.revokeObjectURL(previewSrc)
-    }
-  }, [previewSrc])
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -33,167 +32,63 @@ export default function AiScan() {
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (previewSrc?.startsWith("blob:")) URL.revokeObjectURL(previewSrc)
+    }
+  }, [previewSrc])
+
+  function moveBack() {
+    navigate(-1)
+  }
+
   function openPicker() {
     fileInputRef.current?.click()
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
     if (!file) return
+
     if (previewSrc?.startsWith("blob:")) URL.revokeObjectURL(previewSrc)
     setPreviewSrc(URL.createObjectURL(file))
+    setStatus("ready")
+    event.target.value = ""
+  }
+
+  function handleModeChange(nextMode: ScanMode) {
+    setMode(nextMode)
+    setStatus("ready")
   }
 
   function handleScanStart() {
     if (isScanning) return
-    setIsScanning(true)
+
+    setStatus("scanning")
     scanTimerRef.current = window.setTimeout(() => {
-      setIsScanning(false)
+      setStatus(mode === "drink" ? "success" : "failure")
       scanTimerRef.current = null
-    }, 2200)
+    }, 1600)
+  }
+
+  function handleRetry() {
+    setStatus("ready")
+  }
+
+  function returnToScanMain() {
+    setStatus("ready")
+  }
+
+  function handleOpenDetail() {
+    navigate(`/product/${aiScanResult.product.id}?tab=pairing`)
+  }
+
+  function handleSave() {
+    window.alert(`${aiScanResult.product.name} 저장 기능은 준비 중입니다.`)
   }
 
   return (
-    <section className={isScanning ? "ai_scan_page page_screen is_scanning" : "ai_scan_page page_screen"} aria-label="AI 스캔">
-      <div className="ai_scan_stage" aria-hidden="true">
-        <motion.img
-          className="ai_scan_stage_img"
-          src={stageSrc}
-          alt=""
-          animate={
-            isScanning
-              ? { scale: 1.06, filter: "blur(12px) saturate(0.92)" }
-              : { scale: 1, filter: "blur(0px) saturate(1)" }
-          }
-          transition={{ duration: 0.28, ease: "easeOut" }}
-        />
-        <motion.div
-          className="ai_scan_stage_vignette"
-          animate={isScanning ? { opacity: 0.7 } : { opacity: 1 }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
-        />
-        <div className="ai_scan_stage_bottom_fade" />
-      </div>
-
-      <header className="ai_scan_topbar" aria-label="상단 메뉴">
-        <button type="button" className="ai_scan_topbar_button" aria-label="뒤로가기" onClick={() => navigate(-1)}>
-          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-            <path d="M15 5L8 12L15 19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <div className="ai_scan_topbar_spacer" aria-hidden="true" />
-        <button type="button" className="ai_scan_topbar_button" aria-label="닫기" onClick={() => navigate(-1)}>
-          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-            <path d="M6 6L18 18M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
-      </header>
-
-      <div className="ai_scan_mode_pill" role="tablist" aria-label="스캔 모드">
-        <button
-          role="tab"
-          type="button"
-          className={`ai_scan_mode_tab${mode === "drink" ? " is_active" : ""}`}
-          aria-selected={mode === "drink"}
-          onClick={() => setMode("drink")}
-          disabled={isScanning}
-        >
-          <img className="ai_scan_mode_tab_icon" src={aiScanAssets.scanDrinkModeButton} alt="" aria-hidden="true" />
-          <span className="ai_scan_mode_tab_label">{aiScanCopy.tabs.drink}</span>
-        </button>
-        <button
-          role="tab"
-          type="button"
-          className={`ai_scan_mode_tab${mode === "food" ? " is_active" : ""}`}
-          aria-selected={mode === "food"}
-          onClick={() => setMode("food")}
-          disabled={isScanning}
-        >
-          <img className="ai_scan_mode_tab_icon" src={aiScanAssets.scanFoodModeButton} alt="" aria-hidden="true" />
-          <span className="ai_scan_mode_tab_label">{aiScanCopy.tabs.food}</span>
-        </button>
-      </div>
-
-      <button
-        type="button"
-        className="ai_scan_viewfinder"
-        aria-label="카메라 뷰파인더"
-        onClick={openPicker}
-        disabled={isScanning}
-      >
-        <motion.img
-          className="ai_scan_corner top_left"
-          src={isScanning ? aiScanAssets.cornerRadiusP01 : aiScanAssets.cornerRadius01}
-          alt=""
-          aria-hidden="true"
-          animate={
-            isScanning
-              ? { scale: [0.955, 1.02, 0.955], opacity: [0.55, 1, 0.55] }
-              : { scale: 1, opacity: 0.95 }
-          }
-          transition={isScanning ? { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: [0.34, 1.25, 0.56, 1] } : { duration: 0.2 }}
-        />
-        <motion.img
-          className="ai_scan_corner top_right"
-          src={isScanning ? aiScanAssets.cornerRadiusP02 : aiScanAssets.cornerRadius02}
-          alt=""
-          aria-hidden="true"
-          animate={
-            isScanning
-              ? { scale: [0.955, 1.02, 0.955], opacity: [0.55, 1, 0.55] }
-              : { scale: 1, opacity: 0.95 }
-          }
-          transition={isScanning ? { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: [0.34, 1.25, 0.56, 1] } : { duration: 0.2 }}
-        />
-        <motion.img
-          className="ai_scan_corner bottom_right"
-          src={isScanning ? aiScanAssets.cornerRadiusP03 : aiScanAssets.cornerRadius03}
-          alt=""
-          aria-hidden="true"
-          animate={
-            isScanning
-              ? { scale: [0.955, 1.02, 0.955], opacity: [0.55, 1, 0.55] }
-              : { scale: 1, opacity: 0.95 }
-          }
-          transition={isScanning ? { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: [0.34, 1.25, 0.56, 1] } : { duration: 0.2 }}
-        />
-        <motion.img
-          className="ai_scan_corner bottom_left"
-          src={isScanning ? aiScanAssets.cornerRadiusP04 : aiScanAssets.cornerRadius04}
-          alt=""
-          aria-hidden="true"
-          animate={
-            isScanning
-              ? { scale: [0.955, 1.02, 0.955], opacity: [0.55, 1, 0.55] }
-              : { scale: 1, opacity: 0.95 }
-          }
-          transition={isScanning ? { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: [0.34, 1.25, 0.56, 1] } : { duration: 0.2 }}
-        />
-        {isScanning ? (
-          <motion.div
-            className="ai_scan_viewfinder_scanning_area"
-            aria-hidden="true"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-          >
-            <motion.div
-              className="ai_scan_viewfinder_beam"
-              initial={{ y: "-40%", opacity: 0.55 }}
-              animate={{ y: ["-40%", "calc(100% - 140px)"], opacity: [0.55, 1, 0.55] }}
-              transition={{ duration: 1.25, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-            />
-            <motion.span
-              className="ai_scan_scanning_line"
-              initial={{ y: 0, opacity: 0.35 }}
-              animate={{ y: [0, "calc(100% - 3px)"], opacity: [0.35, 1, 0.35] }}
-              transition={{ duration: 1.25, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-            />
-          </motion.div>
-        ) : null}
-      </button>
-
+    <section className={`ai_scan_page is_${status}`} aria-label={aiScanCopy.title}>
       <input
         ref={fileInputRef}
         className="ai_scan_file_input"
@@ -202,79 +97,28 @@ export default function AiScan() {
         onChange={handleFileChange}
       />
 
-      <div className="ai_scan_actions" aria-label="스캔 동작">
-        <button type="button" className="ai_scan_action ai_scan_action_upload" onClick={openPicker} disabled={isScanning}>
-          {aiScanCopy.upload}
-        </button>
-        <button type="button" className="ai_scan_action ai_scan_action_scan" onClick={handleScanStart} disabled={isScanning}>
-          {aiScanCopy.scan}
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {isScanning ? (
-          <motion.div
-            className="ai_scan_scanning_overlay"
-            role="status"
-            aria-live="polite"
-            aria-label="스캔 중"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-          >
-            <div className="ai_scan_scanning_main">
-              <motion.div
-                className="ai_scan_scanning_center"
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 6, opacity: 0 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-              >
-                <div className="ai_scan_scanning_title">{aiScanCopy.scanningTitle}</div>
-                <div className="ai_scan_scanning_subtitle">{aiScanCopy.scanningSubtitle}</div>
-                <div className="ai_scan_scanning_mascot" aria-hidden="true">
-                  <img src={aiScanAssets.scanScanningMascot} alt="" />
-                </div>
-              </motion.div>
-            </div>
-
-            <motion.div
-              className="ai_scan_scanning_tips"
-              initial={{ y: 12, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 8, opacity: 0 }}
-              transition={{ duration: 0.22, ease: "easeOut", delay: 0.05 }}
-            >
-              <div className="ai_scan_scanning_tip_lead">
-                <span className="ai_scan_scanning_tip_bulb" aria-hidden="true">
-                  💡
-                </span>
-                <span>{aiScanCopy.scanningTipLead}</span>
-              </div>
-              <div className="ai_scan_scanning_tip_row" aria-label="스캔 팁">
-                {aiScanCopy.scanningTips.map((tip) => {
-                  const iconSrc =
-                    tip.icon === "sun"
-                      ? aiScanAssets.iconSun
-                      : tip.icon === "barcode"
-                        ? aiScanAssets.iconBarcode
-                        : tip.icon === "shake"
-                          ? aiScanAssets.iconShake
-                          : null
-
-                  return (
-                    <div key={tip.icon} className="ai_scan_scanning_tip">
-                      {iconSrc ? <img src={iconSrc} alt="" aria-hidden="true" /> : null}
-                      <div className="ai_scan_scanning_tip_text">{tip.title}</div>
-                    </div>
-                  )
-                })}
-              </div>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {isResult ? (
+        <AiScanResult
+          status={status}
+          onBack={returnToScanMain}
+          onClose={returnToScanMain}
+          onUpload={openPicker}
+          onRetry={handleRetry}
+          onOpenDetail={handleOpenDetail}
+          onSave={handleSave}
+        />
+      ) : (
+        <AiScanCamera
+          mode={mode}
+          imageSrc={stageSrc}
+          isScanning={isScanning}
+          onBack={moveBack}
+          onClose={moveBack}
+          onModeChange={handleModeChange}
+          onUpload={openPicker}
+          onScan={handleScanStart}
+        />
+      )}
     </section>
   )
 }
