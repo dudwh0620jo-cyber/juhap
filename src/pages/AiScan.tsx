@@ -8,11 +8,12 @@ export default function AiScan() {
   const [mode, setMode] = useState<ScanMode>("drink")
   const [previewSrc, setPreviewSrc] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
+  const [scanOverlayRect, setScanOverlayRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const viewfinderRef = useRef<HTMLButtonElement | null>(null)
   const scanTimerRef = useRef<number | null>(null)
 
-  const hint = mode === "drink" ? aiScanCopy.hint.drink : aiScanCopy.hint.food
-  const placeholderSrc = mode === "drink" ? aiScanAssets.scanPlaceholder : aiScanAssets.foodPlaceholder
+  const stageSrc = previewSrc ?? aiScanAssets.scanSample01
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: mode === "drink" } }))
@@ -32,6 +33,32 @@ export default function AiScan() {
       if (scanTimerRef.current) window.clearTimeout(scanTimerRef.current)
     }
   }, [])
+
+  useEffect(() => {
+    if (!isScanning) {
+      setScanOverlayRect(null)
+      return
+    }
+
+    const target = viewfinderRef.current
+    if (!target) return
+
+    const update = () => {
+      const rect = target.getBoundingClientRect()
+      setScanOverlayRect({ left: rect.left, top: rect.top, width: rect.width, height: rect.height })
+    }
+
+    update()
+    const raf = window.requestAnimationFrame(update)
+    window.addEventListener("resize", update)
+    window.addEventListener("scroll", update, { passive: true })
+
+    return () => {
+      window.cancelAnimationFrame(raf)
+      window.removeEventListener("resize", update)
+      window.removeEventListener("scroll", update)
+    }
+  }, [isScanning])
 
   function openPicker() {
     fileInputRef.current?.click()
@@ -56,7 +83,7 @@ export default function AiScan() {
   return (
     <section className={isScanning ? "ai_scan_page page_screen is_scanning" : "ai_scan_page page_screen"} aria-label="AI 스캔">
       <div className="ai_scan_stage" aria-hidden="true">
-        <img className="ai_scan_stage_img" src={previewSrc ?? placeholderSrc} alt="" />
+        <img className="ai_scan_stage_img" src={stageSrc} alt="" />
         <div className="ai_scan_stage_vignette" />
         <div className="ai_scan_stage_bottom_fade" />
       </div>
@@ -84,7 +111,8 @@ export default function AiScan() {
           onClick={() => setMode("drink")}
           disabled={isScanning}
         >
-          {aiScanCopy.tabs.drink}
+          <img className="ai_scan_mode_tab_icon" src={aiScanAssets.scanDrinkModeButton} alt="" aria-hidden="true" />
+          <span className="ai_scan_mode_tab_label">{aiScanCopy.tabs.drink}</span>
         </button>
         <button
           role="tab"
@@ -94,7 +122,8 @@ export default function AiScan() {
           onClick={() => setMode("food")}
           disabled={isScanning}
         >
-          {aiScanCopy.tabs.food}
+          <img className="ai_scan_mode_tab_icon" src={aiScanAssets.scanFoodModeButton} alt="" aria-hidden="true" />
+          <span className="ai_scan_mode_tab_label">{aiScanCopy.tabs.food}</span>
         </button>
       </div>
 
@@ -104,14 +133,12 @@ export default function AiScan() {
         aria-label="카메라 뷰파인더"
         onClick={openPicker}
         disabled={isScanning}
+        ref={viewfinderRef}
       >
-        <span className="ai_scan_corner top_left" aria-hidden="true" />
-        <span className="ai_scan_corner top_right" aria-hidden="true" />
-        <span className="ai_scan_corner bottom_left" aria-hidden="true" />
-        <span className="ai_scan_corner bottom_right" aria-hidden="true" />
-        <span className="ai_scan_hint" aria-hidden="true">
-          {hint}
-        </span>
+        <img className="ai_scan_corner top_left" src={aiScanAssets.cornerRadius01} alt="" aria-hidden="true" />
+        <img className="ai_scan_corner top_right" src={aiScanAssets.cornerRadius02} alt="" aria-hidden="true" />
+        <img className="ai_scan_corner bottom_right" src={aiScanAssets.cornerRadius03} alt="" aria-hidden="true" />
+        <img className="ai_scan_corner bottom_left" src={aiScanAssets.cornerRadius04} alt="" aria-hidden="true" />
       </button>
 
       <input
@@ -134,12 +161,28 @@ export default function AiScan() {
       {isScanning ? (
         <div className="ai_scan_scanning_overlay" role="status" aria-live="polite" aria-label="스캔 중">
           <div className="ai_scan_scanning_main">
-            <div className="ai_scan_scanning_viewfinder" aria-hidden="true">
-              <span className="ai_scan_corner top_left" />
-              <span className="ai_scan_corner top_right" />
-              <span className="ai_scan_corner bottom_left" />
-              <span className="ai_scan_corner bottom_right" />
-              <span className="ai_scan_scanning_line" />
+            <div
+              className="ai_scan_scanning_viewfinder"
+              aria-hidden="true"
+              style={
+                scanOverlayRect
+                  ? {
+                      position: "fixed",
+                      left: scanOverlayRect.left,
+                      top: scanOverlayRect.top,
+                      width: scanOverlayRect.width,
+                      height: scanOverlayRect.height,
+                    }
+                  : { opacity: 0 }
+              }
+            >
+              <img className="ai_scan_corner top_left" src={aiScanAssets.cornerRadiusP01} alt="" />
+              <img className="ai_scan_corner top_right" src={aiScanAssets.cornerRadiusP02} alt="" />
+              <img className="ai_scan_corner bottom_right" src={aiScanAssets.cornerRadiusP03} alt="" />
+              <img className="ai_scan_corner bottom_left" src={aiScanAssets.cornerRadiusP04} alt="" />
+              <div className="ai_scan_scanning_area" aria-hidden="true">
+                <span className="ai_scan_scanning_line" />
+              </div>
             </div>
 
             <div className="ai_scan_scanning_center">

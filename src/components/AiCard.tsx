@@ -11,6 +11,7 @@ type AiCardProps = {
 function AiCardScanButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button className="home_ai_scan_button" type="button" onClick={onClick}>
+      <img className="home_ai_scan_thumb" src={homeAssets.mainScanButton} alt="" aria-hidden="true" />
       <img className="home_ai_scan_icon" src={homeAssets.scanIcon} alt="" aria-hidden="true" />
       <span>{label}</span>
     </button>

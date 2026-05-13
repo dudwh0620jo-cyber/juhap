@@ -40,8 +40,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 220px;
-  background: linear-gradient(to top, rgba(251, 250, 249, 1), rgba(251, 250, 249, 0));
+  height: 320px;
+  background: linear-gradient(
+    to top,
+    rgba(251, 250, 249, 1) 0%,
+    rgba(251, 250, 249, 0.96) 30%,
+    rgba(251, 250, 249, 0.55) 62%,
+    rgba(251, 250, 249, 0) 100%
+  );
 }
 
 .ai_scan_topbar {
@@ -53,6 +59,10 @@
   padding: 52px 20px 0;
 }
 
+.ai_scan_page.is_scanning .ai_scan_topbar {
+  z-index: 7;
+}
+
 .ai_scan_topbar_button {
   width: 44px;
   height: 44px;
@@ -62,6 +72,13 @@
   display: grid;
   place-items: center;
   color: rgba(253, 253, 253, 0.92);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.ai_scan_topbar_button:active {
+  background: rgba(0, 0, 0, 0.18);
+  transform: scale(0.98);
 }
 
 .ai_scan_topbar_spacer {
@@ -72,9 +89,9 @@
   position: relative;
   z-index: 2;
   margin: 10px auto 0;
-  width: min(320px, calc(100% - 40px));
+  width: fit-content;
   height: 56px;
-  padding: 6px;
+  padding: 4px;
   border-radius: 999px;
   background: rgba(253, 253, 253, 0.5);
   border: 1px solid rgba(253, 253, 253, 0.55);
@@ -84,23 +101,44 @@
   gap: 6px;
 }
 
+.ai_scan_page.is_scanning .ai_scan_mode_pill {
+  z-index: 7;
+}
+
 .ai_scan_mode_tab {
+  width: 73px;
+  padding: 8px 4px;
   border: 0;
   border-radius: 999px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
   background: transparent;
   color: rgba(253, 253, 253, 0.78);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ai_scan_mode_tab_icon {
+  width: 29px;
+  height: 29px;
+  object-fit: cover;
+}
+
+.ai_scan_mode_tab.is_active .ai_scan_mode_tab_icon {
+  opacity: 1;
+}
+
+.ai_scan_mode_tab_label {
+  line-height: 1;
 }
 
 .ai_scan_mode_tab.is_active {
-  background: rgba(253, 253, 253, 0.92);
-  color: var(--color-point-01);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+  background: var(--color-bg-white);
+  color: var(--color-point-01);;
 }
 
 /* 뷰파인더 */
@@ -121,61 +159,29 @@
   position: absolute;
   width: 44px;
   height: 44px;
-  border-color: rgba(253, 253, 253, 0.92);
-  border-style: solid;
-  border-width: 0;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.18));
+  opacity: 0.95;
 }
 
 .ai_scan_corner.top_left {
   top: 34%;
   left: 18px;
-  border-top-width: 6px;
-  border-left-width: 6px;
-  border-top-left-radius: 10px;
 }
 
 .ai_scan_corner.top_right {
   top: 34%;
   right: 18px;
-  border-top-width: 6px;
-  border-right-width: 6px;
-  border-top-right-radius: 10px;
 }
 
 .ai_scan_corner.bottom_left {
   bottom: 18%;
   left: 18px;
-  border-bottom-width: 6px;
-  border-left-width: 6px;
-  border-bottom-left-radius: 10px;
 }
 
 .ai_scan_corner.bottom_right {
   bottom: 18%;
   right: 18px;
-  border-bottom-width: 6px;
-  border-right-width: 6px;
-  border-bottom-right-radius: 10px;
-}
-
-.ai_scan_hint {
-  position: absolute;
-  left: 50%;
-  bottom: 20px;
-  transform: translateX(-50%);
-  width: min(320px, calc(100% - 60px));
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(253, 253, 253, 0.9);
-}
-
-.ai_scan_page.is_scanning .ai_scan_hint {
-  opacity: 0;
-}
-
-.ai_scan_page.is_scanning .ai_scan_corner {
-  border-color: var(--color-point-01);
 }
 
 .ai_scan_file_input {
@@ -194,15 +200,17 @@
 
 .ai_scan_action {
   flex: 1;
-  height: 62px;
-  border-radius: 20px;
-  font-size: 20px;
-  font-weight: 700;
+  height: 56px;
+  border-radius: 18px;
+  font-size: 18px;
+  font-weight: 800;
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
 }
 
 .ai_scan_action_upload {
-  border: 1px solid var(--color-point-01);
+  border: 1px solid rgba(214, 149, 107, 0.95);
   background: var(--color-bg-white);
   color: var(--color-point-01);
 }
@@ -211,10 +219,18 @@
   border: 0;
   background: var(--color-point-01);
   color: var(--color-bg-white);
+  box-shadow: 0 12px 26px rgba(214, 149, 107, 0.25);
 }
 
 .ai_scan_action:active {
-  opacity: 0.92;
+  transform: translateY(1px);
+  opacity: 0.94;
+}
+
+.ai_scan_action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* scanning overlay */
@@ -245,13 +261,13 @@
 }
 
 .ai_scan_scanning_viewfinder {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  top: 0;
-  bottom: 0;
-  margin: 16px 0 0;
+  position: fixed;
+  margin: 0;
   pointer-events: none;
+  border-radius: 28px;
+  overflow: hidden;
+  --scan_top: 34%;
+  --scan_bottom: 18%;
 }
 
 .ai_scan_scanning_viewfinder::before {
@@ -264,12 +280,61 @@
   border-radius: 28px;
 }
 
+.ai_scan_scanning_area {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--scan_top);
+  bottom: var(--scan_bottom);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ai_scan_scanning_area::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 140px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--color-point-01) 18%, transparent),
+    color-mix(in srgb, var(--color-point-01) 45%, transparent),
+    color-mix(in srgb, var(--color-point-01) 18%, transparent),
+    transparent
+  );
+  filter: blur(2px);
+  opacity: 0.9;
+  border-radius: 28px;
+  mix-blend-mode: screen;
+  box-shadow: 0 0 26px color-mix(in srgb, var(--color-point-01) 55%, transparent);
+  transform: translateY(-40%);
+  animation: ai_scan_beam 1.25s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes ai_scan_beam {
+  0% {
+    transform: translateY(-40%);
+    opacity: 0.55;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100% - 140px));
+    opacity: 0.55;
+  }
+}
+
 .ai_scan_scanning_line {
   position: absolute;
   left: 18px;
   right: 18px;
-  top: 34%;
-  height: 2px;
+  top: 0;
+  height: 3px;
   border-radius: 999px;
   background: linear-gradient(
     90deg,
@@ -279,8 +344,10 @@
     color-mix(in srgb, var(--color-point-01) 12%, transparent),
     transparent
   );
-  box-shadow: 0 0 18px color-mix(in srgb, var(--color-point-01) 65%, transparent);
-  animation: ai_scan_scanning_line 1.4s ease-in-out infinite;
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--color-point-01) 75%, transparent),
+    0 0 44px color-mix(in srgb, var(--color-point-01) 30%, transparent);
+  animation: ai_scan_scanning_line 1.25s ease-in-out infinite;
 }
 
 @keyframes ai_scan_scanning_line {
@@ -292,8 +359,35 @@
     opacity: 1;
   }
   100% {
-    transform: translateY(180px);
+    transform: translateY(calc(100% - 3px));
     opacity: 0.35;
+  }
+}
+
+.ai_scan_scanning_viewfinder .ai_scan_corner {
+  filter:
+    drop-shadow(0 10px 22px rgba(0, 0, 0, 0.18))
+    drop-shadow(0 0 18px color-mix(in srgb, var(--color-point-01) 28%, transparent));
+}
+
+.ai_scan_scanning_viewfinder .ai_scan_corner {
+  opacity: 0.9;
+  animation: ai_scan_focus_pulse 1.4s cubic-bezier(0.34, 1.25, 0.56, 1) infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes ai_scan_focus_pulse {
+  0% {
+    transform: scale(0.955);
+    opacity: 0.55;
+  }
+  45% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.955);
+    opacity: 0.55;
   }
 }
 
@@ -324,6 +418,26 @@
   width: 220px;
   height: 220px;
   object-fit: contain;
+  animation: ai_scan_mascot_float 1.9s cubic-bezier(0.34, 1.25, 0.56, 1) infinite;
+  will-change: transform;
+}
+
+@keyframes ai_scan_mascot_float {
+  0% {
+    transform: translateY(0) rotate(-0.8deg);
+  }
+  22% {
+    transform: translateY(-14px) rotate(1deg);
+  }
+  38% {
+    transform: translateY(-9px) rotate(0.2deg);
+  }
+  52% {
+    transform: translateY(-11px) rotate(-0.7deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-0.8deg);
+  }
 }
 
 .ai_scan_scanning_tips {
