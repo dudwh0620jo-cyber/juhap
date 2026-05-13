@@ -94,7 +94,6 @@
   grid-auto-flow: column;
   grid-auto-columns: minmax(280px, calc(100% - 56px));
   gap: 16px;
-  margin-top: 18px;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 2px;
@@ -179,7 +178,6 @@
 .situation_scroll {
   display: flex;
   gap: 10px;
-  margin-top: 14px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -223,7 +221,6 @@
 }
 
 .situation_rec_card {
-  margin-top: 14px;
   border-radius: 16px;
   border: 1px solid #e0e0e0;
   overflow: hidden;
@@ -319,7 +316,6 @@
 
 .vote_card {
   position: relative;
-  margin-top: 20px;
   padding: 30px 20px 18px;
   border-radius: 36px;
   background: #f2f2f2;
@@ -490,7 +486,6 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-top: 4px;
   padding-top: 10px;
   border-top: 1px solid #f0e8d8;
 }
@@ -519,7 +514,6 @@
 }
 
 .drink_card {
-  margin-top: 20px;
   padding: 18px;
   border-radius: 0;
   background: #f7f7f7;
@@ -534,7 +528,6 @@
   grid-auto-flow: column;
   grid-auto-columns: minmax(280px, calc(100% - 56px));
   gap: 16px;
-  margin-top: 18px;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 2px;
@@ -549,7 +542,6 @@
 }
 
 .drink_card_row .drink_card {
-  margin-top: 0;
   scroll-snap-align: start;
 }
 
@@ -591,7 +583,6 @@
   display: flex;
   align-items: center;
   width: 100%;
-  margin-top: 18px;
   border: 2px solid #8a8a8a;
   border-radius: 24px;
   background: #efefef;
@@ -657,7 +648,6 @@
   }
 
   .home_block {
-    margin-top: 34px;
   }
 
   .home_block h3 {
@@ -665,13 +655,11 @@
   }
 
   .block_sub_title {
-    margin-top: 4px;
     font-size: 16px;
   }
 
   .recommendation_row {
     gap: 10px;
-    margin-top: 10px;
     grid-auto-columns: minmax(170px, calc(100% - 40px));
   }
 
@@ -703,7 +691,6 @@
   }
 
   .vote_card {
-    margin-top: 14px;
     padding: 20px 12px 12px;
     border-radius: 22px;
   }
@@ -733,7 +720,6 @@
   }
 
   .home_ranking_list {
-    margin-top: 10px;
     gap: 8px;
   }
 
@@ -794,13 +780,11 @@
   }
 
   .drink_card {
-    margin-top: 10px;
     padding: 10px;
     grid-template-columns: 1fr 60px;
   }
 
   .drink_card_row {
-    margin-top: 10px;
     gap: 10px;
     grid-auto-columns: minmax(170px, calc(100% - 40px));
   }
@@ -829,7 +813,6 @@
   }
 
   .quiz_card {
-    margin-top: 12px;
     border-radius: 16px;
     padding: 14px 16px;
     font-size: 15px;
@@ -844,20 +827,11 @@
 }
 
 .home_top_group {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
 }
 
-.home_top_group .home_block {
-  margin-top: 0;
-}
-
-/* .home_block {
-  width: 100%;
-  height: 100%;
-  gap: 20px;
-  padding: 20px 0;
-} */
 .home_notice_button {
   width: 36px;
   height: 36px;
@@ -888,9 +862,13 @@
   font-weight: 400;
 }
 
-.home_block .home_moment_pick{
+.home_block.home_moment_pick{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
   padding: 20px 0;
-  gap: 20px;
+  gap: 22px;
 }
 
 .home_ai_card {
@@ -900,16 +878,25 @@
   justify-content: space-between;
   gap: 16px;
   border-radius: 18px;
+  margin-right: 27px;
+}
+
+.home_ai_copy {
+  flex: 1;
+  min-width: 0;
 }
 
 .home_ai_copy h2 {
-  width: 180px;
+  width: auto;
+  max-width: 240px;
   margin: 0;
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.22px;
   line-height: 130%;
   font-family: "Chiron Sung HK";
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .home_ai_subtitle {
@@ -928,9 +915,9 @@
 .home_ai_scan_button {
   position: absolute;
   top: 0;
-  right: -27px;
+  right: -56px;
   height: 44px;
-  padding: 0 14px 0 84px;
+  padding: 0 14px 0 90px;
   border: 1px solid var(--color-point-01);
   border-radius: 999px 0 0 999px;
   background: var(--color-bg-white);
@@ -952,14 +939,12 @@
 
 .home_ai_scan_button .home_ai_scan_thumb {
   position: absolute;
-  left: 14px;
-  top: 50%;
-  width: 30px;
-  height: 30px;
+  left: 0;
+  bottom: 0;
+  width: 41px;
+  height: 55px;
   border-radius: 999px;
-  transform: translateY(-50%);
   object-fit: cover;
-  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.12);
 }
 
 .home_today_hero {
@@ -1040,6 +1025,8 @@
   font-weight: 700;
   letter-spacing: -1%;
   color: var(--color-gray-00);
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .home_today_hero_drink {
@@ -1086,7 +1073,7 @@
 }
 
 .home_today_dots {
-  margin-top: 10px;
+  padding: 8px;
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -1172,72 +1159,102 @@
 }
 
 .moment_pick_selected_label {
-  margin-top: 10px;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: 0;
   color: var(--color-point-01);
 }
 
 .moment_pick_cards {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  padding: 36px 0 2px;
+}
+
+.moment_pick_cards::-webkit-scrollbar {
+  display: none;
+}
+
+.moment_pick_track {
+  display: flex;
+  gap: 14px;
+  padding: 0 24px 0 2px;
 }
 
 .moment_pick_card {
+  position: relative;
+  flex: 0 0 auto;
+  width:230px;
+  height: 180px;
   border-radius: 16px;
-  overflow: hidden;
   background: var(--color-point-02);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+  scroll-snap-align: start;
+}
+
+.moment_pick_card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 66px;
+  width: 360px;
+  height: 240px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateX(-50%);
 }
 
 .moment_pick_card_photo {
-  height: 76px;
-  background: rgba(255, 255, 255, 0.45);
+  position: absolute;
+  top: -35%;
+  right: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  position: relative;
 }
 
 .moment_pick_card_img {
-  width: 100%;
-  height: 100%;
+  width: 163px;
+  height: 130px;
   object-fit: cover;
 }
 
 .moment_pick_card_badge {
   position: absolute;
-  left: 10px;
-  top: 10px;
-  width: 46px;
-  height: 20px;
-  object-fit: contain;
+  right: 0;
+  top: 50px;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  transform: rotate(30deg);
 }
 
 .moment_pick_card_body {
-  padding: 10px 12px 12px;
+  width: 100%;
+  height: 100%;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
 }
 
 .moment_pick_card_title {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing:0;
+  line-height: 140%;
 }
 
 .moment_pick_card_desc {
-  margin-top: 4px;
   font-size: 12px;
   font-weight: 400;
-  color: var(--color-text-primary);
-  line-height: 1.35;
-  opacity: 0.85;
+  color: var(--color-point-01);
+  line-height: 1.4;
 }
 
 .moment_pick_card_tags {
-  margin-top: 8px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -1246,15 +1263,13 @@
 .moment_pick_card_tags span {
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(253, 253, 253, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-gray-06);
+  background: var(--color-point-04);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-point-01);
 }
 
 .moment_pick_card_link {
-  margin-top: 8px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1280,7 +1295,6 @@
 }
 
 .home_vote_panel {
-  margin-top: 12px;
   border-radius: 18px;
   background: var(--color-bg-white);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
@@ -1292,14 +1306,12 @@
 }
 
 .home_vote_question {
-  margin-top: 6px;
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.3px;
 }
 
 .home_vote_deadline {
-  margin-top: 6px;
   font-size: 12px;
   font-weight: 500;
   color: var(--color-gray-06);
@@ -1388,7 +1400,6 @@
 }
 
 .home_vote_footer {
-  margin-top: 10px;
   display: grid;
   gap: 10px;
 }
@@ -1418,7 +1429,6 @@
 }
 
 .home_weekly_rank_stage {
-  margin-top: 12px;
   border-radius: 22px;
   background: linear-gradient(180deg, rgba(232, 202, 183, 0.4), rgba(251, 250, 249, 0));
   padding: 12px 0 18px;
@@ -1495,7 +1505,6 @@
 }
 
 .home_weekly_rank_dots {
-  margin-top: 10px;
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -1514,7 +1523,6 @@
 }
 
 .home_weekly_rank_bubble {
-  margin-top: 12px;
   padding: 0 12px;
   display: grid;
   grid-template-columns: 54px 1fr;
@@ -1545,7 +1553,6 @@
 }
 
 .ranking_dots {
-  margin-top: 10px;
   display: flex;
   justify-content: center;
   gap: 6px;

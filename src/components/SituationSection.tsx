@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Link } from "react-router"
+import { motion } from "framer-motion"
 import { homeMomentPickCards, homeMomentPickItems } from "../data/homeContent"
 
 export type SituationItem = {
@@ -59,15 +60,21 @@ function MomentPickCard({
   thumbSrc,
   tags,
   badgeSrc,
+  isActive,
 }: {
   title: string
   subtitle: string
   thumbSrc: string
   tags: readonly string[]
   badgeSrc?: string
+  isActive: boolean
 }) {
   return (
-    <article className="moment_pick_card">
+    <motion.article
+      className="moment_pick_card"
+      animate={{ scale: isActive ? 1 : 0.92, opacity: isActive ? 1 : 0.9 }}
+      transition={{ type: "spring", stiffness: 520, damping: 36, mass: 0.6 }}
+    >
       <div className="moment_pick_card_photo" aria-hidden="true">
         <img className="moment_pick_card_img" src={thumbSrc} alt="" />
         {badgeSrc ? <img className="moment_pick_card_badge" src={badgeSrc} alt="" /> : null}
@@ -84,7 +91,7 @@ function MomentPickCard({
           자세히 보기 →
         </Link>
       </div>
-    </article>
+    </motion.article>
   )
 }
 
@@ -92,6 +99,13 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
   void items
   const [selectedKey, setSelectedKey] = useState<string>(() => homeMomentPickItems[1]?.key ?? homeMomentPickItems[0].key)
   const selectedLabel = homeMomentPickItems.find((item) => item.key === selectedKey)?.label ?? ""
+  const [activeCardIndex, setActiveCardIndex] = useState(0)
+
+  const cardWidth = 230
+  const cardGap = 14
+  const maxIndex = homeMomentPickCards.length - 1
+  const maxDrag = useMemo(() => Math.max(0, maxIndex * (cardWidth + cardGap)), [maxIndex])
+  const x = useMemo(() => -activeCardIndex * (cardWidth + cardGap), [activeCardIndex])
 
   return (
     <section className="home_block home_moment_pick" aria-label="Moment Pick">
@@ -105,16 +119,41 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
       </div>
 
       <div className="moment_pick_cards" aria-label="Moment Pick 추천 목록">
-        {homeMomentPickCards.map((card) => (
-          <MomentPickCard
-            key={card.id}
-            title={card.title}
-            subtitle={card.subtitle}
-            thumbSrc={card.thumbSrc}
-            tags={card.tags}
-            badgeSrc={card.badgeSrc}
-          />
-        ))}
+        <motion.div
+          className="moment_pick_track"
+          drag="x"
+          dragConstraints={{ left: -maxDrag, right: 0 }}
+          dragElastic={0.08}
+          animate={{ x }}
+          transition={{ type: "spring", stiffness: 520, damping: 42, mass: 0.7 }}
+          onDragEnd={(_, info) => {
+            const swipePower = info.offset.x + info.velocity.x * 10
+            if (swipePower < -60) setActiveCardIndex((prev) => Math.min(maxIndex, prev + 1))
+            else if (swipePower > 60) setActiveCardIndex((prev) => Math.max(0, prev - 1))
+          }}
+        >
+          {homeMomentPickCards.map((card, index) => (
+            <div
+              key={card.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => setActiveCardIndex(index)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") setActiveCardIndex(index)
+              }}
+              style={{ outline: "none" }}
+            >
+              <MomentPickCard
+                title={card.title}
+                subtitle={card.subtitle}
+                thumbSrc={card.thumbSrc}
+                tags={card.tags}
+                badgeSrc={card.badgeSrc}
+                isActive={index === activeCardIndex}
+              />
+            </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   )

@@ -138,22 +138,22 @@ function CommunityWritePostForm({
   bodyMaxLength: number
 }) {
   return (
-    <section className="community_page page_screen" aria-label="湲?곌린">
+    <section className="community_page page_screen" aria-label="글쓰기">
       <CommunityHeader
         title={titleText}
         topTab="feed"
-        openFilterAriaLabel="寃???닿린"
-        openNotificationsAriaLabel="?뚮┝ ?닿린"
+        openFilterAriaLabel="검색 열기"
+        openNotificationsAriaLabel="알림 열기"
         onOpenFilter={() => {}}
         onOpenNotifications={() => {}}
       />
 
-      <div className="write_sheet" aria-label="湲?곌린 ?쒗듃">
+      <div className="write_sheet" aria-label="글쓰기 시트">
         <div className="write_sheet_inner">
           <div className="write_section">
             <div className="write_section_header">
               <div className="write_section_header_main">
-                <button type="button" className="write_back_button" aria-label="?ㅻ줈媛湲?" onClick={onClose}>
+                <button type="button" className="write_back_button" aria-label="뒤로가기" onClick={onClose}>
                   <img src={iconCaretLeft} alt="" aria-hidden="true" />
                 </button>
                 <h4 className="write_section_title">{titleText}</h4>
@@ -180,17 +180,18 @@ function CommunityWritePostForm({
             />
           </div>
 
-          <div className="write_bottom_actions" aria-label="?묒꽦 ?듭뀡">
+          <div className="write_bottom_actions" aria-label="작성 액션">
             <button
               type="button"
               className={canSubmit ? "write_primary_button" : "write_primary_button is_disabled"}
               disabled={!canSubmit}
               onClick={onSubmit}
             >
-              怨듭쑀?섍린
+              공유하기
             </button>
             <button type="button" className="write_secondary_button" onClick={onTempSave}>
-              ?꾩떆 ???            </button>
+              임시 저장
+            </button>
           </div>
         </div>
       </div>

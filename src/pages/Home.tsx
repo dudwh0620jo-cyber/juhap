@@ -53,7 +53,7 @@ function formatHeroPairTitle(title: string) {
   if (!title.includes("+")) return title
   const [left, right] = title.split("+").map((value) => value.trim())
   if (!left || !right) return title
-  return `${right} 횞 ${left}`
+  return `${right} × ${left}`
 }
 
 function TodayRecommendation({ title, items }: TodayRecommendationProps) {
@@ -77,7 +77,7 @@ function TodayRecommendation({ title, items }: TodayRecommendationProps) {
   return (
     <section className="home_block home_today">
       {items.length ? (
-        <div className="home_today_carousel" ref={scrollRef} onScroll={handleScroll} aria-label="?ㅻ뒛??異붿쿇 諛곕꼫">
+        <div className="home_today_carousel" ref={scrollRef} onScroll={handleScroll} aria-label="오늘의 추천 배너">
           <div className="home_today_track">
             {items.map((hero) => {
               const pairingParts =
@@ -96,14 +96,15 @@ function TodayRecommendation({ title, items }: TodayRecommendationProps) {
                       {heroFood ? <span className="home_today_hero_food">{heroFood}</span> : formatHeroPairTitle(hero.title)}
                       {heroFood && heroDrink ? (
                         <>
-                          <span className="home_today_hero_x"> 횞 </span>
+                          <span className="home_today_hero_x"> × </span>
                           <span className="home_today_hero_drink">{heroDrink}</span>
                         </>
                       ) : null}
                     </strong>
                     <div className="home_today_hero_desc">{hero.description}</div>
                     <div className="home_today_hero_link" aria-hidden="true">
-                      ?먯꽭?덈낫湲???                    </div>
+                      자세히 보기
+                    </div>
                   </div>
                 </Link>
               )
@@ -113,7 +114,7 @@ function TodayRecommendation({ title, items }: TodayRecommendationProps) {
       ) : null}
 
       {dots.length > 1 ? (
-        <div className="home_today_dots" aria-label="諛곕꼫 ?섏씠吏 ?쒖떆">
+        <div className="home_today_dots" aria-label="배너 페이지 표시">
           {dots.map((index) => (
             <span key={index} className={`home_today_dot${index === activeIndex ? " is_active" : ""}`} aria-hidden="true" />
           ))}
@@ -156,7 +157,7 @@ function VoteCard({
         {iconSrc ? <img src={iconSrc} alt="" /> : null}
       </span>
       <span className="home_vote_option_title">{title}</span>
-      <span className="home_vote_option_meta">{voted ? `${percent}%` : "?ы몴"}</span>
+      <span className="home_vote_option_meta">{voted ? `${percent}%` : "투표"}</span>
       <span className="home_vote_option_radio" aria-hidden="true" />
     </button>
   )
@@ -188,23 +189,23 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
 
   return (
     <>
-      <section className="home_block home_vote" aria-label="?ㅻ뒛???ы몴">
+      <section className="home_block home_vote" aria-label="오늘의 투표">
         <div className="home_block_header home_vote_header">
           <div>
-            <h3>?ㅻ뒛???ы몴</h3>
+            <h3>오늘의 투표</h3>
             <div className="home_vote_question">{question}</div>
             <div className="home_vote_deadline">
-              <span className="home_vote_deadline_label">?ы몴 留덇컧源뚯?</span>
+              <span className="home_vote_deadline_label">투표 마감까지</span>
               <span className="home_vote_deadline_time">{formatVoteRemaining()}</span>
             </div>
           </div>
           <button type="button" className="home_vote_more" onClick={() => setIsConfirmOpen(true)}>
-            ?붾낫湲?&gt;
+            더보기 &gt;
           </button>
         </div>
 
         <div className="home_vote_panel">
-          <div className="home_vote_options" role="group" aria-label="?ы몴 ??ぉ">
+          <div className="home_vote_options" role="group" aria-label="투표 항목">
             <VoteCard
               title={options[0].title}
               percent={options[0].percent}
@@ -231,20 +232,20 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
 
         <div className="home_vote_footer">
           <div className="home_vote_total">
-            {typeof totalVotes === "number" ? `?ㅻ뒛 ?꾩옱 ${totalVotes.toLocaleString()}紐낆씠 ?ы몴??李몄뿬?덉뼱??` : null}
+            {typeof totalVotes === "number" ? `오늘 현재 ${totalVotes.toLocaleString()}명이 투표에 참여했어요` : null}
           </div>
           <button type="button" className="home_vote_cta" onClick={() => navigate("/vote")}>
-            ?ы몴?섍퀬 寃곌낵蹂닿린
+            투표하고 결과보기
           </button>
         </div>
       </section>
 
       {isConfirmOpen ? (
         <PurchaseConfirmModal
-          ariaLabel="?ы몴 ?대룞 ?뺤씤"
-          message="?ы몴???ㅼ뼱媛硫?諛붾줈 李몄뿬媛 吏꾪뻾?섏뼱 痍⑥냼?????놁뼱?? ?대룞?좉퉴??"
-          cancelLabel="痍⑥냼"
-          confirmLabel="?대룞"
+          ariaLabel="투표 이동 확인"
+          message="투표 페이지로 이동하면 바로 참여가 진행돼요. 취소할 수 없어요. 이동할까요?"
+          cancelLabel="취소"
+          confirmLabel="이동"
           onCancel={() => setIsConfirmOpen(false)}
           onConfirm={() => {
             setIsConfirmOpen(false)
@@ -291,14 +292,14 @@ function WeeklyRankingCard({
 
 function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitle: string; linkTo: string }) {
   return (
-    <section className="home_block home_weekly_rank" aria-label="?대쾲 二?二쇳빀 ??궧">
+    <section className="home_block home_weekly_rank" aria-label="이번 주 주합 랭킹">
       <div className="ranking_header">
         <div className="home_weekly_rank_header_copy">
           <h3>{title}</h3>
           <p className="home_weekly_rank_subcopy">{subtitle}</p>
         </div>
         <Link to={linkTo} className="more_button">
-          ?붾낫湲?&gt;
+          더보기 &gt;
         </Link>
       </div>
 
@@ -325,7 +326,9 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
 
         <div className="home_weekly_rank_bubble" aria-hidden="true">
           <img className="home_weekly_rank_mascot" src={homeAssets.weeklyBestMascot} alt="" />
-          <div className="home_weekly_rank_bubble_text">?대쾲 二?1?꾨뒗 吏꾨줈 ?댁쫰諛??쇨껸??</div>
+          <div className="home_weekly_rank_bubble_text">이번 주 1위는 진로 이즈백 삼겹살!
+            깔끔한 한 잔이 고기의 풍미를 더 살려줘요.
+          </div>
         </div>
       </div>
     </section>

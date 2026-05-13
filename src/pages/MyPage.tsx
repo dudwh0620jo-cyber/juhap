@@ -287,7 +287,7 @@ export default function MyPage() {
     const nextWarnings: Record<string, string> = {}
     preferenceGroups.forEach((group) => {
       if ((selectedByGroup[group.key] ?? []).length === 0) {
-        nextWarnings[group.key] = "??ぉ???좏깮??二쇱꽭??"
+        nextWarnings[group.key] = "답변을 선택해 주세요"
       }
     })
 

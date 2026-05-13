@@ -101,17 +101,17 @@ function FeedWriteRow({
         <div className="feed_write_split">
           <button type="button" className="feed_write_button" onClick={onClickReview}>
             <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
-            <span className="feed_write_label">?섏뼱留??꾧린 湲?곌린</span>
+            <span className="feed_write_label">페어링 후기 글쓰기</span>
           </button>
           <button type="button" className="feed_write_button" onClick={onClickFree}>
             <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
-            <span className="feed_write_label">吏덈Ц 湲?곌린</span>
+            <span className="feed_write_label">질문 글쓰기</span>
           </button>
         </div>
       ) : (
         <button type="button" className="feed_write_button" onClick={onClickReview ?? onClickFree}>
           <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
-          <span className="feed_write_label">?섏뼱留??꾧린 湲?곌린</span>
+          <span className="feed_write_label">페어링 후기 글쓰기</span>
         </button>
       )}
     </div>
@@ -185,7 +185,7 @@ function ProfileSummaryCard({
           ) : null}
         </div>
         {description ? <p className="community_follow_me_description">{description}</p> : null}
-        <div className="community_follow_me_stats" aria-label="?붿빟 ?뺣낫">
+        <div className="community_follow_me_stats" aria-label="요약 정보">
           {stats.map((stat) => (
             <div className="community_follow_me_stat" key={`${stat.label}-${stat.value}`}>
               <strong>{stat.value}</strong>
