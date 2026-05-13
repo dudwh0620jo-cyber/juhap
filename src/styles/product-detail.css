@@ -1230,26 +1230,6 @@
   display: block;
 }
 
-.product_scroll_top {
-  position: fixed;
-  right: calc(50% - 184px);
-  bottom: 96px;
-  z-index: 12;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  border: 0.446px solid var(--color-point-02);
-  border-radius: 999px;
-  background: var(--color-bg-white);
-  color: var(--color-primary);
-  text-decoration: none;
-  font-size: 24px;
-  font-weight: 400;
-  box-shadow: 0 10px 24px rgba(71, 53, 42, 0.1);
-}
-
 .product_review_panel {
   display: flex;
   flex-direction: column;
@@ -1554,13 +1534,13 @@
 .review_photo_filter input:checked + span::after {
   content: "";
   position: absolute;
-  left: 6px;
-  top: 3px;
+  left: 50%;
+  top: 50%;
   width: 7px;
   height: 12px;
   border-right: 2px solid #fff;
   border-bottom: 2px solid #fff;
-  transform: rotate(45deg);
+  transform: translate(-50%, -58%) rotate(45deg);
 }
 
 .review_sort_button {
@@ -1864,8 +1844,8 @@
 }
 
 .review_actions_left > span img {
-  width: 19px;
-  height: 19px;
+  width: 24px;
+  height: 24px;
   display: block;
 }
 
@@ -2110,9 +2090,6 @@
     font-size: 20px;
   }
 
-  .product_scroll_top {
-    right: 27px;
-  }
 }
 
 /* ── 페어링추천 탭 ── */
@@ -2393,8 +2370,8 @@
 }
 
 .pairing_card_actions_left > span img {
-  width: 19px;
-  height: 19px;
+  width: 24px;
+  height: 24px;
   display: block;
 }
 

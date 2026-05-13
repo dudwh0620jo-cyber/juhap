@@ -19,6 +19,8 @@ export default function FeedFilterGroup({
   setGroupRef,
   renderChip,
 }: Props) {
+  const isCollapsed = showToggle && !isExpanded
+
   return (
     <div className="feed_filter_group">
       <div className="feed_filter_group_header">
@@ -34,7 +36,7 @@ export default function FeedFilterGroup({
       </div>
       <div
         ref={setGroupRef}
-        className={isExpanded ? "feed_filter_group_chips" : "feed_filter_group_chips is_collapsed"}
+        className={isCollapsed ? "feed_filter_group_chips is_collapsed" : "feed_filter_group_chips"}
       >
         {chips.map((chip) => renderChip(chip))}
       </div>

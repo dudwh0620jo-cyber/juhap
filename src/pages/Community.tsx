@@ -14,6 +14,7 @@ import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import SearchFilterModal from "../components/SearchFilterModal"
 import CommunityFilterPanel from "../components/CommunityFilterPanel"
 import PostOwnerActionModal from "../components/PostOwnerActionModal"
+import ScrollTopButton from "../components/ScrollTopButton"
 import {
   deriveCommunityTagBundle,
   extractPairingTitle,
@@ -51,6 +52,7 @@ import {
 } from "../utils/communityFeed"
 
 const feedPosts: FeedPost[] = communityFeedPosts
+const EMPTY_FILTER_SET = new Set<string>()
 
 type SegmentTabItem = {
   key: string
@@ -213,7 +215,6 @@ export default function Community() {
     bookmarkLists,
     popupCategoryByDrinkType,
     popupFeaturesByDrinkType,
-    popupFoodCategories,
     defaultFollowedUserIdsMock,
   } = communityPageData
 
@@ -224,6 +225,7 @@ export default function Community() {
     filterParam === "free" || filterParam === "review" || filterParam === "follow" ? filterParam : stateFilter
 
   const [feedFilter, setFeedFilter] = useState<FeedFilter>(initialFilter ?? "review")
+  const isQuestionFeed = feedFilter === "free"
   const { value: followedUserIds, toggle: toggleFollowUser } = useStoredNumberSet(
     COMMUNITY_FOLLOWED_USERS_KEY,
     defaultFollowedUserIdsMock,
@@ -246,6 +248,7 @@ export default function Community() {
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(() => new Set())
   const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(() => new Set())
   const [selectedFoods, setSelectedFoods] = useState<Set<string>>(() => new Set())
+  const [selectedSituations, setSelectedSituations] = useState<Set<string>>(() => new Set())
   const [feedSearchValue, setFeedSearchValue] = useState("")
   const [isFeedSearchConfirmed, setIsFeedSearchConfirmed] = useState(false)
   const [reviewSort, setReviewSort] = useState<ReviewSortKey>("latest")
@@ -257,6 +260,13 @@ export default function Community() {
   const myAvatarSrc = resolveMyUserAvatar()
   const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
   const { commentCountByPostId, persistUserPosts, userPostIdSet, userPosts } = useCommunityStoredPosts(feedPosts)
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: true } }))
+    return () => {
+      window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: false } }))
+    }
+  }, [])
 
   const deleteUserPost = useCallback(
     (postId: number) => {
@@ -292,11 +302,10 @@ export default function Community() {
       buildPopupChipGroups({
         popupCategoryByDrinkType,
         popupFeaturesByDrinkType,
-        popupFoodCategories,
         selectedDrinkType,
         selectedCategories,
       }),
-    [popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories, selectedCategories, selectedDrinkType],
+    [popupCategoryByDrinkType, popupFeaturesByDrinkType, selectedCategories, selectedDrinkType],
   )
 
   const effectiveSelectedFeatures = useMemo(
@@ -305,8 +314,8 @@ export default function Community() {
   )
 
   const searchAllChipGroups = useMemo(
-    () => buildSearchAllChipGroups(popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories),
-    [popupCategoryByDrinkType, popupFeaturesByDrinkType, popupFoodCategories],
+    () => buildSearchAllChipGroups(popupCategoryByDrinkType, popupFeaturesByDrinkType),
+    [popupCategoryByDrinkType, popupFeaturesByDrinkType],
   )
 
   const filteredPopupChipGroups = useMemo(
@@ -322,24 +331,27 @@ export default function Community() {
   )
 
   const isPopupSearchNoResults =
-    isFeedSearchConfirmed && Boolean(feedSearchValue.trim()) && filteredPopupChipGroups.length === 0
+    !isQuestionFeed && isFeedSearchConfirmed && Boolean(feedSearchValue.trim()) && filteredPopupChipGroups.length === 0
 
   const communityFeedFilters = useMemo(
     () => ({
       query: feedSearchValue,
       isSearchConfirmed: isFeedSearchConfirmed,
-      selectedDrinkType,
-      selectedCategories,
-      selectedFeatures: effectiveSelectedFeatures,
-      selectedFoods,
+      selectedDrinkType: isQuestionFeed ? null : selectedDrinkType,
+      selectedCategories: isQuestionFeed ? EMPTY_FILTER_SET : selectedCategories,
+      selectedFeatures: isQuestionFeed ? EMPTY_FILTER_SET : effectiveSelectedFeatures,
+      selectedFoods: isQuestionFeed ? EMPTY_FILTER_SET : selectedFoods,
+      selectedSituations: isQuestionFeed ? EMPTY_FILTER_SET : selectedSituations,
     }),
     [
       effectiveSelectedFeatures,
       feedSearchValue,
+      isQuestionFeed,
       isFeedSearchConfirmed,
       selectedCategories,
       selectedDrinkType,
       selectedFoods,
+      selectedSituations,
     ],
   )
 
@@ -361,8 +373,9 @@ export default function Community() {
   }, [communityFeedFilters, posts])
 
   const searchSuggestionTags = useMemo(() => {
+    if (isQuestionFeed) return []
     return getCommunitySearchSuggestionTags({ feedPosts, filters: communityFeedFilters })
-  }, [communityFeedFilters])
+  }, [communityFeedFilters, isQuestionFeed])
 
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
 
@@ -428,6 +441,7 @@ export default function Community() {
     setSelectedCategories(new Set())
     setSelectedFeatures(new Set())
     setSelectedFoods(new Set())
+    setSelectedSituations(new Set())
     setIsFeedSearchConfirmed(Boolean(feedSearchValue.trim()))
   }
 
@@ -453,6 +467,16 @@ export default function Community() {
 
   const toggleFood = (chip: string) => {
     setSelectedFoods((prev) => {
+      const next = new Set(prev)
+      if (next.has(chip)) next.delete(chip)
+      else next.add(chip)
+      return next
+    })
+    setIsFeedSearchConfirmed(true)
+  }
+
+  const toggleSituation = (chip: string) => {
+    setSelectedSituations((prev) => {
       const next = new Set(prev)
       if (next.has(chip)) next.delete(chip)
       else next.add(chip)
@@ -497,6 +521,16 @@ export default function Community() {
     feedSearchInputRef.current?.blur()
   }
 
+  const confirmFeedSearchAndCloseIfQuestion = (term?: string) => {
+    const query = (term ?? feedSearchValue).trim()
+    if (!query) return
+
+    confirmFeedSearch(term)
+    if (isQuestionFeed) {
+      setIsFeedFilterPopupOpen(false)
+    }
+  }
+
   const changeFeedFilter = (nextFilter: FeedFilter) => {
     setFeedFilter(nextFilter)
     window.scrollTo(0, 0)
@@ -532,14 +566,14 @@ export default function Community() {
             setFeedSearchValue(nextValue)
             setIsFeedSearchConfirmed(Boolean(nextValue.trim()))
           }}
-          onConfirmSearch={confirmFeedSearch}
+          onConfirmSearch={confirmFeedSearchAndCloseIfQuestion}
           onClearSearch={() => {
             setFeedSearchValue("")
             setIsFeedSearchConfirmed(false)
           }}
           onClose={() => setIsFeedFilterPopupOpen(false)}
           isNoResults={isPopupSearchNoResults}
-          chipGroups={filteredPopupChipGroups}
+          chipGroups={isQuestionFeed ? [] : filteredPopupChipGroups}
           collapsibleGroupTitles={new Set()}
           expandedGroupTitles={expandedChipGroups}
           setGroupRef={setChipGroupRef}
@@ -548,6 +582,7 @@ export default function Community() {
           selectedCategories={selectedCategories}
           selectedFeatures={effectiveSelectedFeatures}
           selectedFoods={selectedFoods}
+          selectedSituations={selectedSituations}
           onChipClick={(groupTitle, chip) => {
             if (groupTitle === "주종") {
               toggleDrinkType(chip)
@@ -563,14 +598,19 @@ export default function Community() {
             }
             if (groupTitle === "음식") {
               toggleFood(chip)
+              return
+            }
+            if (groupTitle === "상황") {
+              toggleSituation(chip)
             }
           }}
-          recentSearchTerms={recentSearchTerms}
+          recentSearchTerms={isQuestionFeed ? [] : recentSearchTerms}
           onSelectRecentSearch={(term) => confirmFeedSearch(term)}
           onDeleteRecentSearch={(term) => {
             setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
           }}
           onReset={resetFilters}
+          hideFooter={isQuestionFeed}
           onApply={() => {
             setIsFeedFilterPopupOpen(false)
             setIsFeedSearchConfirmed(true)
@@ -860,6 +900,8 @@ export default function Community() {
           }}
         />
       ) : null}
+
+      <ScrollTopButton />
     </section>
   )
 }

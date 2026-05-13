@@ -18,12 +18,15 @@ type Props = {
   selectedCategories: ReadonlySet<string>
   selectedFeatures: ReadonlySet<string>
   selectedFoods: ReadonlySet<string>
+  selectedSituations?: ReadonlySet<string>
   onChipClick: (groupTitle: string, chip: string) => void
 
   recentSearchTerms: readonly string[]
   onSelectRecentSearch: (term: string) => void
   onDeleteRecentSearch: (term: string) => void
 }
+
+const EMPTY_SELECTED_SITUATIONS = new Set<string>()
 
 const getChipActiveState = (
   groupTitle: string,
@@ -33,6 +36,7 @@ const getChipActiveState = (
     categories: ReadonlySet<string>
     features: ReadonlySet<string>
     foods: ReadonlySet<string>
+    situations: ReadonlySet<string>
   },
 ) => {
   if (groupTitle === "주종") {
@@ -47,6 +51,9 @@ const getChipActiveState = (
   if (groupTitle === "음식") {
     return selected.foods.has(chip)
   }
+  if (groupTitle === "상황") {
+    return selected.situations.has(chip)
+  }
   return false
 }
 
@@ -60,6 +67,7 @@ export default function CommunityFeedFilterPopupBody({
   selectedCategories,
   selectedFeatures,
   selectedFoods,
+  selectedSituations = EMPTY_SELECTED_SITUATIONS,
   onChipClick,
   recentSearchTerms,
   onSelectRecentSearch,
@@ -89,6 +97,7 @@ export default function CommunityFeedFilterPopupBody({
                   categories: selectedCategories,
                   features: selectedFeatures,
                   foods: selectedFoods,
+                  situations: selectedSituations,
                 })}
                 onClick={() => onChipClick(group.title, chip)}
               />

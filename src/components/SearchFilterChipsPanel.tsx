@@ -1,4 +1,4 @@
-import type { RefObject } from "react"
+import type { ReactNode, RefObject } from "react"
 import CommunityFeedFilterPopupBody from "./CommunityFeedFilterPopupBody"
 import SearchFilterModalHeader from "./SearchFilterModalHeader"
 
@@ -6,6 +6,8 @@ type PopupChipGroup = {
   title: string
   chips: string[]
 }
+
+const EMPTY_SELECTED_SITUATIONS = new Set<string>()
 
 type Props = {
   shellAriaLabel: string
@@ -21,6 +23,7 @@ type Props = {
   onClose: () => void
 
   isNoResults: boolean
+  bodyContent?: ReactNode
 
   chipGroups: PopupChipGroup[]
   collapsibleGroupTitles: Set<string>
@@ -31,6 +34,7 @@ type Props = {
   selectedCategories: Set<string>
   selectedFeatures: Set<string>
   selectedFoods: Set<string>
+  selectedSituations?: Set<string>
   onChipClick: (groupTitle: string, chip: string) => void
 
   recentSearchTerms: string[]
@@ -50,6 +54,7 @@ export default function SearchFilterChipsPanel({
   onClearSearch,
   onClose,
   isNoResults,
+  bodyContent,
   chipGroups,
   collapsibleGroupTitles,
   expandedGroupTitles,
@@ -59,6 +64,7 @@ export default function SearchFilterChipsPanel({
   selectedCategories,
   selectedFeatures,
   selectedFoods,
+  selectedSituations,
   onChipClick,
   recentSearchTerms,
   onSelectRecentSearch,
@@ -85,21 +91,24 @@ export default function SearchFilterChipsPanel({
         </p>
       ) : null}
 
-      <CommunityFeedFilterPopupBody
-        groups={chipGroups}
-        collapsibleGroupTitles={collapsibleGroupTitles}
-        expandedGroupTitles={expandedGroupTitles}
-        setGroupRef={setGroupRef}
-        onToggleGroupExpanded={onToggleGroupExpanded}
-        selectedDrinkType={selectedDrinkType}
-        selectedCategories={selectedCategories}
-        selectedFeatures={selectedFeatures}
-        selectedFoods={selectedFoods}
-        onChipClick={onChipClick}
-        recentSearchTerms={recentSearchTerms}
-        onSelectRecentSearch={onSelectRecentSearch}
-        onDeleteRecentSearch={onDeleteRecentSearch}
-      />
+      {bodyContent ?? (
+        <CommunityFeedFilterPopupBody
+          groups={chipGroups}
+          collapsibleGroupTitles={collapsibleGroupTitles}
+          expandedGroupTitles={expandedGroupTitles}
+          setGroupRef={setGroupRef}
+          onToggleGroupExpanded={onToggleGroupExpanded}
+          selectedDrinkType={selectedDrinkType}
+          selectedCategories={selectedCategories}
+          selectedFeatures={selectedFeatures}
+          selectedFoods={selectedFoods}
+          selectedSituations={selectedSituations ?? EMPTY_SELECTED_SITUATIONS}
+          onChipClick={onChipClick}
+          recentSearchTerms={recentSearchTerms}
+          onSelectRecentSearch={onSelectRecentSearch}
+          onDeleteRecentSearch={onDeleteRecentSearch}
+        />
+      )}
     </>
   )
 }
