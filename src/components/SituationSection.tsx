@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react"
-import { Link } from "react-router"
 import { motion } from "framer-motion"
 import { homeMomentPickCards, homeMomentPickItems } from "../data/homeContent"
 
@@ -71,7 +70,7 @@ function MomentPickCard({
 }) {
   return (
     <motion.article
-      className="moment_pick_card"
+      className={`moment_pick_card${isActive ? " is_active" : " is_inactive"}`}
       animate={{ scale: isActive ? 1 : 0.92, opacity: isActive ? 1 : 0.9 }}
       transition={{ type: "spring", stiffness: 520, damping: 36, mass: 0.6 }}
     >
@@ -84,9 +83,6 @@ function MomentPickCard({
               <span key={tag}>{tag}</span>
             ))}
           </div>
-          <Link to="/community" className="moment_pick_card_link">
-            자세히 보기 →
-          </Link>
         </div>
       </div>
 
@@ -100,7 +96,7 @@ function MomentPickCard({
 
 export default function SituationSection({ items }: { items: SituationItem[] }) {
   void items
-  const [selectedKey, setSelectedKey] = useState<string>(() => homeMomentPickItems[1]?.key ?? homeMomentPickItems[0].key)
+  const [selectedKey, setSelectedKey] = useState<string>(() => homeMomentPickItems[0]?.key ?? "")
   const selectedLabel = homeMomentPickItems.find((item) => item.key === selectedKey)?.label ?? ""
   const [activeCardIndex, setActiveCardIndex] = useState(0)
 
@@ -112,13 +108,16 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
 
   return (
     <section className="home_block home_moment_pick" aria-label="Moment Pick">
-      <div className="home_block_header">
+      <div className="moment_pick_header_group">
+        <div className="home_block_header">
         <h3>Moment Pick</h3>
       </div>
 
       <SituationScroll selectedKey={selectedKey} onSelect={(key) => setSelectedKey(key)} />
+      </div>
       <div className="moment_pick_selected_label" aria-live="polite">
-        {selectedLabel} 추천조합
+        <span className="moment_pick_selected_label_primary">{selectedLabel}</span>
+        <span className="moment_pick_selected_label_rest">추천조합</span>
       </div>
 
       <div className="moment_pick_cards" aria-label="Moment Pick 추천 목록">

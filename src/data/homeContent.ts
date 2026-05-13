@@ -4,6 +4,7 @@ import todayPairingBanner from "../assets/today_pairing_banner01.png"
 import todayPairingBanner02 from "../assets/today_pairing_banner02.png"
 import todayPairingBanner03 from "../assets/today_pairing_banner03.png"
 import todayPairingBanner04 from "../assets/today_pairing_banner04.png"
+import todayPairingMascot from "../assets/today_pairing_mascot.png"
 import todayQuizBanner from "../assets/today_quiz_banner.png"
 import todayVoteMascot from "../assets/today_vote_mascot.png"
 import voteBeerPizza from "../assets/vote_beer_pizza.png"
@@ -39,6 +40,7 @@ export const homeAssets = {
   todayPairingBanner02,
   todayPairingBanner03,
   todayPairingBanner04,
+  todayPairingMascot,
   todayQuizBanner,
   todayVoteMascot,
   voteBeerPizza,
