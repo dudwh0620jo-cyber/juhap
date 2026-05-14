@@ -8,10 +8,11 @@ type Props = {
   readOnly?: boolean
   autoFocus?: boolean
   showConfirmButton?: boolean
+  guideId?: string
 }
 
 const CategorySearch = forwardRef<HTMLInputElement, Props>(
-  ({ value, onChange, onActivate, readOnly = false, autoFocus = false, showConfirmButton = true }, ref) => {
+  ({ value, onChange, onActivate, readOnly = false, autoFocus = false, showConfirmButton = true, guideId }, ref) => {
     const handleConfirm = () => {
       if (ref && "current" in ref) ref.current?.blur()
     }
@@ -21,7 +22,7 @@ const CategorySearch = forwardRef<HTMLInputElement, Props>(
     }
 
     return (
-      <div className="category_search">
+      <div className="category_search" data-guide-id={guideId}>
         <div className="category_search_field">
           <img className="category_search_icon" src={iconSearch} alt="" aria-hidden="true" />
           <input

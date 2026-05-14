@@ -281,7 +281,7 @@ export default function ProductDetail() {
         </p>
       </section>
 
-      <nav className="product_tabs" aria-label="상세 탭">
+      <nav className="product_tabs" aria-label="상세 탭" data-guide-id="product-detail-tabs">
         <div className="product_tabs_inner">
           {tabItems.map((item) => (
             <button key={item} type="button" className={activeTab === item ? "is_active" : ""} onClick={() => changeActiveTab(item)}>

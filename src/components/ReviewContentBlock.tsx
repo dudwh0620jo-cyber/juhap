@@ -25,6 +25,7 @@ type Props = {
   onSelectFood?: () => void
   tagRowClassName?: string
   tagClassName?: string
+  guideId?: string
 }
 
 export default function ReviewContentBlock({
@@ -50,11 +51,12 @@ export default function ReviewContentBlock({
   onSelectFood,
   tagRowClassName = "community_review_pair_tags",
   tagClassName = "community_review_pair_chip",
+  guideId,
 }: Props) {
   const visibleHashtags = hashtags ?? []
 
   return (
-    <div className={className}>
+    <div className={className} data-guide-id={guideId}>
       <div className={mainClassName}>
         <div className={introClassName}>
           {title ? <div className={titleClassName}>{title}</div> : null}

@@ -618,7 +618,7 @@ export default function Community() {
         />
       </SearchFilterModal>
 
-      <div className="community_feed_control_row">
+      <div className="community_feed_control_row" data-guide-id="community-feed-controls">
         <FeedSegmentTabs
           ariaLabel="커뮤니티 피드 필터"
           items={feedFilterItems}

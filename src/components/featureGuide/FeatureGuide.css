@@ -1,0 +1,86 @@
+.feature_guide {
+  position: fixed;
+  z-index: 1600;
+  width: min(260px, calc(100vw - 24px));
+  padding: 14px 14px 12px;
+  border: 1px solid rgba(202, 128, 79, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 12px 32px rgba(68, 65, 63, 0.18);
+  color: var(--color-text-primary);
+  font-family: var(--font-main);
+  pointer-events: auto;
+}
+
+.feature_guide::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: inherit;
+  border-right: 0;
+  border-bottom: 0;
+  background: inherit;
+}
+
+.feature_guide_bottom::before {
+  top: -7px;
+  left: var(--feature-guide-arrow-left, 28px);
+  transform: rotate(45deg);
+}
+
+.feature_guide_top::before {
+  bottom: -7px;
+  left: var(--feature-guide-arrow-left, 28px);
+  transform: rotate(225deg);
+}
+
+.feature_guide_left::before {
+  right: -7px;
+  top: var(--feature-guide-arrow-top, 24px);
+  transform: rotate(135deg);
+}
+
+.feature_guide_right::before {
+  left: -7px;
+  top: var(--feature-guide-arrow-top, 24px);
+  transform: rotate(-45deg);
+}
+
+.feature_guide_message {
+  margin: 0;
+  padding-right: 44px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.feature_guide_close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-point-03);
+  color: var(--color-primary);
+  font-family: var(--font-main);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (max-width: 360px) {
+  .feature_guide {
+    width: min(236px, calc(100vw - 24px));
+    padding: 12px;
+  }
+
+  .feature_guide_message {
+    padding-right: 38px;
+    font-size: 12px;
+  }
+}

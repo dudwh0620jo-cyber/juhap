@@ -306,6 +306,7 @@ export default function PairingDetail() {
             foodTag={hasPairingTags ? foodTag : ""}
             body={detailBodyText}
             hashtags={post?.searchTags}
+            guideId="pairing-detail-tags"
             locationLabel={locationLabel}
             bodyClassName="detail_text"
             locationClassName="detail_content_location"

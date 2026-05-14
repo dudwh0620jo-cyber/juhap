@@ -26,9 +26,9 @@ type AiCardProps = {
   buttonLabel: string
 }
 
-function AiCardScanButton({ label, onClick }: { label: string; onClick: () => void }) {
+function AiCardScanButton({ label, onClick, guideId }: { label: string; onClick: () => void; guideId?: string }) {
   return (
-    <button className="home_ai_scan_button" type="button" onClick={onClick}>
+    <button className="home_ai_scan_button" type="button" onClick={onClick} data-guide-id={guideId}>
       <img className="home_ai_scan_thumb" src={homeAssets.mainScanButton} alt="" aria-hidden="true" />
       <img className="home_ai_scan_icon" src={homeAssets.scanIcon} alt="" aria-hidden="true" />
       <span>{label}</span>
@@ -45,7 +45,7 @@ function AiCard({ title, subtitle, hint, buttonLabel }: AiCardProps) {
         <p className="home_ai_subtitle">{subtitle}</p>
         <p className="home_ai_hint">{hint}</p>
       </div>
-      <AiCardScanButton label={buttonLabel} onClick={() => navigate("/ai-scan")} />
+      <AiCardScanButton label={buttonLabel} onClick={() => navigate("/ai-scan")} guideId="home-ai-scan" />
     </section>
   )
 }
