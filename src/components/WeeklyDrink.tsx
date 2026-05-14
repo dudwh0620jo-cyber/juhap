@@ -1,12 +1,12 @@
 import { Link } from "react-router"
-import starIcon from "../assets/svg/star.svg"
-import dropHalfIcon from "../assets/svg/drophalf.svg"
-import brandyIcon from "../assets/svg/brandy.svg"
-import tagIcon from "../assets/svg/tag.svg"
-import { resolveReviewImage } from "../utils/reviewImages"
+import iconRating from "../assets/icon_rating.png"
+import iconSweetness from "../assets/icon_sweetness.png"
+import iconAbv from "../assets/icon_abv.png"
+import iconVariety from "../assets/icon_variety.png"
 import weeklyDrinkBg01 from "../assets/weekly_drink_bg_01.png"
 import weeklyDrinkBg02 from "../assets/weekly_drink_bg_02.png"
 import weeklyDrinkBg03 from "../assets/weekly_drink_bg_03.png"
+import { resolveReviewImage } from "../utils/reviewImages"
 
 export type WeeklyDrinkItem = {
   id: string
@@ -54,6 +54,7 @@ function DrinkStat({ iconSrc, label, value }: { iconSrc: string; label: string; 
 
 export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
   const backgrounds = [weeklyDrinkBg01, weeklyDrinkBg02, weeklyDrinkBg03] as const
+  const formatPriceLabel = (value: string) => value.replace(/^[^\d]+/, "")
 
   return (
     <section className="home_block home_weekly_drink" aria-label="금주의 주류 소개">
@@ -77,24 +78,24 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
                 <img src={backgrounds[index % backgrounds.length]} alt="" />
               </div>
 
-                <div className="weekly_drink_card_inner">
-                  <div className="weekly_drink_left">
-                    <h4 className="weekly_drink_name">{renderWithLineBreaks(item.name)}</h4>
-                    <div className="weekly_drink_kv">
-                      <span className="weekly_drink_kv_type">{item.type}</span>
+              <div className="weekly_drink_card_inner">
+                <div className="weekly_drink_left">
+                  <h4 className="weekly_drink_name">{renderWithLineBreaks(item.name)}</h4>
+                  <div className="weekly_drink_kv">
+                    <span className="weekly_drink_kv_type">{item.type}</span>
                     <span className="weekly_drink_kv_divider" aria-hidden="true">
                       |
                     </span>
                     <span className="weekly_drink_kv_origin">{item.origin}</span>
                   </div>
-                  <div className="weekly_drink_price">{item.priceLabel}</div>
+                  <div className="weekly_drink_price">{formatPriceLabel(item.priceLabel)}</div>
                 </div>
 
                 <div className="weekly_drink_right">
-                  <DrinkStat iconSrc={starIcon} label="평점" value={item.rating.toFixed(1)} />
-                  <DrinkStat iconSrc={dropHalfIcon} label="당도" value={item.sweetness} />
-                  <DrinkStat iconSrc={brandyIcon} label="도수" value={item.abv} />
-                  <DrinkStat iconSrc={tagIcon} label="품종" value={item.variety} />
+                  <DrinkStat iconSrc={iconRating} label="평점" value={item.rating.toFixed(1)} />
+                  <DrinkStat iconSrc={iconSweetness} label="당도" value={item.sweetness} />
+                  <DrinkStat iconSrc={iconAbv} label="도수" value={item.abv} />
+                  <DrinkStat iconSrc={iconVariety} label="품종" value={item.variety} />
                 </div>
 
                 <div className="weekly_drink_tags">
@@ -118,3 +119,4 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
     </section>
   )
 }
+

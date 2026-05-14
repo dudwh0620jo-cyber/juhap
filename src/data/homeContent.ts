@@ -1,37 +1,44 @@
-﻿import mainScanButton from "../assets/main_scan_button.png"
+﻿import mainScanButton from "../assets/main_scan_button_01.png"
 import scanIcon from "../assets/svg/scan.svg"
 import todayPairingBanner from "../assets/today_pairing_banner01.png"
 import todayPairingBanner02 from "../assets/today_pairing_banner02.png"
 import todayPairingBanner03 from "../assets/today_pairing_banner03.png"
 import todayPairingBanner04 from "../assets/today_pairing_banner04.png"
-import todayPairingMascot from "../assets/today_pairing_mascot.png"
-import todayQuizBanner from "../assets/today_quiz_banner.png"
-import todayVoteMascot from "../assets/today_vote_mascot.png"
-import voteBeerPizza from "../assets/vote_beer_pizza.png"
-import voteSteakWine from "../assets/vote_steak_wine.png"
+import todayPairingMascot from "../assets/today_pairing_mascot_01.png"
+import todayQuizBanner from "../assets/today_quiz_banner_01.png"
+import todayVoteMascot from "../assets/today_vote_mascot_01.png"
+import voteBeerPizza from "../assets/vote_beer_pizza_01.png"
+import voteSteakWine from "../assets/vote_steak_wine_01.png"
+import voteSojuRamen from "../assets/vote_soju_ramen_01.png"
+import voteWineCheese from "../assets/vote_wine_cheese_01.png"
+import voteDrinkSoju from "../assets/vote_drink_soju_01.png"
+import voteDrinkBeer from "../assets/vote_drink_beer_01.png"
+import voteColdCannedBeer from "../assets/vote_cold_canned_beer_01.png"
+import voteVodkaMix from "../assets/vote_vodka_mix_01.png"
+import voteMakgeolliPajeon from "../assets/vote_makgeolli_pajeon_01.png"
 import momentPickSolo from "../assets/situation_solo.png"
 import momentPickFriends from "../assets/situation_friends.png"
 import momentPickFamily from "../assets/situation_family.png"
 import momentPickDate from "../assets/situation_date.png"
 import momentPickGroup from "../assets/situation_group.png"
-import pairingRedWineCheesePlatter from "../assets/pairing_red_wine_cheese_platter.png"
-import pairingWhiteWineTomato from "../assets/pairing_white_wine_tomato.png"
+import pairingRedWineCheesePlatter from "../assets/pairing_red_wine_cheese_platter_01.png"
+import pairingWhiteWineTomato from "../assets/pairing_white_wine_tomato_01.png"
 import weeklyRankingBadge01 from "../assets/weekly_ranking_badge_01.png"
 import weeklyRankingBadge02 from "../assets/weekly_ranking_badge_02.png"
 import weeklyRankingBadge03 from "../assets/weekly_ranking_badge_03.png"
 import weeklyRankingBadge04 from "../assets/weekly_ranking_badge_04.png"
 import weeklyRankingBadge05 from "../assets/weekly_ranking_badge_05.png"
-import weeklyBestMascot from "../assets/weekly_best_mascot.png"
-import drinkJinroIsBack from "../assets/drink_jinro_is_back.png"
+import weeklyBestMascot from "../assets/weekly_best_mascot_01.png"
+import drinkJinroIsBack from "../assets/drink_jinro_is_back_01.png"
 import drinkHwayo25 from "../assets/drink_hwayo_25.png"
-import drinkBoksoondogaMakgeolli from "../assets/drink_boksoondoga_makgeolli.png"
-import drinkCass from "../assets/drink_cass.png"
+import drinkBoksoondogaMakgeolli from "../assets/drink_boksoondoga_makgeolli_01.png"
+import drinkCass from "../assets/drink_cass_01.png"
 import drinkClaret2010 from "../assets/drink_claret_2010.png"
-import foodSamgyeopsal from "../assets/food_samgyeopsal.png"
-import foodHoeMuchim from "../assets/food_hoe_muchim.png"
-import foodHaemulPajeon from "../assets/food_haemul_pajeon.png"
-import foodFriedChicken from "../assets/food_fried_chicken.png"
-import foodSirloinSteak from "../assets/food_sirloin_steak.png"
+import foodSamgyeopsal from "../assets/food_samgyeopsal_01.png"
+import foodHoeMuchim from "../assets/food_hoe_muchim_01.png"
+import foodHaemulPajeon from "../assets/food_haemul_pajeon_01.png"
+import foodFriedChicken from "../assets/food_fried_chicken_01.png"
+import foodSirloinSteak from "../assets/food_sirloin_steak_01.png"
 
 export const homeAssets = {
   mainScanButton,
@@ -45,6 +52,13 @@ export const homeAssets = {
   todayVoteMascot,
   voteBeerPizza,
   voteSteakWine,
+  voteSojuRamen,
+  voteWineCheese,
+  voteDrinkSoju,
+  voteDrinkBeer,
+  voteColdCannedBeer,
+  voteVodkaMix,
+  voteMakgeolliPajeon,
   momentPickSolo,
   momentPickFriends,
   momentPickFamily,
@@ -110,6 +124,14 @@ export function resolveVoteOptionIconSrc(title: string): string | undefined {
   if (!key) return undefined
   if (key.includes("맥주") && (key.includes("피자") || key.includes("치킨"))) return homeAssets.voteBeerPizza
   if (key.includes("스테이크") && key.includes("와인")) return homeAssets.voteSteakWine
+  if (key.includes("소주") && key.includes("라면")) return homeAssets.voteSojuRamen
+  if (key.includes("와인") && key.includes("치즈")) return homeAssets.voteWineCheese
+  if (key.includes("보드카믹스") || (key.includes("보드카") && key.includes("믹스"))) return homeAssets.voteVodkaMix
+  if (key.includes("막걸리") && (key.includes("파전") || (key.includes("전") && key.includes("시장"))))
+    return homeAssets.voteMakgeolliPajeon
+  if (key.includes("캔맥주") || key.includes("캔")) return homeAssets.voteColdCannedBeer
+  if (key === "소주" || (key.includes("소주") && !key.includes("라면"))) return homeAssets.voteDrinkSoju
+  if (key === "맥주" || (key.includes("맥주") && !key.includes("피자") && !key.includes("치킨"))) return homeAssets.voteDrinkBeer
   return undefined
 }
 
@@ -148,7 +170,7 @@ export const homeWeeklyRankingCards = [
     subtitle: "회무침",
     drinkSrc: homeAssets.drinkHwayo25,
     foodSrc: homeAssets.foodHoeMuchim,
-    scoreLabel: "6,124잔",
+    scoreLabel: "6,124짠",
     isCenter: false,
   },
   {
@@ -158,7 +180,7 @@ export const homeWeeklyRankingCards = [
     subtitle: "해물파전",
     drinkSrc: homeAssets.drinkBoksoondogaMakgeolli,
     foodSrc: homeAssets.foodHaemulPajeon,
-    scoreLabel: "6,321잔",
+    scoreLabel: "6,321짠",
     isCenter: false,
   },
   {
@@ -168,7 +190,7 @@ export const homeWeeklyRankingCards = [
     subtitle: "삼겹살",
     drinkSrc: homeAssets.drinkJinroIsBack,
     foodSrc: homeAssets.foodSamgyeopsal,
-    scoreLabel: "7,621잔",
+    scoreLabel: "7,621짠",
     isCenter: true,
   },
   {
@@ -178,7 +200,7 @@ export const homeWeeklyRankingCards = [
     subtitle: "후라이드 치킨",
     drinkSrc: homeAssets.drinkCass,
     foodSrc: homeAssets.foodFriedChicken,
-    scoreLabel: "5,921잔",
+    scoreLabel: "5,921짠",
     isCenter: false,
   },
   {
@@ -188,7 +210,7 @@ export const homeWeeklyRankingCards = [
     subtitle: "등심 스테이크",
     drinkSrc: homeAssets.drinkClaret2010,
     foodSrc: homeAssets.foodSirloinSteak,
-    scoreLabel: "5,421잔",
+    scoreLabel: "5,421짠",
     isCenter: false,
   },
 ] as const

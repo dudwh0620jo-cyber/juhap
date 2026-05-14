@@ -160,13 +160,15 @@ export default function App() {
     navState.bottomNavActive === "category"
   const isCommunityActive = pathname.startsWith("/community") && !isRankingActive && !isCategoryActive
   const isChatFabHidden = useChatFabVisibility({ pathname, isAuthPage, isWritePage, isProductDetailPage })
+  const isChatFabAllowed =
+    pathname === "/home" || pathname === "/category" || pathname === "/category/list" || pathname === "/community/ranking"
 
   return (
     <main className="app_root">
       <div className="app_viewport">
         <StatusBar />
 
-        {!isChatFabHidden ? (
+        {!isChatFabHidden && isChatFabAllowed ? (
           <div className="chat_corner_slot">
             <button
               type="button"

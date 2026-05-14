@@ -403,7 +403,7 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
                 className={`home_weekly_rank_card_slot${isActive ? " is_active" : ""}`}
                 style={{ zIndex: 10 - abs, pointerEvents: opacity === 0 ? "none" : "auto" }}
                 animate={{ x, y, z, scale, rotateZ, rotateY, opacity, transformPerspective: 900 }}
-                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.9 }}
+                transition={{ type: "spring", stiffness: 380, damping: 70, mass: 0.9 }}
                 aria-hidden={opacity === 0}
                 onClick={() => {
                   setDragOffsetX(0)
