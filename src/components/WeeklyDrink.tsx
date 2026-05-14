@@ -28,6 +28,16 @@ type WeeklyDrinkProps = {
   items: WeeklyDrinkItem[]
 }
 
+function renderWithLineBreaks(value: string) {
+  const parts = value.split("\n")
+  return parts.map((part, index) => (
+    <span key={index}>
+      {part}
+      {index < parts.length - 1 ? <br /> : null}
+    </span>
+  ))
+}
+
 function DrinkStat({ iconSrc, label, value }: { iconSrc: string; label: string; value: string }) {
   return (
     <div className="weekly_drink_stat">
@@ -36,7 +46,7 @@ function DrinkStat({ iconSrc, label, value }: { iconSrc: string; label: string; 
       </span>
       <span className="weekly_drink_stat_text">
         <span className="weekly_drink_stat_label">{label}:</span>
-        <span className="weekly_drink_stat_value">{value}</span>
+        <span className="weekly_drink_stat_value">{renderWithLineBreaks(value)}</span>
       </span>
     </div>
   )
@@ -67,11 +77,11 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
                 <img src={backgrounds[index % backgrounds.length]} alt="" />
               </div>
 
-              <div className="weekly_drink_card_inner">
-                <div className="weekly_drink_left">
-                  <h4 className="weekly_drink_name">{item.name}</h4>
-                  <div className="weekly_drink_kv">
-                    <span className="weekly_drink_kv_type">{item.type}</span>
+                <div className="weekly_drink_card_inner">
+                  <div className="weekly_drink_left">
+                    <h4 className="weekly_drink_name">{renderWithLineBreaks(item.name)}</h4>
+                    <div className="weekly_drink_kv">
+                      <span className="weekly_drink_kv_type">{item.type}</span>
                     <span className="weekly_drink_kv_divider" aria-hidden="true">
                       |
                     </span>
@@ -108,4 +118,3 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
     </section>
   )
 }
-
