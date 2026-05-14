@@ -11,6 +11,7 @@ import iconChatDots from "../assets/svg/chatcircledots_p.svg"
 import iconMagnifyingGlass from "../assets/svg/magnifyingglass.svg"
 import iconShare from "../assets/svg/sharenetwork_p.svg"
 import iconStar from "../assets/svg/star.svg"
+import imgDefaultUserAvatar from "../assets/user_avatar_defult.png"
 import { drinkReviews } from "../data/productReviewsMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { getPairingTierLabelByUserId, getUserGradeBadgeClassNameByUserId } from "../utils/pairingTier"
@@ -72,7 +73,7 @@ export default function ProductReviewDetail() {
 
       <article className="product_review_detail_card">
         <div className="product_review_detail_author">
-          <img className="product_review_detail_avatar" src={review.author.avatar} alt="" aria-hidden="true" />
+          <img className="product_review_detail_avatar" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
           <div className="product_review_detail_author_text">
             <p className="product_review_detail_nickname">
               <strong>{review.author.name}</strong>
