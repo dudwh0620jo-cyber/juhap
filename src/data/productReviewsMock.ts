@@ -1,8 +1,3 @@
-import imgDrinkReviewProfile1 from "../assets/fd_drink_review_profile1.png"
-import imgDrinkReviewProfile2 from "../assets/fd_drink_review_profile2.png"
-import imgDrinkReviewProfile3 from "../assets/fd_drink_review_profile3.png"
-import imgDrinkReviewProfile4 from "../assets/fd_drink_review_profile4.png"
-import imgDrinkReviewProfile5 from "../assets/fd_drink_review_profile5.png"
 import imgDrinkReview1 from "../assets/fd_drink_review_img1.png"
 import imgDrinkReview2 from "../assets/fd_drink_review_img2.png"
 import imgDrinkReview3 from "../assets/fd_drink_review_img3.png"
@@ -13,9 +8,15 @@ import { resolveUserAvatar } from "../utils/userAvatars"
 import { usersMockById } from "../utils/usersMock"
 
 const productPairingReviewIds = [1101, 1102]
-const productReviewAuthorGradeByUserId: Record<number, string> = {
-  2119: "셀렉터",
-  2120: "셀렉터",
+const getProductReviewAuthor = (authorId: number): DrinkReview["author"] => {
+  const user = usersMockById[authorId]
+
+  return {
+    name: user?.name ?? "익명",
+    grade: user?.grade ?? "리뷰어",
+    preference: user?.profile ?? "",
+    avatar: resolveUserAvatar(authorId) ?? "",
+  }
 }
 
 const toProductPairingReview = (post: FeedPost): DrinkReview => {
@@ -38,19 +39,19 @@ const toProductPairingReview = (post: FeedPost): DrinkReview => {
     location: post.locationLabel,
     author: {
       name: user?.name ?? post.authorName ?? "익명",
-      grade: productReviewAuthorGradeByUserId[post.authorId] ?? "리뷰어",
+      grade: user?.grade ?? "리뷰어",
       preference: user?.profile ?? "",
       avatar: resolveUserAvatar(post.authorId) ?? "",
     },
   }
 }
 
-const productPairingReviews = productPairingReviewIds
+export const productPairingReviews: DrinkReview[] = productPairingReviewIds
   .map((id) => feedPosts.find((post) => post.id === id))
   .filter((post): post is FeedPost => Boolean(post))
   .map(toProductPairingReview)
 
-export const drinkReviews: DrinkReview[] = [
+const drinkReviewSeeds: Array<Omit<DrinkReview, "author"> & { authorId: number }> = [
   {
     id: "review-photo-1",
     title: "과일향이 은근하게 오래 남는 한 잔",
@@ -59,16 +60,11 @@ export const drinkReviews: DrinkReview[] = [
     tags: ["#과일향", "#깔끔함", "#프리미엄", "#드라이"],
     images: [],
     likes: 542,
-    comments: 253,
+    comments: 3,
     rating: "5.0",
     createdAt: "2026-05-10T12:00:00+09:00",
     recommendScore: 98,
-    author: {
-      name: "순대렐라",
-      grade: "테이스터",
-      preference: "20대 / 여 / 사케, 화이트와인 / 은은한 과일향 선호",
-      avatar: imgDrinkReviewProfile1,
-    },
+    authorId: 3001,
   },
   {
     id: "review-text-1",
@@ -78,16 +74,11 @@ export const drinkReviews: DrinkReview[] = [
     tags: ["#과일향", "#부드러움"],
     images: [imgDrinkReview3],
     likes: 235,
-    comments: 58,
+    comments: 12,
     rating: "5.0",
     createdAt: "2026-05-12T09:00:00+09:00",
     recommendScore: 78,
-    author: {
-      name: "벼랑위의 당뇨",
-      grade: "소믈리에",
-      preference: "30대 / 남 / 사케, 와인 / 깔끔하고 드라이한 맛 선호",
-      avatar: imgDrinkReviewProfile4,
-    },
+    authorId: 3002,
   },
   {
     id: "review-text-2",
@@ -97,16 +88,11 @@ export const drinkReviews: DrinkReview[] = [
     tags: ["#과일향", "#부드러움"],
     images: [],
     likes: 235,
-    comments: 58,
+    comments: 4,
     rating: "5.0",
     createdAt: "2026-05-09T18:00:00+09:00",
     recommendScore: 84,
-    author: {
-      name: "이웃집 또터러",
-      grade: "입문러",
-      preference: "20대 / 남 / 사케 / 부담 없는 단맛과 부드러운 목넘김 선호",
-      avatar: imgDrinkReviewProfile3,
-    },
+    authorId: 3003,
   },
   {
     id: "review-photo-2",
@@ -116,16 +102,11 @@ export const drinkReviews: DrinkReview[] = [
     tags: ["#드라이", "#깔끔함"],
     images: [imgDrinkReview1, imgDrinkReview2],
     likes: 198,
-    comments: 41,
+    comments: 2,
     rating: "5.0",
     createdAt: "2026-05-11T21:00:00+09:00",
     recommendScore: 91,
-    author: {
-      name: "엄마곗돈",
-      grade: "리뷰어",
-      preference: "30대 / 여 / 사케, 맥주 / 음식과 잘 맞는 깔끔한 술 선호",
-      avatar: imgDrinkReviewProfile2,
-    },
+    authorId: 3004,
   },
   {
     id: "review-text-3",
@@ -135,16 +116,29 @@ export const drinkReviews: DrinkReview[] = [
     tags: ["#과일향", "#부드러움"],
     images: [],
     likes: 235,
-    comments: 58,
+    comments: 5,
     rating: "5.0",
     createdAt: "2026-05-08T16:30:00+09:00",
     recommendScore: 72,
-    author: {
-      name: "달려야하니",
-      grade: "탐험가",
-      preference: "40대 / 남 / 사케, 위스키 / 산뜻한 향과 긴 여운 선호",
-      avatar: imgDrinkReviewProfile5,
-    },
+    authorId: 3005,
   },
-  ...productPairingReviews,
+  {
+    id: "review-text-4",
+    title: "차갑게 마셨을 때 균형이 더 좋았어요",
+    body:
+      "처음에는 향이 은은해서 가볍게 느껴졌는데, 온도가 조금 내려가니 산미와 단맛이 깔끔하게 잡혔어요. 음식 없이 마셔도 부담이 적고, 식사 자리에서는 입안을 정리해 주는 느낌이라 만족스러웠습니다.",
+    tags: ["#깔끔한", "#부드러운", "#식사주"],
+    images: [],
+    likes: 164,
+    comments: 6,
+    rating: "4.5",
+    createdAt: "2026-05-07T20:10:00+09:00",
+    recommendScore: 69,
+    authorId: 3006,
+  },
 ]
+
+export const drinkReviews: DrinkReview[] = drinkReviewSeeds.map(({ authorId, ...review }) => ({
+  ...review,
+  author: getProductReviewAuthor(authorId),
+}))

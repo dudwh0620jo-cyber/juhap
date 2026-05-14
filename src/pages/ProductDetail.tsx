@@ -15,6 +15,7 @@ import imgProductHero from "../assets/fd_product_hero_image.png"
 import imgPurchaseThumb1 from "../assets/fd_purchase_thumb1.png"
 import imgPurchaseThumb2 from "../assets/fd_purchase_thumb2.png"
 import imgPurchaseThumb3 from "../assets/fd_purchase_thumb3.png"
+import imgDefaultUserAvatar from "../assets/user_avatar_defult.png"
 import iconBookmark from "../assets/svg/bookmarksimple.svg"
 import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
 import iconBookmarkPoint from "../assets/svg/bookmarksimple_p.svg"
@@ -39,7 +40,7 @@ import {
 } from "../data/productDetailContent"
 import { communityPageData } from "../data/communityPageData"
 import { productDetailPageData } from "../data/productDetailData"
-import { drinkReviews } from "../data/productReviewsMock"
+import { drinkReviews, productPairingReviews } from "../data/productReviewsMock"
 import { useProductReviewInteractions } from "../hooks/useProductReviewInteractions"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY } from "../utils/communityStorage"
 import type { PairingDetailNavState } from "../utils/pairingDetail"
@@ -116,7 +117,7 @@ export default function ProductDetail() {
   }, [defaultProduct, id, mockProductById])
 
   const pairingReviews = useMemo(
-    () => drinkReviews.filter((review) => review.alcoholTag === product.name),
+    () => productPairingReviews.filter((review) => review.alcoholTag === product.name),
     [product.name]
   )
   const ratingWidth = `${Math.max(0, Math.min(100, (product.rating / 5) * 100))}%`
@@ -165,6 +166,10 @@ export default function ProductDetail() {
         bottomNavActive: "category",
       } satisfies PairingDetailNavState,
     })
+  }
+
+  const openProductReviewDetail = (review: DrinkReview) => {
+    navigate(`/product/${product.id}/review/${encodeURIComponent(review.id)}`, { state: { bottomNavActive: "category" } })
   }
 
   const isReviewBookmarked = (review: DrinkReview) => {
@@ -451,13 +456,20 @@ export default function ProductDetail() {
 
           <div className="review_list">
             {visibleReviews.slice(0, reviewVisibleCount).map((review) => (
-              <article className="review_card" key={review.id}>
+              <article
+                className="review_card"
+                key={review.id}
+                role="link"
+                tabIndex={0}
+                onClick={() => openProductReviewDetail(review)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return
+                  event.preventDefault()
+                  openProductReviewDetail(review)
+                }}
+              >
                 <div className="review_author_row">
-                  {"avatar" in review.author && review.author.avatar ? (
-                    <img className="review_profile" src={review.author.avatar} alt="" aria-hidden="true" />
-                  ) : (
-                    <span className="review_profile" aria-hidden="true" />
-                  )}
+                  <img className="review_profile" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
                   <div className="review_author_meta">
                     <p className="review_nickname">
                       <strong>{review.author.name}</strong>
@@ -467,7 +479,10 @@ export default function ProductDetail() {
                         type="button"
                         className={followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"}
                         aria-pressed={followedAuthorNames.has(review.author.name)}
-                        onClick={() => requestToggleFollow(review.author.name)}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          requestToggleFollow(review.author.name)
+                        }}
                       >
                         {followedAuthorNames.has(review.author.name) ? "언팔로우" : "팔로우"}
                       </button>
@@ -502,7 +517,7 @@ export default function ProductDetail() {
                   </div>
                 </div>
 
-                <div className="review_actions">
+                <div className="review_actions" onClick={(event) => event.stopPropagation()}>
                   <div className="review_actions_left">
                   <ProductReviewLikeButton
                     baseCount={review.likes}
@@ -604,7 +619,7 @@ export default function ProductDetail() {
                   }}
                 >
                   <div className="review_author_row">
-                    <img className="review_profile" src={review.author.avatar} alt="" aria-hidden="true" />
+                    <img className="review_profile" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
                     <div className="review_author_meta">
                       <p className="review_nickname">
                         <strong>{review.author.name}</strong>
