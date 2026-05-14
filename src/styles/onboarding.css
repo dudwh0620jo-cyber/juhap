@@ -1,7 +1,7 @@
 .onboarding_page {
   min-height: 100vh;
   background: var(--color-bg-base);
-  color: #212121;
+  color: var(--color-text-primary);
   font-family: var(--font-title);
   touch-action: pan-y;
   user-select: none;
@@ -11,17 +11,16 @@
   position: relative;
   flex: 0 0 100%;
   display: grid;
-  grid-template-rows: minmax(226px, 31vh) auto 1fr;
   justify-items: center;
-  min-height: 100vh;
-  padding: 92px 22px 116px;
+  padding: 150px 20px 120px;
 }
 
 .onboarding_slide.is_start {
   display: flex;
   flex-direction: column;
-  gap: 140px;
   align-items: center;
+  justify-content: space-between;
+  padding: 150px 20px 120px;
 }
 
 .onboarding_slider {
@@ -38,7 +37,7 @@
   border: 0;
   padding: 8px 0;
   background: transparent;
-  color: #89847e;
+  color: var(--color-primary);
   font-family: var(--font-main);
   font-size: 14px;
   font-weight: 700;
@@ -81,12 +80,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
   text-align: center;
-}
-
-.onboarding_slide.is_start .onboarding_copy {
-  gap: 6px;
+  gap: 16px;
 }
 
 .onboarding_logo_group {
@@ -144,30 +139,28 @@
 }
 
 .onboarding_description {
-  margin: 18px 0 0;
-  color: #89847e;
+  color: var(--color-gray-04);
   font-size: 16px;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.4;
   white-space: pre-line;
 }
 
 .onboarding_mascot {
-  width: 176px;
-  height: 176px;
+  width: 162x;
+  height: 109px;
   object-fit: cover;
   cursor: pointer;
 }
 
 .onboarding_primary_button {
-  align-self: end;
   width: 100%;
   max-width: 358px;
   min-height: 61px;
   border: 0;
   border-radius: 16px;
-  background: #d48652;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
   font-family: var(--font-main);
   font-size: 16px;
   font-weight: 600;
@@ -179,7 +172,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 84px;
+  bottom: 120px;
   display: grid;
   justify-items: center;
   gap: 28px;
@@ -240,6 +233,10 @@
   .onboarding_slide {
     padding-top: 72px;
     padding-bottom: 86px;
+  }
+
+  .onboarding_footer {
+    bottom: 86px;
   }
 
   .onboarding_logo {

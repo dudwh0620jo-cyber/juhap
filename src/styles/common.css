@@ -140,7 +140,7 @@
 
 .alert_modal_button.is_primary {
   border-radius: 14px;
-  background: var(--color-point-01);
+  background: var(--color-primary);
   color: var(--color-bg-white);
 }
 

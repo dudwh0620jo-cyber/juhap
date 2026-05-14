@@ -37,7 +37,8 @@ function renderAccentText(text: string, accent: string) {
 
 export default function Onboarding() {
   const navigate = useNavigate()
-  const [activeIndex, setActiveIndex] = useState(0)
+  // Skip the start cover and begin from the first info slide.
+  const [activeIndex, setActiveIndex] = useState(1)
   const [shouldSlideInFooter, setShouldSlideInFooter] = useState(false)
   const pointerStartX = useRef<number | null>(null)
   const isStart = activeIndex === 0
@@ -46,6 +47,10 @@ export default function Onboarding() {
   const infoAccents = ["페어링", "경험", "추천"]
 
   function skipOnboarding() {
+    setActiveIndex(onboardingInfoSlides.length)
+  }
+
+  function finishOnboarding() {
     navigate("/login", { replace: true })
   }
 
@@ -92,15 +97,14 @@ export default function Onboarding() {
       }}
     >
       <div className="onboarding_slider">
-        {!isStart && (
-          <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
-            건너뛰기
-          </button>
-        )}
-
         <div className="onboarding_viewport">
           <div className="onboarding_track" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
             <div className="onboarding_slide is_start">
+              {activeIndex < onboardingInfoSlides.length && (
+                <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
+                  건너뛰기
+                </button>
+              )}
               <div className="onboarding_copy">
                 <div className="onboarding_logo_group" aria-label={`${onboardingStartSlide.title} ${onboardingStartSlide.hanja}`}>
                   <img className="onboarding_logo_svg" src={logoSvg} alt="" aria-hidden="true" />
@@ -118,6 +122,11 @@ export default function Onboarding() {
 
             {onboardingInfoSlides.map((slide, index) => (
               <div className="onboarding_slide" key={slide.title}>
+                {activeIndex < onboardingInfoSlides.length && (
+                  <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
+                    건너뛰기
+                  </button>
+                )}
                 <div className="onboarding_copy">
                   <h1 className="onboarding_title">{renderAccentText(slide.title, infoAccents[index] ?? "")}</h1>
                   <p className="onboarding_description">{slide.description}</p>
@@ -149,7 +158,7 @@ export default function Onboarding() {
                 다음으로
               </button>
             ) : (
-              <button className="onboarding_start_button" type="button" onClick={skipOnboarding}>
+              <button className="onboarding_start_button" type="button" onClick={finishOnboarding}>
                 시작하기
               </button>
             )}

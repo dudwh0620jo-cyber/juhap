@@ -936,7 +936,7 @@
 .my_taste_sheet .taste_setup_group[data-selection-type="multi"] .taste_chip_grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 
 .my_taste_sheet .taste_chip {

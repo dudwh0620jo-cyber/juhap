@@ -64,6 +64,7 @@
 .profile_setup_address input {
   width: 100%;
   height: 60px;
+  border: 0;
   border-radius: 14px;
   padding: 0 10px;
   background: transparent;
@@ -72,6 +73,11 @@
   font-size: 15px;
   font-weight: 500;
   outline: none;
+  box-shadow: none;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 100%;
+  letter-spacing: -2%;
 }
 
 .profile_setup_field input::placeholder,
@@ -81,12 +87,16 @@
 
 .profile_setup_field input:focus,
 .profile_setup_address input:focus {
-  border-color: #d48652;
+  border: 0;
+  outline: none;
+  box-shadow: none;
 }
 
 .profile_setup_input_wrap {
   position: relative;
   display: block;
+  background: var(--color-point-03);
+  border-radius: 16px;
 }
 
 .profile_setup_input_wrap input {
@@ -96,6 +106,8 @@
 .profile_phone_input {
   position: relative;
   display: block;
+  background: var(--color-point-03);
+  border-radius: 16px;
 }
 
 .profile_phone_input input {
@@ -146,6 +158,11 @@
   gap: 6px;
 }
 
+.profile_setup_address > input {
+  background: var(--color-point-03);
+  border-radius: 16px;
+}
+
 .profile_setup_address legend {
   margin-bottom: 8px;
 }
@@ -153,6 +170,8 @@
 .profile_address_search {
   position: relative;
   display: block;
+  background: var(--color-point-03);
+  border-radius: 16px;
 }
 
 .profile_address_search button {
@@ -184,7 +203,7 @@
   height: 60px;
   margin-top: 102px;
   border-radius: 14px;
-  background: var(--color-point-01);
+  background: var(--color-primary);
   color: var(--color-gray-00);
   font-size: 15px;
   font-weight: 800;

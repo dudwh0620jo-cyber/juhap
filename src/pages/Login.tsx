@@ -4,6 +4,8 @@ import AlertModal from "../components/AlertModal"
 import mascotImage from "../assets/onboarding-mascot_01.png"
 import eyeIcon from "../assets/svg/Eye.svg"
 import eyeSlashIcon from "../assets/svg/EyeSlash.svg"
+import logoSvg from "../assets/svg/logo.svg"
+import logoSubSvg from "../assets/svg/logo_sub.svg"
 import googleLogo from "../assets/svg/logo_google.svg"
 import kakaoLogo from "../assets/svg/logo_kakako.svg"
 import naverLogo from "../assets/svg/logo_naver.svg"
@@ -77,8 +79,8 @@ export default function Login() {
     <section className="login_page" aria-label={TEXT.pageLabel}>
       <div className="login_brand_row">
         <div className="login_logo_group" aria-label={TEXT.brandLabel}>
-          <h1 className="login_logo">{TEXT.logo}</h1>
-          <p className="login_hanja">{TEXT.hanja}</p>
+          <img className="login_logo_svg" src={logoSvg} alt="" aria-hidden="true" />
+          <img className="login_logo_sub_svg" src={logoSubSvg} alt="" aria-hidden="true" />
         </div>
         <img className="login_mascot" src={mascotImage} alt="" />
       </div>

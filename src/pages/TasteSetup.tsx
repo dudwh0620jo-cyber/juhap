@@ -95,13 +95,14 @@ export default function TasteSetup() {
       <header className="taste_setup_header">
         <div>
           <h1>
-            당신에게 맞는 한 잔을 찾기 위해
-            <br />몇 가지만 알려주세요
+            <span className="taste_setup_title_line taste_setup_title_line--first">당신에게 맞는 한 잔을 찾기 위해</span>
+            <span className="taste_setup_title_line taste_setup_title_line--second">
+              몇 가지만 <span className="taste_setup_accent">알려주세요</span>
+            </span>
           </h1>
           <p>
-            취향을 입력해주세요
-            <br />
-            쿠폰으로 교환 가능한 포인트를 지급해요
+            <span className="taste_setup_subtitle_line">취향을 입력해주세요</span>
+            <span className="taste_setup_subtitle_line">쿠폰으로 교환 가능한 포인트를 지급해요</span>
           </p>
         </div>
         <img src={mascotImage} alt="" />
