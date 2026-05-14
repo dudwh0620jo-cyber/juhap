@@ -1,4 +1,4 @@
-import { aiScanAssets, aiScanCopy, type ScanMode } from "../../data/aiScanContent"
+﻿import { aiScanAssets, aiScanCopy, type ScanMode } from "../data/aiScanContent"
 import AiScanActions from "./AiScanActions"
 import AiScanFrame from "./AiScanFrame"
 import AiScanModeTabs from "./AiScanModeTabs"
@@ -66,3 +66,7 @@ export default function AiScanCamera({
     </div>
   )
 }
+
+
+
+

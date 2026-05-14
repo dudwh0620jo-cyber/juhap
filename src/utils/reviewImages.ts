@@ -3,13 +3,36 @@ const assetModules = import.meta.glob("../assets/*.{png,jpg,jpeg,webp,gif,svg}",
   import: "default",
 }) as Record<string, string>
 
-const assetById = Object.fromEntries(
-  Object.entries(assetModules).map(([path, src]) => {
-    const fileName = path.split("/").pop() ?? ""
-    const baseName = fileName.replace(/\.[^.]+$/, "")
-    return [baseName, src]
-  }),
-) as Record<string, string>
+const extensionPriority: Record<string, number> = {
+  png: 6,
+  jpg: 5,
+  jpeg: 4,
+  webp: 3,
+  gif: 2,
+  svg: 1,
+}
+
+const assetById = Object.entries(assetModules).reduce<Record<string, string>>((acc, [path, src]) => {
+  const fileName = path.split("/").pop() ?? ""
+  const baseName = fileName.replace(/\.[^.]+$/, "")
+  const ext = (fileName.split(".").pop() ?? "").toLowerCase()
+
+  const current = acc[baseName]
+  if (!current) {
+    acc[baseName] = src
+    return acc
+  }
+
+  const currentPath = Object.entries(assetModules).find(([, value]) => value === current)?.[0] ?? ""
+  const currentFileName = currentPath.split("/").pop() ?? ""
+  const currentExt = (currentFileName.split(".").pop() ?? "").toLowerCase()
+
+  if ((extensionPriority[ext] ?? 0) > (extensionPriority[currentExt] ?? 0)) {
+    acc[baseName] = src
+  }
+
+  return acc
+}, {})
 
 const sortedReviewImages = Object.entries(assetModules)
   .filter(([path]) => /\/review_image_\d+\.png$/i.test(path))

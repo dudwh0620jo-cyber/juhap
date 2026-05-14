@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+﻿import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
 import AlertModal from "../components/AlertModal"
@@ -39,6 +39,7 @@ import { resolveMyUserAvatar } from "../utils/userAvatars"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import iconDotsThreeVertical from "../assets/svg/dotsthreevertical.svg"
 import iconCaretDown from "../assets/svg/caretdown.png"
+import iconGearSix from "../assets/svg/gearsix.svg"
 import myPointCoinImage from "../assets/my_point_coin.png"
 import "../styles/community.css"
 import "../styles/my.css"
@@ -294,10 +295,6 @@ export default function MyPage() {
 
       const maxSelections = group.maxSelections ?? MAX_MULTI_SELECTIONS
       if (selectedWithoutNone.length >= maxSelections) {
-        setWarningByGroup((warning) => ({
-          ...warning,
-          [group.key]: `최대 ${maxSelections}개까지 선택할 수 있어요.`,
-        }))
         return current
       }
 
@@ -318,8 +315,15 @@ export default function MyPage() {
       return
     }
 
+    const hasCoreTasteChanged =
+      JSON.stringify(savedTastePreferences.drinkType ?? []) !== JSON.stringify(selectedByGroup.drinkType ?? []) ||
+      JSON.stringify(savedTastePreferences.trait ?? []) !== JSON.stringify(selectedByGroup.trait ?? [])
+
     updateUserTastePreferences(selectedByGroup)
     setSavedTastePreferences(selectedByGroup)
+    if (hasCoreTasteChanged) {
+      setTasteChartRunId((value) => value + 1)
+    }
     closeTasteEditor()
   }
 
@@ -647,7 +651,7 @@ export default function MyPage() {
               <div className="my_section_header">
               <h2 id="my-taste-profile-title">내 취향 프로필</h2>
               <button type="button" className="my_icon_button" aria-label="취향 설정" onClick={openTasteEditor}>
-                ⚙
+                <img src={iconGearSix} alt="" aria-hidden="true" />
               </button>
             </div>
               <div className="my_taste_profile_chart" aria-hidden="true">
@@ -816,7 +820,7 @@ export default function MyPage() {
         </section>
 
         <nav className="my_setting_list" aria-label="마이페이지 설정">
-          <button type="button" className="my_setting_item" onClick={() => window.alert("준비중이에요")}>
+          <button type="button" className="my_setting_item" onClick={() => setIsProfileEditPreparingOpen(true)}>
             <div className="my_setting_item_body">
               <span>쿠폰 보기</span>
               <small>보유 중인 쿠폰 확인 및 사용</small>
@@ -830,7 +834,7 @@ export default function MyPage() {
             </div>
             <img src={iconCaretRight} alt="" aria-hidden="true" />
           </button>
-          <button type="button" className="my_setting_item" onClick={() => window.alert("준비중이에요")}>
+          <button type="button" className="my_setting_item" onClick={() => setIsProfileEditPreparingOpen(true)}>
             <div className="my_setting_item_body">
               <span>공지사항&문의</span>
               <small>고객 지원 센터</small>
@@ -842,3 +846,4 @@ export default function MyPage() {
     </section>
   )
 }
+

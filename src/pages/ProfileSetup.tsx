@@ -81,6 +81,7 @@ export default function ProfileSetup() {
   const [isPhoneVerified, setIsPhoneVerified] = useState(savedProfile.personalInfo.isPhoneVerified)
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false)
   const [isAddressSearchLoading, setIsAddressSearchLoading] = useState(false)
+  const [isPostcodeErrorOpen, setIsPostcodeErrorOpen] = useState(false)
 
   const phoneDigits = phone.replace(/\D/g, "")
   const nicknameLength = nickname.length
@@ -132,7 +133,7 @@ export default function ProfileSetup() {
         }).open()
       })
       .catch(() => {
-        alert(TEXT.postcodeError)
+        setIsPostcodeErrorOpen(true)
       })
       .finally(() => {
         setIsAddressSearchLoading(false)
@@ -233,6 +234,14 @@ export default function ProfileSetup() {
             setIsPhoneVerified(true)
             setIsVerifyCompleteOpen(false)
           }}
+        />
+      ) : null}
+
+      {isPostcodeErrorOpen ? (
+        <AlertModal
+          message={TEXT.postcodeError}
+          confirmLabel={TEXT.confirm}
+          onConfirm={() => setIsPostcodeErrorOpen(false)}
         />
       ) : null}
     </section>

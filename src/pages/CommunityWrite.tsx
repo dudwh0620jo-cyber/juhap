@@ -29,6 +29,7 @@ import communityPostsRaw from "../data/communityPosts.json"
 import { pairingWriteDrinkMocks, pairingWriteFoodMocks } from "../data/pairingWriteMocks"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ThreeOptionModal from "../components/ThreeOptionModal"
+import AlertModal from "../components/AlertModal"
 import { drinkCategories, subcategoryInfoByCategoryId } from "../data/categoryData"
 
 const PAIRING_SCAN_MS = 1200
@@ -371,6 +372,7 @@ export default function CommunityWrite() {
   const [pairingSummary, setPairingSummary] = useState("")
   const [pairingBody, setPairingBody] = useState("")
   const [pairingPhotoIds, setPairingPhotoIds] = useState<string[]>([])
+  const [alertMessage, setAlertMessage] = useState<string | null>(null)
 
   const exitPath =
     writeKind === "question"
@@ -458,7 +460,7 @@ export default function CommunityWrite() {
         setPairingPhotoIds((prev) => [...prev, ...nextImages].slice(0, MAX_PAIRING_PHOTOS))
       }
     } catch {
-      window.alert("이미지를 불러오지 못했습니다. 다시 시도해 주세요.")
+      setAlertMessage("이미지를 불러오지 못했습니다. 다시 시도해 주세요.")
     }
 
     setIsPhotoActionSheetOpen(false)
@@ -484,7 +486,7 @@ export default function CommunityWrite() {
     setIsPhotoActionSheetOpen(false)
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      window.alert("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
+      setAlertMessage("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
       return
     }
 
@@ -492,7 +494,7 @@ export default function CommunityWrite() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
       setCameraStream(stream)
     } catch {
-      window.alert("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
+      setAlertMessage("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
     }
   }
 
@@ -592,7 +594,7 @@ export default function CommunityWrite() {
     if (!cameraStream || !cameraVideoRef.current) return
     cameraVideoRef.current.srcObject = cameraStream
     void cameraVideoRef.current.play().catch(() => {
-      window.alert("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
+      setAlertMessage("카메라를 사용할 수 없어요. 기기 또는 권한 설정을 확인해 주세요.")
       closeCameraPreview()
     })
   }, [cameraStream, closeCameraPreview])
@@ -898,10 +900,10 @@ export default function CommunityWrite() {
     try {
       const payload = buildDraftPayload()
       window.localStorage.setItem(draftStorageKey, JSON.stringify(payload))
-      window.alert("임시 저장되었습니다.")
+      setAlertMessage("임시 저장되었습니다.")
       navigate(exitPath)
     } catch {
-      window.alert("임시 저장에 실패했습니다. 다시 시도해 주세요.")
+      setAlertMessage("임시 저장에 실패했습니다. 다시 시도해 주세요.")
     }
   }
 
@@ -1001,23 +1003,23 @@ export default function CommunityWrite() {
       const normalizedBody = body.trim()
 
       if (!normalizedDrinkName) {
-        window.alert("술을 선택해 주세요.")
+        setAlertMessage("술을 선택해 주세요.")
         return
       }
       if (!selectedDrinkType?.trim()) {
-        window.alert("주종을 선택해 주세요.")
+        setAlertMessage("주종을 선택해 주세요.")
         return
       }
       if (drinkRating <= 0) {
-        window.alert("별점을 선택해 주세요.")
+        setAlertMessage("별점을 선택해 주세요.")
         return
       }
       if (!normalizedTitle) {
-        window.alert("타이틀을 입력해 주세요.")
+        setAlertMessage("타이틀을 입력해 주세요.")
         return
       }
       if (normalizedBody.length < 30) {
-        window.alert("상세 후기는 30자 이상 입력해 주세요.")
+        setAlertMessage("상세 후기는 30자 이상 입력해 주세요.")
         return
       }
       if (!canSubmit) return
@@ -1057,15 +1059,15 @@ export default function CommunityWrite() {
 
     const normalizedPairingBody = pairingBody.trim()
     if (!selectedSituation?.trim()) {
-      window.alert("상황 키워드를 선택해 주세요.")
+      setAlertMessage("상황 키워드를 선택해 주세요.")
       return
     }
     if (!selectedDrinkType?.trim() || !selectedFoodCategory?.trim()) {
-      window.alert("술 & 음식(필수)을 선택해 주세요.")
+      setAlertMessage("술 & 음식(필수)을 선택해 주세요.")
       return
     }
     if (!pairingSummary.trim()) {
-      window.alert("제목을 입력해 주세요.")
+      setAlertMessage("제목을 입력해 주세요.")
       return
     }
     if (normalizedPairingBody.length < 30) {
@@ -1201,6 +1203,8 @@ export default function CommunityWrite() {
             </div>
           </div>
         ) : null}
+
+        {alertMessage ? <AlertModal message={alertMessage} onConfirm={() => setAlertMessage(null)} /> : null}
       </>
     )
   }
@@ -2539,6 +2543,8 @@ export default function CommunityWrite() {
           }}
         />
       ) : null}
+
+      {alertMessage ? <AlertModal message={alertMessage} onConfirm={() => setAlertMessage(null)} /> : null}
     </section>
   )
 }

@@ -37,10 +37,11 @@ function renderAccentText(text: string, accent: string) {
 
 export default function Onboarding() {
   const navigate = useNavigate()
-  // Skip the start cover and begin from the first info slide.
-  const [activeIndex, setActiveIndex] = useState(1)
+  const [activeIndex, setActiveIndex] = useState(0)
   const [shouldSlideInFooter, setShouldSlideInFooter] = useState(false)
   const pointerStartX = useRef<number | null>(null)
+  const mascotTapCountRef = useRef(0)
+  const mascotTapResetTimerRef = useRef<number | null>(null)
   const isStart = activeIndex === 0
 
   const infoMascots = [mascot02, mascot03, mascot04]
@@ -84,6 +85,27 @@ export default function Onboarding() {
     goPreviousSlide()
   }
 
+  function handleStartMascotTap() {
+    if (!isStart) return
+
+    if (mascotTapResetTimerRef.current) {
+      window.clearTimeout(mascotTapResetTimerRef.current)
+      mascotTapResetTimerRef.current = null
+    }
+
+    mascotTapCountRef.current += 1
+    if (mascotTapCountRef.current >= 3) {
+      mascotTapCountRef.current = 0
+      navigate("/home", { replace: true })
+      return
+    }
+
+    mascotTapResetTimerRef.current = window.setTimeout(() => {
+      mascotTapCountRef.current = 0
+      mascotTapResetTimerRef.current = null
+    }, 1200)
+  }
+
   return (
     <section
       className="onboarding_page"
@@ -113,7 +135,7 @@ export default function Onboarding() {
                 <p className="onboarding_start_subtitle">{renderAccentText(onboardingStartSlide.subtitle, "오늘을 완성해요")}</p>
               </div>
 
-              <img className="onboarding_mascot" src={mascot01} alt="" />
+              <img className="onboarding_mascot" src={mascot01} alt="" onClick={handleStartMascotTap} />
 
               <button className="onboarding_primary_button" type="button" onClick={goNextSlide}>
                 완벽한 페어링을 위한 탐색 시작하기

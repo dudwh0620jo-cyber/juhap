@@ -83,9 +83,9 @@ export const aiScanCopy = {
     { icon: "barcode", title: "바코드가 있으면\n함께 인식돼요" },
     { icon: "shake", title: "흔들리지 않도록\n정면을 비춰주세요" },
   ],
-  successMessage: ["스캔하신 술의 정보를 찾았어요!", "검증된 페어링 팁과 함께", "결과를 확인하세요."],
+  successMessage: ["스캔하신 술의 정보를 찾았어요!", "페어링 팁과 함께 결과를 확인하세요."],
   failureMessage: ["스캔하신 정보를 찾을 수 없어요...", "아래 팁을 참고해 다시 촬영해주세요."],
-  detail: "상세 보러 가기",
+  detail: "술 상세보기",
   save: "술 저장하기",
   retry: "다시 스캔하러 가기",
 } as const

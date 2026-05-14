@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useState } from "react"
 import type { CSSProperties } from "react"
 import { useLocation } from "react-router"
-import "./FeatureGuide.css"
+import closeIcon from "../assets/svg/x.svg"
+import "../styles/FeatureGuide.css"
 import { FEATURE_GUIDE_STORAGE_KEY, guideItems, type FeatureGuideItem } from "./guideItems"
 
 type ActiveGuide = {
@@ -200,9 +201,11 @@ export default function FeatureGuide() {
       aria-live="polite"
     >
       <p className="feature_guide_message">{activeGuide.item.message}</p>
-      <button type="button" className="feature_guide_close" aria-label="도움말 닫기" onClick={dismissGuide}>
-        x
+      <button type="button" className="feature_guide_close" aria-label="닫기" onClick={dismissGuide}>
+        <img src={closeIcon} alt="" aria-hidden="true" />
       </button>
     </div>
   )
 }
+
+

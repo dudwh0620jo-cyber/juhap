@@ -75,6 +75,21 @@
   letter-spacing: -1%;
 }
 
+.taste_setup_group_head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.taste_setup_group_count {
+  color: var(--color-gray-04);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
 .taste_setup_group h2 em {
   color: var(--color-primary);
   font-style: normal;
@@ -104,6 +119,7 @@
   letter-spacing: -2%;
   cursor: pointer;
   width: fit-content;
+  box-sizing: border-box;
 }
 
 .taste_setup_group[data-selection-type="multi"] .taste_chip {
@@ -115,7 +131,7 @@
 .taste_chip.is_selected {
   background: var(--color-point-01);
   color: var(--color-gray-00);
-  border: 0;
+  border: 1px solid transparent;
 }
 
 .taste_setup_warning {

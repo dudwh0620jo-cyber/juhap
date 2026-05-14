@@ -222,6 +222,7 @@
   height: 47px;
   object-fit: contain;
   filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.18));
+  z-index: 3;
 }
 
 .ai_scan_corner.top_left {
@@ -251,7 +252,7 @@
 .ai_scan_scanning_content {
   position: absolute;
   inset: 29px;
-  z-index: 1;
+  z-index: 3;
   border-radius: 12px;
   display: grid;
   align-content: center;
@@ -290,30 +291,49 @@
   pointer-events: none;
 }
 
-.ai_scan_beam,
-.ai_scan_beam_line {
+.ai_scan_sweep {
   position: absolute;
-  left: 0;
-  right: 0;
+  inset: 0;
   display: block;
+  background:
+    linear-gradient(to top, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0)),
+    linear-gradient(#f0f0f0, #f0f0f0),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 0, transparent 19px),
+    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 0, transparent 19px),
+    linear-gradient(transparent, rgba(214, 214, 214, 0.5));
+  background-size: 100% 100%, 100% 1.5%, 10% 100%, 100% 10%, 100% 100%;
+  background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 1.5%, 0% 1.5%);
+  animation: ai_scan_sweep_move 1.25s infinite linear;
+  filter: saturate(0);
 }
 
-.ai_scan_beam {
-  top: 0;
-  height: 116px;
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(202, 128, 79, 0), rgba(202, 128, 79, 0.16), rgba(202, 128, 79, 0.38), rgba(202, 128, 79, 0));
-  filter: blur(2px);
-  animation: ai_scan_beam_move 1.28s ease-in-out infinite;
-}
+@keyframes ai_scan_sweep_move {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 1.5%, 0% 1.5%);
+  }
 
-.ai_scan_beam_line {
-  top: 0;
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-  box-shadow: 0 0 24px rgba(202, 128, 79, 0.8);
-  animation: ai_scan_line_move 1.28s ease-in-out infinite;
+  12% {
+    background-position: 0 0, 0 4%, 0 0, 0 0, 0 0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 4%, 0% 4%);
+  }
+
+  46% {
+    background-position: 0 0, 0 54%, 0 0, 0 0, 0 0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 54%, 0% 54%);
+  }
+
+  78% {
+    background-position: 0 0, 0 90%, 0 0, 0 0, 0 0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 90%, 0% 90%);
+  }
+
+  100% {
+    background-position: 0 0, 0 100%, 0 0, 0 0, 0 0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
 }
 
 .ai_scan_actions {
@@ -641,10 +661,14 @@
 }
 
 .ai_scan_pairing_tags span::after {
-  content: ">";
+  content: "";
+  width: 12px;
+  height: 12px;
+  display: inline-block;
   margin-left: 6px;
-  font-family: var(--font-main);
-  font-weight: 500;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 12px 12px;
 }
 
 .ai_scan_pairing_tags .is_drink {
@@ -653,10 +677,18 @@
   color: #6a8ba4;
 }
 
+.ai_scan_pairing_tags .is_drink::after {
+  background-image: url("../assets/svg/arrowright_b.svg");
+}
+
 .ai_scan_pairing_tags .is_food {
   border: 1px solid #efba85;
   background: #fff6ed;
   color: #cc9865;
+}
+
+.ai_scan_pairing_tags .is_food::after {
+  background-image: url("../assets/svg/arrowright_p.svg");
 }
 
 .ai_scan_bad_pairings {

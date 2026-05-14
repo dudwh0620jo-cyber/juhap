@@ -1,6 +1,6 @@
-import { useLayoutEffect, useRef, useState } from "react"
+﻿import { useLayoutEffect, useRef, useState } from "react"
 import { motion } from "motion/react"
-import { aiScanAssets, aiScanCopy, type ScanMode } from "../../data/aiScanContent"
+import { aiScanAssets, aiScanCopy, type ScanMode } from "../data/aiScanContent"
 
 type AiScanModeTabsProps = {
   mode: ScanMode
@@ -46,7 +46,7 @@ export default function AiScanModeTabs({ mode, disabled = false, onModeChange }:
   }, [mode])
 
   return (
-    <div ref={pillRef} className="ai_scan_mode_pill" role="tablist" aria-label="스캔 모드">
+    <div ref={pillRef} className="ai_scan_mode_pill" role="tablist" aria-label="?ㅼ틪 紐⑤뱶">
       <motion.span
         className="ai_scan_mode_tab_glider"
         animate={glider}
@@ -78,3 +78,7 @@ export default function AiScanModeTabs({ mode, disabled = false, onModeChange }:
     </div>
   )
 }
+
+
+
+

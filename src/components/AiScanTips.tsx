@@ -1,4 +1,4 @@
-import { aiScanAssets, aiScanCopy } from "../../data/aiScanContent"
+﻿import { aiScanAssets, aiScanCopy } from "../data/aiScanContent"
 
 function getTipIcon(icon: string) {
   if (icon === "sun") return aiScanAssets.iconSun
@@ -24,3 +24,4 @@ export default function AiScanTips({ compact = false }: { compact?: boolean }) {
     </section>
   )
 }
+

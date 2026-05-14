@@ -173,6 +173,16 @@ export const homeMomentPickCards = [
 
 export const homeWeeklyRankingCards = [
   {
+    id: "weekly-rank-1",
+    badgeSrc: homeAssets.weeklyRankingBadge01,
+    title: "진로 이즈백",
+    subtitle: "삼겹살",
+    drinkSrc: homeAssets.drinkJinroIsBack,
+    foodSrc: homeAssets.foodSamgyeopsal,
+    scoreLabel: "7,621짠",
+    isCenter: true,
+  },
+  {
     id: "weekly-rank-2",
     badgeSrc: homeAssets.weeklyRankingBadge02,
     title: "화요25",
@@ -191,16 +201,6 @@ export const homeWeeklyRankingCards = [
     foodSrc: homeAssets.foodHaemulPajeon,
     scoreLabel: "6,321짠",
     isCenter: false,
-  },
-  {
-    id: "weekly-rank-1",
-    badgeSrc: homeAssets.weeklyRankingBadge01,
-    title: "진로 이즈백",
-    subtitle: "삼겹살",
-    drinkSrc: homeAssets.drinkJinroIsBack,
-    foodSrc: homeAssets.foodSamgyeopsal,
-    scoreLabel: "7,621짠",
-    isCenter: true,
   },
   {
     id: "weekly-rank-4",
@@ -223,4 +223,3 @@ export const homeWeeklyRankingCards = [
     isCenter: false,
   },
 ] as const
-

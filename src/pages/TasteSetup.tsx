@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useNavigate } from "react-router"
 import mascotImage from "../assets/onboarding-mascot_06.png"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
@@ -79,10 +79,6 @@ export default function TasteSetup() {
 
       const maxSelections = group.maxSelections ?? MAX_MULTI_SELECTIONS
       if (selectedWithoutNone.length >= maxSelections) {
-        setWarningByGroup((warning) => ({
-          ...warning,
-          [group.key]: `최대 ${maxSelections}개까지 선택할 수 있어요`,
-        }))
         return current
       }
 
@@ -126,3 +122,4 @@ export default function TasteSetup() {
     </section>
   )
 }
+

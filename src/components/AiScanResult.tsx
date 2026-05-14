@@ -1,4 +1,4 @@
-import { aiScanAssets, aiScanCopy, aiScanResult, type AiScanStatus } from "../../data/aiScanContent"
+﻿import { aiScanAssets, aiScanCopy, aiScanResult, type AiScanStatus } from "../data/aiScanContent"
 import AiScanActions from "./AiScanActions"
 import AiScanTips from "./AiScanTips"
 import AiScanTopBar from "./AiScanTopBar"
@@ -53,7 +53,7 @@ function SuccessResult({ onBack, onClose, onOpenDetail, onSave }: Pick<AiScanRes
           <div className="ai_scan_product_summary">
             <img className="ai_scan_product_image" src={aiScanAssets.productDassai23} alt={product.name} />
             <div className="ai_scan_product_text">
-              <p>“{product.quote}”</p>
+              <p>{product.quote}</p>
               <h1>{product.name}</h1>
               <span>{product.category}</span>
               <span>{product.origin}</span>
@@ -160,3 +160,4 @@ export default function AiScanResult({
 
   return <SuccessResult onBack={onBack} onClose={onClose} onOpenDetail={onOpenDetail} onSave={onSave} />
 }
+

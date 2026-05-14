@@ -1,4 +1,4 @@
-import { motion } from "motion/react"
+﻿import { motion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigationType } from "react-router"
 import AiScan from "./pages/AiScan"
@@ -23,7 +23,7 @@ import CommunityRanking from "./pages/Ranking"
 import TasteSetup from "./pages/TasteSetup"
 import TodayPairingDetail from "./pages/TodayPairingDetail"
 import VoteList from "./pages/VoteList"
-import FeatureGuide from "./components/featureGuide/FeatureGuide"
+import FeatureGuide from "./components/FeatureGuide"
 import "./styles/common.css"
 import { useChatFabVisibility } from "./hooks/useChatFabVisibility"
 
@@ -107,7 +107,7 @@ function StatusBar() {
       <div className="status_bar_icons">
         <img src={iconCellular} width={20} height={13} alt="" aria-hidden="true" />
         <img src={iconWifi} width={18} height={13} alt="" aria-hidden="true" />
-        <svg width="28" height="13" viewBox="0 0 28 13" fill="none" aria-label={`諛고꽣由?${battery}%`}>
+        <svg width="28" height="13" viewBox="0 0 28 13" fill="none" aria-label={`배터리 ${battery}%`}>
           <rect opacity="0.35" x="0.5" y="0.5" width="24" height="12" rx="3.8" stroke="#0F1012" />
           <path opacity="0.4" d="M26 4.5V8.57547C26.8047 8.2303 27.328 7.42734 27.328 6.53774C27.328 5.64813 26.8047 4.84517 26 4.5Z" fill="#0F1012" />
           <rect x="2" y="2" width={fillWidth} height="9" rx="2.5" fill="#0F1012" />
@@ -183,12 +183,12 @@ export default function App() {
                   src={chatMascotButton}
                   alt=""
                   animate={{
-                    y: [0, -8, 0],
-                    rotate: [0, -1.5, 0, 1.5, 0],
-                    scale: [1, 1.015, 1],
+                    y: [0, -5, 0],
+                    rotate: [0, -0.7, 0, 0.7, 0],
+                    scale: [1, 1.006, 1],
                   }}
                   transition={{
-                    duration: 3.8,
+                    duration: 4.2,
                     repeat: Number.POSITIVE_INFINITY,
                     ease: "easeInOut",
                   }}
@@ -301,3 +301,5 @@ export default function App() {
     </main>
   )
 }
+
+

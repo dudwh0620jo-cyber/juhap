@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
-import { aiScanAssets } from "../../data/aiScanContent"
+﻿import type { ReactNode } from "react"
+import { aiScanAssets } from "../data/aiScanContent"
 
 type AiScanFrameProps = {
   isScanning?: boolean
@@ -32,8 +32,7 @@ export default function AiScanFrame({ isScanning = false, onSelectPhoto, childre
       </div>
       {isScanning ? (
         <div className="ai_scan_beam_area" aria-hidden="true">
-          <span className="ai_scan_beam" />
-          <span className="ai_scan_beam_line" />
+          <span className="ai_scan_sweep" />
         </div>
       ) : null}
     </>
@@ -59,3 +58,7 @@ export default function AiScanFrame({ isScanning = false, onSelectPhoto, childre
     </div>
   )
 }
+
+
+
+
