@@ -369,6 +369,9 @@
 }
 
 .more_button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -376,6 +379,13 @@
   font-size: 14px;
   font-weight: 300;
   text-decoration: none;
+}
+
+.more_button img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  opacity: 0.75;
 }
 
 .home_ranking_list {
@@ -525,9 +535,9 @@
   grid-auto-flow: column;
   grid-auto-columns: minmax(280px, calc(100% - 56px));
   gap: 16px;
-  overflow-x: auto;
-  overflow-y: hidden;
   padding-bottom: 2px;
+  overflow-x: auto;
+  /* overflow-y: hidden; */
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
@@ -542,25 +552,31 @@
   scroll-snap-align: start;
 }
 
+.home_block.home_weekly_drink{
+  padding: 80px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .home_weekly_drink .home_block_header {
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
+  padding: 0 0 35px 0;
 }
 
 .weekly_drink_row {
   grid-auto-columns: minmax(360px, calc(100% - 32px));
+  padding-top: 64px;
+  margin-top: -64px;
 }
 
 .weekly_drink_card {
   width: 100%;
   height: 100%;
   position: relative;
-  border-radius: 22px;
   text-decoration: none;
   color: var(--color-text-primary);
+  border-radius: 22px;
   background: #f5f1e8;
   overflow: visible;
   box-shadow: 0 12px 20px rgba(0, 0, 0, 0.06);
@@ -573,7 +589,6 @@
   height: 100%;
   border-radius: 22px;
   overflow: hidden;
-  background: inherit;
 }
 
 .weekly_drink_card.is_white {
@@ -586,15 +601,6 @@
 
 .weekly_drink_card.is_sake {
   background: linear-gradient(180deg, rgba(247, 244, 236, 0.98), rgba(255, 255, 255, 0.94));
-}
-
-.weekly_drink_clip::before,
-.weekly_drink_clip::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
 }
 
 .weekly_drink_clip::before {
@@ -632,17 +638,18 @@
 }
 
 .weekly_drink_left {
-  max-width: 160px;
-  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .weekly_drink_name {
-  margin: 0 0 10px;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.2;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -1%;
   white-space: pre-line;
-  letter-spacing: -0.2px;
 }
 
 .weekly_drink_kv {
@@ -650,26 +657,18 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  font-weight: 700;
-  color: rgba(195, 120, 35, 0.95);
-}
-
-.weekly_drink_card.is_red .weekly_drink_kv {
-  color: rgba(170, 90, 70, 0.95);
-}
-
-.weekly_drink_card.is_sake .weekly_drink_kv {
-  color: rgba(195, 120, 35, 0.95);
+  font-weight: 400;
+  color: var(--color-primary);
+  line-height: 140%;
+  letter-spacing: 1%;
 }
 
 .weekly_drink_price {
-  margin-top: 12px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   font-size: 14px;
-  font-weight: 800;
-  color: rgba(35, 35, 35, 0.92);
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .weekly_drink_price::before {
@@ -680,24 +679,26 @@
   opacity: 0.75;
 }
 
-.weekly_drink_bottle {
-  width: 116px;
-  height: 188px;
-  object-fit: contain;
-  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.18));
-}
+
 
 .weekly_drink_bottle_slot {
   position: absolute;
   left: 50%;
-  bottom: -10px;
+  top: -20%;
   transform: translateX(-50%);
-  width: 140px;
-  height: 210px;
-  display: grid;
-  place-items: end center;
-  z-index: 3;
+  width: 67px;
+  height: 215px;
+  /* display: grid; */
+  /* place-items: end center; */
+  /* z-index: 3; */
   pointer-events: none;
+}
+
+.weekly_drink_bottle {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: drop-shadow(0 4px 11px rgba(0, 0, 0, 0.25));
 }
 
 .weekly_drink_right {
@@ -757,9 +758,7 @@
 }
 
 .weekly_drink_stat_value {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: pre-line;
 }
 
 .weekly_drink_tags {
@@ -1038,6 +1037,8 @@
 
   .weekly_drink_row {
     grid-auto-columns: minmax(300px, calc(100% - 24px));
+    padding-top: 56px;
+    margin-top: -56px;
   }
 
   .drink_info h4 {
@@ -1868,12 +1869,18 @@
 }
 .home_weekly_rank_header_copy{
   display: flex;
+  justify-content: space-between;
   width: 100%;
   padding: 0 24px;
 }
-
+.home_weekly_rank_header_copy .more_button{
+  font-size: 14px;
+  line-height: 140%;
+  font-weight: 300;
+}
 .home_weekly_rank_header_text{
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 2px;
 }
 .home_weekly_rank_header_copy h3 {
@@ -1933,9 +1940,11 @@
   border-radius: 999px 999px 0 0;
   transform: translateX(-50%);
   pointer-events: none;
+  box-shadow: inset 0 4px 9px rgba(128, 122, 122, 0.25);
+  
 }
 .home_weekly_rank_stage_bg::before
- {
+{
   content: "";
   position: absolute;
   left: 50%;
@@ -1944,6 +1953,7 @@
   border-radius: 0 0 999px 999px;
   transform: translateX(-50%);
   pointer-events: none;
+  box-shadow: 0 4px 9px rgba(128, 122, 122, 0.25);
 }
 
 .home_weekly_rank_stage_bg::before {
@@ -1959,7 +1969,7 @@
 }
 
 .home_weekly_rank_cards {
-  top: 40px;
+  top: 80px;
   position: relative;
   height: var(--weekly-rank-stage-h);
   display: grid;
@@ -2021,7 +2031,6 @@
   width: 50px;
   height: 159px;
   object-fit: cover;
-
 }
 
 .home_weekly_rank_food {
@@ -2035,10 +2044,11 @@
 
 .home_weekly_rank_meta {
   padding: 150px 0 0 0;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   justify-items: center;
-
   width: 100%;
+  gap: 2px;
   text-align: center;
 }
 
@@ -2047,7 +2057,7 @@
   font-weight: 600;
   text-align: center;
   letter-spacing: 0;
-  line-height: .8;
+  line-height: 16px;
 
 }
 
@@ -2056,20 +2066,21 @@
   font-weight: 400;
   color: var(--color-gray-04);
   text-align: center;
-  line-height: .8;
+  line-height: 16px;
 
 
 }
 
 .home_weekly_rank_score {
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
   align-items: center;
   gap: 4px;
   font-size: 12px;
   font-weight: 400;
   color: var(--color-point-01);
   letter-spacing: 0;
-  line-height: .5;
+  line-height: 12px;
 
 }
 
@@ -2081,10 +2092,11 @@
 }
 
 .home_weekly_rank_dots {
+  position: relative;
+  bottom: -60px;
   display: flex;
   justify-content: center;
   gap: 6px;
-  margin-top: 18px;
 }
 
 .home_weekly_rank_dot {
@@ -2100,59 +2112,57 @@
 }
 
 .home_weekly_rank_bubble {
-  margin-top: 16px;
-  padding: 0 12px;
-  display: grid;
-  grid-template-columns: 54px 1fr;
-  gap: 10px;
+  position: relative;
+  bottom: -40px;
+  padding: 0 0 0 5%;
+  display: flex;
   align-items: center;
 }
 
 .home_weekly_rank_mascot {
-  width: 83px;
-  height: 99px;
+  width: 100px;
+  height: 130px;
   object-fit: cover;
 }
 
 .home_weekly_rank_bubble_text {
-  bottom: 0;
-  right: 0;
   width: fit-content;
-  padding: 10px 20px;
+  padding: 10px 56.5px 9px 25.5px;
   border-radius: 16px 16px 16px 0;
   background: var(--color-bg-white);
   border: 1px solid var(--font-title);
   box-shadow: 2px 2px 8px rgba(207, 179, 139, 1);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--color-text-primary);
 }
 
 .home_weekly_rank_bubble_title {
   font-size: 12px;
-  font-weight: 800;
-  line-height: 1.3;
+  font-weight: 500;
+  line-height: 14px;
 }
 
 .home_weekly_rank_bubble_sub {
   font-size: 10px;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 14px;
   color: var(--color-gray-05);
 }
 
 .home_vote_mascot {
   position: absolute;
-  top: 70px;
+  top: 90px;
   right: 10px;
-  width: 80px;
   height: 76px;
   pointer-events: none;
   z-index: 1;
 }
 
 .home_vote_mascot img {
-  width: 80px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .ranking_dots {
@@ -2181,7 +2191,6 @@
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
-  border-radius: 18px;
   padding: 18px 18px;
   display: grid;
   grid-template-columns: 1fr auto;

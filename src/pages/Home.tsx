@@ -188,6 +188,7 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
             </div>
             <button type="button" className="home_vote_more" onClick={() => navigate("/vote")}>
               더보기
+              <img src={iconCaretRight} alt="" aria-hidden="true" />
             </button>
           </div>
 
@@ -363,10 +364,11 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
               <h3>{title}</h3>
               <p className="home_weekly_rank_subcopy">{subtitle}</p>
             </div>
-          </div>
           <Link to={linkTo} className="more_button">
-            더보기 &gt;
+            더보기
+            <img src={iconCaretRight} alt="" aria-hidden="true" />
           </Link>
+          </div>
         </div>
         <motion.div
           className="home_weekly_rank_cards"
@@ -389,10 +391,10 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
             const isActive = virtualActiveIndex === index && abs < 0.35
             const x = delta * 168
             const y = isActive ? -8 : 20 + abs * 12
-            const scale = isActive ? 1.12 : abs < 1.2 ? 0.88 : 0.8
+            const scale = isActive ? 1 : abs < 1.2 ? 0.88 : 0.8
             const rotateZ = isActive ? 0 : delta * -10
             const rotateY = isActive ? 0 : delta * -38
-            const z = isActive ? 80 : -abs * 30
+            const z = isActive ? 0 : -abs * 30
             const opacity = abs > 1.75 ? 0 : isActive ? 1 : 0.92
 
             return (

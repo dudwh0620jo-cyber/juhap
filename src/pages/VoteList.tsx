@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router"
 import "../styles/vote-list.css"
 import VoteListCard from "../components/VoteListCard"
+import iconCaretLeft from "../assets/svg/caretleft.svg"
 import { getStoredPicks } from "../utils/votePicks"
 import { voteItems, VOTE_INITIAL_COUNT } from "../data/voteData"
 
@@ -21,7 +22,7 @@ export default function VoteList() {
     <section className="vote_list_page page_screen">
       <header className="vote_list_header">
         <button type="button" className="back_button" onClick={() => navigate(-1)}>
-          ←
+          <img src={iconCaretLeft} alt="" aria-hidden="true" />
         </button>
         <h2>투표 목록</h2>
       </header>
