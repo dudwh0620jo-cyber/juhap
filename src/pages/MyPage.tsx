@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
 import AlertModal from "../components/AlertModal"
@@ -150,6 +150,8 @@ export default function MyPage() {
   const nickname = profile.personalInfo.nickname.trim() || "이름"
   const { activeTags, quietTags } = getTasteTags(savedTastePreferences)
   const { summaryTitle, summaryDescription, situationLine } = getTasteSummary(savedTastePreferences)
+  const tasteSheetGroupsRef = useRef<HTMLDivElement | null>(null)
+  const [tasteSheetFade, setTasteSheetFade] = useState({ top: false, bottom: false })
   const bookmarkListLabelById = useMemo(
     () => Object.fromEntries(bookmarkLists.map((item) => [item.id, item.label])) as Record<string, string>,
     [],
@@ -160,6 +162,26 @@ export default function MyPage() {
     if (!isTasteOpen) return
     setTasteChartRunId((value) => value + 1)
   }, [isTasteOpen])
+
+  function updateTasteSheetFade() {
+    const el = tasteSheetGroupsRef.current
+    if (!el) return
+    const canScroll = el.scrollHeight - el.clientHeight > 2
+    if (!canScroll) {
+      setTasteSheetFade({ top: false, bottom: false })
+      return
+    }
+
+    const top = el.scrollTop > 2
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2
+    setTasteSheetFade({ top, bottom })
+  }
+
+  useEffect(() => {
+    if (!isTasteEditorOpen) return
+    const raf = window.requestAnimationFrame(() => updateTasteSheetFade())
+    return () => window.cancelAnimationFrame(raf)
+  }, [isTasteEditorOpen])
 
   const bookmarkedPosts = useMemo(() => {
     const combinedPosts = [...userPosts, ...feedPosts]
@@ -721,7 +743,13 @@ export default function MyPage() {
             onClick={closeTasteEditor}
           >
             <section
-              className="my_taste_sheet"
+              className={[
+                "my_taste_sheet",
+                tasteSheetFade.top ? "has_top_fade" : "",
+                tasteSheetFade.bottom ? "has_bottom_fade" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               role="dialog"
               aria-modal="true"
               aria-label="취향 수정"
@@ -740,7 +768,7 @@ export default function MyPage() {
         />
       ) : null}
 
-              <div className="my_taste_sheet_groups">
+              <div className="my_taste_sheet_groups" ref={tasteSheetGroupsRef} onScroll={updateTasteSheetFade}>
                 {preferenceGroups.map((group) => (
                   <PreferenceGroupSection
                     key={group.key}

@@ -44,6 +44,7 @@ function DrinkStat({ iconSrc, label, value }: { iconSrc: string; label: string; 
 
 export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
   const backgrounds = [weeklyDrinkBg01, weeklyDrinkBg02, weeklyDrinkBg03] as const
+
   return (
     <section className="home_block home_weekly_drink" aria-label="금주의 주류 소개">
       <div className="home_block_header">
@@ -61,44 +62,50 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
             className={`weekly_drink_card${item.theme ? ` is_${item.theme}` : ""}`}
             aria-label={`${item.name} 상세 보기`}
           >
-            <div className="weekly_drink_bg" aria-hidden="true">
-              <img src={backgrounds[index % backgrounds.length]} alt="" />
-            </div>
-            <div className="weekly_drink_card_inner">
-              <div className="weekly_drink_left">
-                <h4 className="weekly_drink_name">{item.name}</h4>
-                <div className="weekly_drink_kv">
-                  <span className="weekly_drink_kv_type">{item.type}</span>
-                  <span className="weekly_drink_kv_divider" aria-hidden="true">
-                    |
-                  </span>
-                  <span className="weekly_drink_kv_origin">{item.origin}</span>
+            <div className="weekly_drink_clip" aria-hidden="true">
+              <div className="weekly_drink_bg">
+                <img src={backgrounds[index % backgrounds.length]} alt="" />
+              </div>
+
+              <div className="weekly_drink_card_inner">
+                <div className="weekly_drink_left">
+                  <h4 className="weekly_drink_name">{item.name}</h4>
+                  <div className="weekly_drink_kv">
+                    <span className="weekly_drink_kv_type">{item.type}</span>
+                    <span className="weekly_drink_kv_divider" aria-hidden="true">
+                      |
+                    </span>
+                    <span className="weekly_drink_kv_origin">{item.origin}</span>
+                  </div>
+                  <div className="weekly_drink_price">{item.priceLabel}</div>
                 </div>
-                <div className="weekly_drink_price">{item.priceLabel}</div>
-              </div>
 
-              <div className="weekly_drink_center" aria-hidden="true">
-                {item.thumbId ? <img className="weekly_drink_bottle" src={resolveReviewImage(item.thumbId)} alt="" /> : null}
-              </div>
+                <div className="weekly_drink_right">
+                  <DrinkStat iconSrc={starIcon} label="평점" value={item.rating.toFixed(1)} />
+                  <DrinkStat iconSrc={dropHalfIcon} label="당도" value={item.sweetness} />
+                  <DrinkStat iconSrc={brandyIcon} label="도수" value={item.abv} />
+                  <DrinkStat iconSrc={tagIcon} label="품종" value={item.variety} />
+                </div>
 
-              <div className="weekly_drink_right" aria-hidden="true">
-                <DrinkStat iconSrc={starIcon} label="평점" value={item.rating.toFixed(1)} />
-                <DrinkStat iconSrc={dropHalfIcon} label="당도" value={item.sweetness} />
-                <DrinkStat iconSrc={brandyIcon} label="도수" value={item.abv} />
-                <DrinkStat iconSrc={tagIcon} label="품종" value={item.variety} />
-              </div>
-
-              <div className="weekly_drink_tags" aria-hidden="true">
-                {item.tags.map((tag) => (
-                  <span key={tag} className="weekly_drink_tag">
-                    {tag}
-                  </span>
-                ))}
+                <div className="weekly_drink_tags">
+                  {item.tags.map((tag) => (
+                    <span key={tag} className="weekly_drink_tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
+
+            {item.thumbId ? (
+              <div className="weekly_drink_bottle_slot" aria-hidden="true">
+                <img className="weekly_drink_bottle" src={resolveReviewImage(item.thumbId)} alt="" />
+              </div>
+            ) : null}
           </Link>
         ))}
       </div>
     </section>
   )
 }
+

@@ -7,7 +7,9 @@ import logoSvg from "../assets/svg/logo.svg"
 import timeSvg from "../assets/svg/time.svg"
 import voteSvg from "../assets/svg/vote.svg"
 import peopleSvg from "../assets/svg/people.svg"
+import iconCaretRight from "../assets/svg/caretright.svg"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
+import AlertModal from "../components/AlertModal"
 import type { RecommendationItem } from "../components/RecommendationCard"
 import SituationSection from "../components/SituationSection"
 import TodayHeroCopy from "../components/TodayHeroCopy"
@@ -74,6 +76,7 @@ function TodayRecommendation({ title, items }: TodayRecommendationProps) {
 
   return (
     <section className="home_block home_today">
+      <img className="today_pairing_mascot" src={homeAssets.todayPairingMascot} alt="" aria-hidden="true" />
       {items.length ? (
         <div className="home_today_carousel" ref={scrollRef} onScroll={handleScroll} aria-label="?ㅻ뒛??異붿쿇 諛곕꼫">
           <div className="home_today_track">
@@ -184,7 +187,7 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
               <h3>오늘의 투표</h3>
             </div>
             <button type="button" className="home_vote_more" onClick={() => navigate("/vote")}>
-              더보기 &gt;
+              더보기
             </button>
           </div>
 
@@ -291,12 +294,14 @@ function WeeklyRankingCard({
         <img src={badgeSrc} alt="" />
       </div>
       <div className="home_weekly_rank_images" aria-hidden="true">
-        <img className="home_weekly_rank_drink" src={drinkSrc} alt="" />
         <img className="home_weekly_rank_food" src={foodSrc} alt="" />
+        <img className="home_weekly_rank_drink" src={drinkSrc} alt="" />
       </div>
-      <div className="home_weekly_rank_title">{title}</div>
-      <div className="home_weekly_rank_subtitle">{subtitle}</div>
-      <div className="home_weekly_rank_score">{scoreLabel}</div>
+      <div className="home_weekly_rank_meta">
+        <div className="home_weekly_rank_title">{title}</div>
+        <div className="home_weekly_rank_subtitle">{subtitle}</div>
+        <div className="home_weekly_rank_score">{scoreLabel}</div>
+      </div>
     </article>
   )
 }
@@ -306,6 +311,7 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
     Math.max(0, homeWeeklyRankingCards.findIndex((card) => card.isCenter)),
   )
   const [dragOffsetX, setDragOffsetX] = useState(0)
+  const [isAutoPlayPaused, setIsAutoPlayPaused] = useState(false)
   const total = homeWeeklyRankingCards.length
   const dots = useMemo(() => Array.from({ length: total }, (_, i) => i), [total])
   const virtualIndex = activeIndex - dragOffsetX / 170
@@ -324,8 +330,28 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
     return delta
   }
 
-  const activeCard = homeWeeklyRankingCards[wrapIndex(activeIndex)]
   const virtualActiveIndex = wrapIndex(Math.round(virtualIndex))
+  const topCard =
+    homeWeeklyRankingCards.find((card) => card.id === "weekly-rank-1") ??
+    homeWeeklyRankingCards.find((card) => card.isCenter) ??
+    homeWeeklyRankingCards[0]
+
+  useEffect(() => {
+    if (total <= 1) return
+    if (isAutoPlayPaused) return
+
+    if (typeof window !== "undefined" && "matchMedia" in window) {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      if (prefersReducedMotion) return
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return
+      setActiveIndex((prev) => wrapIndex(prev + 1))
+    }, 3500)
+
+    return () => window.clearInterval(intervalId)
+  }, [isAutoPlayPaused, total])
 
   return (
     <section className="home_block home_weekly_rank" aria-label="이번 주 주합 랭킹">
@@ -333,8 +359,10 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
         <div className="home_weekly_rank_stage_bg" aria-hidden="true" />
         <div className="home_weekly_rank_header">
           <div className="home_weekly_rank_header_copy">
-            <h3>{title}</h3>
-            <p className="home_weekly_rank_subcopy">{subtitle}</p>
+            <div className="home_weekly_rank_header_text">
+              <h3>{title}</h3>
+              <p className="home_weekly_rank_subcopy">{subtitle}</p>
+            </div>
           </div>
           <Link to={linkTo} className="more_button">
             더보기 &gt;
@@ -345,12 +373,14 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.12}
+          onDragStart={() => setIsAutoPlayPaused(true)}
           onDrag={(_, info) => setDragOffsetX(info.offset.x)}
           onDragEnd={(_, info) => {
             setDragOffsetX(0)
             const swipePower = info.offset.x + info.velocity.x * 14
             if (swipePower < -90) setActiveIndex((prev) => wrapIndex(prev + 1))
             else if (swipePower > 90) setActiveIndex((prev) => wrapIndex(prev - 1))
+            window.setTimeout(() => setIsAutoPlayPaused(false), 3500)
           }}
         >
           {homeWeeklyRankingCards.map((card, index) => {
@@ -360,20 +390,24 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
             const x = delta * 168
             const y = isActive ? -8 : 20 + abs * 12
             const scale = isActive ? 1.12 : abs < 1.2 ? 0.88 : 0.8
-            const rotateZ = isActive ? 0 : delta * -8
-            const rotateY = isActive ? 0 : delta * -30
-            const opacity = abs > 2.35 ? 0 : isActive ? 1 : 0.92
+            const rotateZ = isActive ? 0 : delta * -10
+            const rotateY = isActive ? 0 : delta * -38
+            const z = isActive ? 80 : -abs * 30
+            const opacity = abs > 1.75 ? 0 : isActive ? 1 : 0.92
 
             return (
               <motion.div
                 key={card.id}
                 className={`home_weekly_rank_card_slot${isActive ? " is_active" : ""}`}
-                style={{ zIndex: 10 - abs }}
-                animate={{ x, y, scale, rotateZ, rotateY, opacity, transformPerspective: 900 }}
+                style={{ zIndex: 10 - abs, pointerEvents: opacity === 0 ? "none" : "auto" }}
+                animate={{ x, y, z, scale, rotateZ, rotateY, opacity, transformPerspective: 900 }}
                 transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.9 }}
+                aria-hidden={opacity === 0}
                 onClick={() => {
                   setDragOffsetX(0)
                   setActiveIndex(index)
+                  setIsAutoPlayPaused(true)
+                  window.setTimeout(() => setIsAutoPlayPaused(false), 3500)
                 }}
                 role="button"
                 tabIndex={0}
@@ -404,9 +438,10 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
         <div className="home_weekly_rank_bubble" aria-hidden="true">
           <img className="home_weekly_rank_mascot" src={homeAssets.weeklyBestMascot} alt="" />
           <div className="home_weekly_rank_bubble_text">
-            이번 주 1위는 {activeCard?.title} {activeCard?.subtitle}!
-            {"\n"}
-            깔끔한 한 잔이 고기의 풍미를 더 살려줘요.
+            <div className="home_weekly_rank_bubble_title">
+              이번 주 1위는 {topCard?.title} {topCard?.subtitle}!
+            </div>
+            <div className="home_weekly_rank_bubble_sub">깔끔한 한 잔이 고기의 풍미를 더 살려줘요.</div>
           </div>
         </div>
       </div>
@@ -417,6 +452,7 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
 export default function Home() {
   const { recommendationItems, situationItems, weeklyDrinkItems } = useHomePageData()
   const featuredVote = voteItems.find((v) => v.id === FEATURED_VOTE_ID) ?? voteItems[0]
+  const [isQuizPreparingOpen, setIsQuizPreparingOpen] = useState(false)
 
   return (
     <section className="home_page page_screen" aria-label="홈">
@@ -458,19 +494,32 @@ export default function Home() {
 
       <WeeklyDrink title="금주의 주류 소개" items={weeklyDrinkItems} />
 
-      <Link to="/quiz" className="home_quiz_card" aria-label="오늘의 퀴즈">
-        <div className="home_quiz_banner" aria-hidden="true">
-          <img src={homeAssets.todayQuizBanner} alt="" />
+      <button
+        type="button"
+        className="home_quiz_card"
+        aria-label="오늘의 퀴즈"
+        onClick={() => setIsQuizPreparingOpen(true)}
+        style={{ backgroundImage: `url(${homeAssets.todayQuizBanner})` }}
+      >
+        <div className="home_quiz_left">
+          <div className="home_quiz_badge">오늘의 퀴즈 도전!</div>
+          <div className="home_quiz_title">퀴즈 풀고 포인트 받기</div>
+          <div className="home_quiz_subtitle">매일 퀴즈 참여하고 포인트를 모아보세요.</div>
         </div>
-        <div className="home_quiz_badge">오늘의 퀴즈 시작!</div>
-        <div className="home_quiz_title">퀴즈 풀고 포인트 받기</div>
-        <div className="home_quiz_subtitle">매일 퀴즈 참여하고 포인트를 모아보세요.</div>
-      </Link>
+        <div className="home_quiz_right" aria-hidden="true">
+          <img className="home_quiz_arrow" src={iconCaretRight} alt="" />
+        </div>
+      </button>
+
+      {isQuizPreparingOpen ? (
+        <AlertModal
+          title="준비중"
+          message="서비스 준비중이에요."
+          confirmLabel="확인"
+          variant="preparing"
+          onConfirm={() => setIsQuizPreparingOpen(false)}
+        />
+      ) : null}
     </section>
   )
 }
-
-
-
-
-
