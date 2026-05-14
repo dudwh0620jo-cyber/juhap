@@ -16,6 +16,7 @@ import Onboarding from "./pages/Onboarding"
 import PairingDetail from "./pages/PairingDetail"
 import PairingTagList from "./pages/PairingTagList"
 import ProductDetail from "./pages/ProductDetail"
+import ProductReviewDetail from "./pages/ProductReviewDetail"
 import ProfileSetup from "./pages/ProfileSetup"
 import Quiz from "./pages/Quiz"
 import CommunityRanking from "./pages/Ranking"
@@ -124,8 +125,9 @@ export default function App() {
   const prevPathnameRef = useRef("")
   const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
   const isChatHidden = pathname.startsWith("/product/")
-  const isProductDetailPage = /^\/product\/[^/]+$/.test(pathname)
+  const isProductDetailPage = /^\/product\/[^/]+$/.test(pathname) || /^\/product\/[^/]+\/review\/.+$/.test(pathname)
   const isWritePage = pathname === "/community/write" || /^\/product\/[^/]+\/write$/.test(pathname)
+  const isCommunityPage = pathname.startsWith("/community") && !isWritePage
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -159,7 +161,7 @@ export default function App() {
     pathname.startsWith("/product/") ||
     navState.bottomNavActive === "category"
   const isCommunityActive = pathname.startsWith("/community") && !isRankingActive && !isCategoryActive
-  const isChatFabHidden = useChatFabVisibility({ pathname, isAuthPage, isWritePage, isProductDetailPage })
+  const isChatFabHidden = useChatFabVisibility({ pathname, isAuthPage, isWritePage, isProductDetailPage, isCommunityPage })
 
   return (
     <main className="app_root">
@@ -213,6 +215,7 @@ export default function App() {
           <Route path="/community/tag" element={<PairingTagList />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/my/record" element={<MyRecord />} />
+          <Route path="/product/:id/review/:reviewId" element={<ProductReviewDetail />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/vote" element={<VoteList />} />

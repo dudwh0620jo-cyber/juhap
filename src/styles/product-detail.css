@@ -86,7 +86,6 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0;
   margin: 0 0 2px;
   color: var(--color-text-primary);
   font-size: 18px;
@@ -104,7 +103,6 @@
   color: var(--color-text-primary);
   font-family: var(--font-main);
   font-size: 18px;
-  font-style: normal;
   font-weight: 500;
   line-height: 120%;
   letter-spacing: -0.18px;
@@ -122,7 +120,6 @@
   color: #212121;
   font-family: var(--font-main);
   font-size: 24px;
-  font-style: normal;
   font-weight: 600;
   letter-spacing: -0.24px;
   line-height: 130%;
@@ -187,21 +184,19 @@
   align-items: center;
   gap: 6px;
   color: #696969;
-  font-family: "Pretendard Variable";
+  font-family: var(--font-main);
   font-size: 16px;
-  font-style: normal;
   font-weight: 400;
-  line-height: 140%; /* 22.4px */
+  line-height: 140%;
   letter-spacing: -0.32px;
 }
 
 .product_price_row strong {
-  color: var(--design-black_deep, #212121);
-  font-family: "Pretendard Variable";
+  color: #212121;
+  font-family: var(--font-main);
   font-size: 26px;
-  font-style: normal;
   font-weight: 700;
-  line-height: 140%; /* 36.4px */
+  line-height: 140%;
   letter-spacing: -0.65px;
 }
 
@@ -231,18 +226,17 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
-  color: var(--design-black_text, #44413f);
-  font-family: "Pretendard Variable";
+  color: var(--color-text-primary);
+  font-family: var(--font-main);
   font-size: 16px;
-  font-style: normal;
   font-weight: 700;
-  line-height: 20px; /* 125% */
+  line-height: 20px;
   letter-spacing: -0.16px;
 }
 
 .product_tabs_inner button.is_active {
   color: var(--color-primary);
-  border-bottom: 2px solid #ca804f;
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .product_card,
@@ -259,12 +253,11 @@
 .product_purchase h2,
 .product_offline h2,
 .product_guide_toggle span {
-  color: var(--design-black_deep, #212121);
-  font-family: "Chiron Sung HK";
+  color: #212121;
+  font-family: var(--font-title);
   font-size: 22px;
-  font-style: normal;
   font-weight: 600;
-  line-height: 120%; /* 26.4px */
+  line-height: 120%;
   letter-spacing: -0.33px;
 }
 
@@ -346,7 +339,7 @@
   gap: 38px;
   align-self: stretch;
   border-radius: 20px;
-  background: var(--design-white, #fdfdfd);
+  background: var(--color-bg-white);
   box-shadow: 1px 3px 9.8px 0 rgba(0, 0, 0, 0.04);
 }
 
@@ -378,22 +371,20 @@
 }
 
 .product_taste_name strong {
-  color: var(--design-black_deep, #212121);
-  font-family: "Pretendard Variable";
+  color: #212121;
+  font-family: var(--font-main);
   font-size: 16px;
-  font-style: normal;
   font-weight: 500;
-  line-height: 140%; /* 22.4px */
+  line-height: 140%;
   letter-spacing: -0.16px;
 }
 
 .product_taste_name small {
-  color: var(--design-gray-04, #8c8c8c);
-  font-family: "Pretendard Variable";
+  color: var(--color-gray-04);
+  font-family: var(--font-main);
   font-size: 14px;
-  font-style: normal;
   font-weight: 500;
-  line-height: 140%; /* 19.6px */
+  line-height: 140%;
   letter-spacing: -0.14px;
 }
 
@@ -412,7 +403,6 @@
   color: #212121;
   font-family: var(--font-main);
   font-size: 14px;
-  font-style: normal;
   font-weight: 400;
   letter-spacing: -0.14px;
   line-height: 140%;
@@ -429,12 +419,11 @@
 }
 
 .product_story p {
-  color: var(--design-black_text, #44413f);
-  font-family: "Pretendard Variable";
+  color: var(--color-text-primary);
+  font-family: var(--font-main);
   font-size: 16px;
-  font-style: normal;
   font-weight: 400;
-  line-height: 160%; /* 25.6px */
+  line-height: 160%;
   letter-spacing: -0.16px;
   word-break: keep-all;
 }
@@ -455,22 +444,21 @@
   justify-content: space-between;
   align-items: center;
   align-self: stretch;
-  border-bottom: 0.5px solid var(--design-black_deep, #212121);
-  color: var(--design-black_deep, #212121);
-  font-family: "Chiron Sung HK";
+  border-bottom: 0.5px solid #212121;
+  color: #212121;
+  font-family: var(--font-title);
   font-size: 22px;
-  font-style: normal;
   font-weight: 600;
-  line-height: 120%; /* 26.4px */
+  line-height: 120%;
   letter-spacing: -0.33px;
 }
 
 .product_guide_caret {
   width: 30px;
   height: 30px;
-  border: 1px solid #bfbfbf;
+  border: 1px solid var(--color-gray-03);
   border-radius: 999px;
-  color: var(--design-gray-06, #4a4a4a);
+  color: var(--color-gray-06);
   padding: 4px;
   display: flex;
   align-items: center;
@@ -531,8 +519,8 @@
   height: 1px;
   background-image: repeating-linear-gradient(
     to right,
-    var(--design-gray-02, #d9d9d9) 0,
-    var(--design-gray-02, #d9d9d9) 4px,
+    var(--color-gray-02) 0,
+    var(--color-gray-02) 4px,
     transparent 4px,
     transparent 8px
   );
@@ -546,28 +534,26 @@
 }
 
 .product_guide_section h3 {
-  color: var(--design-black_deep, #212121);
-  font-family: "Pretendard Variable";
+  color: #212121;
+  font-family: var(--font-main);
   font-size: 22px;
-  font-style: normal;
   font-weight: 500;
-  line-height: 130%; /* 28.6px */
+  line-height: 130%;
   letter-spacing: -0.44px;
 }
 
 .product_guide_section p {
-  color: var(--design-black_text, #44413f);
-  font-family: "Pretendard Variable";
+  color: var(--color-text-primary);
+  font-family: var(--font-main);
   font-size: 16px;
-  font-style: normal;
   font-weight: 400;
-  line-height: 140%; /* 22.4px */
+  line-height: 140%;
   letter-spacing: -0.16px;
   word-break: keep-all;
 }
 
 .product_guide_section p strong {
-  color: var(--design-point_main, #ca804f);
+  color: var(--color-primary);
   font-weight: 600;
   line-height: 160%;
 }
@@ -611,7 +597,7 @@
   min-height: 287px;
   border-radius: 16px;
   padding: 28px 24px;
-  border: 0.7px solid var(--design-point_02, #e8cab7);
+  border: 0.7px solid var(--color-point-02);
 }
 
 .polish_table::before,
@@ -640,7 +626,7 @@
   display: grid;
   place-items: center;
   min-width: 0;
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   text-align: center;
   font-size: 14px;
   font-weight: 400;
@@ -652,9 +638,8 @@
   justify-content: start;
   width: 55px;
   color: #aa794f;
-  font-family: "Pretendard Variable";
+  font-family: var(--font-main);
   font-size: 16px;
-  font-style: normal;
   font-weight: 500;
   line-height: 140%;
   letter-spacing: -0.16px;
@@ -662,8 +647,7 @@
 }
 
 .polish_cell {
-  color: var(--design-black_text, #44413f);
-  overflow: visible;
+  color: var(--color-text-primary);
 }
 
 .polish_cell.is_compact {
@@ -671,7 +655,6 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
   line-height: 1.4;
 }
 
@@ -682,12 +665,12 @@
 }
 
 .polish_cell.is_compact .polish_main {
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   letter-spacing: -0.14px;
 }
 
 .polish_cell.is_compact .polish_sub {
-  color: var(--design-gray-04, #8c8c8c);
+  color: var(--color-gray-04);
   letter-spacing: -0.4px;
 }
 
@@ -701,7 +684,7 @@
 }
 
 .polish_cell strong {
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
@@ -709,7 +692,7 @@
 }
 
 .polish_cell span {
-  color: var(--design-gray-04, #8c8c8c);
+  color: var(--color-gray-04);
   line-height: inherit;
   letter-spacing: -0.4px;
   white-space: nowrap;
@@ -877,7 +860,6 @@
   .guide_scale_caption {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .product_guide_body
@@ -928,11 +910,7 @@
 }
 
 .guide_scale_text:not(:last-child) {
-  border-bottom: 0.5px solid var(--design-sub-03, #cfc6b8);
-}
-
-.guide_scale_text small {
-  margin-left: 0;
+  border-bottom: 0.5px solid #cfc6b8;
 }
 
 .guide_scale_text:last-child {
@@ -1048,12 +1026,10 @@
 }
 
 .product_purchase_title_row span {
-  color: var(--design-gray-04, #8c8c8c);
-  font-family: "Pretendard Variable";
+  color: var(--color-gray-04);
+  font-family: var(--font-main);
   font-size: 16px;
-  font-style: normal;
   font-weight: 300;
-  line-height: normal;
   letter-spacing: -0.72px;
 }
 
@@ -1129,13 +1105,12 @@
 
 .purchase_product_name {
   overflow: hidden;
-  color: var(--design-black_deep, #212121);
+  color: #212121;
   text-overflow: ellipsis;
-  font-family: "Pretendard Variable";
+  font-family: var(--font-main);
   font-size: 14px;
-  font-style: normal;
   font-weight: 300;
-  line-height: 140%; /* 19.6px */
+  line-height: 140%;
   letter-spacing: -0.14px;
 }
 
@@ -1182,7 +1157,6 @@
 .purchase_arrow {
   width: 24px;
   height: 24px;
-  opacity: 1;
 }
 
 .product_offline {
@@ -1200,7 +1174,6 @@
   align-items: center;
   justify-content: flex-start;
   height: 98px;
-  overflow: visible;
   border-radius: 20px;
   padding: 22px 28px;
   background: linear-gradient(90deg, #ededed 0%, #e2e2e2 100%);
@@ -1209,7 +1182,7 @@
 .offline_empty p,
 .product_placeholder_panel p {
   margin: 0;
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-size: 16px;
   font-weight: 300;
   line-height: 1.3;
@@ -1217,7 +1190,7 @@
 }
 
 .offline_empty p strong {
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
@@ -1257,7 +1230,7 @@
   display: flex;
   flex-direction: column;
   gap: 28px;
-  background: #fbfaf9;
+  background: var(--color-bg-base);
   padding-bottom: 100px;
 }
 
@@ -1288,8 +1261,8 @@
   height: 1px;
   background-image: repeating-linear-gradient(
     to right,
-    var(--design-gray-04, #8c8c8c) 0,
-    var(--design-gray-04, #8c8c8c) 4px,
+    var(--color-gray-04) 0,
+    var(--color-gray-04) 4px,
     transparent 4px,
     transparent 8px
   );
@@ -1298,7 +1271,7 @@
 }
 
 .review_score_header strong {
-  color: var(--design-black_deep, #212121);
+  color: #212121;
   font-size: 30px;
   font-weight: 600;
   line-height: 1;
@@ -1316,7 +1289,7 @@
 }
 
 .review_score_header > span:last-child {
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-size: 18px;
   font-weight: 400;
   line-height: 1.5;
@@ -1340,7 +1313,7 @@
 }
 
 .review_score_row span {
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.5;
@@ -1354,7 +1327,7 @@
   height: 10px;
   overflow: hidden;
   border-radius: 85px;
-  background: #e5e5e5;
+  background: var(--color-gray-01);
 }
 
 .review_score_row i b {
@@ -1366,7 +1339,7 @@
 }
 
 .review_score_row em {
-  color: #757575;
+  color: var(--color-gray-05);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -1445,16 +1418,15 @@
   margin: 0 20px;
   display: flex;
   width: calc(100% - 40px);
-  box-sizing: border-box;
   padding: 16px 20px;
   justify-content: center;
   align-items: center;
   gap: 4px;
   flex: 1 0 0;
   border-radius: 16px;
-  border: 0.7px solid var(--design-point_main, #ca804f);
-  color: var(--design-point_main, #ca804f);
-  font-family: "Pretendard Variable";
+  border: 0.7px solid var(--color-primary);
+  color: var(--color-primary);
+  font-family: var(--font-main);
   font-size: 16px;
   font-weight: 500;
   letter-spacing: -0.16px;
@@ -1500,7 +1472,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-size: 16px;
   font-weight: 400;
   line-height: 1.4;
@@ -1521,7 +1493,7 @@
   display: block;
   width: 22px;
   height: 22px;
-  border: 0.5px solid #bfbfbf;
+  border: 0.5px solid var(--color-gray-03);
   border-radius: 4px;
   background: transparent;
 }
@@ -1550,7 +1522,7 @@
   border: 0;
   padding: 0;
   background: transparent;
-  color: var(--design-blck_middle, #6e6e6e);
+  color: #6e6e6e;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: -0.14px;
@@ -1634,7 +1606,16 @@
   flex-direction: column;
   gap: 16px;
   padding: 32px 0 24px;
-  background: #fbfaf9;
+  background: var(--color-bg-base);
+}
+
+.review_card[role="link"] {
+  cursor: pointer;
+}
+
+.review_card[role="link"]:focus-visible {
+  outline: 2px solid #c2977b;
+  outline-offset: 3px;
 }
 
 .review_card::after {
@@ -1665,7 +1646,7 @@
   height: 46px;
   flex: 0 0 auto;
   border-radius: 999px;
-  background: var(--design-gray-00, #f2f2f2);
+  background: var(--color-gray-00);
 }
 
 .review_author_meta {
@@ -1691,7 +1672,7 @@
 }
 
 .review_nickname strong {
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
@@ -1700,7 +1681,7 @@
 }
 
 .review_nickname i {
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-style: normal;
   font-size: 16px;
 }
@@ -1721,7 +1702,7 @@
 .review_user_desc {
   margin: 0;
   overflow: hidden;
-  color: #757575;
+  color: var(--color-gray-05);
   font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
@@ -1736,7 +1717,7 @@
   gap: 4px;
   margin: 0;
   padding-top: 4px;
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-size: 12px;
   font-weight: 500;
   line-height: 1.25;
@@ -1776,7 +1757,7 @@
 .review_card_text h2 {
   margin: 0;
   overflow: hidden;
-  color: var(--design-black_text, #44413f);
+  color: var(--color-text-primary);
   font-family: var(--font-title);
   font-size: 20px;
   font-weight: 700;
@@ -1967,7 +1948,7 @@
 
 .bookmark_picker_helper {
   margin: 0;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -2089,7 +2070,6 @@
   .purchase_text > span b {
     font-size: 20px;
   }
-
 }
 
 /* ── 페어링추천 탭 ── */
@@ -2111,7 +2091,6 @@
   color: #212121;
   font-family: var(--font-main);
   font-size: 20px;
-  font-style: normal;
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: -0.5px;
@@ -2142,10 +2121,9 @@
 }
 
 .product_pairing_food_item span {
-  color: #44413f;
+  color: var(--color-text-primary);
   font-family: var(--font-main);
   font-size: 12px;
-  font-style: normal;
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: -0.3px;
@@ -2162,7 +2140,7 @@
 
 .product_related_header {
   padding: 0 20px;
-  border-top: 0.5px solid #bfbfbf;
+  border-top: 0.5px solid var(--color-gray-03);
 }
 
 .product_related_header h2 {
@@ -2170,7 +2148,6 @@
   color: #212121;
   font-family: var(--font-main);
   font-size: 20px;
-  font-style: normal;
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: -0.5px;
@@ -2189,7 +2166,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 32px 0 24px;
-  background: #fbfaf9;
+  background: var(--color-bg-base);
 }
 
 .pairing_review_card[role="link"] {
@@ -2210,8 +2187,8 @@
   height: 1px;
   background-image: repeating-linear-gradient(
     to right,
-    #e8cab7 0,
-    #e8cab7 4px,
+    var(--color-point-02) 0,
+    var(--color-point-02) 4px,
     transparent 4px,
     transparent 8px
   );
@@ -2242,7 +2219,7 @@
 .pairing_card_text h2 {
   margin: 0;
   overflow: hidden;
-  color: #44413f;
+  color: var(--color-text-primary);
   font-family: var(--font-title);
   font-size: 20px;
   font-weight: 700;

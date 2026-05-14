@@ -1,6 +1,7 @@
 ﻿import { useCallback, useLayoutEffect, useMemo, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import CommentSection from "../components/CommentSection"
+import ScrollTopButton from "../components/ScrollTopButton"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import FeedActions from "../components/FeedActions"
 import PairingDetailHeader from "../components/PairingDetailHeader"
@@ -276,6 +277,7 @@ export default function PairingDetail() {
             getTierLabel={getPairingTierLabelByUserId}
             onCountChange={handleCommentCountChange}
             emptyByDefault={isMyPost}
+            initialCount={isMyPost ? 0 : initialCommentCount}
           />
         </>
       ) : (
@@ -365,6 +367,7 @@ export default function PairingDetail() {
                 getTierLabel={getPairingTierLabelByUserId}
                 onCountChange={handleCommentCountChange}
                 emptyByDefault={isMyPost}
+                initialCount={isMyPost ? 0 : initialCommentCount}
               />
             </>
           ) : null}
@@ -437,6 +440,8 @@ export default function PairingDetail() {
           onPrimary={bookmarkListById[bookmarkPicker.postId] ? removeBookmark : confirmBookmark}
         />
       ) : null}
+
+      <ScrollTopButton />
     </section>
   )
 }

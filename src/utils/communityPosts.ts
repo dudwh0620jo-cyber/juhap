@@ -280,7 +280,26 @@ const ensureReviewPhotoIds = (post: FeedPost): FeedPost => {
   return { ...post, photoIds }
 }
 
+const highCommentCountByPostId: Record<number, number> = {
+  92001: 12,
+  92004: 14,
+  1101: 12,
+  1002: 11,
+  1005: 13,
+}
+
+const getNormalizedCommentCount = (postId: number) => highCommentCountByPostId[postId] ?? Math.abs(postId) % 6
+
+const normalizePostCommentCount = (post: FeedPost): FeedPost => {
+  const commentCount = getNormalizedCommentCount(post.id)
+  return {
+    ...post,
+    commentCount,
+    answerCount: post.isQna ? commentCount : post.answerCount,
+  }
+}
+
 export const feedPosts: FeedPost[] = [...questionMockPosts, ...basePosts].map((post) => {
   const withPhotos = ensureReviewPhotoIds(post)
-  return applyUserDerivedFields(withPhotos)
+  return applyUserDerivedFields(normalizePostCommentCount(withPhotos))
 })

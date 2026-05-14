@@ -167,6 +167,10 @@ export default function ProductDetail() {
     })
   }
 
+  const openProductReviewDetail = (review: DrinkReview) => {
+    navigate(`/product/${product.id}/review/${encodeURIComponent(review.id)}`, { state: { bottomNavActive: "category" } })
+  }
+
   const isReviewBookmarked = (review: DrinkReview) => {
     const postId = getPairingReviewPostId(review)
     if (Number.isFinite(postId)) return Boolean(bookmarkListById[postId])
@@ -451,7 +455,18 @@ export default function ProductDetail() {
 
           <div className="review_list">
             {visibleReviews.slice(0, reviewVisibleCount).map((review) => (
-              <article className="review_card" key={review.id}>
+              <article
+                className="review_card"
+                key={review.id}
+                role="link"
+                tabIndex={0}
+                onClick={() => openProductReviewDetail(review)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return
+                  event.preventDefault()
+                  openProductReviewDetail(review)
+                }}
+              >
                 <div className="review_author_row">
                   {"avatar" in review.author && review.author.avatar ? (
                     <img className="review_profile" src={review.author.avatar} alt="" aria-hidden="true" />
@@ -467,7 +482,10 @@ export default function ProductDetail() {
                         type="button"
                         className={followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"}
                         aria-pressed={followedAuthorNames.has(review.author.name)}
-                        onClick={() => requestToggleFollow(review.author.name)}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          requestToggleFollow(review.author.name)
+                        }}
                       >
                         {followedAuthorNames.has(review.author.name) ? "언팔로우" : "팔로우"}
                       </button>
@@ -502,7 +520,7 @@ export default function ProductDetail() {
                   </div>
                 </div>
 
-                <div className="review_actions">
+                <div className="review_actions" onClick={(event) => event.stopPropagation()}>
                   <div className="review_actions_left">
                   <ProductReviewLikeButton
                     baseCount={review.likes}

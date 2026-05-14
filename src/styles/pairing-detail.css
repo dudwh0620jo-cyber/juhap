@@ -1,10 +1,12 @@
-.pairing_detail_page {
-  padding-top: 10px;
+.pairing_detail_page.page_screen {
+  min-height: 100vh;
+  background: #fbfaf9;
+  padding: 50px 24px 88px;
 }
 
 .comment_section_shell {
   margin: 18px -24px 0;
-  padding: 0 24px 6px;
+  padding: 0 20px 50px;
   background: var(--color-point-03-soft);
   border-top: 2px dotted var(--color-point-02);
 }
@@ -288,6 +290,7 @@
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: break-word;
+  color: #44413f;
 }
 
 .detail_ranking_meta {
@@ -362,7 +365,32 @@
 }
 
 .feed_actions.is_detail {
+  align-items: center;
   margin-top: 16px;
+  min-height: 30px;
+}
+
+.pairing_detail_page .feed_actions.is_detail .left_actions {
+  align-items: center;
+  gap: 16px;
+}
+
+.pairing_detail_page .feed_actions.is_detail .feed_action_button {
+  width: auto;
+  min-height: 24px;
+  padding: 0;
+  border-radius: 0;
+  gap: 4px;
+  color: #555;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.pairing_detail_page .feed_actions.is_detail .feed_action_icon,
+.pairing_detail_page .feed_actions.is_detail .feed_action_icon_wrap {
+  width: 24px;
+  height: 24px;
 }
 
 .detail_product_shell {
@@ -695,7 +723,8 @@
   background: transparent;
 }
 
-.comment_pager_left {
+.comment_pager_left,
+.comment_pager_right {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -703,10 +732,9 @@
 
 .comment_pager_bottom {
   margin-top: 10px;
-  width: min(100%, 260px);
+  width: min(100%, 312px);
   margin-left: auto;
   margin-right: auto;
-  padding-right: 18px;
 }
 
 .comment_pager_button {

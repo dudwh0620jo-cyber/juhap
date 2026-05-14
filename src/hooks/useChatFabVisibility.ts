@@ -9,14 +9,15 @@ type ChatFabVisibilityOptions = {
   isAuthPage: boolean
   isWritePage: boolean
   isProductDetailPage: boolean
+  isCommunityPage: boolean
 }
 
-function shouldHideByRoute({ isAuthPage, isWritePage, isProductDetailPage }: ChatFabVisibilityOptions) {
-  return isAuthPage || isWritePage || isProductDetailPage
+function shouldHideByRoute({ isAuthPage, isWritePage, isProductDetailPage, isCommunityPage }: ChatFabVisibilityOptions) {
+  return isAuthPage || isWritePage || isProductDetailPage || isCommunityPage
 }
 
 export function useChatFabVisibility(options: ChatFabVisibilityOptions) {
-  const routeHidden = useMemo(() => shouldHideByRoute(options), [options.isAuthPage, options.isProductDetailPage, options.isWritePage])
+  const routeHidden = useMemo(() => shouldHideByRoute(options), [options.isAuthPage, options.isProductDetailPage, options.isWritePage, options.isCommunityPage])
   const [overrideHidden, setOverrideHidden] = useState<boolean | null>(null)
 
   useEffect(() => {
