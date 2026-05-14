@@ -159,6 +159,8 @@ type Props = {
   getTierLabel: (userId: number) => string
   onCountChange: (count: number) => void
   emptyByDefault?: boolean
+  initialCount?: number
+  countOffset?: number
 }
 
 const PAGE_SIZE = 5
@@ -168,6 +170,23 @@ type MentionContext = { start: number; end: number; query: string }
 
 const COMMENT_TIME_LABELS = ["방금전", "2분전", "38분전", "1시간전", "1시간전", "3시간전", "5시간전", "어제"] as const
 const COMMENT_LIKE_COUNTS = [4, 4, 4, 8, 1, 15, 6, 3] as const
+const GENERATED_COMMENT_TEXTS = [
+  "이 조합은 다시 봐도 궁금해요.",
+  "다음에 비슷하게 한번 마셔볼게요.",
+  "향 설명이 좋아서 참고됐어요.",
+  "음식이랑 같이 먹으면 더 좋을 것 같아요.",
+  "저도 이 조합 저장해뒀습니다.",
+  "깔끔한 마무리가 잘 어울릴 것 같네요.",
+  "비슷한 술로도 해보고 싶어요.",
+  "후기 보고 궁금해졌어요.",
+  "가격대만 맞으면 바로 시도해볼 조합이에요.",
+  "친구들이랑 먹을 때 참고할게요.",
+  "사진이랑 설명이 잘 맞아서 보기 좋네요.",
+  "입문자도 편하게 볼 수 있는 후기예요.",
+  "다른 안주랑도 잘 맞을지 궁금합니다.",
+  "다음 모임 메뉴 후보로 넣어둘게요.",
+  "추천 포인트가 분명해서 좋아요.",
+] as const
 
 const resolveCommentIdentity = (item: Pick<CommentItem, "userId" | "userName" | "userMeta">) => {
   const user = usersMockById[item.userId]
@@ -192,6 +211,37 @@ const normalizeCommentItems = (items: CommentItem[]) =>
     likedByCurrentUser: Boolean(item.likedByCurrentUser),
   }))
 
+const normalizeTargetCount = (count: number | undefined) => {
+  if (typeof count !== "number" || !Number.isFinite(count)) return undefined
+  return Math.max(0, Math.floor(count))
+}
+
+const createGeneratedComment = (id: number, index: number): CommentItem => {
+  const user = mentionDirectoryMock[index % mentionDirectoryMock.length]
+  return {
+    id,
+    userId: user.id,
+    userName: user.name,
+    userMeta: user.meta,
+    text: GENERATED_COMMENT_TEXTS[index % GENERATED_COMMENT_TEXTS.length],
+  }
+}
+
+const fitCommentItemsToCount = (items: CommentItem[], count: number | undefined) => {
+  const targetCount = normalizeTargetCount(count)
+  if (targetCount === undefined) return items
+  if (targetCount <= 0) return []
+  if (items.length >= targetCount) return items.slice(0, targetCount)
+
+  const result = [...items]
+  let nextId = result.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1
+  while (result.length < targetCount) {
+    result.push(createGeneratedComment(nextId, result.length))
+    nextId += 1
+  }
+  return result
+}
+
 export default function CommentSection({
   pairingId,
   currentUser,
@@ -199,6 +249,8 @@ export default function CommentSection({
   getTierLabel,
   onCountChange,
   emptyByDefault,
+  initialCount,
+  countOffset = 0,
 }: Props) {
   const navigate = useNavigate()
   const [commentValue, setCommentValue] = useState("")
@@ -233,27 +285,38 @@ export default function CommentSection({
   )
 
   const [commentItems, setCommentItems] = useState<CommentItem[]>(() => {
-    if (!pairingId) return normalizeCommentItems(emptyByDefault ? [] : initialComments)
+    const defaultComments = fitCommentItemsToCount(
+      emptyByDefault ? [] : pairingId ? mockCommentsByPairingId[pairingId] ?? initialComments : initialComments,
+      initialCount,
+    )
+
+    if (!pairingId) return normalizeCommentItems(defaultComments)
     try {
       const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
-      if (!raw) return normalizeCommentItems(emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments)
+      if (!raw) return normalizeCommentItems(defaultComments)
       const parsed = JSON.parse(raw)
       if (isLegacyInitialComments(parsed)) {
-        return normalizeCommentItems(emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments)
+        return normalizeCommentItems(defaultComments)
       }
-      if (!Array.isArray(parsed)) return normalizeCommentItems(emptyByDefault ? [] : mockCommentsByPairingId[pairingId] ?? initialComments)
-      return normalizeCommentItems(
-        parsed.filter(
-          (item): item is CommentItem =>
-            item &&
-            typeof item === "object" &&
-            typeof item.id === "number" &&
-            typeof item.userId === "number" &&
-            typeof item.text === "string",
-        ),
+      if (!Array.isArray(parsed)) return normalizeCommentItems(defaultComments)
+      const storedComments = parsed.filter(
+        (item): item is CommentItem =>
+          item &&
+          typeof item === "object" &&
+          typeof item.id === "number" &&
+          typeof item.userId === "number" &&
+          typeof item.text === "string",
       )
+      if (!emptyByDefault && storedComments.length === 0) return normalizeCommentItems(defaultComments)
+      if (initialCount !== undefined) {
+        const myComments = storedComments.filter((item) => item.userId === currentUser.id)
+        const otherComments = storedComments.filter((item) => item.userId !== currentUser.id)
+        const targetOtherCount = Math.max(0, normalizeTargetCount(initialCount) ?? 0)
+        return normalizeCommentItems([...fitCommentItemsToCount(otherComments, targetOtherCount), ...myComments])
+      }
+      return normalizeCommentItems(storedComments)
     } catch {
-      return normalizeCommentItems(emptyByDefault ? [] : (pairingId ? mockCommentsByPairingId[pairingId] ?? initialComments : initialComments))
+      return normalizeCommentItems(defaultComments)
     }
   })
 
@@ -582,6 +645,10 @@ export default function CommentSection({
     closeCommentOverlays()
     setPageIndex(0)
   }
+  const goToLastPage = () => {
+    closeCommentOverlays()
+    setPageIndex(maxPageIndex)
+  }
 
   const canGoPrev = safePageIndex > 0
   const canGoNext = safePageIndex < maxPageIndex
@@ -621,7 +688,7 @@ export default function CommentSection({
           }}
         >
           <div className="comment_list_header">
-            <h3 className="comment_list_title">댓글 {commentItems.length}</h3>
+            <h3 className="comment_list_title">댓글 {countOffset + commentItems.length}</h3>
           </div>
         <div className="comment_slide_viewport">
           <div
@@ -892,15 +959,26 @@ export default function CommentSection({
             {sortedComments.length === 0 ? "0/0" : `${safePageIndex + 1}/${maxPageIndex + 1}`}
           </span>
 
-          <button
-            type="button"
-            className="comment_pager_button"
-            onClick={goToNextPage}
-            disabled={!canGoNext}
-            aria-label="다음 페이지"
-          >
-            <img className="comment_pager_icon is_flipped" src={iconCaretLeft} alt="" aria-hidden="true" />
-          </button>
+          <div className="comment_pager_right" aria-label="다음/마지막 페이지">
+            <button
+              type="button"
+              className="comment_pager_button"
+              onClick={goToNextPage}
+              disabled={!canGoNext}
+              aria-label="다음 페이지"
+            >
+              <img className="comment_pager_icon is_flipped" src={iconCaretLeft} alt="" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="comment_pager_button"
+              onClick={goToLastPage}
+              disabled={!canGoNext}
+              aria-label="마지막 페이지"
+            >
+              <img className="comment_pager_icon" src={iconCaretDoubleRight} alt="" aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </section>
     </>

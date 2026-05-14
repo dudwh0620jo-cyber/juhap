@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo } from "react"
 import { useLocation, useNavigate } from "react-router"
 
 import iconCaretLeft from "../assets/svg/caretleft.svg"
+import ScrollTopButton from "../components/ScrollTopButton"
 import CommunityReviewCard from "../components/CommunityReviewCard"
 import "../styles/community.css"
 import {
@@ -140,6 +141,8 @@ export default function PairingTagList() {
           })
         )}
       </div>
+
+      <ScrollTopButton />
     </section>
   )
 }

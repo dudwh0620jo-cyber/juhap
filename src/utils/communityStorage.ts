@@ -12,7 +12,8 @@ export const readStoredPairingCommentCount = (pairingId: string, fallbackCount =
   try {
     const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
     const parsed = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed.length : fallbackCount
+    if (!Array.isArray(parsed)) return fallbackCount
+    return parsed.length > 19 ? fallbackCount : parsed.length
   } catch {
     return fallbackCount
   }
