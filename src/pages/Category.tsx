@@ -335,7 +335,14 @@ export default function Category() {
 
   return (
     <section className="category_page page_screen" aria-label="카테고리 페이지">
-      <CategorySearch ref={searchInputRef} value={searchValue} onChange={setSearchValue} onActivate={openSearchOverlay} readOnly />
+      <CategorySearch
+        ref={searchInputRef}
+        value={searchValue}
+        onChange={setSearchValue}
+        onActivate={openSearchOverlay}
+        readOnly
+        guideId="category-search-filter"
+      />
 
       <div className="category_layout category_layout_v2">
         <aside className="category_group_list category_group_list_v2" aria-label="주종 목록">

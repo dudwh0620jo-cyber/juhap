@@ -23,6 +23,7 @@ import CommunityRanking from "./pages/Ranking"
 import TasteSetup from "./pages/TasteSetup"
 import TodayPairingDetail from "./pages/TodayPairingDetail"
 import VoteList from "./pages/VoteList"
+import FeatureGuide from "./components/featureGuide/FeatureGuide"
 import "./styles/common.css"
 import { useChatFabVisibility } from "./hooks/useChatFabVisibility"
 
@@ -223,6 +224,8 @@ export default function App() {
           <Route path="/ai-scan" element={<AiScan />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
+
+        <FeatureGuide />
 
         {!isAuthPage && isChatOpen ? (
           <Chat onClose={() => setIsChatOpen(false)} userName={chatUserName} isHidden={isChatHidden} />
