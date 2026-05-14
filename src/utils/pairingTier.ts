@@ -1,17 +1,21 @@
 import { getTierClassName, type Tier } from "./tier"
 
 export const pairingTiersByAuthorId: Record<number, Tier> = {
-  2001: 1,
-  2002: 3,
-  2003: 4,
-  2004: 2,
-  2019: 3,
-  2025: 2,
-  2101: 1,
-  2102: 2,
-  2103: 2,
-  2104: 3,
-  9999: 1,
+  1001: 1,
+  1002: 2,
+  1004: 3,
+  1006: 1,
+  1011: 2,
+  1012: 3,
+  1013: 2,
+  1014: 1,
+  1015: 2,
+  6001: 3,
+  6002: 4,
+  6004: 3,
+  6005: 3,
+  6006: 1,
+  6007: 1,
 }
 
 export const pairingTierLabels: Record<Tier, string> = {
@@ -35,4 +39,3 @@ export const getUserGradeBadgeClassNameByTier = (tier: number | undefined) => ge
 
 export const getUserGradeBadgeClassNameByUserId = (userId: number) =>
   getUserGradeBadgeClassNameByTier(getPairingTierByUserId(userId))
-
