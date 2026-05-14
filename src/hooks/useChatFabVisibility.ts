@@ -12,12 +12,20 @@ type ChatFabVisibilityOptions = {
   isCommunityPage: boolean
 }
 
-function shouldHideByRoute({ isAuthPage, isWritePage, isProductDetailPage, isCommunityPage }: ChatFabVisibilityOptions) {
-  return isAuthPage || isWritePage || isProductDetailPage || isCommunityPage
+function isChatFabAllowedPath(pathname: string) {
+  if (pathname === "/home") return true
+  if (pathname === "/community/ranking") return true
+  if (pathname === "/category" || pathname.startsWith("/category/")) return true
+  return false
+}
+
+function shouldHideByRoute({ pathname, isAuthPage }: ChatFabVisibilityOptions) {
+  if (isAuthPage) return true
+  return !isChatFabAllowedPath(pathname)
 }
 
 export function useChatFabVisibility(options: ChatFabVisibilityOptions) {
-  const routeHidden = useMemo(() => shouldHideByRoute(options), [options.isAuthPage, options.isProductDetailPage, options.isWritePage, options.isCommunityPage])
+  const routeHidden = useMemo(() => shouldHideByRoute(options), [options.isAuthPage, options.pathname])
   const [overrideHidden, setOverrideHidden] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -37,4 +45,3 @@ export function useChatFabVisibility(options: ChatFabVisibilityOptions) {
 
   return overrideHidden ?? routeHidden
 }
-
