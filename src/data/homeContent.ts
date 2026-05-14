@@ -16,6 +16,9 @@ import voteDrinkBeer from "../assets/vote_drink_beer_01.png"
 import voteColdCannedBeer from "../assets/vote_cold_canned_beer_01.png"
 import voteVodkaMix from "../assets/vote_vodka_mix_01.png"
 import voteMakgeolliPajeon from "../assets/vote_makgeolli_pajeon_01.png"
+import voteMakgeolliJeon from "../assets/vote_makgeolli_jeon_01.png"
+import voteHighballFries from "../assets/vote_highball_fries_01.png"
+import voteMiniWineBottle from "../assets/vote_mini_wine_bottle_01.png"
 import momentPickSolo from "../assets/situation_solo.png"
 import momentPickFriends from "../assets/situation_friends.png"
 import momentPickFamily from "../assets/situation_family.png"
@@ -59,6 +62,9 @@ export const homeAssets = {
   voteColdCannedBeer,
   voteVodkaMix,
   voteMakgeolliPajeon,
+  voteMakgeolliJeon,
+  voteHighballFries,
+  voteMiniWineBottle,
   momentPickSolo,
   momentPickFriends,
   momentPickFamily,
@@ -124,11 +130,14 @@ export function resolveVoteOptionIconSrc(title: string): string | undefined {
   if (!key) return undefined
   if (key.includes("맥주") && (key.includes("피자") || key.includes("치킨"))) return homeAssets.voteBeerPizza
   if (key.includes("스테이크") && key.includes("와인")) return homeAssets.voteSteakWine
+  if (key.includes("하이볼") && (key.includes("감자") || key.includes("감자튀김") || key.includes("후라이")))
+    return homeAssets.voteHighballFries
   if (key.includes("소주") && key.includes("라면")) return homeAssets.voteSojuRamen
   if (key.includes("와인") && key.includes("치즈")) return homeAssets.voteWineCheese
   if (key.includes("보드카믹스") || (key.includes("보드카") && key.includes("믹스"))) return homeAssets.voteVodkaMix
-  if (key.includes("막걸리") && (key.includes("파전") || (key.includes("전") && key.includes("시장"))))
-    return homeAssets.voteMakgeolliPajeon
+  if (key.includes("미니") && key.includes("와인")) return homeAssets.voteMiniWineBottle
+  if (key.includes("막걸리") && key.includes("파전")) return homeAssets.voteMakgeolliPajeon
+  if (key.includes("막걸리") && key.includes("전")) return homeAssets.voteMakgeolliJeon
   if (key.includes("캔맥주") || key.includes("캔")) return homeAssets.voteColdCannedBeer
   if (key === "소주" || (key.includes("소주") && !key.includes("라면"))) return homeAssets.voteDrinkSoju
   if (key === "맥주" || (key.includes("맥주") && !key.includes("피자") && !key.includes("치킨"))) return homeAssets.voteDrinkBeer
@@ -214,5 +223,4 @@ export const homeWeeklyRankingCards = [
     isCenter: false,
   },
 ] as const
-
 

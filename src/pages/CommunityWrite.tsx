@@ -28,6 +28,7 @@ import { currentUserMock } from "../utils/usersMock"
 import communityPostsRaw from "../data/communityPosts.json"
 import { pairingWriteDrinkMocks, pairingWriteFoodMocks } from "../data/pairingWriteMocks"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
+import ThreeOptionModal from "../components/ThreeOptionModal"
 import { drinkCategories, subcategoryInfoByCategoryId } from "../data/categoryData"
 
 const PAIRING_SCAN_MS = 1200
@@ -304,6 +305,7 @@ export default function CommunityWrite() {
   const writeKind: WriteKind = isQuestionWrite ? "question" : isProductReviewWrite ? "drink-review" : "pairing-review"
   const productDetail = productId ? mockProductById[productId] ?? defaultProduct : null
   const hasCheckedDraftRef = useRef(false)
+  const [draftPrompt, setDraftPrompt] = useState<Partial<DraftPayload> | null>(null)
   const photoUploadInputRef = useRef<HTMLInputElement | null>(null)
   const cameraVideoRef = useRef<HTMLVideoElement | null>(null)
   const pairingDrinkNameSnapshotRef = useRef("")
@@ -903,6 +905,45 @@ export default function CommunityWrite() {
     }
   }
 
+  function restoreDraft(parsed: Partial<DraftPayload>) {
+    window.setTimeout(() => {
+      setReviewTab(parsed.reviewTab === "pairing" ? "pairing" : "drink")
+      setSelectedSituation(parsed.selectedSituation ?? null)
+      setSelectedDrinkType(parsed.selectedDrinkType ?? null)
+      setSelectedFoodCategory(parsed.selectedFoodCategory ?? null)
+      setSelectedFoodParentCategory(
+        typeof parsed.selectedFoodCategory === "string" && parsed.selectedFoodCategory.trim()
+          ? deriveFoodParentCategory(parsed.selectedFoodCategory)
+          : null,
+      )
+      setSelectedFoodCategoryTags(() => {
+        if (typeof parsed.selectedFoodCategory !== "string" || !parsed.selectedFoodCategory.trim()) return new Set()
+        return new Set([deriveFoodParentCategory(parsed.selectedFoodCategory)])
+      })
+      setDrinkName(parsed.drinkName ?? "")
+      setDrinkRating(typeof parsed.drinkRating === "number" ? parsed.drinkRating : 0)
+      setDrinkTasteTags(new Set(Array.isArray(parsed.drinkTasteTags) ? parsed.drinkTasteTags : []))
+      setPhotoIds(Array.isArray(parsed.photoIds) ? parsed.photoIds : [])
+      setTitle(parsed.title ?? "")
+      setBody(parsed.body ?? "")
+      setPairingLocationSearch(parsed.pairingLocationSearch ?? "")
+      setPairingLocationTags(Array.isArray(parsed.pairingLocationTags) ? parsed.pairingLocationTags : [])
+      setPairingTasteTags(new Set(Array.isArray(parsed.pairingTasteTags) ? parsed.pairingTasteTags : []))
+      setPairingDrinkThumbSrc(null)
+      setIsPairingDrinkScanning(false)
+      setIsPairingDrinkScanDone(false)
+      setIsPairingDrinkRevealed(false)
+      setPairingFoodThumbSrc(null)
+      setIsPairingFoodScanning(false)
+      setIsPairingFoodScanDone(false)
+      setIsPairingFoodRevealed(false)
+      setPairingPrice((parsed.pairingPrice ?? "").replace(/[^\d]/g, ""))
+      setPairingSummary(parsed.pairingSummary ?? "")
+      setPairingBody(parsed.pairingBody ?? "")
+      setPairingPhotoIds(Array.isArray(parsed.pairingPhotoIds) ? parsed.pairingPhotoIds.slice(0, MAX_PAIRING_PHOTOS) : [])
+    }, 0)
+  }
+
   useEffect(() => {
     if (hasCheckedDraftRef.current) return
     hasCheckedDraftRef.current = true
@@ -912,54 +953,7 @@ export default function CommunityWrite() {
       if (!raw) return
       const parsed = JSON.parse(raw) as Partial<DraftPayload>
       if (parsed.mode !== mode) return
-      while (true) {
-        const shouldRestore = window.confirm("임시저장된 글이 있습니다. 나머지 내용을 작성할까요?")
-        if (shouldRestore) {
-          window.setTimeout(() => {
-            setReviewTab(parsed.reviewTab === "pairing" ? "pairing" : "drink")
-            setSelectedSituation(parsed.selectedSituation ?? null)
-            setSelectedDrinkType(parsed.selectedDrinkType ?? null)
-            setSelectedFoodCategory(parsed.selectedFoodCategory ?? null)
-            setSelectedFoodParentCategory(
-              typeof parsed.selectedFoodCategory === "string" && parsed.selectedFoodCategory.trim()
-                ? deriveFoodParentCategory(parsed.selectedFoodCategory)
-                : null,
-            )
-            setSelectedFoodCategoryTags(() => {
-              if (typeof parsed.selectedFoodCategory !== "string" || !parsed.selectedFoodCategory.trim()) return new Set()
-              return new Set([deriveFoodParentCategory(parsed.selectedFoodCategory)])
-            })
-            setDrinkName(parsed.drinkName ?? "")
-            setDrinkRating(typeof parsed.drinkRating === "number" ? parsed.drinkRating : 0)
-            setDrinkTasteTags(new Set(Array.isArray(parsed.drinkTasteTags) ? parsed.drinkTasteTags : []))
-            setPhotoIds(Array.isArray(parsed.photoIds) ? parsed.photoIds : [])
-            setTitle(parsed.title ?? "")
-            setBody(parsed.body ?? "")
-            setPairingLocationSearch(parsed.pairingLocationSearch ?? "")
-            setPairingLocationTags(Array.isArray(parsed.pairingLocationTags) ? parsed.pairingLocationTags : [])
-            setPairingTasteTags(new Set(Array.isArray(parsed.pairingTasteTags) ? parsed.pairingTasteTags : []))
-            setPairingDrinkThumbSrc(null)
-            setIsPairingDrinkScanning(false)
-            setIsPairingDrinkScanDone(false)
-            setIsPairingDrinkRevealed(false)
-            setPairingFoodThumbSrc(null)
-            setIsPairingFoodScanning(false)
-            setIsPairingFoodScanDone(false)
-            setIsPairingFoodRevealed(false)
-            setPairingPrice((parsed.pairingPrice ?? "").replace(/[^\d]/g, ""))
-            setPairingSummary(parsed.pairingSummary ?? "")
-            setPairingBody(parsed.pairingBody ?? "")
-            setPairingPhotoIds(Array.isArray(parsed.pairingPhotoIds) ? parsed.pairingPhotoIds.slice(0, MAX_PAIRING_PHOTOS) : [])
-          }, 0)
-          return
-        }
-
-        const shouldDelete = window.confirm("정말 취소하시겠어요?")
-        if (!shouldDelete) continue
-        clearDraft()
-        window.alert("임시저장글을 삭제했습니다.")
-        return
-      }
+      setDraftPrompt(parsed)
     } catch {
       // ignore parse/storage errors
     }
@@ -2520,6 +2514,28 @@ export default function CommunityWrite() {
               setIsPairingFoodScanDone(true)
               window.setTimeout(() => setIsPairingFoodRevealed(true), PAIRING_SCAN_MS)
             }, PAIRING_SCAN_MS)
+          }}
+        />
+      ) : null}
+
+      {draftPrompt ? (
+        <ThreeOptionModal
+          title="임시저장된 글이 있어요"
+          message="어떻게 진행할까요?"
+          secondaryLabel="새 글 작성"
+          primaryLabel="임시저장글 마저쓰기"
+          cancelLabel="취소"
+          onSecondary={() => {
+            clearDraft()
+            setDraftPrompt(null)
+          }}
+          onPrimary={() => {
+            restoreDraft(draftPrompt)
+            setDraftPrompt(null)
+          }}
+          onCancel={() => {
+            setDraftPrompt(null)
+            navigate(-1)
           }}
         />
       ) : null}

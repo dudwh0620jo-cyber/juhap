@@ -1,8 +1,8 @@
 .profile_setup_page {
   min-height: 100vh;
   padding: 120px 20px 70px;
-  background: #f8f2e9;
-  color: #111111;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
   font-family: var(--font-main);
 }
 
@@ -24,7 +24,7 @@
 
 .profile_setup_header p {
   margin: 9px 0 0;
-  color: #89847e;
+  color: var(--color-text-primary);
   font-size: 15px;
   font-weight: 500;
   line-height: 1.45;
@@ -53,20 +53,21 @@
 .profile_setup_field > span:first-child,
 .profile_setup_address legend {
   padding: 0;
-  color: #111111;
+  color: var(--color-text-primary);
   font-size: 15px;
   font-weight: 700;
 }
-
+.profile_setup_field em{
+  color: var(--color-point-01);
+}
 .profile_setup_field input,
 .profile_setup_address input {
   width: 100%;
   height: 60px;
-  border: 1px solid #4f473b;
   border-radius: 14px;
   padding: 0 10px;
   background: transparent;
-  color: #212121;
+  color: var(--color-text-primary);
   font-family: var(--font-main);
   font-size: 15px;
   font-weight: 500;
@@ -107,19 +108,20 @@
   right: 10px;
   min-width: 67px;
   height: 28px;
-  border: 1px solid #4f473b;
+  border: 1px solid var(--color-gray-02);
   border-radius: 999px;
-  background: #ead7a8;
-  color: #111111;
+  background: var(--color-bg-base);
+  color: var(--color-gray-05);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 400;
+  font-weight: 130%;
   transform: translateY(-50%);
   cursor: pointer;
 }
 
 .profile_setup_hint {
   margin: -2px 2px 0;
-  color: #c24b3a;
+  color: var(--color-point-01);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.3;
@@ -129,7 +131,7 @@
   position: absolute;
   top: 50%;
   right: 14px;
-  color: #b8b3ad;
+  color: var(--color-gray-04);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.3;
@@ -181,10 +183,9 @@
   width: 100%;
   height: 60px;
   margin-top: 102px;
-  border: 1px solid #4f473b;
   border-radius: 14px;
-  background: #ead7a8;
-  color: #111111;
+  background: var(--color-point-01);
+  color: var(--color-gray-00);
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;

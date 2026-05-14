@@ -1,6 +1,6 @@
 import { type FormEvent, useRef, useState } from "react"
 import { useNavigate } from "react-router"
-import mascotImage from "../assets/onboarding-mascot.png"
+import mascotImage from "../assets/onboarding-mascot_05.png"
 import mapPinIcon from "../assets/svg/mappin.svg"
 import AlertModal from "../components/AlertModal"
 import { profileSetupCopy } from "../data/setupContent"

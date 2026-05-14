@@ -19,10 +19,10 @@ function daysAgo(n: number) {
 export const voteItems: VoteItem[] = [
   {
     id: 1,
-    question: "불금에 어울리는 조합은?",
+    question: "불금을 달려줄 조합은?",
     date: daysAgo(0),
     options: [
-      { title: "맥주에 치킨", percent: 62 },
+      { title: "맥주와 피자", percent: 62 },
       { title: "와인에 스테이크", percent: 38 },
     ],
     totalVotes: 1284,
@@ -30,11 +30,11 @@ export const voteItems: VoteItem[] = [
   },
   {
     id: 2,
-    question: "혼술할 때 최고인 선택은?",
+    question: "시장안주 최고의 선택은?",
     date: daysAgo(1),
     options: [
-      { title: "막걸리에 파전", percent: 55 },
-      { title: "소주에 라면", percent: 45 },
+      { title: "막걸리와 전", percent: 55 },
+      { title: "소주와 라면", percent: 45 },
     ],
     totalVotes: 2108,
     myPickIndex: 0,
@@ -55,7 +55,7 @@ export const voteItems: VoteItem[] = [
     question: "비 오는 날 최고 조합은?",
     date: daysAgo(3),
     options: [
-      { title: "막걸리에 해물파전", percent: 83 },
+      { title: "막걸리와 해물파전", percent: 83 },
       { title: "와인에 치즈", percent: 17 },
     ],
     totalVotes: 987,
@@ -63,7 +63,7 @@ export const voteItems: VoteItem[] = [
   },
   {
     id: 5,
-    question: "여름철 야외에서 마시기 좋은 술은?",
+    question: "설렘 가득한 야외에서 마시기 좋은 술은?",
     date: daysAgo(4),
     options: [
       { title: "시원한 캔맥주", percent: 68 },
@@ -88,8 +88,8 @@ export const voteItems: VoteItem[] = [
     question: "2차로 가기 좋은 조합은?",
     date: daysAgo(6),
     options: [
-      { title: "하이볼과 감튀", percent: 73 },
-      { title: "사장막걸리와 전", percent: 27 },
+      { title: "하이볼과 감자튀김", percent: 73 },
+      { title: "막걸리와 전", percent: 27 },
     ],
     totalVotes: 2045,
     myPickIndex: 0,
@@ -100,9 +100,10 @@ export const voteItems: VoteItem[] = [
     date: daysAgo(7),
     options: [
       { title: "편의점 캔맥주", percent: 60 },
-      { title: "미니 와인 병", percent: 40 },
+      { title: "미니 와인 보틀", percent: 40 },
     ],
     totalVotes: 891,
     myPickIndex: null,
   },
 ]
+

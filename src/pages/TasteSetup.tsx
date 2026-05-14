@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router"
-import mascotImage from "../assets/onboarding-mascot.png"
+import mascotImage from "../assets/onboarding-mascot_06.png"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import {
   MAX_MULTI_SELECTIONS,

@@ -1,17 +1,18 @@
 .login_page {
   min-height: 100vh;
   padding: 118px 22px 32px;
-  background: #f8f2e9;
-  color: #212121;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
   font-family: var(--font-main);
 }
 
 .login_brand_row {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 52px;
-  margin-bottom: 36px;
+  gap: 20px;
+  padding: 0 0 24px 0;
 }
 
 .login_logo_group {
@@ -31,7 +32,7 @@
 
 .login_hanja {
   margin: 0;
-  color: #222222;
+  color: var(--color-text-primary);
   font-size: 17px;
   font-weight: 500;
   line-height: 1.1;
@@ -64,15 +65,14 @@
 .login_field input {
   width: 100%;
   height: 58px;
-  border: 1px solid #4f473b;
+  border: 0;
   border-radius: 14px;
   padding: 0 10px;
-  background: transparent;
-  color: #212121;
+  background: var(--color-point-03);
+  color: var(--color-text-primary);
   font-family: var(--font-main);
   font-size: 15px;
   font-weight: 500;
-  outline: none;
 }
 
 .login_field input::placeholder {
@@ -80,7 +80,8 @@
 }
 
 .login_field input:focus {
-  border-color: #d48652;
+  outline: none;
+  box-shadow: none;
 }
 
 .login_password_input {
@@ -125,13 +126,12 @@
   width: 100%;
   height: 60px;
   margin-top: 4px;
-  border: 1px solid #4f473b;
   border-radius: 14px;
-  background: #ead7a8;
-  color: #111111;
+  background: var(--color-primary);
+  color: var(--color-gray-00);
   font-family: var(--font-main);
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -142,12 +142,12 @@
   padding: 0;
   background: transparent;
   margin-top: 29px;
-  color: #111111;
+  color: var(--color-text-primary);
   text-align: center;
   text-decoration: none;
   font-family: var(--font-main);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 400;
   cursor: pointer;
 }
 
@@ -166,27 +166,27 @@
   border: 1px solid #d8d1c7;
   border-radius: 999px;
   background: #ffffff;
-  font-family: Arial, sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1;
   cursor: pointer;
 }
 
+.login_social_logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+}
+
 .login_social_button.is_google {
-  color: #4285f4;
+  border-color: #d8d1c7;
 }
 
 .login_social_button.is_kakao {
   border-color: #f3d600;
   background: #fee500;
-  color: #1f1f1f;
-  font-size: 9px;
-  font-weight: 900;
 }
 
 .login_social_button.is_naver {
-  color: #03c75a;
+  border-color: #d8d1c7;
 }
 
 .login_terms {

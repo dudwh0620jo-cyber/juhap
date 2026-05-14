@@ -1,9 +1,12 @@
 import { type FormEvent, useState } from "react"
 import { useNavigate } from "react-router"
 import AlertModal from "../components/AlertModal"
-import mascotImage from "../assets/onboarding-mascot.png"
+import mascotImage from "../assets/onboarding-mascot_01.png"
 import eyeIcon from "../assets/svg/Eye.svg"
 import eyeSlashIcon from "../assets/svg/EyeSlash.svg"
+import googleLogo from "../assets/svg/logo_google.svg"
+import kakaoLogo from "../assets/svg/logo_kakako.svg"
+import naverLogo from "../assets/svg/logo_naver.svg"
 import { updateUserAccount } from "../data/userProfile"
 import "../styles/login.css"
 
@@ -141,13 +144,13 @@ export default function Login() {
 
       <div className="login_socials" aria-label={TEXT.socialLabel}>
         <button className="login_social_button is_google" type="button" aria-label={TEXT.googleLabel}>
-          G
+          <img className="login_social_logo" src={googleLogo} alt="" aria-hidden="true" />
         </button>
         <button className="login_social_button is_kakao" type="button" aria-label={TEXT.kakaoLabel}>
-          TALK
+          <img className="login_social_logo" src={kakaoLogo} alt="" aria-hidden="true" />
         </button>
         <button className="login_social_button is_naver" type="button" aria-label={TEXT.naverLabel}>
-          N
+          <img className="login_social_logo" src={naverLogo} alt="" aria-hidden="true" />
         </button>
       </div>
 
