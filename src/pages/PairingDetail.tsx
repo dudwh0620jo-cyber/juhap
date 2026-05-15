@@ -266,7 +266,6 @@ export default function PairingDetail() {
             getTierLabel={getPairingTierLabelByUserId}
             onCountChange={handleCommentCountChange}
             emptyByDefault={isMyPost}
-            initialCount={isMyPost ? 0 : initialCommentCount}
           />
         </>
       ) : (
@@ -348,7 +347,6 @@ export default function PairingDetail() {
                 getTierLabel={getPairingTierLabelByUserId}
                 onCountChange={handleCommentCountChange}
                 emptyByDefault={isMyPost}
-                initialCount={isMyPost ? 0 : initialCommentCount}
               />
             </>
           ) : null}

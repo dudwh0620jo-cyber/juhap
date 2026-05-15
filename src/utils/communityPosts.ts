@@ -1,5 +1,6 @@
 ﻿import rawPosts from "../data/communityPosts.json"
 import { FEATURE_CHIPS } from "../data/categoryFilterConfig"
+import { getSeedCommentCount } from "./commentSeeds"
 import { QUESTION_MOCK_SEEDS } from "./communityQuestionData"
 import { usersMockById } from "./usersMock"
 
@@ -284,15 +285,7 @@ const ensureReviewPhotoIds = (post: FeedPost): FeedPost => {
   return { ...post, photoIds }
 }
 
-const highCommentCountByPostId: Record<number, number> = {
-  92001: 12,
-  92004: 14,
-  1101: 12,
-  1002: 11,
-  1005: 13,
-}
-
-const getNormalizedCommentCount = (postId: number) => highCommentCountByPostId[postId] ?? Math.abs(postId) % 6
+const getNormalizedCommentCount = (postId: number) => getSeedCommentCount(String(postId))
 
 const normalizePostCommentCount = (post: FeedPost): FeedPost => {
   const commentCount = getNormalizedCommentCount(post.id)
