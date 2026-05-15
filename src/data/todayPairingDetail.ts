@@ -27,7 +27,7 @@ export const todayPairingDetailContent: TodayPairingDetailContent[] = [
   {
     storyTitle: "복숭아브리치즈 × 소비뇽블랑",
     storyBody:
-      "달콤함과 고소함 사이를 가로지르는 산뜻한 와인의 터치.\n" +
+      "달콤함과 고소함 사이를 가로지르는\n 산뜻한 와인의 터치.\n" +
       "무거울 수 있는 치즈의 풍미를 산뜻하게 깨워주고,\n" +
       "복숭아의 향긋한 아로마를 선명하게 돋보이게 해요.",
     points: [{ label: "맛의균형" }, { label: "깔끔함" }, { label: "향의조화" }],

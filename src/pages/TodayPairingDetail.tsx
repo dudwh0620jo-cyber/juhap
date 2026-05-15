@@ -53,6 +53,7 @@ export default function TodayPairingDetail() {
   const numericId = typeof pairingId === "string" ? Number(pairingId) : NaN
   const { recommendationItems } = useHomePageData()
   const bannerRef = useRef<HTMLDivElement | null>(null)
+  const ignoreNextRouteSyncRef = useRef(false)
   const [bannerWidth, setBannerWidth] = useState(0)
 
   const index = useMemo(() => {
@@ -74,8 +75,13 @@ export default function TodayPairingDetail() {
   const [positionIndex, setPositionIndex] = useState(() => (total > 1 ? index + 1 : 0))
   const [isTransitionEnabled, setIsTransitionEnabled] = useState(true)
   const [pendingJumpTo, setPendingJumpTo] = useState<number | null>(null)
+  const [pendingNavigateId, setPendingNavigateId] = useState<number | null>(null)
 
   useEffect(() => {
+    if (ignoreNextRouteSyncRef.current) {
+      ignoreNextRouteSyncRef.current = false
+      return
+    }
     if (total <= 1) {
       setPositionIndex(0)
       return
@@ -109,24 +115,24 @@ export default function TodayPairingDetail() {
     if (nextPosition <= 0) {
       setPendingJumpTo(total)
       setPositionIndex(0)
-      navigate(`/today-pairing/${recommendationItems[total - 1]?.id ?? hero.id}`)
+      setPendingNavigateId(recommendationItems[total - 1]?.id ?? hero.id)
       return
     }
 
     if (nextPosition >= total + 1) {
       setPendingJumpTo(1)
       setPositionIndex(total + 1)
-      navigate(`/today-pairing/${recommendationItems[0]?.id ?? hero.id}`)
+      setPendingNavigateId(recommendationItems[0]?.id ?? hero.id)
       return
     }
 
     setPositionIndex(nextPosition)
     const next = recommendationItems[nextPosition - 1]
-    if (next) navigate(`/today-pairing/${next.id}`)
+    if (next) setPendingNavigateId(next.id)
   }
 
   return (
-    <section className="page_screen today_pairing_detail_page" aria-label="오늘의 추천 페어링 상세">
+    <section className="today_pairing_detail_page" aria-label="오늘의 추천 페어링 상세">
       <header className="today_pairing_detail_header">
         <button type="button" className="today_pairing_back" onClick={() => navigate("/home")} aria-label="홈으로">
           <img src={caretLeft} alt="" aria-hidden="true" />
@@ -148,15 +154,21 @@ export default function TodayPairingDetail() {
             animate={{ x: -(total <= 1 ? 0 : positionIndex) * bannerWidth }}
             transition={
               isTransitionEnabled
-                ? { type: "spring", stiffness: 380, damping: 38, mass: 0.9 }
+                ? { type: "spring", stiffness: 420, damping: 44, mass: 1 }
                 : { duration: 0 }
             }
             onAnimationComplete={() => {
-              if (pendingJumpTo === null) return
-              setIsTransitionEnabled(false)
-              setPositionIndex(pendingJumpTo)
-              setPendingJumpTo(null)
-              window.requestAnimationFrame(() => setIsTransitionEnabled(true))
+              if (pendingJumpTo !== null) {
+                setIsTransitionEnabled(false)
+                setPositionIndex(pendingJumpTo)
+                setPendingJumpTo(null)
+                window.requestAnimationFrame(() => setIsTransitionEnabled(true))
+              }
+
+              if (pendingNavigateId === null) return
+              ignoreNextRouteSyncRef.current = true
+              navigate(`/today-pairing/${pendingNavigateId}`, { replace: true })
+              setPendingNavigateId(null)
             }}
           >
             {extendedItems.map((item, slideIndex) => (

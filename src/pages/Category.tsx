@@ -31,6 +31,7 @@ import { useCategorySearchExperience } from "../hooks/useCategorySearchExperienc
 import { useCategorySearchFilterState } from "../hooks/useCategorySearchFilterState"
 import { resolvePricePresetToggle } from "../utils/pricePreset"
 import { calculateRangePercent } from "../utils/range"
+import arrowRightPoint from "../assets/svg/arrowright_p.svg"
 import "../styles/category.css"
 
 const inferSearchableFeatures = (tokens: string[]) => {
@@ -556,7 +557,14 @@ export default function Category() {
                     </span>
                   </div>
                   <span className="category_section_header_arrow" aria-hidden="true">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg
+                      className="category_section_arrow_icon is_default"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <path
                         d="M6.25 3.25L10.75 7.75L6.25 12.25"
                         stroke="currentColor"
@@ -565,6 +573,7 @@ export default function Category() {
                         strokeLinejoin="round"
                       />
                     </svg>
+                    <img className="category_section_arrow_icon is_active" src={arrowRightPoint} alt="" aria-hidden="true" />
                   </span>
                 </div>
 

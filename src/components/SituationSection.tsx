@@ -45,9 +45,18 @@ function SituationScroll({ selectedKey, onSelect }: { selectedKey: string; onSel
     function updateGlider() {
       const activeTab = tabRefs.current[selectedKey]
       if (!activeTab || !rowRef.current) return
-      setGlider({ x: activeTab.offsetLeft, width: activeTab.offsetWidth })
-
       const row = rowRef.current
+      const activeRect = activeTab.getBoundingClientRect()
+      const rowRect = row.getBoundingClientRect()
+
+      const labelNode = activeTab.querySelector(".moment_pick_label") as HTMLElement | null
+      const labelRect = labelNode?.getBoundingClientRect() ?? activeRect
+
+      const targetWidth = 22
+      const centerX = labelRect.left + labelRect.width / 2
+      const left = centerX - rowRect.left + row.scrollLeft - targetWidth / 2
+      setGlider({ x: Math.max(0, left), width: targetWidth })
+
       const targetCenter = activeTab.offsetLeft + activeTab.offsetWidth / 2
       const nextScrollLeft = Math.max(0, targetCenter - row.clientWidth / 2)
       const maxScrollLeft = Math.max(0, row.scrollWidth - row.clientWidth)
@@ -76,7 +85,7 @@ function SituationScroll({ selectedKey, onSelect }: { selectedKey: string; onSel
         className="moment_pick_glider"
         animate={glider}
         initial={false}
-        transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+        transition={{ type: "spring", stiffness: 420, damping: 46, mass: 1 }}
         aria-hidden="true"
       />
       {homeMomentPickItems.map((item) => (
@@ -101,20 +110,18 @@ function MomentPickCard({
   thumbSrc,
   tags,
   badgeText,
-  isActive,
+  variant,
 }: {
   title: string
   subtitle: string
   thumbSrc: string
   tags: readonly string[]
   badgeText?: string
-  isActive: boolean
+  variant?: "primary" | "secondary"
 }) {
   return (
     <motion.article
-      className={`moment_pick_card${isActive ? " is_active" : " is_inactive"}`}
-      animate={{ scale: isActive ? 1 : 0.92, opacity: isActive ? 1 : 0.9 }}
-      transition={{ type: "spring", stiffness: 520, damping: 36, mass: 0.6 }}
+      className={variant === "secondary" ? "moment_pick_card is_secondary" : "moment_pick_card"}
     >
       <div className="moment_pick_card_surface">
         <div className="moment_pick_card_body">
@@ -139,7 +146,6 @@ function MomentPickCard({
 export default function SituationSection({ items }: { items: SituationItem[] }) {
   void items
   const [selectedKey, setSelectedKey] = useState<string>(() => homeMomentPickItems[0]?.key ?? "")
-  const selectedLabel = homeMomentPickItems.find((item) => item.key === selectedKey)?.label ?? ""
   const [activeCardIndex, setActiveCardIndex] = useState(0)
 
   const cardWidth = 230
@@ -157,11 +163,6 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
 
       <SituationScroll selectedKey={selectedKey} onSelect={(key) => setSelectedKey(key)} />
       </div>
-      <div className="moment_pick_selected_label" aria-live="polite">
-        <span className="moment_pick_selected_label_primary">{selectedLabel}</span>
-        <span className="moment_pick_selected_label_rest">추천조합</span>
-      </div>
-
       <div className="moment_pick_cards" aria-label="Moment Pick 추천 목록">
         <motion.div
           className="moment_pick_track"
@@ -177,15 +178,15 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
           }}
         >
           {homeMomentPickCards.map((card, index) => (
-            <div
+            <button
               key={card.id}
-              role="button"
               tabIndex={0}
               onClick={() => setActiveCardIndex(index)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") setActiveCardIndex(index)
               }}
-              style={{ outline: "none" }}
+              type="button"
+              className="moment_pick_card_button"
             >
               <MomentPickCard
                 title={card.title}
@@ -193,9 +194,9 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
                 thumbSrc={card.thumbSrc}
                 tags={card.tags}
                 badgeText={card.badgeText}
-                isActive={index === activeCardIndex}
+                variant={index === 1 ? "secondary" : "primary"}
               />
-            </div>
+            </button>
           ))}
         </motion.div>
       </div>

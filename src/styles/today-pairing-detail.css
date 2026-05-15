@@ -1,11 +1,10 @@
 .today_pairing_detail_page {
+  min-height: 100dvh;
+  padding: 62px 24px 24px;
   background: var(--color-point-03);
-  padding-top: 62px;
-  padding-bottom: 20px;
-  height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .today_pairing_detail_header {
@@ -40,22 +39,13 @@
 }
 
 .today_pairing_sections {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  touch-action: pan-y;
-  overscroll-behavior: contain;
-  padding-bottom: 72px;
+  gap: 44px;
+  padding: 20px 0;
 }
 
-.today_pairing_sections::-webkit-scrollbar {
-  display: none;
-}
+.today_pairing_sections::-webkit-scrollbar { display: none; }
 
 .today_pairing_banner_viewport {
   position: relative;
@@ -67,20 +57,24 @@
   display: flex;
   width: 100%;
   touch-action: pan-y;
+  gap: 0;
+  /* margin-left: -24px; */
 }
 
 .today_pairing_banner_slide {
   flex: 0 0 100%;
   display: grid;
   justify-items: center;
+  padding: 0 12px;
+  box-sizing: border-box;
 }
 
 .today_pairing_banner {
   position: relative;
   border-radius: 24px;
   overflow: hidden;
-  width: min(100%, 360px);
-  height: 190px;
+  width: 100%;
+  height: clamp(180px, 24vh, 220px);
   background: rgba(0, 0, 0, 0.82);
 }
 
@@ -108,7 +102,7 @@
 }
 
 .today_pairing_banner_copy .home_today_hero_copy {
-  padding: 40px 20px;
+  padding: 44px 22px;
 }
 
 .today_pairing_story_nav {
@@ -130,7 +124,7 @@
 .today_pairing_banner_dots { 
   position: absolute; 
   left: 50%; 
-  bottom: 2px; 
+  bottom: 10px; 
   transform: translateX(-50%); 
   display: flex; 
   align-items: center;
@@ -178,34 +172,45 @@
 }
 
 .today_pairing_section {
-  padding: 24px 0 8px;
-  align-items: center;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  text-align: center;
+  gap: 10px;
+  text-align: left;
 }
-
+.today_pairing_section:nth-child(2){
+  align-items: center;
+}
+.today_pairing_section:nth-child(3) .today_pairing_section_label{
+  color: #F5C34E;
+}
 .today_pairing_section_label {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   font-size: 16px;
   font-weight: 400;
   letter-spacing: -0.01em;
   line-height: 1.2;
-  color: var(--color-primary);
+  color: var(--color-point-01);
   font-family: var(--font-title);
 }
 
 .today_pairing_section_label_blue {
   color: var(--color-point-06);
+  align-self: flex-start;
 }
-
+.today_pairing_section_label_blue span{
+  display: block;
+  width: 100%;
+  text-align: left;
+}
 .today_pairing_story_title {
+  width: 100%;
+  text-align: center;
   font-size: 26px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -1%;
   margin-bottom: 0;
   color: var(--color-text-primary);
   line-height: 1.2;
@@ -215,16 +220,18 @@
 .today_pairing_story_body {
   font-size: 16px;
   font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: 0%;
+  line-height: 120%;
+  letter-spacing: -1%;
   white-space: pre-line;
   color: var(--color-text-primary);
+  height: 77px;
 }
 
 .today_pairing_points {
   width: 252px;
   display: flex;
   justify-content: space-between;
+  padding-top: 8px;
 }
 
 .today_pairing_point {
@@ -263,22 +270,26 @@
 }
 
 .today_pairing_moments {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px 14px;
-  margin-top: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: nowrap;
+  width: 100%;
+  padding: 0 24px;
 }
 
 .today_pairing_moment {
+  flex: 1 1 0;
   display: grid;
   justify-items: center;
+  gap: 6px;
 }
 
 .today_pairing_moment_icon {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
-  opacity: 0.85;
 }
 
 .today_pairing_moment_tag {
@@ -286,6 +297,7 @@
   font-weight: 400;
   color: var(--color-text-primary);
   line-height: 120%;
+  text-align: center;
 }
 
 .home_today_hero_copy.is_disabled {
@@ -293,15 +305,15 @@
 }
 
 .today_pairing_bottom_actions {
-  position: fixed;
-  left: 50%;
-  bottom: 96px;
-  transform: translateX(-50%);
-  width: min(100%, 430px);
-  padding: 0 24px;
+  position: relative;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  width: 100%;
+  padding: 0;
   display: flex;
   gap: 12px;
-  margin-top: 0;
+  margin-top: 8px;
   background: transparent;
 }
 
