@@ -1,0 +1,365 @@
+[
+  {
+    "id": "beer-lager-cass-fresh",
+    "categoryId": "beer",
+    "subcategory": "라거/필스너",
+    "name": "카스 프레시",
+    "priceWon": 2000,
+    "tags": [
+      "깔끔한",
+      "탄산감"
+    ],
+    "keywords": [
+      "카스",
+      "카스 프레시",
+      "라거",
+      "필스너",
+      "깔끔한",
+      "탄산감"
+    ]
+  },
+  {
+    "id": "beer-lager-terra",
+    "categoryId": "beer",
+    "subcategory": "라거/필스너",
+    "name": "테라",
+    "priceWon": 2000,
+    "tags": [
+      "부드러운",
+      "청량한"
+    ],
+    "keywords": [
+      "테라",
+      "라거",
+      "필스너",
+      "부드러운",
+      "청량한"
+    ]
+  },
+  {
+    "id": "beer-lager-cloud",
+    "categoryId": "beer",
+    "subcategory": "라거/필스너",
+    "name": "클라우드",
+    "priceWon": 2500,
+    "tags": [
+      "고소한",
+      "부드러운"
+    ],
+    "keywords": [
+      "클라우드",
+      "라거",
+      "필스너",
+      "몰트",
+      "고소한",
+      "부드러운"
+    ]
+  },
+  {
+    "id": "beer-lager-heineken",
+    "categoryId": "beer",
+    "subcategory": "라거/필스너",
+    "name": "하이네켄",
+    "priceWon": 3500,
+    "tags": [
+      "드라이한",
+      "깔끔한"
+    ],
+    "keywords": [
+      "하이네켄",
+      "라거",
+      "필스너",
+      "드라이한",
+      "깔끔한"
+    ]
+  },
+  {
+    "id": "beer-lager-budweiser",
+    "categoryId": "beer",
+    "subcategory": "라거/필스너",
+    "name": "버드와이저",
+    "priceWon": 3000,
+    "tags": [
+      "가벼운",
+      "깔끔한"
+    ],
+    "keywords": [
+      "버드와이저",
+      "라거",
+      "필스너",
+      "가벼운",
+      "깔끔한"
+    ]
+  },
+  {
+    "id": "beer-ale-goose-ipa",
+    "categoryId": "beer",
+    "subcategory": "에일 / IPA",
+    "name": "구스 IPA",
+    "priceWon": 5000,
+    "tags": [
+      "쌉쌀한",
+      "향긋한"
+    ],
+    "keywords": [
+      "구스 IPA",
+      "구스",
+      "IPA",
+      "홉",
+      "쌉쌀한",
+      "향긋한"
+    ]
+  },
+  {
+    "id": "beer-ale-brooklyn-lager",
+    "categoryId": "beer",
+    "subcategory": "에일 / IPA",
+    "name": "브루클린 라거",
+    "priceWon": 5500,
+    "tags": [
+      "풍부한",
+      "깔끔한"
+    ],
+    "keywords": [
+      "브루클린 라거",
+      "브루클린",
+      "에일",
+      "라거",
+      "풍부한",
+      "깔끔한"
+    ]
+  },
+  {
+    "id": "beer-ale-jeju-wheat-ale",
+    "categoryId": "beer",
+    "subcategory": "에일 / IPA",
+    "name": "제주 위트 에일",
+    "priceWon": 4500,
+    "tags": [
+      "상큼한",
+      "부드러운"
+    ],
+    "keywords": [
+      "제주 위트 에일",
+      "제주",
+      "위트",
+      "에일",
+      "상큼한",
+      "부드러운"
+    ]
+  },
+  {
+    "id": "beer-ale-playground-ipa",
+    "categoryId": "beer",
+    "subcategory": "에일 / IPA",
+    "name": "플레이그라운드 IPA",
+    "priceWon": 6000,
+    "tags": [
+      "과일향",
+      "쌉쌀한"
+    ],
+    "keywords": [
+      "플레이그라운드 IPA",
+      "IPA",
+      "과일향",
+      "쌉쌀한"
+    ]
+  },
+  {
+    "id": "beer-ale-ballast-point-sculpin",
+    "categoryId": "beer",
+    "subcategory": "에일 / IPA",
+    "name": "발라스트 포인트 스컬핀",
+    "priceWon": 7000,
+    "tags": [
+      "상큼한",
+      "강렬한"
+    ],
+    "keywords": [
+      "발라스트 포인트 스컬핀",
+      "스컬핀",
+      "IPA",
+      "시트러스",
+      "상큼한",
+      "강렬한"
+    ]
+  },
+  {
+    "id": "beer-stout-guinness-draft",
+    "categoryId": "beer",
+    "subcategory": "흑맥주 (스타우트)",
+    "name": "기네스 드래프트",
+    "priceWon": 5500,
+    "tags": [
+      "묵직한",
+      "부드러운"
+    ],
+    "keywords": [
+      "기네스 드래프트",
+      "기네스",
+      "스타우트",
+      "묵직한",
+      "부드러운"
+    ]
+  },
+  {
+    "id": "beer-stout-kozel-dark",
+    "categoryId": "beer",
+    "subcategory": "흑맥주 (스타우트)",
+    "name": "코젤 다크",
+    "priceWon": 4500,
+    "tags": [
+      "달콤한",
+      "고소한"
+    ],
+    "keywords": [
+      "코젤 다크",
+      "코젤",
+      "카라멜",
+      "달콤한",
+      "고소한"
+    ]
+  },
+  {
+    "id": "beer-stout-murphys-stout",
+    "categoryId": "beer",
+    "subcategory": "흑맥주 (스타우트)",
+    "name": "머피스 스타우트",
+    "priceWon": 6000,
+    "tags": [
+      "부드러운",
+      "풍부한"
+    ],
+    "keywords": [
+      "머피스 스타우트",
+      "머피스",
+      "스타우트",
+      "부드러운",
+      "풍부한"
+    ]
+  },
+  {
+    "id": "beer-stout-brewdog-blackheart",
+    "categoryId": "beer",
+    "subcategory": "흑맥주 (스타우트)",
+    "name": "브루독 블랙하트",
+    "priceWon": 6500,
+    "tags": [
+      "고소한",
+      "묵직한"
+    ],
+    "keywords": [
+      "브루독 블랙하트",
+      "브루독",
+      "스타우트",
+      "고소한",
+      "묵직한"
+    ]
+  },
+  {
+    "id": "beer-stout-old-rasputin",
+    "categoryId": "beer",
+    "subcategory": "흑맥주 (스타우트)",
+    "name": "올드 라스푸틴",
+    "priceWon": 8000,
+    "tags": [
+      "강렬한",
+      "묵직한"
+    ],
+    "keywords": [
+      "올드 라스푸틴",
+      "스타우트",
+      "강렬한",
+      "묵직한"
+    ]
+  },
+  {
+    "id": "beer-fruit-hoegaarden-rose",
+    "categoryId": "beer",
+    "subcategory": "과일맥주",
+    "name": "호가든 로제",
+    "priceWon": 4500,
+    "tags": [
+      "달콤한",
+      "상큼한"
+    ],
+    "keywords": [
+      "호가든 로제",
+      "과일맥주",
+      "라즈베리",
+      "달콤한",
+      "상큼한"
+    ]
+  },
+  {
+    "id": "beer-fruit-jeju-baekrokdam-ale",
+    "categoryId": "beer",
+    "subcategory": "과일맥주",
+    "name": "제주 백록담 에일",
+    "priceWon": 5000,
+    "tags": [
+      "상큼한",
+      "향긋한"
+    ],
+    "keywords": [
+      "제주 백록담 에일",
+      "제주",
+      "감귤",
+      "상큼한",
+      "향긋한"
+    ]
+  },
+  {
+    "id": "beer-fruit-somersby-apple",
+    "categoryId": "beer",
+    "subcategory": "과일맥주",
+    "name": "써머스비 애플",
+    "priceWon": 4500,
+    "tags": [
+      "달콤한",
+      "청량한"
+    ],
+    "keywords": [
+      "써머스비 애플",
+      "사이더",
+      "사과",
+      "달콤한",
+      "청량한"
+    ]
+  },
+  {
+    "id": "beer-fruit-somersby-mango-lime",
+    "categoryId": "beer",
+    "subcategory": "과일맥주",
+    "name": "써머스비 망고라임",
+    "priceWon": 4500,
+    "tags": [
+      "상큼한",
+      "달콤한"
+    ],
+    "keywords": [
+      "써머스비 망고라임",
+      "망고",
+      "라임",
+      "상큼한",
+      "달콤한"
+    ]
+  },
+  {
+    "id": "beer-fruit-edelweiss-peach",
+    "categoryId": "beer",
+    "subcategory": "과일맥주",
+    "name": "에델바이스 피치",
+    "priceWon": 5000,
+    "tags": [
+      "과일향",
+      "부드러운"
+    ],
+    "keywords": [
+      "에델바이스 피치",
+      "복숭아",
+      "과일향",
+      "부드러운"
+    ]
+  }
+]

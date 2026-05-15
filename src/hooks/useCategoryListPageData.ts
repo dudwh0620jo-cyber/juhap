@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+﻿import { useMemo } from "react"
 import type { CategoryListItem } from "../components/CategoryItemCard"
 import { FEATURE_CHIPS } from "../data/categoryFilterConfig"
 import { drinkCategories } from "../data/categoryData"
@@ -46,11 +46,25 @@ export type SortKey = "default" | "recommended" | "popular"
 
 export const sortOptions: Array<{ key: SortKey; label: string }> = [
   { key: "default", label: "최신순" },
-  { key: "recommended", label: "추천순" },
-  { key: "popular", label: "인기순" },
+  { key: "recommended", label: "가격 낮은순" },
+  { key: "popular", label: "가격 높은순" },
 ]
 
 const ALL_SUBCATEGORY = "전체"
+
+const normalizeSubcategoryKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[()]/g, "")
+    .replace(/\//g, "")
+    .replace(/데킬라/g, "테킬라")
+    .replace(/sober/g, "")
+    .replace(/소주$/g, "")
+    .replace(/soju$/g, "")
+    .trim()
+
+const isSameSubcategory = (a: string, b: string) => normalizeSubcategoryKey(a) === normalizeSubcategoryKey(b)
 
 const imageByProductId: Record<string, string> = {
   "sake-dassai-23": imgDassai23,
@@ -230,7 +244,7 @@ const inferSearchTags = (tokens: string[]) => {
 
 const createSakeItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   sakeProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -248,7 +262,7 @@ const createSakeItems = (drinkTypeLabel: string, subcategory: string): CategoryL
 
 const createSojuItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   sojuProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -265,7 +279,7 @@ const createSojuItems = (drinkTypeLabel: string, subcategory: string): CategoryL
 
 const createWineItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   wineProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -282,7 +296,7 @@ const createWineItems = (drinkTypeLabel: string, subcategory: string): CategoryL
 
 const createBeerItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   beerProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -299,7 +313,7 @@ const createBeerItems = (drinkTypeLabel: string, subcategory: string): CategoryL
 
 const createWhiskeyItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   whiskeyProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -316,7 +330,7 @@ const createWhiskeyItems = (drinkTypeLabel: string, subcategory: string): Catego
 
 const createSpiritsItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   spiritsProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -333,7 +347,7 @@ const createSpiritsItems = (drinkTypeLabel: string, subcategory: string): Catego
 
 const createTraditionalItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   traditionalProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -350,7 +364,7 @@ const createTraditionalItems = (drinkTypeLabel: string, subcategory: string): Ca
 
 const createEtcItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   etcProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -391,14 +405,22 @@ export function useCategoryListPageData(group = "사케", sub = "준마이 다�
     }
 
     if (group === "와인") {
-      if (sub === "레드" || sub === "화이트" || sub === "로제" || sub === "스파클링" || sub === "내추럴" || sub === "포트" || sub === "디저트") {
+      if (
+        sub === "레드 와인" ||
+        sub === "화이트 와인" ||
+        sub === "로제 와인" ||
+        sub === "스파클링 와인" ||
+        sub === "내추럴 와인" ||
+        sub === "포트 와인" ||
+        sub === "디저트 와인"
+      ) {
         return createWineItems(group, sub)
       }
       return []
     }
 
     if (group === "맥주") {
-      if (sub === "라거/필스너" || sub === "에일/IPA" || sub === "흑맥주(스타우트)" || sub === "과일맥주") {
+      if (sub === "라거/필스너" || sub === "에일 / IPA" || sub === "흑맥주 (스타우트)" || sub === "과일맥주") {
         return createBeerItems(group, sub)
       }
       return []

@@ -1,0 +1,532 @@
+[
+  {
+    "id": "whisky-single-macallan-12",
+    "categoryId": "whisky",
+    "subcategory": "싱글몰트 위스키",
+    "name": "맥캘란 12년",
+    "priceWon": 120000,
+    "tags": [
+      "셰리향",
+      "달콤한"
+    ],
+    "keywords": [
+      "맥캘란 12년",
+      "맥캘란",
+      "싱글몰트",
+      "셰리",
+      "달콤한"
+    ]
+  },
+  {
+    "id": "whisky-single-glenfiddich-12",
+    "categoryId": "whisky",
+    "subcategory": "싱글몰트 위스키",
+    "name": "글렌피딕 12년",
+    "priceWon": 70000,
+    "tags": [
+      "상큼한",
+      "은은한"
+    ],
+    "keywords": [
+      "글렌피딕 12년",
+      "글렌피딕",
+      "싱글몰트",
+      "입문",
+      "상큼한",
+      "은은한"
+    ]
+  },
+  {
+    "id": "whisky-single-glenlivet-12",
+    "categoryId": "whisky",
+    "subcategory": "싱글몰트 위스키",
+    "name": "글렌리벳 12년",
+    "priceWon": 75000,
+    "tags": [
+      "과일향",
+      "깔끔한"
+    ],
+    "keywords": [
+      "글렌리벳 12년",
+      "글렌리벳",
+      "싱글몰트",
+      "과일향",
+      "깔끔한"
+    ]
+  },
+  {
+    "id": "whisky-single-laphroaig-10",
+    "categoryId": "whisky",
+    "subcategory": "싱글몰트 위스키",
+    "name": "라프로익 10년",
+    "priceWon": 90000,
+    "tags": [
+      "스모키한",
+      "강렬한"
+    ],
+    "keywords": [
+      "라프로익 10년",
+      "라프로익",
+      "싱글몰트",
+      "피트",
+      "스모키한",
+      "강렬한"
+    ]
+  },
+  {
+    "id": "whisky-single-ardbeg-10",
+    "categoryId": "whisky",
+    "subcategory": "싱글몰트 위스키",
+    "name": "아드벡 10년",
+    "priceWon": 100000,
+    "tags": [
+      "피트향",
+      "묵직한"
+    ],
+    "keywords": [
+      "아드벡 10년",
+      "아드벡",
+      "싱글몰트",
+      "피트향",
+      "묵직한"
+    ]
+  },
+  {
+    "id": "whisky-blended-malt-monkey-shoulder",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 몰트",
+    "name": "몽키숄더",
+    "priceWon": 55000,
+    "tags": [
+      "달콤한",
+      "부드러운"
+    ],
+    "keywords": [
+      "몽키숄더",
+      "블렌디드 몰트",
+      "달콤한",
+      "부드러운"
+    ]
+  },
+  {
+    "id": "whisky-blended-malt-johnnie-walker-green",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 몰트",
+    "name": "조니워커 그린",
+    "priceWon": 90000,
+    "tags": [
+      "스모키한",
+      "풍부한"
+    ],
+    "keywords": [
+      "조니워커 그린",
+      "조니워커",
+      "블렌디드 몰트",
+      "스모키한",
+      "풍부한"
+    ]
+  },
+  {
+    "id": "whisky-blended-malt-compass-box-orchard",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 몰트",
+    "name": "컴퍼스박스 오차드",
+    "priceWon": 100000,
+    "tags": [
+      "상큼한",
+      "과일향"
+    ],
+    "keywords": [
+      "컴퍼스박스 오차드",
+      "컴퍼스박스",
+      "블렌디드 몰트",
+      "과일향",
+      "상큼한"
+    ]
+  },
+  {
+    "id": "whisky-blended-malt-chivas-ultis",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 몰트",
+    "name": "시바스 얼티스",
+    "priceWon": 180000,
+    "tags": [
+      "부드러운",
+      "풍부한"
+    ],
+    "keywords": [
+      "시바스 얼티스",
+      "시바스",
+      "블렌디드 몰트",
+      "부드러운",
+      "풍부한"
+    ]
+  },
+  {
+    "id": "whisky-blended-malt-famous-grouse-malt",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 몰트",
+    "name": "더 페이머스 그라우스 몰트",
+    "priceWon": 60000,
+    "tags": [
+      "은은한",
+      "깔끔한"
+    ],
+    "keywords": [
+      "더 페이머스 그라우스 몰트",
+      "그라우스",
+      "블렌디드 몰트",
+      "은은한",
+      "깔끔한"
+    ]
+  },
+  {
+    "id": "whisky-blended-johnnie-walker-black",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 위스키",
+    "name": "조니워커 블랙",
+    "priceWon": 45000,
+    "tags": [
+      "스모키한",
+      "풍부한"
+    ],
+    "keywords": [
+      "조니워커 블랙",
+      "조니워커",
+      "블렌디드 위스키",
+      "스모키한",
+      "풍부한"
+    ]
+  },
+  {
+    "id": "whisky-blended-ballantine-17",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 위스키",
+    "name": "발렌타인 17년",
+    "priceWon": 130000,
+    "tags": [
+      "부드러운",
+      "풍부한"
+    ],
+    "keywords": [
+      "발렌타인 17년",
+      "발렌타인",
+      "블렌디드 위스키",
+      "부드러운",
+      "풍부한"
+    ]
+  },
+  {
+    "id": "whisky-blended-chivas-regal-12",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 위스키",
+    "name": "시바스리갈 12년",
+    "priceWon": 50000,
+    "tags": [
+      "부드러운",
+      "깔끔한"
+    ],
+    "keywords": [
+      "시바스리갈 12년",
+      "시바스리갈",
+      "블렌디드 위스키",
+      "부드러운",
+      "깔끔한"
+    ]
+  },
+  {
+    "id": "whisky-blended-dewars-white",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 위스키",
+    "name": "듀어스 화이트",
+    "priceWon": 35000,
+    "tags": [
+      "가벼운",
+      "은은한"
+    ],
+    "keywords": [
+      "듀어스 화이트",
+      "듀어스",
+      "블렌디드 위스키",
+      "가벼운",
+      "은은한"
+    ]
+  },
+  {
+    "id": "whisky-blended-jack-daniel",
+    "categoryId": "whisky",
+    "subcategory": "블렌디드 위스키",
+    "name": "잭다니엘",
+    "priceWon": 50000,
+    "tags": [
+      "달콤한",
+      "바닐라향"
+    ],
+    "keywords": [
+      "잭다니엘",
+      "블렌디드 위스키",
+      "바닐라",
+      "달콤한"
+    ]
+  },
+  {
+    "id": "whisky-american-makers-mark",
+    "categoryId": "whisky",
+    "subcategory": "아메리칸 (버번/라이/테네시)",
+    "name": "메이커스 마크",
+    "priceWon": 60000,
+    "tags": [
+      "바닐라향",
+      "달콤한"
+    ],
+    "keywords": [
+      "메이커스 마크",
+      "버번",
+      "바닐라향",
+      "달콤한"
+    ]
+  },
+  {
+    "id": "whisky-american-wild-turkey-101",
+    "categoryId": "whisky",
+    "subcategory": "아메리칸 (버번/라이/테네시)",
+    "name": "와일드터키 101",
+    "priceWon": 55000,
+    "tags": [
+      "강렬한",
+      "스파이시"
+    ],
+    "keywords": [
+      "와일드터키 101",
+      "버번",
+      "강렬한",
+      "스파이시"
+    ]
+  },
+  {
+    "id": "whisky-american-jack-daniel-no-7",
+    "categoryId": "whisky",
+    "subcategory": "아메리칸 (버번/라이/테네시)",
+    "name": "잭다니엘 No.7",
+    "priceWon": 50000,
+    "tags": [
+      "바닐라향",
+      "부드러운"
+    ],
+    "keywords": [
+      "잭다니엘 No.7",
+      "테네시",
+      "바닐라향",
+      "부드러운"
+    ]
+  },
+  {
+    "id": "whisky-american-jim-beam-black",
+    "categoryId": "whisky",
+    "subcategory": "아메리칸 (버번/라이/테네시)",
+    "name": "짐빔 블랙",
+    "priceWon": 45000,
+    "tags": [
+      "달콤한",
+      "은은한"
+    ],
+    "keywords": [
+      "짐빔 블랙",
+      "버번",
+      "달콤한",
+      "은은한"
+    ]
+  },
+  {
+    "id": "whisky-american-woodford-reserve",
+    "categoryId": "whisky",
+    "subcategory": "아메리칸 (버번/라이/테네시)",
+    "name": "우드포드 리저브",
+    "priceWon": 80000,
+    "tags": [
+      "오크향",
+      "풍부한"
+    ],
+    "keywords": [
+      "우드포드 리저브",
+      "버번",
+      "오크향",
+      "풍부한"
+    ]
+  },
+  {
+    "id": "whisky-grain-nikka-coffee-grain",
+    "categoryId": "whisky",
+    "subcategory": "그레인 위스키",
+    "name": "니카 커피그레인",
+    "priceWon": 90000,
+    "tags": [
+      "달콤한",
+      "부드러운"
+    ],
+    "keywords": [
+      "니카 커피그레인",
+      "그레인 위스키",
+      "달콤한",
+      "부드러운"
+    ]
+  },
+  {
+    "id": "whisky-grain-cameronbridge",
+    "categoryId": "whisky",
+    "subcategory": "그레인 위스키",
+    "name": "카메론브리지",
+    "priceWon": 70000,
+    "tags": [
+      "깔끔한",
+      "은은한"
+    ],
+    "keywords": [
+      "카메론브리지",
+      "그레인 위스키",
+      "깔끔한",
+      "은은한"
+    ]
+  },
+  {
+    "id": "whisky-grain-invergordon",
+    "categoryId": "whisky",
+    "subcategory": "그레인 위스키",
+    "name": "인버고든",
+    "priceWon": 75000,
+    "tags": [
+      "달콤한",
+      "가벼운"
+    ],
+    "keywords": [
+      "인버고든",
+      "그레인 위스키",
+      "달콤한",
+      "가벼운"
+    ]
+  },
+  {
+    "id": "whisky-grain-north-british",
+    "categoryId": "whisky",
+    "subcategory": "그레인 위스키",
+    "name": "노스브리티시",
+    "priceWon": 80000,
+    "tags": [
+      "고소한",
+      "깔끔한"
+    ],
+    "keywords": [
+      "노스브리티시",
+      "그레인 위스키",
+      "고소한",
+      "깔끔한"
+    ]
+  },
+  {
+    "id": "whisky-grain-highland-grain",
+    "categoryId": "whisky",
+    "subcategory": "그레인 위스키",
+    "name": "하이랜드 그레인",
+    "priceWon": 60000,
+    "tags": [
+      "부드러운",
+      "은은한"
+    ],
+    "keywords": [
+      "하이랜드 그레인",
+      "그레인 위스키",
+      "부드러운",
+      "은은한"
+    ]
+  },
+  {
+    "id": "whisky-other-yamazaki",
+    "categoryId": "whisky",
+    "subcategory": "기타 국가 위스키",
+    "name": "야마자키",
+    "priceWon": 250000,
+    "tags": [
+      "은은한",
+      "풍부한"
+    ],
+    "keywords": [
+      "야마자키",
+      "일본",
+      "위스키",
+      "은은한",
+      "풍부한"
+    ]
+  },
+  {
+    "id": "whisky-other-hakushu",
+    "categoryId": "whisky",
+    "subcategory": "기타 국가 위스키",
+    "name": "하쿠슈",
+    "priceWon": 230000,
+    "tags": [
+      "허브향",
+      "깔끔한"
+    ],
+    "keywords": [
+      "하쿠슈",
+      "일본",
+      "위스키",
+      "허브향",
+      "깔끔한"
+    ]
+  },
+  {
+    "id": "whisky-other-kavalan",
+    "categoryId": "whisky",
+    "subcategory": "기타 국가 위스키",
+    "name": "카발란",
+    "priceWon": 130000,
+    "tags": [
+      "과일향",
+      "달콤한"
+    ],
+    "keywords": [
+      "카발란",
+      "대만",
+      "위스키",
+      "과일향",
+      "달콤한"
+    ]
+  },
+  {
+    "id": "whisky-other-amrut",
+    "categoryId": "whisky",
+    "subcategory": "기타 국가 위스키",
+    "name": "암룻",
+    "priceWon": 100000,
+    "tags": [
+      "스파이시",
+      "강렬한"
+    ],
+    "keywords": [
+      "암룻",
+      "인도",
+      "위스키",
+      "스파이시",
+      "강렬한"
+    ]
+  },
+  {
+    "id": "whisky-other-jameson",
+    "categoryId": "whisky",
+    "subcategory": "기타 국가 위스키",
+    "name": "제임슨",
+    "priceWon": 45000,
+    "tags": [
+      "부드러운",
+      "은은한"
+    ],
+    "keywords": [
+      "제임슨",
+      "아이리시",
+      "위스키",
+      "부드러운",
+      "은은한"
+    ]
+  }
+]

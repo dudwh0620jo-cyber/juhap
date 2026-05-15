@@ -1,0 +1,182 @@
+﻿[
+  {
+    "id": "spirits-baijiu-maotai",
+    "categoryId": "spirits",
+    "subcategory": "백주 / 고량주",
+    "name": "마오타이",
+    "priceWon": 380000,
+    "tags": ["강렬한", "화사한"],
+    "keywords": ["마오타이", "백주", "고량주", "강렬한", "화사한"]
+  },
+  {
+    "id": "spirits-baijiu-wuliangye",
+    "categoryId": "spirits",
+    "subcategory": "백주 / 고량주",
+    "name": "우량예",
+    "priceWon": 180000,
+    "tags": ["풍부한", "은은한"],
+    "keywords": ["우량예", "백주", "고량주", "풍부한", "은은한"]
+  },
+  {
+    "id": "spirits-baijiu-yanghe-daqu",
+    "categoryId": "spirits",
+    "subcategory": "백주 / 고량주",
+    "name": "양하 대곡",
+    "priceWon": 60000,
+    "tags": ["부드러운", "깔끔한"],
+    "keywords": ["양하 대곡", "백주", "고량주", "부드러운", "깔끔한"]
+  },
+  {
+    "id": "spirits-baijiu-guojiao-1573",
+    "categoryId": "spirits",
+    "subcategory": "백주 / 고량주",
+    "name": "국교1573",
+    "priceWon": 160000,
+    "tags": ["고급스러운", "풍부한"],
+    "keywords": ["국교1573", "백주", "고량주", "고급스러운", "풍부한"]
+  },
+  {
+    "id": "spirits-baijiu-yantai-kaoliang",
+    "categoryId": "spirits",
+    "subcategory": "백주 / 고량주",
+    "name": "연태고량주",
+    "priceWon": 30000,
+    "tags": ["깔끔한", "강렬한"],
+    "keywords": ["연태고량주", "백주", "고량주", "깔끔한", "강렬한"]
+  },
+  {
+    "id": "spirits-gin-vodka-bombay-sapphire",
+    "categoryId": "spirits",
+    "subcategory": "진 / 보드카",
+    "name": "봄베이 사파이어 (진)",
+    "priceWon": 45000,
+    "tags": ["허브향", "깔끔한"],
+    "keywords": ["봄베이 사파이어", "진", "허브향", "깔끔한"]
+  },
+  {
+    "id": "spirits-gin-vodka-tanqueray-no-10",
+    "categoryId": "spirits",
+    "subcategory": "진 / 보드카",
+    "name": "탱커레이 No.10 (진)",
+    "priceWon": 55000,
+    "tags": ["상큼한", "드라이한"],
+    "keywords": ["탱커레이 No.10", "진", "상큼한", "드라이한"]
+  },
+  {
+    "id": "spirits-gin-vodka-hendricks",
+    "categoryId": "spirits",
+    "subcategory": "진 / 보드카",
+    "name": "헨드릭스 (진)",
+    "priceWon": 60000,
+    "tags": ["은은한", "부드러운"],
+    "keywords": ["헨드릭스", "진", "은은한", "부드러운"]
+  },
+  {
+    "id": "spirits-gin-vodka-bombay-bramble",
+    "categoryId": "spirits",
+    "subcategory": "진 / 보드카",
+    "name": "봄베이 브램블 (진)",
+    "priceWon": 50000,
+    "tags": ["달콤한", "상큼한"],
+    "keywords": ["봄베이 브램블", "진", "달콤한", "상큼한"]
+  },
+  {
+    "id": "spirits-gin-vodka-absolut-blue",
+    "categoryId": "spirits",
+    "subcategory": "진 / 보드카",
+    "name": "앱솔루트 블루 (보드카)",
+    "priceWon": 28000,
+    "tags": ["깔끔한", "부드러운"],
+    "keywords": ["앱솔루트 블루", "보드카", "깔끔한", "부드러운"]
+  },
+  {
+    "id": "spirits-tequila-rum-don-julio-blanco",
+    "categoryId": "spirits",
+    "subcategory": "데킬라 / 럼",
+    "name": "돈 훌리오 블랑코 (데킬라)",
+    "priceWon": 80000,
+    "tags": ["깔끔한", "강렬한"],
+    "keywords": ["돈 훌리오 블랑코", "데킬라", "깔끔한", "강렬한"]
+  },
+  {
+    "id": "spirits-tequila-rum-don-julio-reposado",
+    "categoryId": "spirits",
+    "subcategory": "데킬라 / 럼",
+    "name": "돈 훌리오 레포사도",
+    "priceWon": 110000,
+    "tags": ["부드러운", "풍부한"],
+    "keywords": ["돈 훌리오 레포사도", "데킬라", "부드러운", "풍부한"]
+  },
+  {
+    "id": "spirits-tequila-rum-patron-silver",
+    "categoryId": "spirits",
+    "subcategory": "데킬라 / 럼",
+    "name": "패트론 실버",
+    "priceWon": 70000,
+    "tags": ["상큼한", "깔끔한"],
+    "keywords": ["패트론 실버", "데킬라", "상큼한", "깔끔한"]
+  },
+  {
+    "id": "spirits-tequila-rum-patron-anejo",
+    "categoryId": "spirits",
+    "subcategory": "데킬라 / 럼",
+    "name": "패트론 아네호",
+    "priceWon": 120000,
+    "tags": ["풍부한", "묵직한"],
+    "keywords": ["패트론 아네호", "데킬라", "풍부한", "묵직한"]
+  },
+  {
+    "id": "spirits-tequila-rum-amigo-1800",
+    "categoryId": "spirits",
+    "subcategory": "데킬라 / 럼",
+    "name": "아미고 1800",
+    "priceWon": 60000,
+    "tags": ["강렬한", "드라이한"],
+    "keywords": ["아미고 1800", "데킬라", "강렬한", "드라이한"]
+  },
+  {
+    "id": "spirits-brandy-hennessy-vsop",
+    "categoryId": "spirits",
+    "subcategory": "브랜디 (꼬냑 / 아르마냑)",
+    "name": "헤네시 VSOP",
+    "priceWon": 120000,
+    "tags": ["부드러운", "풍부한"],
+    "keywords": ["헤네시 VSOP", "브랜디", "꼬냑", "부드러운", "풍부한"]
+  },
+  {
+    "id": "spirits-brandy-martell-vsop",
+    "categoryId": "spirits",
+    "subcategory": "브랜디 (꼬냑 / 아르마냑)",
+    "name": "마르텔 VSOP",
+    "priceWon": 110000,
+    "tags": ["상큼한", "부드러운"],
+    "keywords": ["마르텔 VSOP", "브랜디", "꼬냑", "상큼한", "부드러운"]
+  },
+  {
+    "id": "spirits-brandy-remy-martin-xo",
+    "categoryId": "spirits",
+    "subcategory": "브랜디 (꼬냑 / 아르마냑)",
+    "name": "레미마틴 XO",
+    "priceWon": 350000,
+    "tags": ["풍부한", "고급스러운"],
+    "keywords": ["레미마틴 XO", "브랜디", "꼬냑", "풍부한", "고급스러운"]
+  },
+  {
+    "id": "spirits-brandy-courvoisier-xo",
+    "categoryId": "spirits",
+    "subcategory": "브랜디 (꼬냑 / 아르마냑)",
+    "name": "쿠르부아제 XO",
+    "priceWon": 320000,
+    "tags": ["묵직한", "부드러운"],
+    "keywords": ["쿠르부아제 XO", "브랜디", "꼬냑", "묵직한", "부드러운"]
+  },
+  {
+    "id": "spirits-brandy-de-luze-vsop",
+    "categoryId": "spirits",
+    "subcategory": "브랜디 (꼬냑 / 아르마냑)",
+    "name": "드 루즈 VSOP",
+    "priceWon": 90000,
+    "tags": ["깔끔한", "은은한"],
+    "keywords": ["드 루즈 VSOP", "브랜디", "꼬냑", "깔끔한", "은은한"]
+  }
+]

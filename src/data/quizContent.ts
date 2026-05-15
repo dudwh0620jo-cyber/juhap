@@ -63,7 +63,7 @@ export const quizItems: QuizItem[] = [
   },
   {
     id: "quiz-prev-3",
-    question: '와인의 “탄닌”은 어떤 느낌에 가까울까요?',
+    question: '와인의 “탄닌”은\n 어떤 느낌에 가까울까요?',
     choices: [
       { id: "a", label: "입안을 꽉 잡아주는 떫은 느낌" },
       { id: "b", label: "청량한 탄산감" },

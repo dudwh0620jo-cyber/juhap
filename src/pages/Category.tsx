@@ -243,35 +243,7 @@ export default function Category() {
     return visibleCategories[0].id
   }, [activeCategoryId, visibleCategories])
 
-  const isSubcategoryReady = (category: DrinkCategory, subcategory: string) =>
-    (category.id === "sake" &&
-      (subcategory === READY_SUBCATEGORY ||
-        subcategory === "준마이 긴죠/긴죠" ||
-        subcategory === "준마이" ||
-        subcategory === "혼죠조/후츠슈")) ||
-    (category.id === "soju" && (subcategory === "데일리(희석식)" || subcategory === "프리미엄(증류식)" || subcategory === "플레이버")) ||
-    (category.id === "wine" && (subcategory === "레드" || subcategory === "화이트" || subcategory === "로제" || subcategory === "스파클링" || subcategory === "내추럴" || subcategory === "포트" || subcategory === "디저트")) ||
-    (category.id === "beer" && (subcategory === "라거/필스너" || subcategory === "에일/IPA" || subcategory === "흑맥주(스타우트)" || subcategory === "과일맥주")) ||
-    (category.id === "whisky" &&
-      (subcategory === "싱글몰트 위스키" ||
-        subcategory === "블렌디드 몰트" ||
-        subcategory === "블렌디드 위스키" ||
-        subcategory === "아메리칸(버번/라이/테네시)" ||
-        subcategory === "그레인 위스키" ||
-        subcategory === "기타 국가 위스키")) ||
-    (category.id === "spirits" &&
-      (subcategory === "백주/고량주" ||
-        subcategory === "진/보드카" ||
-        subcategory === "테킬라/럼" ||
-        subcategory === "브랜디(꼬냑/아르마냑)")) ||
-    (category.id === "traditional" &&
-      (subcategory === "막걸리/탁주" ||
-        subcategory === "약주/청주" ||
-        subcategory === "과실주(한국 와인)")) ||
-    (category.id === "etc" &&
-      (subcategory === "리큐르" ||
-        subcategory === "하이볼/칵테일" ||
-        subcategory === "논알콜/저도수 (Sober)"))
+  const isSubcategoryReady = (_category: DrinkCategory, _subcategory: string) => true
 
   const handleSubcategoryClick = (category: DrinkCategory, subcategory: string) => {
     const isReady = isSubcategoryReady(category, subcategory)

@@ -2,9 +2,9 @@ import { useMemo } from "react"
 import { useNavigate } from "react-router"
 
 import caretLeft from "../assets/svg/caretleft.svg"
-import houseLine from "../assets/svg/houseline.svg"
+import houseLine from "../assets/svg/house.svg"
 import caretRight from "../assets/svg/caretright.svg"
-import quizHostMascot from "../assets/quiz_host_mascot_01.png"
+import quizHostMascot from "../assets/onboarding-mascot_06.png"
 import { quizPreviousItems, quizToday } from "../data/quizContent"
 import { readTodayQuizProgress } from "../utils/quizProgress"
 import "../styles/quiz.css"
@@ -57,7 +57,7 @@ export default function QuizMain() {
 
       <section className="quiz_section" aria-label="종료된 퀴즈">
         <h2 className="quiz_section_title">종료된 퀴즈</h2>
-        <p className="quiz_section_subtitle">포인트를 받을 수는 없지만, 눌러서 정답을 확인하고 주류 상식을 늘려보세요!</p>
+        <p className="quiz_section_subtitle">포인트를 받을 수는 없지만,<br/> 눌러서 정답을 확인하고 주류 상식을 늘려보세요!</p>
 
         <div className="quiz_prev_list" role="list">
           {previous.map((item) => (
@@ -80,4 +80,3 @@ export default function QuizMain() {
     </section>
   )
 }
-

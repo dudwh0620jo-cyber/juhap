@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react"
+﻿import { useMemo, useState } from "react"
 import { useNavigate } from "react-router"
 
 import caretLeft from "../assets/svg/caretleft.svg"
-import houseLine from "../assets/svg/houseline.svg"
-import quizHostMascot from "../assets/quiz_host_mascot_01.png"
+import caretdown from "../assets/svg/caretdown.png"
+import houseLine from "../assets/svg/house.svg"
+import quizHostMascot from "../assets/onboarding-mascot_06.png"
 import { quizToday } from "../data/quizContent"
 import { readTodayQuizProgress } from "../utils/quizProgress"
 import "../styles/quiz.css"
@@ -74,7 +75,12 @@ export default function QuizToday() {
             // minimal: just scroll to top of choices area hint. (real hint sheet can be added later)
           }}
         >
-          <span aria-hidden="true">💡</span> 여기를 눌러 힌트를 확인해보세요
+          <span className="quiz_hint_left">
+            <span aria-hidden="true">💡</span> 여기를 눌러 힌트를 확인해보세요
+          </span>
+          <span className="quiz_hint_right" aria-hidden="true">
+            <img src={caretdown} alt="" />
+          </span>
         </button>
       </div>
 
@@ -89,4 +95,3 @@ export default function QuizToday() {
     </section>
   )
 }
-

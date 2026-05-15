@@ -158,6 +158,7 @@ export default function App() {
     pathname === "/login" ||
     pathname === "/profile-setup" ||
     pathname === "/taste-setup"
+  const isQuizPage = pathname.startsWith("/quiz")
   const isRankingActive = pathname === "/community/ranking"
   const isCategoryActive =
     pathname === "/category" ||
@@ -237,7 +238,7 @@ export default function App() {
           <Chat onClose={() => setIsChatOpen(false)} userName={chatUserName} isHidden={isChatHidden} />
         ) : null}
 
-        {!isAuthPage ? (
+        {!isAuthPage && !isQuizPage ? (
           <nav className="bottom_nav" aria-label="주요 메뉴">
             {leftNavItems.map((item) => (
               <NavLink
@@ -307,4 +308,3 @@ export default function App() {
     </main>
   )
 }
-
