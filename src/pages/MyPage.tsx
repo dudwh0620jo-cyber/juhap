@@ -2,7 +2,7 @@
 import { useLayoutEffect } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
-import AlertModal from "../components/AlertModal"
+import ProfileEditModal from "../components/ProfileEditModal"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import RelatedContentPostCard from "../components/RelatedContentPostCard"
 import TierInfoPopover from "../components/TierInfoPopover"
@@ -295,7 +295,7 @@ export default function MyPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const profile = readUserProfile()
-  const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false)
   const [isCouponVaultOpen, setIsCouponVaultOpen] = useState(false)
   const [isTasteOpen, setIsTasteOpen] = useState(true)
   const [tasteChartRunId, setTasteChartRunId] = useState(0)
@@ -328,6 +328,7 @@ export default function MyPage() {
   const bookmarkSavedCount = Object.values(bookmarkListById).filter(Boolean).length
   const savedActivityLabel = activityStats[activityStats.length - 1]?.label
   const nickname = profile.personalInfo.nickname.trim() || "이름"
+  const myTierLabel = getPairingTierLabelByUserId(currentUserMock.id)
   const { activeTags, quietTags } = getTasteTags(savedTastePreferences)
   const { summaryTitle, summaryDescription, situationLine } = getTasteSummary(savedTastePreferences)
   const tasteSheetGroupsRef = useRef<HTMLDivElement | null>(null)
@@ -735,15 +736,6 @@ export default function MyPage() {
           <div />
         </header>
 
-      {isProfileEditPreparingOpen ? (
-        <AlertModal
-          title={"아직 준비 중인 서비스입니다.\n곧 만나보실 수 있어요!"}
-          confirmLabel="닫기"
-          variant="preparing"
-          onConfirm={() => setIsProfileEditPreparingOpen(false)}
-        />
-      ) : null}
-
         <div ref={exchangeTopPillRef} className="my_exchange_top_tabs" role="tablist" aria-label="포인트 탭">
           <motion.span
             className="my_exchange_top_tabs_glider"
@@ -965,14 +957,14 @@ export default function MyPage() {
             <div className="my_profile_name_row" aria-label="닉네임 및 메뉴">
               <div className="my_profile_name">
                 <span className="my_profile_nickname">{nickname}</span>
-                <span className="my_profile_grade">{myPageProfileSummary.gradeLabel}</span>
+                <span className="my_profile_grade">{myTierLabel}</span>
                 <TierInfoPopover />
               </div>
               <button
                 type="button"
                 className="my_profile_menu"
                 aria-label="프로필 메뉴"
-                onClick={() => setIsProfileEditPreparingOpen(true)}
+                onClick={() => setIsProfileEditOpen(true)}
               >
                 <img src={iconDotsThreeVertical} alt="" aria-hidden="true" />
               </button>
@@ -992,13 +984,11 @@ export default function MyPage() {
         </div>
       </header>
 
-      {isProfileEditPreparingOpen ? (
-        <AlertModal
-          message="준비중이에요"
-          variant="preparing"
-          onConfirm={() => setIsProfileEditPreparingOpen(false)}
-        />
-      ) : null}
+      <ProfileEditModal
+        isOpen={isProfileEditOpen}
+        initialNickname={nickname}
+        onClose={() => setIsProfileEditOpen(false)}
+      />
 
       <div className="my_page_body">
         <section className="my_activity_section" aria-labelledby="my-activity-title">
@@ -1170,14 +1160,6 @@ export default function MyPage() {
                 <h2>취향 수정</h2>
                 <button type="button" aria-label="닫기" onClick={closeTasteEditor} />
               </header>
-
-      {isProfileEditPreparingOpen ? (
-        <AlertModal
-          message="준비중이에요"
-          variant="preparing"
-          onConfirm={() => setIsProfileEditPreparingOpen(false)}
-        />
-      ) : null}
 
               <div className="my_taste_sheet_groups" ref={tasteSheetGroupsRef} onScroll={updateTasteSheetFade}>
                 {preferenceGroups.map((group) => (
