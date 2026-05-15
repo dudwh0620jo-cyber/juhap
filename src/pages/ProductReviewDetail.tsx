@@ -15,6 +15,7 @@ import imgDefaultUserAvatar from "../assets/user_avatar_defult.png"
 import { drinkReviews } from "../data/productReviewsMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { getPairingTierLabelByUserId, getUserGradeBadgeClassNameByUserId } from "../utils/pairingTier"
+import { isAlcoholReviewPost, readStoredMyWrittenPosts, toStoredDrinkReview } from "../utils/myWrittenPosts"
 import { currentUserMock } from "../utils/usersMock"
 import "../styles/pairing-detail.css"
 import "../styles/product-review-detail.css"
@@ -26,7 +27,10 @@ export default function ProductReviewDetail() {
   const { id, reviewId } = useParams()
   const { nickname: myNickname } = useMyOnboardingMeta()
   const decodedReviewId = reviewId ? decodeURIComponent(reviewId) : ""
-  const review = useMemo(() => drinkReviews.find((item) => item.id === decodedReviewId), [decodedReviewId])
+  const review = useMemo(() => {
+    const storedReviews = readStoredMyWrittenPosts().filter(isAlcoholReviewPost).map(toStoredDrinkReview)
+    return [...storedReviews, ...drinkReviews].find((item) => item.id === decodedReviewId)
+  }, [decodedReviewId])
   const currentUser = useMemo(() => ({ ...currentUserMock, name: myNickname, meta: "작성자" }), [myNickname])
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isBookmarked, setIsBookmarked] = useState(false)

@@ -3,6 +3,7 @@ import type { FormEvent } from "react"
 import { useNavigate } from "react-router"
 
 import AlertModal from "./AlertModal"
+import PurchaseConfirmModal from "./PurchaseConfirmModal"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretDoubleRight from "../assets/svg/caretdoubleright.svg"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
@@ -258,6 +259,7 @@ export default function CommentSection({
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editingCommentValue, setEditingCommentValue] = useState("")
   const [openMenuCommentId, setOpenMenuCommentId] = useState<number | null>(null)
+  const [pendingDeleteCommentId, setPendingDeleteCommentId] = useState<number | null>(null)
   const [inlineReplyCommentId, setInlineReplyCommentId] = useState<number | null>(null)
   const [pageIndex, setPageIndex] = useState(0)
   const [cursorIndex, setCursorIndex] = useState(0)
@@ -614,6 +616,17 @@ export default function CommentSection({
     if (openMenuCommentId === commentId) setOpenMenuCommentId(null)
   }
 
+  const requestDeleteComment = (commentId: number) => {
+    setPendingDeleteCommentId(commentId)
+    setOpenMenuCommentId(null)
+  }
+
+  const confirmDeleteComment = () => {
+    if (pendingDeleteCommentId === null) return
+    removeComment(pendingDeleteCommentId)
+    setPendingDeleteCommentId(null)
+  }
+
   const toggleCommentLike = (commentId: number) => {
     const existingTimeoutId = likeAnimationTimeoutByIdRef.current.get(commentId)
     if (existingTimeoutId) window.clearTimeout(existingTimeoutId)
@@ -679,6 +692,16 @@ export default function CommentSection({
   return (
     <>
       {alertMessage ? <AlertModal message={alertMessage} onConfirm={() => setAlertMessage(null)} /> : null}
+      {pendingDeleteCommentId !== null ? (
+        <PurchaseConfirmModal
+          ariaLabel="댓글 삭제 확인"
+          message={"댓글을 삭제하시겠습니까?\n삭제한 댓글은 복구할 수 없습니다"}
+          confirmLabel="삭제"
+          cancelLabel="취소"
+          onCancel={() => setPendingDeleteCommentId(null)}
+          onConfirm={confirmDeleteComment}
+        />
+      ) : null}
       <section className="comment_section_shell" id="comments" aria-label="댓글 영역">
         <div
           className="comment_list"
@@ -875,7 +898,7 @@ export default function CommentSection({
                               <button type="button" role="menuitem" onClick={() => startEdit(item)}>
                                 수정
                               </button>
-                              <button type="button" role="menuitem" onClick={() => removeComment(item.id)}>
+                              <button type="button" role="menuitem" onClick={() => requestDeleteComment(item.id)}>
                                 삭제
                               </button>
                             </div>

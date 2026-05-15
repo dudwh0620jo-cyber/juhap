@@ -231,6 +231,12 @@ export const sortCommunityFeedPosts = (items: FeedPost[], reviewSort: ReviewSort
   return copy.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
+const isCommunityPairingReviewPost = (post: FeedPost) =>
+  !post.isQna &&
+  post.sourceType !== "drink-review" &&
+  (post.sourceType === "pairing-review" ||
+    (!post.drinkName && Array.isArray(post.foods) && post.foods.some((food) => typeof food === "string" && food.trim())))
+
 export const getCommunityFeedPosts = ({
   feedPosts,
   userPosts,
@@ -248,11 +254,11 @@ export const getCommunityFeedPosts = ({
 }) => {
   const copy = [...userPosts, ...feedPosts]
 
-  if (feedFilter === "review") return sortCommunityFeedPosts(copy.filter((post) => !post.isQna), reviewSort)
+  if (feedFilter === "review") return sortCommunityFeedPosts(copy.filter(isCommunityPairingReviewPost), reviewSort)
   if (feedFilter === "free") return sortCommunityFeedPosts(copy.filter((post) => post.isQna), reviewSort)
   if (feedFilter === "follow") {
     return sortCommunityFeedPosts(
-      copy.filter((post) => !post.isQna && followedUserIds.has(post.authorId) && post.authorId !== myUserId),
+      copy.filter((post) => isCommunityPairingReviewPost(post) && followedUserIds.has(post.authorId) && post.authorId !== myUserId),
       reviewSort,
     )
   }

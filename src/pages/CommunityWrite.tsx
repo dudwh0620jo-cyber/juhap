@@ -981,6 +981,7 @@ export default function CommunityWrite() {
         locationLabel: undefined,
         photoIds: photoIds.length > 0 ? photoIds.slice(0, 3) : undefined,
         isQna: true,
+        sourceType: "question",
       }
 
       try {
@@ -988,6 +989,7 @@ export default function CommunityWrite() {
         const parsed = raw ? JSON.parse(raw) : []
         const next = Array.isArray(parsed) ? [nextPost, ...parsed] : [nextPost]
         window.localStorage.setItem(COMMUNITY_USER_POSTS_KEY, JSON.stringify(next.slice(0, 50)))
+        window.dispatchEvent(new Event("community:user-posts-updated"))
       } catch {
         // ignore storage errors
       }
@@ -1040,6 +1042,8 @@ export default function CommunityWrite() {
         searchTags: [selectedDrinkType, ...Array.from(drinkTasteTags), "후기"].filter((v): v is string => Boolean(v)),
         rating: drinkRating,
         drinkName: normalizedDrinkName,
+        productId: writeKind === "drink-review" ? productId : undefined,
+        sourceType: "drink-review",
         photoIds: photoIds.length > 0 ? photoIds.slice(0, 3) : undefined,
       }
 
@@ -1048,6 +1052,7 @@ export default function CommunityWrite() {
         const parsed = raw ? JSON.parse(raw) : []
         const next = Array.isArray(parsed) ? [nextPost, ...parsed] : [nextPost]
         window.localStorage.setItem(COMMUNITY_USER_POSTS_KEY, JSON.stringify(next.slice(0, 50)))
+        window.dispatchEvent(new Event("community:user-posts-updated"))
       } catch {
         // ignore storage errors
       }
@@ -1103,6 +1108,7 @@ export default function CommunityWrite() {
       ].filter((v): v is string => Boolean(v)),
       pairingPriceWon: pairingPrice.trim() || undefined,
       pairingSummary: pairingSummary.trim(),
+      sourceType: "pairing-review",
       photoIds: pairingPhotoIds.length > 0 ? pairingPhotoIds.slice(0, MAX_PAIRING_PHOTOS) : undefined,
     }
 
@@ -1111,6 +1117,7 @@ export default function CommunityWrite() {
       const parsed = raw ? JSON.parse(raw) : []
       const next = Array.isArray(parsed) ? [nextPost, ...parsed] : [nextPost]
       window.localStorage.setItem(COMMUNITY_USER_POSTS_KEY, JSON.stringify(next.slice(0, 50)))
+      window.dispatchEvent(new Event("community:user-posts-updated"))
     } catch {
       // ignore storage errors
     }

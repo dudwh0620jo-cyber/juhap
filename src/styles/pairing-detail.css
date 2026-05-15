@@ -955,9 +955,9 @@
 
 .comment_menu {
   position: absolute;
-  top: 22px;
+  bottom: 26px;
   right: 0;
-  z-index: 3;
+  z-index: 20;
   display: grid;
   min-width: 96px;
   padding: 6px;
