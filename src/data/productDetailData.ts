@@ -1,4 +1,8 @@
 import { sakeProductsMock } from "./sakeProductsMock"
+import { whiskeyProductsMock } from "./whiskeyProductsMock"
+import { spiritsProductsMock } from "./spiritsProductsMock"
+import { traditionalProductsMock } from "./traditionalProductsMock"
+import { etcProductsMock } from "./etcProductsMock"
 
 export type ProductPurchaseShop = {
   id: string
@@ -82,7 +86,7 @@ export const mockProductById: Record<string, ProductDetailData> = {
         product.id,
         {
           id: product.id,
-          breadcrumb: "사케 > 준마이 다이긴죠 / 다이긴죠",
+          breadcrumb: `사케 > ${product.subcategory}`,
           name: product.name,
           price: `${product.priceWon.toLocaleString("ko-KR")}원`,
           rating: 4.0,
@@ -121,6 +125,186 @@ export const mockProductById: Record<string, ProductDetailData> = {
           ],
         } satisfies ProductDetailData,
       ]),
+  ),
+  ...Object.fromEntries(
+    whiskeyProductsMock.map((product) => [
+      product.id,
+      {
+        id: product.id,
+        breadcrumb: `위스키 > ${product.subcategory}`,
+        name: product.name,
+        price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+        rating: 4.0,
+        basicInfo: [
+          { label: "종류", value: "위스키" },
+          { label: "용량", value: "700ml" },
+          { label: "도수", value: product.abv ? `${product.abv}도` : "-" },
+          { label: "세부 종류", value: product.subcategory },
+          { label: "향미", value: product.tags.join(", ") },
+          { label: "키워드", value: product.keywords.join(", ") },
+        ],
+        tasteNotes: [
+          { label: "Aroma", value: product.tags[0] ?? "풍부한 향", subValue: "향" },
+          { label: "Taste", value: product.keywords[1] ?? product.tags[1] ?? "균형 잡힌 맛", subValue: "맛" },
+          { label: "Finish", value: product.tags[1] ?? "깔끔한 마무리", subValue: "피니시" },
+        ],
+        brandStory: [
+          `${product.name}의 브랜드 스토리는 준비 중이에요.`,
+          "현재는 목업 데이터로 상세 내용을 구성하고 있어요.",
+        ],
+        onlineShops: [
+          {
+            id: `${product.id}-shop-1`,
+            name: "키햐",
+            delivery: "무료배송",
+            price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+            url: "https://example.com/kihya",
+          },
+          {
+            id: `${product.id}-shop-2`,
+            name: "마켓컬리",
+            delivery: "무료배송",
+            price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+            url: "https://example.com/marketkurly",
+          },
+        ],
+      } satisfies ProductDetailData,
+    ]),
+  ),
+  ...Object.fromEntries(
+    spiritsProductsMock.map((product) => [
+      product.id,
+      {
+        id: product.id,
+        breadcrumb: `증류주 > ${product.subcategory}`,
+        name: product.name,
+        price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+        rating: 4.0,
+        basicInfo: [
+          { label: "종류", value: "증류주" },
+          { label: "용량", value: "700ml" },
+          { label: "도수", value: product.abv ? `${product.abv}도` : "-" },
+          { label: "세부 종류", value: product.subcategory },
+          { label: "향미", value: product.tags.join(", ") },
+          { label: "키워드", value: product.keywords.join(", ") },
+        ],
+        tasteNotes: [
+          { label: "Aroma", value: product.tags[0] ?? "풍부한 향", subValue: "향" },
+          { label: "Taste", value: product.keywords[1] ?? product.tags[1] ?? "균형 잡힌 맛", subValue: "맛" },
+          { label: "Finish", value: product.tags[1] ?? "깔끔한 마무리", subValue: "피니시" },
+        ],
+        brandStory: [
+          `${product.name}의 브랜드 스토리는 준비 중이에요.`,
+          "현재는 목업 데이터로 상세 내용을 구성하고 있어요.",
+        ],
+        onlineShops: [
+          {
+            id: `${product.id}-shop-1`,
+            name: "키햐",
+            delivery: "무료배송",
+            price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+            url: "https://example.com/kihya",
+          },
+          {
+            id: `${product.id}-shop-2`,
+            name: "마켓컬리",
+            delivery: "무료배송",
+            price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+            url: "https://example.com/marketkurly",
+          },
+        ],
+      } satisfies ProductDetailData,
+    ]),
+  ),
+  ...Object.fromEntries(
+    traditionalProductsMock.map((product) => [
+      product.id,
+      {
+        id: product.id,
+        breadcrumb: `전통주 > ${product.subcategory}`,
+        name: product.name,
+        price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+        rating: 4.0,
+        basicInfo: [
+          { label: "종류", value: "전통주" },
+          { label: "용량", value: "750ml" },
+          { label: "도수", value: product.abv ? `${product.abv}도` : "-" },
+          { label: "세부 종류", value: product.subcategory },
+          { label: "향미", value: product.tags.join(", ") },
+          { label: "키워드", value: product.keywords.join(", ") },
+        ],
+        tasteNotes: [
+          { label: "Aroma", value: product.tags[0] ?? "은은한 향", subValue: "향" },
+          { label: "Taste", value: product.keywords[1] ?? product.tags[1] ?? "균형 잡힌 맛", subValue: "맛" },
+          { label: "Finish", value: product.tags[1] ?? "깔끔한 마무리", subValue: "피니시" },
+        ],
+        brandStory: [
+          `${product.name}의 브랜드 스토리는 준비 중이에요.`,
+          "현재는 목업 데이터로 상세 내용을 구성하고 있어요.",
+        ],
+        onlineShops: [
+          {
+            id: `${product.id}-shop-1`,
+            name: "키햐",
+            delivery: "무료배송",
+            price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+            url: "https://example.com/kihya",
+          },
+          {
+            id: `${product.id}-shop-2`,
+            name: "마켓컬리",
+            delivery: "무료배송",
+            price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+            url: "https://example.com/marketkurly",
+          },
+        ],
+      } satisfies ProductDetailData,
+    ]),
+  ),
+  ...Object.fromEntries(
+    etcProductsMock.map((product) => [
+      product.id,
+      {
+        id: product.id,
+        breadcrumb: `기타 > ${product.subcategory}`,
+        name: product.name,
+        price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+        rating: 4.0,
+        basicInfo: [
+          { label: "종류", value: "기타" },
+          { label: "용량", value: "700ml" },
+          { label: "도수", value: product.abv !== undefined ? `${product.abv}도` : "-" },
+          { label: "세부 종류", value: product.subcategory },
+          { label: "향미", value: product.tags.join(", ") },
+          { label: "키워드", value: product.keywords.join(", ") },
+        ],
+        tasteNotes: [
+          { label: "Aroma", value: product.tags[0] ?? "은은한 향", subValue: "향" },
+          { label: "Taste", value: product.keywords[1] ?? product.tags[1] ?? "균형 잡힌 맛", subValue: "맛" },
+          { label: "Finish", value: product.tags[1] ?? "깔끔한 마무리", subValue: "피니시" },
+        ],
+        brandStory: [
+          `${product.name}의 브랜드 스토리는 준비 중이에요.`,
+          "현재는 목업 데이터로 상세 내용을 구성하고 있어요.",
+        ],
+        onlineShops: [
+          {
+            id: `${product.id}-shop-1`,
+            name: "키햐",
+            delivery: "무료배송",
+            price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+            url: "https://example.com/kihya",
+          },
+          {
+            id: `${product.id}-shop-2`,
+            name: "마켓컬리",
+            delivery: "무료배송",
+            price: `${product.priceWon.toLocaleString("ko-KR")}원`,
+            url: "https://example.com/marketkurly",
+          },
+        ],
+      } satisfies ProductDetailData,
+    ]),
   ),
 }
 

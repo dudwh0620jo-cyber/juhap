@@ -27,7 +27,6 @@ const sortLabels: Record<SortKey, string> = {
 }
 
 export default function CategoryList() {
-  const { sakeDaiginjoItems, sortOptions } = useCategoryListPageData()
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -36,6 +35,7 @@ export default function CategoryList() {
   const group = searchParams.get("group") ?? defaultSakeLabel
   const sub = searchParams.get("sub") ?? READY_SUBCATEGORY
   const initialQuery = searchParams.get("q") ?? ""
+  const { items: categoryItems, sortOptions } = useCategoryListPageData(group, sub)
 
   const [searchValue, setSearchValue] = useState(initialQuery)
   const [activeSortKey, setActiveSortKey] = useState<SortKey>("default")
@@ -114,7 +114,7 @@ export default function CategoryList() {
   }
 
   const filteredItems = useMemo(() => {
-    let items = [...sakeDaiginjoItems]
+    let items = [...categoryItems]
 
     if (filterPayload) {
       const { drinkTypeLabel, categoryChip, featureChips, priceRange: payloadPriceRange, abvRange: payloadAbvRange } = filterPayload
@@ -134,12 +134,12 @@ export default function CategoryList() {
     if (!query) return items
 
     return items.filter((item) => item.name.toLowerCase().includes(query))
-  }, [filterPayload, sakeDaiginjoItems, searchValue])
+  }, [filterPayload, categoryItems, searchValue])
 
   const { recentSearches, recommendedProducts, recommendedSearches, hasExactProductMatch, saveRecentSearch, removeRecentSearch } =
     useCategorySearchExperience({
       searchValue,
-      searchableItems: sakeDaiginjoItems,
+      searchableItems: categoryItems,
       recentSearchKey: "category_recent_searches",
     })
 
@@ -170,8 +170,8 @@ export default function CategoryList() {
     })
   }
 
-  const handleOpenItem = () => {
-    navigate("/product/sake-dassai-23")
+  const handleOpenItem = (item: { id: string }) => {
+    navigate(`/product/${item.id}`)
   }
 
   return (

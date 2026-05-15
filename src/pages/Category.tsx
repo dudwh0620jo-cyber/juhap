@@ -19,11 +19,33 @@ import {
   type CategoryFilterPayload,
 } from "../data/categoryFilterConfig"
 import { sakeProductsMock } from "../data/sakeProductsMock"
+import { sojuProductsMock } from "../data/sojuProductsMock"
+import { wineProductsMock } from "../data/wineProductsMock"
+import { beerProductsMock } from "../data/beerProductsMock"
+import { whiskeyProductsMock } from "../data/whiskeyProductsMock"
+import { spiritsProductsMock } from "../data/spiritsProductsMock"
+import { traditionalProductsMock } from "../data/traditionalProductsMock"
+import { etcProductsMock } from "../data/etcProductsMock"
 import { useCategorySearchExperience } from "../hooks/useCategorySearchExperience"
 import { useCategorySearchFilterState } from "../hooks/useCategorySearchFilterState"
 import { resolvePricePresetToggle } from "../utils/pricePreset"
 import { calculateRangePercent } from "../utils/range"
 import "../styles/category.css"
+
+const inferSearchableFeatures = (tokens: string[]) => {
+  const joined = tokens.join(" ").toLowerCase()
+  const features: string[] = []
+  if (joined.includes("과일")) features.push("과일향")
+  if (joined.includes("부드")) features.push("부드러운")
+  if (joined.includes("가벼")) features.push("가벼운")
+  if (joined.includes("묵직") || joined.includes("무거")) features.push("무거운")
+  if (joined.includes("탄산") || joined.includes("톡")) features.push("톡쏘는")
+  if (joined.includes("오크")) features.push("오크향")
+  FEATURE_CHIPS.forEach((feature) => {
+    if (joined.includes(feature.toLowerCase())) features.push(feature)
+  })
+  return Array.from(new Set(features)).filter((feature) => FEATURE_CHIPS.includes(feature as (typeof FEATURE_CHIPS)[number]))
+}
 
 export default function Category() {
   const navigate = useNavigate()
@@ -58,18 +80,88 @@ export default function Category() {
 
   const searchableItems = useMemo(
     () =>
-      sakeProductsMock.map((product) => ({
-        id: product.id,
-        name: product.name,
-        drinkTypeLabel: defaultSakeLabel,
-        subcategory: product.subcategory,
-        features: FEATURE_CHIPS.filter((feature) =>
-          [...product.tags, ...product.keywords].join(" ").toLowerCase().includes(feature.toLowerCase()),
-        ),
-        price: product.priceWon,
-        tags: product.tags,
-        keywords: product.keywords,
-      })),
+      [
+        ...sakeProductsMock.map((product) => ({
+          id: product.id,
+          name: product.name,
+          drinkTypeLabel: defaultSakeLabel,
+          subcategory: product.subcategory,
+          features: inferSearchableFeatures([...product.tags, ...product.keywords]),
+          price: product.priceWon,
+          tags: product.tags,
+          keywords: product.keywords,
+        })),
+        ...sojuProductsMock.map((product) => ({
+          id: product.id,
+          name: product.name,
+          drinkTypeLabel: "소주",
+          subcategory: product.subcategory,
+          features: inferSearchableFeatures([...product.tags, ...product.keywords]),
+          price: product.priceWon,
+          tags: product.tags,
+          keywords: product.keywords,
+        })),
+        ...wineProductsMock.map((product) => ({
+          id: product.id,
+          name: product.name,
+          drinkTypeLabel: "와인",
+          subcategory: product.subcategory,
+          features: inferSearchableFeatures([...product.tags, ...product.keywords]),
+          price: product.priceWon,
+          tags: ["와인", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          keywords: product.keywords,
+        })),
+        ...beerProductsMock.map((product) => ({
+          id: product.id,
+          name: product.name,
+          drinkTypeLabel: "맥주",
+          subcategory: product.subcategory,
+          features: inferSearchableFeatures([...product.tags, ...product.keywords]),
+          price: product.priceWon,
+          tags: ["맥주", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          keywords: product.keywords,
+        })),
+        ...whiskeyProductsMock.map((product) => ({
+          id: product.id,
+          name: product.name,
+          drinkTypeLabel: "위스키",
+          subcategory: product.subcategory,
+          features: inferSearchableFeatures([...product.tags, ...product.keywords]),
+          price: product.priceWon,
+          tags: ["위스키", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          keywords: product.keywords,
+        })),
+        ...spiritsProductsMock.map((product) => ({
+          id: product.id,
+          name: product.name,
+          drinkTypeLabel: "증류주",
+          subcategory: product.subcategory,
+          features: inferSearchableFeatures([...product.tags, ...product.keywords]),
+          price: product.priceWon,
+          tags: ["증류주", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          keywords: product.keywords,
+        })),
+        ...traditionalProductsMock.map((product) => ({
+          id: product.id,
+          name: product.name,
+          drinkTypeLabel: "전통주",
+          subcategory: product.subcategory,
+          features: inferSearchableFeatures([...product.tags, ...product.keywords]),
+          price: product.priceWon,
+          tags: ["전통주", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          keywords: product.keywords,
+        })),
+        ...etcProductsMock.map((product) => ({
+          id: product.id,
+          name: product.name,
+          drinkTypeLabel: "기타",
+          subcategory: product.subcategory,
+          features: inferSearchableFeatures([...product.tags, ...product.keywords]),
+          price: product.priceWon,
+          tags: ["기타", ...(product.abv !== undefined ? [`${product.abv}도`] : []), ...product.tags],
+          keywords: product.keywords,
+        })),
+      ],
     [defaultSakeLabel],
   )
 
@@ -148,7 +240,34 @@ export default function Category() {
   }, [activeCategoryId, visibleCategories])
 
   const isSubcategoryReady = (category: DrinkCategory, subcategory: string) =>
-    category.id === "sake" && subcategory === READY_SUBCATEGORY
+    (category.id === "sake" &&
+      (subcategory === READY_SUBCATEGORY ||
+        subcategory === "준마이 긴죠/긴죠" ||
+        subcategory === "준마이" ||
+        subcategory === "혼죠조/후츠슈")) ||
+    (category.id === "soju" && (subcategory === "데일리(희석식)" || subcategory === "프리미엄(증류식)" || subcategory === "플레이버")) ||
+    (category.id === "wine" && (subcategory === "레드" || subcategory === "화이트" || subcategory === "로제" || subcategory === "스파클링" || subcategory === "내추럴" || subcategory === "포트" || subcategory === "디저트")) ||
+    (category.id === "beer" && (subcategory === "라거/필스너" || subcategory === "에일/IPA" || subcategory === "흑맥주(스타우트)" || subcategory === "과일맥주")) ||
+    (category.id === "whisky" &&
+      (subcategory === "싱글몰트 위스키" ||
+        subcategory === "블렌디드 몰트" ||
+        subcategory === "블렌디드 위스키" ||
+        subcategory === "아메리칸(버번/라이/테네시)" ||
+        subcategory === "그레인 위스키" ||
+        subcategory === "기타 국가 위스키")) ||
+    (category.id === "spirits" &&
+      (subcategory === "백주/고량주" ||
+        subcategory === "진/보드카" ||
+        subcategory === "테킬라/럼" ||
+        subcategory === "브랜디(꼬냑/아르마냑)")) ||
+    (category.id === "traditional" &&
+      (subcategory === "막걸리/탁주" ||
+        subcategory === "약주/청주" ||
+        subcategory === "과실주(한국 와인)")) ||
+    (category.id === "etc" &&
+      (subcategory === "리큐르" ||
+        subcategory === "하이볼/칵테일" ||
+        subcategory === "논알콜/저도수 (Sober)"))
 
   const handleSubcategoryClick = (category: DrinkCategory, subcategory: string) => {
     const isReady = isSubcategoryReady(category, subcategory)
