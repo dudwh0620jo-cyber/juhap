@@ -42,7 +42,7 @@ import { communityPageData } from "../data/communityPageData"
 import { productDetailPageData } from "../data/productDetailData"
 import { drinkReviews, productPairingReviews } from "../data/productReviewsMock"
 import { useProductReviewInteractions } from "../hooks/useProductReviewInteractions"
-import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY } from "../utils/communityStorage"
+import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, readStoredPairingCommentCount } from "../utils/communityStorage"
 import { USER_POSTS_UPDATED_EVENT } from "../utils/communityFeed"
 import {
   isAlcoholReviewPost,
@@ -87,6 +87,14 @@ const getPairingReviewPostId = (review: DrinkReview) => {
   const matchedId = review.id.match(/^pairing-review-(\d+)$/)?.[1]
   return matchedId ? Number(matchedId) : NaN
 }
+
+const getProductReviewCommentTargetId = (review: DrinkReview) => {
+  const pairingPostId = getPairingReviewPostId(review)
+  if (Number.isFinite(pairingPostId)) return String(pairingPostId)
+  return /^\d+$/.test(review.id) ? review.id : `product-review-comments-${review.id}`
+}
+
+const getProductReviewCommentCount = (review: DrinkReview) => readStoredPairingCommentCount(getProductReviewCommentTargetId(review))
 
 export default function ProductDetail() {
   const { mockProductById, defaultProduct } = productDetailPageData
@@ -505,12 +513,13 @@ export default function ProductDetail() {
                   <img className="review_profile" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
                   <div className="review_author_meta">
                     <p className="review_nickname">
-                      <strong>{review.author.name}</strong>
-                      <span>{review.author.grade}</span>
-                      <i>ㆍ</i>
+                      <span className="review_author_name_grade">
+                        <strong>{review.author.name}</strong>
+                        <span>{review.author.grade}</span>
+                      </span>
                       <button
                         type="button"
-                        className={followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"}
+                        className={`${followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"} review_author_follow_button`}
                         aria-pressed={followedAuthorNames.has(review.author.name)}
                         onClick={(event) => {
                           event.stopPropagation()
@@ -560,7 +569,7 @@ export default function ProductDetail() {
                   />
                   <span>
                     <img src={iconChatDots} alt="" aria-hidden="true" />
-                    {review.comments}
+                    {getProductReviewCommentCount(review)}
                   </span>
                   <button type="button" aria-label="공유">
                     <img src={iconSharePoint} alt="" aria-hidden="true" />
@@ -655,12 +664,13 @@ export default function ProductDetail() {
                     <img className="review_profile" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
                     <div className="review_author_meta">
                       <p className="review_nickname">
-                        <strong>{review.author.name}</strong>
-                        <span>{review.author.grade}</span>
-                        <i>ㆍ</i>
+                        <span className="review_author_name_grade">
+                          <strong>{review.author.name}</strong>
+                          <span>{review.author.grade}</span>
+                        </span>
                         <button
                           type="button"
-                          className={followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"}
+                          className={`${followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"} review_author_follow_button`}
                           aria-pressed={followedAuthorNames.has(review.author.name)}
                           onClick={(event) => {
                             event.stopPropagation()
@@ -733,7 +743,7 @@ export default function ProductDetail() {
                       />
                       <span>
                         <img src={iconChatDots} alt="" aria-hidden="true" />
-                        {review.comments}
+                        {getProductReviewCommentCount(review)}
                       </span>
                       <button type="button" aria-label="공유">
                         <img src={iconSharePoint} alt="" aria-hidden="true" />

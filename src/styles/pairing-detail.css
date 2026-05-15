@@ -48,6 +48,21 @@
   grid-template-columns: 48px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
+  width: 100%;
+}
+
+.detail_header_profile_row .user_identity_action {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+}
+
+.detail_header_profile_row {
+  position: relative;
+  justify-self: stretch;
 }
 
 .user_identity_avatar_button {
@@ -67,7 +82,7 @@
   margin: 0 0 2px;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
 }
 
@@ -75,6 +90,24 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 1.2;
+  min-width: 0;
+  width: 100%;
+}
+
+.detail_author_line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.detail_author_name_grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
 }
 
 .detail_header_title .user_grade_badge {
@@ -118,18 +151,20 @@
 }
 
 .follow_button {
-  min-height: 24px;
-  padding: 0;
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 0 10px;
   border: 0;
   border-radius: 999px;
-  background: transparent;
-  color: #77aaf4;
+  background: #eef6ff;
+  color: #73b4ff;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
 }
 
 .follow_button.is_active {
+  background: var(--color-gray-01);
   color: var(--color-gray-04);
 }
 

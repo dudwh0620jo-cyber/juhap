@@ -33,7 +33,7 @@ import { bookmarkLists } from "../data/communityFilterConfig"
 import { extractPairingTitle, feedPosts, getPairingSummaryText, type FeedPost } from "../utils/communityPosts"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
-import { currentUserMock, defaultFollowedUserIdsMock, usersMockById } from "../utils/usersMock"
+import { currentUserMock, defaultFollowedUserIdsMock, getFollowingCount, usersMockById } from "../utils/usersMock"
 import { isMyWrittenPost } from "../utils/myWrittenPosts"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
@@ -323,6 +323,7 @@ export default function MyPage() {
   )
   const [warningByGroup, setWarningByGroup] = useState<Record<string, string>>({})
   const { value: followedUserIds } = useStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, defaultFollowedUserIdsMock)
+  const followingCount = useMemo(() => getFollowingCount(followedUserIds), [followedUserIds])
   const { value: bookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
   const [userPosts, setUserPosts] = useState<FeedPost[]>([])
   const bookmarkSavedCount = Object.values(bookmarkListById).filter(Boolean).length
@@ -976,7 +977,7 @@ export default function MyPage() {
                 <span>팔로워</span>
               </div>
               <div className="my_profile_follow_item">
-                <strong>{followedUserIds.size}</strong>
+                <strong>{followingCount.toLocaleString("ko-KR")}</strong>
                 <span>팔로잉</span>
               </div>
             </div>

@@ -10,6 +10,20 @@ export function useStoredNumberSet(key: string, defaultIds: readonly number[]) {
       const parsed = JSON.parse(raw)
       if (!Array.isArray(parsed)) return new Set(defaultSet)
       const next = parsed.filter((item): item is number => typeof item === "number" && Number.isFinite(item))
+      const defaultList = Array.from(defaultSet)
+      const defaultMigrationKey = `${key}:default_ids:${defaultList.join(",")}`
+      const isPreviousDefaultPrefix =
+        next.length > 0 &&
+        next.length < defaultList.length &&
+        next.every((item, index) => item === defaultList[index]) &&
+        !window.localStorage.getItem(defaultMigrationKey)
+
+      if (isPreviousDefaultPrefix) {
+        window.localStorage.setItem(key, JSON.stringify(defaultList))
+        window.localStorage.setItem(defaultMigrationKey, "1")
+        return new Set(defaultList)
+      }
+
       return new Set(next.length > 0 ? next : Array.from(defaultSet))
     } catch {
       return new Set(defaultSet)

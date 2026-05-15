@@ -6,7 +6,7 @@ import {
   resolvePairingTags,
   type FeedPost,
 } from "./communityPosts"
-import { getPairingCommentsStorageKey } from "./communityStorage"
+import { readStoredPairingCommentCount } from "./communityStorage"
 import { resolveReviewImage } from "./reviewImages"
 import { usersMockById } from "./usersMock"
 
@@ -75,17 +75,11 @@ export const getInitialPairingLikeCount = (post: FeedPost | undefined) => {
 }
 
 export const getInitialPairingCommentCount = (post: FeedPost | undefined, pairingId?: string) => {
+  if (pairingId) return readStoredPairingCommentCount(pairingId, 0)
+
   const fromPost = (post as { commentCount?: unknown } | undefined)?.commentCount
   if (typeof fromPost === "number" && Number.isFinite(fromPost)) return fromPost
-  if (!pairingId) return 0
-
-  try {
-    const raw = window.localStorage.getItem(getPairingCommentsStorageKey(pairingId))
-    const parsed = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed.length : 0
-  } catch {
-    return 0
-  }
+  return 0
 }
 
 export const resolveSimilarPairingItems = (

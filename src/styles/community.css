@@ -923,6 +923,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .feed_card .feed_card_header h3 {
@@ -934,6 +936,7 @@
 
 .feed_post_badge {
   min-height: 20px;
+  padding: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--color-grade);
@@ -968,25 +971,20 @@
   color: #5b5b5b;
 }
 .follow_toggle_button {
-  min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid var(--color-gray-02);
+  min-height: 26px;
+  padding: 0 10px;
+  border: 0;
   border-radius: 999px;
-  background: var(--color-bg-white);
-  font-size: 12px;
+  background: #eef6ff;
+  color: #73b4ff;
+  font-size: 14px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .follow_toggle_button.is_following {
-  border-color: var(--color-gray-02);
-  background: #f3f3f3;
+  background: var(--color-gray-01);
   color: var(--color-gray-04);
-}
-
-.community_review_follow_divider {
-  color: var(--color-gray-06);
-  font-size: 14px;
-  line-height: 1;
 }
 
 .community_follow_me_section {
@@ -1644,8 +1642,30 @@
   gap: 4px;
 }
 
+.community_review_header {
+  width: 100%;
+}
+
 .community_review_author_row {
   display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.community_review_author_line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.community_review_author_name_grade {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
@@ -1655,6 +1675,10 @@
 .community_review_header .user_identity_action {
   display: inline-flex;
   align-items: center;
+}
+
+.community_review_header .user_identity_action {
+  justify-self: end;
 }
 
 .community_review_author_name {
@@ -1676,16 +1700,19 @@
 }
 
 .community_review_header .follow_toggle_button {
-  min-height: auto;
-  padding: 0;
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 0 10px;
   border: 0;
-  background: transparent;
-  color: var(--color-point-06);
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #73b4ff;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .community_review_header .follow_toggle_button.is_following {
+  background: var(--color-gray-01);
   color: var(--color-gray-04);
 }
 

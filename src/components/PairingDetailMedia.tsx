@@ -4,9 +4,16 @@ import { resolveReviewImage } from "../utils/reviewImages"
 type Props = {
   numericId: number
   photoIds: string[]
+  resolveImage?: (photoId: string) => string | undefined
+  ariaLabel?: string
 }
 
-export default function PairingDetailMedia({ numericId, photoIds }: Props) {
+export default function PairingDetailMedia({
+  numericId,
+  photoIds,
+  resolveImage = resolveReviewImage,
+  ariaLabel = "페어링 리뷰 이미지",
+}: Props) {
   const imageListRef = useRef<HTMLDivElement | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const imageTotal = photoIds.length
@@ -26,9 +33,9 @@ export default function PairingDetailMedia({ numericId, photoIds }: Props) {
 
   return (
     <div className={imageTotal > 1 ? "detail_media" : "detail_media is_single_image"}>
-      <div ref={imageListRef} className="detail_images" aria-label="페어링 리뷰 이미지" onScroll={handleScroll}>
+      <div ref={imageListRef} className="detail_images" aria-label={ariaLabel} onScroll={handleScroll}>
         {photoIds.map((photoId) => {
-          const imageSrc = resolveReviewImage(photoId)
+          const imageSrc = resolveImage(photoId)
           return (
             <figure className="detail_image_item" key={photoId}>
               {imageSrc ? <img className="detail_image" src={imageSrc} alt="" aria-hidden="true" /> : null}

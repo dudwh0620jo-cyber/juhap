@@ -16,11 +16,14 @@ import { drinkReviews } from "../data/productReviewsMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { getPairingTierLabelByUserId, getUserGradeBadgeClassNameByUserId } from "../utils/pairingTier"
 import { isAlcoholReviewPost, readStoredMyWrittenPosts, toStoredDrinkReview } from "../utils/myWrittenPosts"
+import { readStoredPairingCommentCount } from "../utils/communityStorage"
 import { currentUserMock } from "../utils/usersMock"
 import "../styles/pairing-detail.css"
 import "../styles/product-review-detail.css"
 
 const normalizeHashTagValue = (tag: string) => tag.replace(/^#/, "").trim()
+
+const getReviewCommentTargetId = (reviewId: string) => (/^\d+$/.test(reviewId) ? reviewId : `product-review-comments-${reviewId}`)
 
 export default function ProductReviewDetail() {
   const navigate = useNavigate()
@@ -37,13 +40,16 @@ export default function ProductReviewDetail() {
   const [isLiked, setIsLiked] = useState(false)
   const [isLikeAnimating, setIsLikeAnimating] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
-  const [commentCountOverride, setCommentCountOverride] = useState<number | null>(null)
+  const commentTargetId = review ? getReviewCommentTargetId(review.id) : ""
+  const [commentCountOverride, setCommentCountOverride] = useState<number | null>(() =>
+    commentTargetId ? readStoredPairingCommentCount(commentTargetId) : null,
+  )
 
   if (!review) {
     return <Navigate to={id ? `/product/${id}?tab=review` : "/category"} replace />
   }
 
-  const commentCount = commentCountOverride ?? review.comments
+  const commentCount = commentCountOverride ?? readStoredPairingCommentCount(commentTargetId)
 
   const toggleLike = () => {
     if (!isLiked) {
@@ -167,12 +173,11 @@ export default function ProductReviewDetail() {
 
       <div className="product_review_detail_comments" id="product-review-comments">
         <CommentSection
-          pairingId={`product-review-comments-${review.id}`}
+          pairingId={commentTargetId}
           currentUser={currentUser}
           getTierClassName={getUserGradeBadgeClassNameByUserId}
           getTierLabel={getPairingTierLabelByUserId}
           onCountChange={setCommentCountOverride}
-          initialCount={review.comments}
         />
       </div>
 

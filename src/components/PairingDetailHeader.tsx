@@ -56,9 +56,10 @@ export default function PairingDetailHeader({
         titleClassName="detail_header_title"
         metaClassName="detail_header_meta"
         title={
-          <>
-            {authorName} {showTier ? <span className={tierClassName}>{tierLabel}</span> : null}
-            {typeof onOpenMenu !== "function" ? <span className="detail_follow_divider">ㆍ</span> : null}
+          <span className="detail_author_line">
+            <span className="detail_author_name_grade">
+              {authorName} {showTier ? <span className={tierClassName}>{tierLabel}</span> : null}
+            </span>
             {typeof onOpenMenu !== "function" ? (
               <button
                 type="button"
@@ -70,7 +71,7 @@ export default function PairingDetailHeader({
                 {isFollowing ? "언팔로우" : "팔로우"}
               </button>
             ) : null}
-          </>
+          </span>
         }
         meta={profile}
         rightAction={
