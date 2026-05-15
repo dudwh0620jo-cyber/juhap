@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
@@ -43,6 +43,15 @@ import { productDetailPageData } from "../data/productDetailData"
 import { drinkReviews, productPairingReviews } from "../data/productReviewsMock"
 import { useProductReviewInteractions } from "../hooks/useProductReviewInteractions"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY } from "../utils/communityStorage"
+import { USER_POSTS_UPDATED_EVENT } from "../utils/communityFeed"
+import {
+  isAlcoholReviewPost,
+  isPairingReviewPost,
+  matchesWrittenPostProductName,
+  readStoredMyWrittenPosts,
+  toStoredDrinkReview,
+  toStoredPairingReview,
+} from "../utils/myWrittenPosts"
 import type { PairingDetailNavState } from "../utils/pairingDetail"
 import { getVisibleProductReviews } from "../utils/productReviews"
 import type { DrinkReview } from "../utils/productReviews"
@@ -92,13 +101,14 @@ export default function ProductDetail() {
   const [isPhotoReviewOnly, setIsPhotoReviewOnly] = useState(false)
   const [isPairingPhotoOnly, setIsPairingPhotoOnly] = useState(false)
   const [reviewSort, setReviewSort] = useState<ReviewSortKey>("latest")
-  const [pairingSort, setPairingSort] = useState<ReviewSortKey>("recommend")
+  const [pairingSort, setPairingSort] = useState<ReviewSortKey>("latest")
   const [isReviewSortSheetOpen, setIsReviewSortSheetOpen] = useState(false)
   const [sortSheetTarget, setSortSheetTarget] = useState<"review" | "pairing">("review")
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE)
   const [pairingVisibleCount, setPairingVisibleCount] = useState(REVIEW_PAGE_SIZE)
   const [bookmarkPicker, setBookmarkPicker] = useState<ProductBookmarkPicker | null>(null)
   const [bookmarkedProductReviewIds, setBookmarkedProductReviewIds] = useState<Record<string, boolean>>({})
+  const [storedMyPosts, setStoredMyPosts] = useState(() => readStoredMyWrittenPosts())
   const { value: bookmarkListById, setValue: setBookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
   const {
     animatingReviewId,
@@ -120,18 +130,34 @@ export default function ProductDetail() {
     () => productPairingReviews.filter((review) => review.alcoholTag === product.name),
     [product.name]
   )
+  const storedPairingReviews = useMemo(
+    () =>
+      storedMyPosts
+        .filter(isPairingReviewPost)
+        .filter((post) => matchesWrittenPostProductName(post, product.name))
+        .map(toStoredPairingReview),
+    [product.name, storedMyPosts],
+  )
+  const storedDrinkReviews = useMemo(
+    () =>
+      storedMyPosts
+        .filter(isAlcoholReviewPost)
+        .filter((post) => post.productId === product.id || post.drinkName === product.name)
+        .map(toStoredDrinkReview),
+    [product.id, product.name, storedMyPosts],
+  )
   const ratingWidth = `${Math.max(0, Math.min(100, (product.rating / 5) * 100))}%`
   const bestOnlinePrice = product.onlineShops[0]?.price ?? product.price
   const breadcrumbItems = product.breadcrumb.split(">").map((item) => item.trim()).filter(Boolean)
   const reviewSortLabel = reviewSortItems.find((item) => item.key === reviewSort)?.label ?? "최신순"
-  const pairingSortLabel = reviewSortItems.find((item) => item.key === pairingSort)?.label ?? "추천순"
+  const pairingSortLabel = reviewSortItems.find((item) => item.key === pairingSort)?.label ?? "최신순"
   const visibleReviews = useMemo(
-    () => getVisibleProductReviews(drinkReviews, { photoOnly: isPhotoReviewOnly, sortKey: reviewSort }),
-    [isPhotoReviewOnly, reviewSort],
+    () => getVisibleProductReviews([...storedDrinkReviews, ...drinkReviews], { photoOnly: isPhotoReviewOnly, sortKey: reviewSort }),
+    [isPhotoReviewOnly, reviewSort, storedDrinkReviews],
   )
   const visiblePairingReviews = useMemo(
-    () => getVisibleProductReviews(pairingReviews, { photoOnly: isPairingPhotoOnly, sortKey: pairingSort }),
-    [isPairingPhotoOnly, pairingReviews, pairingSort],
+    () => getVisibleProductReviews([...storedPairingReviews, ...pairingReviews], { photoOnly: isPairingPhotoOnly, sortKey: pairingSort }),
+    [isPairingPhotoOnly, pairingReviews, pairingSort, storedPairingReviews],
   )
 
   const changeActiveTab = (nextTab: (typeof tabItems)[number]) => {
@@ -148,6 +174,13 @@ export default function ProductDetail() {
 
     setSearchParams(nextParams, { replace: true })
   }
+
+  useEffect(() => {
+    const readPosts = () => setStoredMyPosts(readStoredMyWrittenPosts())
+
+    window.addEventListener(USER_POSTS_UPDATED_EVENT, readPosts)
+    return () => window.removeEventListener(USER_POSTS_UPDATED_EVENT, readPosts)
+  }, [])
 
   const openPairingReviewDetail = (review: DrinkReview) => {
     const postId = getPairingReviewPostId(review)

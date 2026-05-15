@@ -34,6 +34,7 @@ import { extractPairingTitle, feedPosts, getPairingSummaryText, type FeedPost } 
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
 import { currentUserMock, defaultFollowedUserIdsMock, usersMockById } from "../utils/usersMock"
+import { isMyWrittenPost } from "../utils/myWrittenPosts"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
 import { resolveMyUserAvatar } from "../utils/userAvatars"
@@ -471,6 +472,19 @@ export default function MyPage() {
       .filter((item): item is { post: FeedPost; listId: string } => Boolean(item))
       .sort((left, right) => new Date(right.post.createdAt).getTime() - new Date(left.post.createdAt).getTime())
   }, [bookmarkListById, userPosts, bookmarkListLabelById])
+
+  const myWrittenPostCount = useMemo(() => {
+    const combinedPosts = [...userPosts, ...feedPosts]
+    const postById = new Map<number, FeedPost>()
+
+    combinedPosts.forEach((post) => {
+      if (typeof post.id === "number" && Number.isFinite(post.id) && !postById.has(post.id)) {
+        postById.set(post.id, post)
+      }
+    })
+
+    return Array.from(postById.values()).filter(isMyWrittenPost).length
+  }, [userPosts])
 
   const tasteValueByKey = useMemo(() => {
     return Object.fromEntries(
@@ -995,7 +1009,7 @@ export default function MyPage() {
               .map((stat) => {
                 const isSavedStat = stat.label === savedActivityLabel
                 const isRecordStat = stat.label === "기록"
-                const value = isSavedStat ? bookmarkSavedCount : stat.value
+                const value = isSavedStat ? bookmarkSavedCount : isRecordStat ? myWrittenPostCount : stat.value
                 const Element: "button" | "div" = isSavedStat || isRecordStat ? "button" : "div"
                 const extraProps = isSavedStat
                   ? ({ type: "button", onClick: openSavedList, "aria-label": "저장한 리스트 보기" } as const)

@@ -100,7 +100,7 @@ export const usersMockById: Record<number, MockUser> = Object.fromEntries(usersM
 
 export const defaultFollowedUserIdsMock = usersMock.slice(0, 4).map((user) => user.id)
 
-export const currentUserMock = { id: 1014, name: "주합러", meta: "내 정보 연동" }
+export const currentUserMock = { id: 9999, name: "주합러", meta: "내 정보 연동" }
 
 export const getUserMetaFromProfile = (profile: string) => {
   const parts = profile

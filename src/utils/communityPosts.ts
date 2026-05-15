@@ -29,11 +29,15 @@ export type FeedPost = {
   searchTags?: string[]
   situation?: string
   drinkType?: string
+  drinkName?: string
+  productId?: string
+  sourceType?: "drink-review" | "pairing-review" | "question"
   categories?: string[]
   detailCategories?: string[]
   features?: string[]
   foods?: string[]
   priceWon?: number
+  pairingPriceWon?: string
   abv?: number
   detailMockKey?: string
 }
