@@ -77,20 +77,22 @@ function SuccessResult({ onBack, onClose, onOpenDetail, onSave }: Pick<AiScanRes
 
         <section className="ai_scan_pairing_section" aria-label="추천 페어링">
           <h2>추천 페어링</h2>
-          <div className="ai_scan_pairing_scroller">
-            {aiScanResult.pairings.map((pairing) => (
-              <article key={pairing.title} className="ai_scan_pairing_card">
-                <img src={pairingImageByType[pairing.image]} alt="" aria-hidden="true" />
-                <div className="ai_scan_pairing_text">
-                  <span className="ai_scan_best_badge">best</span>
-                  <strong>{pairing.title}</strong>
-                  <div className="ai_scan_pairing_tags">
-                    <span className="is_drink">{pairing.drinkTag}</span>
-                    <span className="is_food">{pairing.foodTag}</span>
+          <div className="ai_scan_pairing_scroller_shell">
+            <div className="ai_scan_pairing_scroller">
+              {aiScanResult.pairings.map((pairing) => (
+                <article key={pairing.title} className="ai_scan_pairing_card">
+                  <img src={pairingImageByType[pairing.image]} alt="" aria-hidden="true" />
+                  <div className="ai_scan_pairing_text">
+                    <span className="ai_scan_best_badge">best</span>
+                    <strong>{pairing.title}</strong>
+                    <div className="ai_scan_pairing_tags">
+                      <span className="is_drink">{pairing.drinkTag}</span>
+                      <span className="is_food">{pairing.foodTag}</span>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -160,4 +162,3 @@ export default function AiScanResult({
 
   return <SuccessResult onBack={onBack} onClose={onClose} onOpenDetail={onOpenDetail} onSave={onSave} />
 }
-

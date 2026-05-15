@@ -9,7 +9,6 @@ import voteSvg from "../assets/svg/vote.svg"
 import peopleSvg from "../assets/svg/people.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
-import AlertModal from "../components/AlertModal"
 import type { RecommendationItem } from "../components/RecommendationCard"
 import SituationSection from "../components/SituationSection"
 import TodayHeroCopy from "../components/TodayHeroCopy"
@@ -454,7 +453,7 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
 export default function Home() {
   const { recommendationItems, situationItems, weeklyDrinkItems } = useHomePageData()
   const featuredVote = voteItems.find((v) => v.id === FEATURED_VOTE_ID) ?? voteItems[0]
-  const [isQuizPreparingOpen, setIsQuizPreparingOpen] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <section className="home_page page_screen" aria-label="홈">
@@ -500,7 +499,7 @@ export default function Home() {
         type="button"
         className="home_quiz_card"
         aria-label="오늘의 퀴즈"
-        onClick={() => setIsQuizPreparingOpen(true)}
+        onClick={() => navigate("/quiz")}
         style={{ backgroundImage: `url(${homeAssets.todayQuizBanner})` }}
       >
         <div className="home_quiz_left">
@@ -512,16 +511,6 @@ export default function Home() {
           <img className="home_quiz_arrow" src={iconCaretRight} alt="" />
         </div>
       </button>
-
-      {isQuizPreparingOpen ? (
-        <AlertModal
-          title="준비중"
-          message="서비스 준비중이에요."
-          confirmLabel="확인"
-          variant="preparing"
-          onConfirm={() => setIsQuizPreparingOpen(false)}
-        />
-      ) : null}
     </section>
   )
 }

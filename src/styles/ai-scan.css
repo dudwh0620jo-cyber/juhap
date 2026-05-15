@@ -582,15 +582,19 @@
   line-height: 1.4;
 }
 
+.ai_scan_pairing_scroller_shell {
+  /* Keep shadows visible: outer box is overflow-visible. */
+  margin: 0 -20px -22px;
+  padding: 10px 20px 22px;
+  overflow: visible;
+}
+
 .ai_scan_pairing_scroller {
   display: flex;
   gap: 10px;
-  /* Keep shadows visible within the scroller box (overflow-x clips). */
-  margin: 0 -20px -22px;
-  padding: 10px 20px 22px;
   overflow-x: auto;
-  overflow-y: hidden;
   scrollbar-width: none;
+  padding: 0 0 2px;
 }
 
 .ai_scan_pairing_scroller::-webkit-scrollbar {
