@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react"
 import AlertModal from "../components/AlertModal"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import RelatedContentPostCard from "../components/RelatedContentPostCard"
+import TierInfoPopover from "../components/TierInfoPopover"
 import {
   MAX_MULTI_SELECTIONS,
   NONE_OPTION,
@@ -153,13 +154,13 @@ function ExchangeItemCard({ item, tone }: { item: ExchangeItem; tone?: "discount
 }
 
 function CoinConfetti({ seed }: { seed: number }) {
-  const pieceCount = 12
+  const pieceCount = 10
   const pieces = Array.from({ length: pieceCount }).map((_, index) => {
     const t = (seed + 1) * 997 + (index + 1) * 263
     const angle = ((t % 360) * Math.PI) / 180
-    const dist = 24 + (t % 30)
-    const dx = Math.cos(angle) * dist
-    const dy = Math.sin(angle) * dist - 26
+    const dist = 15 + (t % 18)
+    const dx = Math.cos(angle) * dist * 2.25
+    const dy = Math.sin(angle) * dist * 0.85 - 18
     const rotate = (t * 13) % 360
     const delay = (0.06 + (t % 120) / 1000).toFixed(3)
     const duration = 0.9 + ((t % 36) / 100)
@@ -226,7 +227,7 @@ function PointCoinBurst({ seed, imageSrc }: { seed: number; imageSrc: string }) 
 
   const confettiPadPx = useMemo(() => {
     const base = coinSizePx ?? 59
-    return Math.min(18, Math.max(10, Math.round(base * 0.22)))
+    return Math.min(14, Math.max(8, Math.round(base * 0.2)))
   }, [coinSizePx])
 
   if (prefersReducedMotion) {
@@ -294,6 +295,7 @@ export default function MyPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const profile = readUserProfile()
   const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
+  const [isCouponVaultOpen, setIsCouponVaultOpen] = useState(false)
   const [isTasteOpen, setIsTasteOpen] = useState(true)
   const [tasteChartRunId, setTasteChartRunId] = useState(0)
   const [isTasteEditorOpen, setIsTasteEditorOpen] = useState(false)
@@ -883,6 +885,58 @@ export default function MyPage() {
     )
   }
 
+  if (isCouponVaultOpen) {
+    const issuedDiscountItems = discountItems.filter((item) => Boolean(item.actionDisabled) && item.statusLabel?.includes("발급"))
+    const issuedExperienceItems = experienceItems.filter(
+      (item) => Boolean(item.actionDisabled) && item.statusLabel?.includes("발급"),
+    )
+
+    return (
+      <section className="my_exchange_page" aria-label="쿠폰 보기">
+        <header className="my_exchange_header">
+          <button
+            type="button"
+            className="my_exchange_back"
+            aria-label="마이페이지로 돌아가기"
+            onClick={() => setIsCouponVaultOpen(false)}
+          />
+          <h1 className="my_exchange_title">보유중인 쿠폰</h1>
+          <div />
+        </header>
+
+        <div className="my_exchange_sections">
+          {issuedDiscountItems.length > 0 ? (
+            <section className="my_exchange_section" aria-labelledby="coupon-discount">
+              <h2 id="coupon-discount">할인권</h2>
+              <div className="my_exchange_item_list">
+                {issuedDiscountItems.map((item) => (
+                  <ExchangeItemCard item={item} tone="discount" key={item.title} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {issuedExperienceItems.length > 0 ? (
+            <section className="my_exchange_section" aria-labelledby="coupon-experience">
+              <h2 id="coupon-experience">체험권</h2>
+              <div className="my_exchange_item_list">
+                {issuedExperienceItems.map((item) => (
+                  <ExchangeItemCard item={item} tone="experience" key={item.title} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {issuedDiscountItems.length === 0 && issuedExperienceItems.length === 0 ? (
+            <section className="my_exchange_empty" aria-label="보유 쿠폰 없음">
+              <p>발급 완료된 쿠폰이 아직 없어요.</p>
+            </section>
+          ) : null}
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="my_page" aria-label="마이페이지">
       <header className="my_profile_header">
@@ -898,6 +952,7 @@ export default function MyPage() {
               <div className="my_profile_name">
                 <span className="my_profile_nickname">{nickname}</span>
                 <span className="my_profile_grade">{myPageProfileSummary.gradeLabel}</span>
+                <TierInfoPopover />
               </div>
               <button
                 type="button"
@@ -1158,7 +1213,7 @@ export default function MyPage() {
         </section>
 
         <nav className="my_setting_list" aria-label="마이페이지 설정">
-          <button type="button" className="my_setting_item" onClick={() => setIsProfileEditPreparingOpen(true)}>
+          <button type="button" className="my_setting_item" onClick={() => setIsCouponVaultOpen(true)}>
             <div className="my_setting_item_body">
               <span>쿠폰 보기</span>
               <small>보유 중인 쿠폰 확인 및 사용</small>

@@ -43,3 +43,7 @@ export const todayPairingDetailContent: TodayPairingDetailContent[] = [
     moments: [{ tag: "#특별한 날" }, { tag: "#일식" }, { tag: "#식전/중주" }, { tag: "#집에서" }],
   },
 ]
+
+export const todayPairingDetailByTitle = Object.fromEntries(
+  todayPairingDetailContent.map((detail) => [detail.storyTitle, detail]),
+) as Record<string, TodayPairingDetailContent>

@@ -71,6 +71,75 @@
   color: var(--color-grade);
 }
 
+.my_profile_tier_info {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.my_profile_tier_info_wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.my_profile_tier_info img {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.my_profile_tier_info_box {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--color-bg-white);
+  box-shadow: 0 10px 22px rgba(22, 16, 10, 0.14);
+  border: 1px solid var(--color-gray-02);
+  z-index: 20;
+}
+
+.my_profile_tier_info_box::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--color-bg-white);
+  border-left: 1px solid rgba(215, 118, 54, 0.22);
+  border-top: 1px solid rgba(215, 118, 54, 0.22);
+}
+
+.my_profile_tier_info_box strong {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 100%;
+  color: var(--color-primary);
+  letter-spacing: -2%;
+}
+
+.my_profile_tier_info_box p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
 .my_profile_menu {
   width: 24px;
   height: 24px;
@@ -1079,6 +1148,15 @@
   inset: 0;
   display: grid;
   place-items: center;
+}
+
+.my_point_coin_burst_motion .my_point_confetti {
+  z-index: 0;
+}
+
+.my_point_coin_burst_motion .my_point_coin {
+  position: relative;
+  z-index: 1;
 }
 
 .my_point_coin img {
