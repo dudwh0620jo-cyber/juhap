@@ -1,0 +1,304 @@
+.ranking_page {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.ranking_periods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  margin: 0 10px;
+  border-bottom: 1px solid var(--color-gray-02);
+  position: relative;
+}
+
+.ranking_periods_glider {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-point-01);
+  pointer-events: none;
+}
+
+.ranking_periods button {
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 0 12px;
+  color: var(--color-gray-05);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.ranking_periods button.is_active {
+  color: var(--color-primary);
+  position: relative;
+}
+
+.ranking_tags {
+  display: flex;
+  gap: 8px;
+  margin-right: -24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ranking_tags::-webkit-scrollbar {
+  display: none;
+}
+
+.ranking_tags button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--color-gray-02);
+  border-radius: 999px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: -1%;
+  background: var(--color-bg-white);
+}
+
+.ranking_tags button.is_active {
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  border-color: var(--color-primary);
+}
+
+.ranking_podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 8px 0;
+
+  align-items: end;
+}
+
+.podium_card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  grid-template-rows: auto auto auto auto 1fr;
+  min-height: 240px;
+  padding: 24px 8px 14px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  border-radius: 18px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-gray-01);
+  gap: 4px;
+  text-align: center;
+  min-width: 0;
+}
+
+.podium_rank_badge {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  transform: translateX(-50%);
+}
+
+.podium_thumbs {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.podium_thumb {
+  display: block;
+  border-radius: 16px;
+  object-fit: cover;
+  width: 44px;
+  height: 44px;
+}
+
+.podium_thumb.is_bottle {
+  width: 30px;
+  height: 44px;
+  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.2));
+}
+
+.podium_thumb.is_drink {
+  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.2));
+}
+
+.podium_thumb.is_food {
+  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.2));
+}
+
+.podium_card strong {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.podium_card p {
+  display: block;
+  width: 100%;
+  margin: 4px 0 0;
+  color: var(--color-gray-05);
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.podium_card em {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 8px;
+  font-size: 20px;
+  font-style: normal;
+  text-align: center;
+}
+
+.podium_votes {
+  margin-top: 6px;
+  color: var(--color-gray-04);
+  font-size: 11px;
+}
+
+.podium_first {
+  min-height: 252px;
+}
+
+.podium_second {
+  min-height: 232px;
+}
+
+.podium_third {
+  min-height: 220px;
+}
+
+.podium_first em {
+  color: var(--color-primary);
+}
+
+.ranking_list {
+  display: grid;
+  gap: 12px;
+}
+
+.ranking_row {
+  display: grid;
+  grid-template-columns: 30px 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 92px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-gray-01);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.row_rank {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 30px;
+  letter-spacing: 0;
+  color: var(--color-point-01);
+}
+
+.row_images {
+  display: grid;
+  grid-template-columns: repeat(2, 34px);
+  gap: 4px;
+}
+
+.row_images .row_thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: block;
+  object-fit: cover;
+  background:
+    radial-gradient(circle at 72% 50%, #191919 0 5px, transparent 6px),
+    linear-gradient(135deg, #9b6a3a 0%, #41342d 52%, #bfa37c 100%);
+}
+
+.row_images .row_thumb.is_food {
+  background:
+    radial-gradient(circle at 35% 55%, #262626 0 4px, transparent 5px),
+    linear-gradient(135deg, #6d6d6d 0%, #9a9a9a 100%);
+}
+
+.row_text h3 {
+  margin: 0 0 4px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.row_text p {
+  margin: 0;
+  color: var(--color-gray-05);
+  font-size: 12px;
+}
+
+.row_meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.row_votes {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.row_delta {
+  color: #ffd2d2;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.row_delta.is_down {
+  color: #ff4b4b;
+}
+
+.row_delta.is_up {
+  color: #a9f1b6;
+}
+
+.row_delta.is_flat {
+  color: var(--color-gray-04);
+}
+
+.row_category {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--color-gray-00);
+  border: 1px solid var(--color-gray-01);
+  color: var(--color-gray-05);
+  font-size: 10px;
+  font-weight: 600;
+}

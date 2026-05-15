@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react"
+import { useLayoutEffect } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
 import AlertModal from "../components/AlertModal"
@@ -16,7 +17,6 @@ import {
   type UserTastePreferences,
 } from "../data/userProfile"
 import {
-  EXCHANGE_VISIBLE_LIMIT,
   TASTE_SHEET_CLOSE_MS,
   activityStats,
   tasteBars,
@@ -41,10 +41,36 @@ import iconDotsThreeVertical from "../assets/svg/dotsthreevertical.svg"
 import iconCaretDown from "../assets/svg/caretdown.png"
 import iconGearSix from "../assets/svg/gearsix.svg"
 import myPointCoinImage from "../assets/my_point_coin.png"
+import myPointMascotImage from "../assets/my_point_mascot_01.png"
+import myMissionRecordSave from "../assets/my_record_save_01.png"
+import myMissionVoteJoin from "../assets/my_vote_join_01.png"
+import myMissionReviewWrite from "../assets/my_review_write_01.svg"
+import myMissionAdWatch from "../assets/my_ad_watch_01.png"
 import "../styles/community.css"
 import "../styles/my.css"
+import { pointHistoryItems } from "../data/myPageContent"
 
 type ExchangeTab = (typeof exchangeTabs)[number]
+
+function usePrefersReducedMotion() {
+  const [prefersReduced, setPrefersReduced] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const update = () => setPrefersReduced(media.matches)
+    update()
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", update)
+      return () => media.removeEventListener("change", update)
+    }
+
+    media.addListener(update)
+    return () => media.removeListener(update)
+  }, [])
+
+  return prefersReduced
+}
 
 function normalizeTastePreferences(tastePreferences: UserTastePreferences) {
   return preferenceGroups.reduce<UserTastePreferences>((nextPreferences, group) => {
@@ -100,27 +126,167 @@ function getTasteSummary(tastePreferences: UserTastePreferences) {
   return { summaryTitle, summaryDescription, situationLine }
 }
 
-function ExchangeItemCard({ item }: { item: ExchangeItem }) {
+function ExchangeItemCard({ item, tone }: { item: ExchangeItem; tone?: "discount" | "experience" }) {
+  const tagToneClass = tone === "experience" ? " is_experience" : ""
   return (
     <article className="my_exchange_item">
-      <span className="my_exchange_item_icon" aria-hidden="true">
-        {item.icon}
-      </span>
       <div className="my_exchange_item_body">
         <h3>{item.title}</h3>
         <p>{item.description}</p>
-        <div className="my_exchange_item_tags">
+        <div className={`my_exchange_item_tags${tagToneClass}`}>
           {item.tags.map((tag) => (
             <span key={tag}>{tag}</span>
           ))}
         </div>
       </div>
       <div className="my_exchange_item_action">
-        <strong>{item.point}</strong>
-        <button type="button">교환</button>
+        <button
+          type="button"
+          className="my_exchange_item_download"
+          disabled={Boolean(item.actionDisabled)}
+          aria-label={item.actionDisabled ? "발급 완료" : "교환하기"}
+        />
+        <span className="my_exchange_item_status">{item.statusLabel ?? `${item.point} 차감`}</span>
       </div>
     </article>
   )
+}
+
+function CoinConfetti({ seed }: { seed: number }) {
+  const pieceCount = 12
+  const pieces = Array.from({ length: pieceCount }).map((_, index) => {
+    const t = (seed + 1) * 997 + (index + 1) * 263
+    const angle = ((t % 360) * Math.PI) / 180
+    const dist = 24 + (t % 30)
+    const dx = Math.cos(angle) * dist
+    const dy = Math.sin(angle) * dist - 26
+    const rotate = (t * 13) % 360
+    const delay = (0.06 + (t % 120) / 1000).toFixed(3)
+    const duration = 0.9 + ((t % 36) / 100)
+    const colors = ["#D77636", "#E8BC1D", "#CCD277", "#FB8C5A", "#7CC6D9"]
+    const color = colors[t % colors.length]
+
+    return {
+      key: index,
+      dx,
+      dy,
+      rotate,
+      delay: Number(delay),
+      duration,
+      color,
+    }
+  })
+
+  return (
+    <span className="my_point_confetti" aria-hidden="true">
+      {pieces.map((piece) => (
+        <motion.span
+          key={piece.key}
+          className="my_point_confetti_piece"
+          style={{ background: piece.color }}
+          initial={{ opacity: 0, x: "-50%", y: "-50%", scale: 0.65, rotate: 0 }}
+          animate={{
+            opacity: [0, 1, 0],
+            x: ["-50%", `calc(-50% + ${piece.dx.toFixed(1)}px)`],
+            y: [
+              "-50%",
+              `calc(-50% + ${piece.dy.toFixed(1)}px)`,
+              `calc(-50% + ${(piece.dy + 18).toFixed(1)}px)`,
+            ],
+            scale: [0.65, 1, 0.95],
+            rotate: [0, piece.rotate, piece.rotate + 40],
+          }}
+          transition={{
+            delay: piece.delay,
+            duration: piece.duration,
+            times: [0, 0.22, 1],
+            ease: ["easeOut", "easeIn"],
+          }}
+        />
+      ))}
+    </span>
+  )
+}
+
+function PointCoinBurst({ seed, imageSrc }: { seed: number; imageSrc: string }) {
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const burstRef = useRef<HTMLDivElement | null>(null)
+  const [coinSizePx, setCoinSizePx] = useState<number | null>(null)
+
+  useLayoutEffect(() => {
+    const root = burstRef.current
+    if (!root) return
+
+    const coin = root.querySelector(".my_point_coin")
+    if (!(coin instanceof HTMLElement)) return
+
+    const rect = coin.getBoundingClientRect()
+    if (rect.width > 0) setCoinSizePx(rect.width)
+  }, [seed, prefersReducedMotion])
+
+  const confettiPadPx = useMemo(() => {
+    const base = coinSizePx ?? 59
+    return Math.min(18, Math.max(10, Math.round(base * 0.22)))
+  }, [coinSizePx])
+
+  if (prefersReducedMotion) {
+    return (
+      <div
+        ref={burstRef}
+        className="my_point_coin_burst"
+        aria-hidden="true"
+        style={
+          {
+            "--my-point-coin-size": coinSizePx ? `${coinSizePx}px` : undefined,
+            "--my-point-confetti-pad": `${confettiPadPx}px`,
+          } as any
+        }
+      >
+        <div className="my_point_coin">
+          <img src={imageSrc} alt="" aria-hidden="true" />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      ref={burstRef}
+      className="my_point_coin_burst"
+      aria-hidden="true"
+      style={
+        {
+          "--my-point-coin-size": coinSizePx ? `${coinSizePx}px` : undefined,
+          "--my-point-confetti-pad": `${confettiPadPx}px`,
+        } as any
+      }
+    >
+      <motion.div
+        className="my_point_coin_burst_motion"
+        key={`coin-${seed}`}
+        initial={{ scale: 0.9, y: 6, rotate: -2 }}
+        animate={{ scale: [0.9, 1.03, 1], y: [6, -3, 0], rotate: [-2, 1.2, 0] }}
+        transition={{
+          duration: 0.72,
+          ease: [0.25, 0.95, 0.25, 1],
+        }}
+      >
+        <AnimatePresence mode="wait">
+          <CoinConfetti seed={seed} key={`confetti-${seed}`} />
+        </AnimatePresence>
+        <div className="my_point_coin">
+          <img src={imageSrc} alt="" aria-hidden="true" />
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+const MISSION_ICON_SRC_BY_TITLE: Record<string, string> = {
+  "기록 저장": myMissionRecordSave,
+  "투표 참여": myMissionVoteJoin,
+  "후기 작성": myMissionReviewWrite,
+  "광고 시청": myMissionAdWatch,
 }
 
 export default function MyPage() {
@@ -133,8 +299,18 @@ export default function MyPage() {
   const [isTasteEditorOpen, setIsTasteEditorOpen] = useState(false)
   const [isTasteEditorClosing, setIsTasteEditorClosing] = useState(false)
   const [isPointExchangeOpen, setIsPointExchangeOpen] = useState(false)
+  const [pointExchangeTopTab, setPointExchangeTopTab] = useState<"exchange" | "history">("exchange")
   const [activeExchangeTab, setActiveExchangeTab] = useState<ExchangeTab>("전체")
-  const [isExperienceExpanded, setIsExperienceExpanded] = useState(false)
+  const [exchangeCoinBurstId, setExchangeCoinBurstId] = useState(0)
+  const exchangeTopPillRef = useRef<HTMLDivElement | null>(null)
+  const exchangeTopTabRefs = useRef<Record<"exchange" | "history", HTMLButtonElement | null>>({
+    exchange: null,
+    history: null,
+  })
+  const [exchangeTopGlider, setExchangeTopGlider] = useState({ x: 4, width: 0 })
+  const exchangeTabsRef = useRef<HTMLElement | null>(null)
+  const exchangeTabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const [exchangeTabsGlider, setExchangeTabsGlider] = useState({ x: 0, width: 0 })
   const myAvatarSrc = resolveMyUserAvatar()
   const [selectedByGroup, setSelectedByGroup] = useState<UserTastePreferences>(() =>
     normalizeTastePreferences(profile.tastePreferences),
@@ -159,10 +335,99 @@ export default function MyPage() {
   )
   const isSavedListOpen = searchParams.get("view") === "saved"
 
+  const openPointExchange = () => {
+    setPointExchangeTopTab("exchange")
+    setActiveExchangeTab("전체")
+    setIsPointExchangeOpen(true)
+  }
+
+  useEffect(() => {
+    if (!isPointExchangeOpen) return
+    setExchangeCoinBurstId((value) => value + 1)
+  }, [isPointExchangeOpen])
+
+  useEffect(() => {
+    if (!isPointExchangeOpen) return
+
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0 })
+      const viewport = document.querySelector(".app_viewport")
+      if (viewport instanceof HTMLElement) viewport.scrollTo({ top: 0 })
+    }
+
+    const raf = window.requestAnimationFrame(scrollToTop)
+    return () => window.cancelAnimationFrame(raf)
+  }, [isPointExchangeOpen])
+
   useEffect(() => {
     if (!isTasteOpen) return
     setTasteChartRunId((value) => value + 1)
   }, [isTasteOpen])
+
+  useLayoutEffect(() => {
+    if (!isPointExchangeOpen) return
+
+    function updateGlider() {
+      const activeTab = exchangeTopTabRefs.current[pointExchangeTopTab]
+      if (!activeTab) return
+
+      setExchangeTopGlider({
+        x: activeTab.offsetLeft,
+        width: activeTab.offsetWidth,
+      })
+    }
+
+    updateGlider()
+
+    const observer =
+      typeof ResizeObserver === "undefined" || !exchangeTopPillRef.current
+        ? null
+        : new ResizeObserver(() => updateGlider())
+
+    if (exchangeTopPillRef.current) observer?.observe(exchangeTopPillRef.current)
+    window.addEventListener("resize", updateGlider)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener("resize", updateGlider)
+    }
+  }, [isPointExchangeOpen, pointExchangeTopTab])
+
+  useLayoutEffect(() => { 
+    if (!isPointExchangeOpen) return 
+
+    function updateGlider() { 
+      const activeTab = exchangeTabRefs.current[activeExchangeTab] 
+      const row = exchangeTabsRef.current
+      if (!activeTab || !(row instanceof HTMLElement)) return 
+
+      setExchangeTabsGlider({ 
+        x: activeTab.offsetLeft, 
+        width: activeTab.offsetWidth, 
+      }) 
+
+      const targetCenter = activeTab.offsetLeft + activeTab.offsetWidth / 2
+      const nextScrollLeft = Math.max(0, targetCenter - row.clientWidth / 2)
+      const maxScrollLeft = Math.max(0, row.scrollWidth - row.clientWidth)
+      row.scrollTo({
+        left: Math.min(maxScrollLeft, nextScrollLeft),
+        behavior: "smooth",
+      })
+    } 
+
+    updateGlider()
+
+    const observer =
+      typeof ResizeObserver === "undefined" || !exchangeTabsRef.current ? null : new ResizeObserver(() => updateGlider())
+
+    if (exchangeTabsRef.current) observer?.observe(exchangeTabsRef.current)
+    window.addEventListener("resize", updateGlider)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener("resize", updateGlider)
+    }
+  }, [isPointExchangeOpen, activeExchangeTab])
 
   function updateTasteSheetFade() {
     const el = tasteSheetGroupsRef.current
@@ -329,7 +594,6 @@ export default function MyPage() {
 
   function selectExchangeTab(tab: ExchangeTab) {
     setActiveExchangeTab(tab)
-    setIsExperienceExpanded(false)
   }
 
   const bodyArc = buildArcMetric(46, tasteValueByKey.body ?? 0)
@@ -439,18 +703,8 @@ export default function MyPage() {
     const showDiscount = activeExchangeTab === "전체" || activeExchangeTab === "할인권"
     const showExperience = activeExchangeTab === "전체" || activeExchangeTab === "체험권"
     const showPreparing = activeExchangeTab === "프리미엄" || activeExchangeTab === "광고 적립"
-    const isAllExchangeTab = activeExchangeTab === "전체"
-    const totalExchangeItemCount = discountItems.length + experienceItems.length
-    const canExpandExchange = isAllExchangeTab
-      ? totalExchangeItemCount > EXCHANGE_VISIBLE_LIMIT
-      : experienceItems.length > EXCHANGE_VISIBLE_LIMIT
-    const visibleDiscountItems =
-      isAllExchangeTab && !isExperienceExpanded ? discountItems.slice(0, EXCHANGE_VISIBLE_LIMIT) : discountItems
-    const remainingVisibleSlots = Math.max(0, EXCHANGE_VISIBLE_LIMIT - visibleDiscountItems.length)
-    const visibleExperienceItems =
-      !canExpandExchange || isExperienceExpanded
-        ? experienceItems
-        : experienceItems.slice(0, isAllExchangeTab ? remainingVisibleSlots : EXCHANGE_VISIBLE_LIMIT)
+    const visibleDiscountItems = discountItems
+    const visibleExperienceItems = experienceItems
 
     return (
       <section className="my_exchange_page" aria-label="포인트 교환소">
@@ -461,8 +715,8 @@ export default function MyPage() {
             aria-label="마이페이지로 돌아가기"
             onClick={() => setIsPointExchangeOpen(false)}
           />
-          <h1>포인트 교환소</h1>
-          <button type="button" className="my_exchange_history">포인트내역</button>
+          <h1 className="my_exchange_title">포인트</h1>
+          <div />
         </header>
 
       {isProfileEditPreparingOpen ? (
@@ -474,73 +728,157 @@ export default function MyPage() {
         />
       ) : null}
 
-        <section className="my_exchange_balance" aria-label="보유 포인트">
-          <div>
-            <span>보유 포인트</span>
-            <strong>2,840 <small>P</small></strong>
-          </div>
-          <p>교환 시 포인트가 차감돼요</p>
-        </section>
-
-        <nav className="my_exchange_tabs" aria-label="교환소 카테고리">
-          {exchangeTabs.map((tab) => (
-            <button
-              type="button"
-              className={activeExchangeTab === tab ? "is_active" : ""}
-              key={tab}
-              onClick={() => selectExchangeTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </nav>
-
-        <div className="my_exchange_sections">
-          {showDiscount ? (
-            <section className="my_exchange_section" aria-labelledby="exchange-discount">
-              <h2 id="exchange-discount">할인권</h2>
-              <div className="my_exchange_item_list">
-                {visibleDiscountItems.map((item) => (
-                  <ExchangeItemCard item={item} key={item.title} />
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {showExperience ? (
-            <section className="my_exchange_section" aria-labelledby="exchange-experience">
-              <h2 id="exchange-experience">체험권</h2>
-              <div className="my_exchange_item_list">
-                {visibleExperienceItems.map((item) => (
-                  <ExchangeItemCard item={item} key={item.title} />
-                ))}
-                {canExpandExchange && !isExperienceExpanded ? (
-                  <button type="button" className="my_exchange_more_button" onClick={() => setIsExperienceExpanded(true)}>
-                  </button>
-                ) : null}
-              </div>
-            </section>
-          ) : null}
-
-          {showPreparing ? (
-            <section className="my_exchange_empty" aria-label={`${activeExchangeTab} 준비중`}>
-              <p>상품을 준비하고 있어요.</p>
-            </section>
-          ) : null}
+        <div ref={exchangeTopPillRef} className="my_exchange_top_tabs" role="tablist" aria-label="포인트 탭">
+          <motion.span
+            className="my_exchange_top_tabs_glider"
+            animate={exchangeTopGlider}
+            initial={false}
+            transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+            aria-hidden="true"
+          />
+          <button
+            type="button"
+            role="tab"
+            aria-selected={pointExchangeTopTab === "exchange"}
+            className={pointExchangeTopTab === "exchange" ? "is_active" : ""}
+            onClick={() => setPointExchangeTopTab("exchange")}
+            ref={(node) => {
+              exchangeTopTabRefs.current.exchange = node
+            }}
+          >
+            포인트 교환소
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={pointExchangeTopTab === "history"}
+            className={pointExchangeTopTab === "history" ? "is_active" : ""}
+            onClick={() => setPointExchangeTopTab("history")}
+            ref={(node) => {
+              exchangeTopTabRefs.current.history = node
+            }}
+          >
+            포인트 내역
+          </button>
         </div>
 
-        <section className="my_exchange_missions" aria-labelledby="my-exchange-missions-title">
-          <h2 id="my-exchange-missions-title">미션하고 포인트 모으기</h2>
-          <div className="my_exchange_mission_list">
-            {pointMissions.map((mission) => (
-              <article className="my_exchange_mission" key={mission.title}>
-                <span>{mission.title}</span>
-                <strong>{mission.reward}</strong>
-                <button type="button">{mission.action}</button>
-              </article>
-            ))}
-          </div>
-        </section>
+        {pointExchangeTopTab === "exchange" ? (
+          <>
+            <section className="my_exchange_balance my_point_card" aria-label="보유 포인트">
+              <div className="my_point_card_head">
+                <div className="my_point_card_meta">
+                  <span>보유 포인트</span>
+                  <strong>{myPagePointsSummary.balance.toLocaleString("ko-KR")} P</strong>
+                </div>
+                <PointCoinBurst seed={exchangeCoinBurstId} imageSrc={myPointCoinImage} />
+              </div>
+              <p>교환 시 포인트가 차감돼요</p>
+            </section>
+
+            <nav ref={exchangeTabsRef} className="my_exchange_tabs" aria-label="교환소 카테고리">
+              <motion.span
+                className="my_exchange_tabs_glider"
+                animate={exchangeTabsGlider}
+                initial={false}
+                transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+                aria-hidden="true"
+              />
+              {exchangeTabs.map((tab) => (
+                <button
+                  type="button"
+                  className={activeExchangeTab === tab ? "is_active" : ""}
+                  key={tab}
+                  onClick={() => selectExchangeTab(tab)}
+                  ref={(node) => {
+                    exchangeTabRefs.current[tab] = node
+                  }}
+                >
+                  {tab}
+                </button>
+              ))}
+            </nav>
+
+            <div className="my_exchange_sections">
+              {showDiscount ? (
+                <section className="my_exchange_section" aria-labelledby="exchange-discount">
+                  <h2 id="exchange-discount">할인권</h2>
+                  <div className="my_exchange_item_list">
+                    {visibleDiscountItems.map((item) => (
+                      <ExchangeItemCard item={item} tone="discount" key={item.title} />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {showExperience ? (
+                <section className="my_exchange_section" aria-labelledby="exchange-experience">
+                  <h2 id="exchange-experience">체험권</h2>
+                  <div className="my_exchange_item_list">
+                    {visibleExperienceItems.map((item) => (
+                      <ExchangeItemCard item={item} tone="experience" key={item.title} />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {showPreparing ? (
+                <section className="my_exchange_empty" aria-label={`${activeExchangeTab} 준비중`}>
+                  <p>상품을 준비하고 있어요.</p>
+                </section>
+              ) : null}
+            </div>
+
+            <section className="my_exchange_missions" aria-labelledby="my-exchange-missions-title">
+              <div className="my_exchange_missions_card">
+                <h2 id="my-exchange-missions-title">미션하고 포인트 모으기</h2>
+                <div className="my_exchange_mission_list">
+                <img className="my_exchange_missions_mascot" src={myPointMascotImage} alt="" aria-hidden="true" />
+                  {pointMissions.map((mission) => {
+                    const iconSrc = MISSION_ICON_SRC_BY_TITLE[mission.title]
+                    const isDisabled = mission.title === "광고 시청"
+
+                    return (
+                      <article className="my_exchange_mission" key={mission.title}>
+                        <span className="my_exchange_mission_icon" aria-hidden="true">
+                          {iconSrc ? <img src={iconSrc} alt="" aria-hidden="true" /> : null}
+                        </span>
+                        <div className="my_exchange_mission_meta">
+                          <strong className="my_exchange_mission_title">{mission.title}</strong>
+                          <span className="my_exchange_mission_reward">{mission.reward}</span>
+                        </div>
+                        <button type="button" className={isDisabled ? "is_disabled" : ""} disabled={isDisabled}>
+                          {mission.action}
+                        </button>
+                      </article>
+                    )
+                  })}
+                </div>
+              </div>
+            </section>
+          </>
+        ) : (
+          <section className="my_point_history" aria-label="포인트 내역">
+            <div className="my_point_history_list">
+              {pointHistoryItems.map((item) => (
+                <article className="my_point_history_item" key={`${item.title}-${item.dateLabel}-${item.pointLabel}`}>
+                  <div className="my_point_history_meta">
+                    <strong className="my_point_history_title">{item.title}</strong>
+                    <span className="my_point_history_date">{item.dateLabel}</span>
+                  </div>
+                  <strong
+                    className={
+                      item.tone === "negative"
+                        ? "my_point_history_amount is_negative"
+                        : "my_point_history_amount is_positive"
+                    }
+                  >
+                    {item.pointLabel}
+                  </strong>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
       </section>
     )
   }
@@ -636,7 +974,7 @@ export default function MyPage() {
           <img className="my_taste_summary_icon" src={iconCaretDown} alt="" aria-hidden="true" />
         </button>
 
-        <AnimatePresence initial={false}>
+        <AnimatePresence>
           {isTasteOpen ? (
             <motion.section
               className="my_taste_profile my_taste_profile_motion"
@@ -792,7 +1130,7 @@ export default function MyPage() {
         <section className="my_points_section" aria-labelledby="my-points-title">
           <div className="my_section_header">
             <h2 id="my-points-title">포인트</h2>
-            <button type="button" className="my_link_button" onClick={() => setIsPointExchangeOpen(true)}>
+            <button type="button" className="my_link_button" onClick={openPointExchange}>
               포인트 교환소
             </button>
           </div>
@@ -827,14 +1165,14 @@ export default function MyPage() {
             </div>
             <img src={iconCaretRight} alt="" aria-hidden="true" />
           </button>
-          <button type="button" className="my_setting_item" onClick={() => navigate("/profile-setup")}>
+          <button type="button" className="my_setting_item is_disabled" disabled aria-disabled="true">
             <div className="my_setting_item_body">
               <span>계정/보안 설정</span>
               <small>프로필 편집 및 인증, 알림</small>
             </div>
             <img src={iconCaretRight} alt="" aria-hidden="true" />
           </button>
-          <button type="button" className="my_setting_item" onClick={() => setIsProfileEditPreparingOpen(true)}>
+          <button type="button" className="my_setting_item is_disabled" disabled aria-disabled="true">
             <div className="my_setting_item_body">
               <span>공지사항&문의</span>
               <small>고객 지원 센터</small>
@@ -846,4 +1184,3 @@ export default function MyPage() {
     </section>
   )
 }
-

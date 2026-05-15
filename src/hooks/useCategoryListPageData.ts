@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import type { CategoryListItem } from "../components/CategoryItemCard"
 import { FEATURE_CHIPS } from "../data/categoryFilterConfig"
+import { drinkCategories } from "../data/categoryData"
 import {
   DEFAULT_SEARCH_TAGS,
   DETAIL_CATEGORY_CHIPS,
@@ -48,6 +49,8 @@ export const sortOptions: Array<{ key: SortKey; label: string }> = [
   { key: "recommended", label: "추천순" },
   { key: "popular", label: "인기순" },
 ]
+
+const ALL_SUBCATEGORY = "전체"
 
 const imageByProductId: Record<string, string> = {
   "sake-dassai-23": imgDassai23,
@@ -364,6 +367,22 @@ const createEtcItems = (drinkTypeLabel: string, subcategory: string): CategoryLi
 
 export function useCategoryListPageData(group = "사케", sub = "준마이 다이긴죠/다이긴죠") {
   const items = useMemo(() => {
+    if (sub === ALL_SUBCATEGORY) {
+      const category = drinkCategories.find((item) => item.label === group)
+      if (!category) return []
+
+      return category.subcategories.flatMap((subcategory) => {
+        if (category.id === "sake") return createSakeItems(group, subcategory)
+        if (category.id === "soju") return createSojuItems(group, subcategory)
+        if (category.id === "wine") return createWineItems(group, subcategory)
+        if (category.id === "beer") return createBeerItems(group, subcategory)
+        if (category.id === "whisky") return createWhiskeyItems(group, subcategory)
+        if (category.id === "spirits") return createSpiritsItems(group, subcategory)
+        if (category.id === "traditional") return createTraditionalItems(group, subcategory)
+        if (category.id === "etc") return createEtcItems(group, subcategory)
+        return []
+      })
+    }
     if (group === "소주") {
       if (sub === "데일리(희석식)" || sub === "프리미엄(증류식)" || sub === "플레이버") {
         return createSojuItems(group, sub)

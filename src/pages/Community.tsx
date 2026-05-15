@@ -39,6 +39,8 @@ import { QUESTION_BANNER_COPY } from "../utils/communityQuestionData"
 import { myPageProfileSummary } from "../data/myPageContent"
 import { resolveMyUserAvatar } from "../utils/userAvatars"
 import { currentUserMock } from "../utils/usersMock"
+import { useLayoutEffect } from "react"
+import { motion } from "motion/react"
 import {
   buildPopupChipGroups,
   buildSearchAllChipGroups,
@@ -70,11 +72,45 @@ function FeedSegmentTabs({
   activeKey: string
   onChange: (key: string) => void
 }) {
+  const rowRef = useRef<HTMLDivElement | null>(null)
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const [glider, setGlider] = useState({ x: 0, width: 0 })
+
+  useLayoutEffect(() => {
+    function updateGlider() {
+      const activeTab = tabRefs.current[activeKey]
+      if (!activeTab) return
+      setGlider({ x: activeTab.offsetLeft, width: activeTab.offsetWidth })
+    }
+
+    updateGlider()
+
+    const observer =
+      typeof ResizeObserver === "undefined" || !rowRef.current ? null : new ResizeObserver(() => updateGlider())
+    if (rowRef.current) observer?.observe(rowRef.current)
+    window.addEventListener("resize", updateGlider)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener("resize", updateGlider)
+    }
+  }, [activeKey])
+
   return (
-    <div className="feed_segment_row" aria-label={ariaLabel}>
+    <div ref={rowRef} className="feed_segment_row" aria-label={ariaLabel}>
+      <motion.span
+        className="feed_segment_glider"
+        animate={glider}
+        initial={false}
+        transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+        aria-hidden="true"
+      />
       {items.map((item) => (
         <button
           key={item.key}
+          ref={(node) => {
+            tabRefs.current[item.key] = node
+          }}
           type="button"
           className={activeKey === item.key ? "is_active" : ""}
           onClick={() => onChange(item.key)}
@@ -543,6 +579,61 @@ export default function Community() {
   }, [initialFilter])
 
   const reviewSortLabel = reviewSortItems.find((item) => item.key === reviewSort)?.label ?? "최신순"
+
+  useEffect(() => {
+    if (!isReviewSortSheetOpen) return
+
+    const body = document.body
+    const html = document.documentElement
+    const viewport = document.querySelector(".app_viewport")
+
+    const prevBody = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      touchAction: (body.style as any).touchAction as string,
+    }
+
+    const prevHtml = {
+      overflow: html.style.overflow,
+      overscrollBehavior: (html.style as any).overscrollBehavior as string,
+    }
+
+    const prevViewportOverflow = viewport instanceof HTMLElement ? viewport.style.overflow : ""
+    const scrollY = window.scrollY
+
+    html.style.overflow = "hidden"
+    ;(html.style as any).overscrollBehavior = "none"
+
+    body.style.position = "fixed"
+    body.style.top = `-${scrollY}px`
+    body.style.left = "0"
+    body.style.right = "0"
+    body.style.width = "100%"
+    body.style.overflow = "hidden"
+    ;(body.style as any).touchAction = "none"
+
+    if (viewport instanceof HTMLElement) viewport.style.overflow = "hidden"
+
+    return () => {
+      html.style.overflow = prevHtml.overflow
+      ;(html.style as any).overscrollBehavior = prevHtml.overscrollBehavior
+
+      body.style.position = prevBody.position
+      body.style.top = prevBody.top
+      body.style.left = prevBody.left
+      body.style.right = prevBody.right
+      body.style.width = prevBody.width
+      body.style.overflow = prevBody.overflow
+      ;(body.style as any).touchAction = prevBody.touchAction
+
+      if (viewport instanceof HTMLElement) viewport.style.overflow = prevViewportOverflow
+      window.scrollTo(0, scrollY)
+    }
+  }, [isReviewSortSheetOpen])
 
   return (
     <section className="community_page page_screen" aria-label="커뮤니티">

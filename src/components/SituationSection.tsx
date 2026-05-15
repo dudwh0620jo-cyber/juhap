@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { homeMomentPickCards, homeMomentPickItems } from "../data/homeContent"
 
@@ -11,19 +11,18 @@ export type SituationItem = {
   footer: string
 }
 
-function SituationButton({
-  label,
-  isActive,
-  iconSrc,
-  onSelect,
-}: {
-  label: string
-  isActive: boolean
-  iconSrc?: string
-  onSelect: () => void
-}) {
+const SituationButton = forwardRef<
+  HTMLButtonElement,
+  {
+    label: string
+    isActive: boolean
+    iconSrc?: string
+    onSelect: () => void
+  }
+>(function SituationButton({ label, isActive, iconSrc, onSelect }, ref) {
   return (
     <button
+      ref={ref}
       type="button"
       className={`moment_pick_chip${isActive ? " is_active" : ""}`}
       onClick={onSelect}
@@ -35,11 +34,51 @@ function SituationButton({
       <span className="moment_pick_label">{label}</span>
     </button>
   )
-}
+})
 
 function SituationScroll({ selectedKey, onSelect }: { selectedKey: string; onSelect: (key: string) => void }) {
+  const rowRef = useRef<HTMLDivElement | null>(null)
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const [glider, setGlider] = useState({ x: 0, width: 0 })
+
+  useLayoutEffect(() => {
+    function updateGlider() {
+      const activeTab = tabRefs.current[selectedKey]
+      if (!activeTab || !rowRef.current) return
+      setGlider({ x: activeTab.offsetLeft, width: activeTab.offsetWidth })
+
+      const row = rowRef.current
+      const targetCenter = activeTab.offsetLeft + activeTab.offsetWidth / 2
+      const nextScrollLeft = Math.max(0, targetCenter - row.clientWidth / 2)
+      const maxScrollLeft = Math.max(0, row.scrollWidth - row.clientWidth)
+      row.scrollTo({
+        left: Math.min(maxScrollLeft, nextScrollLeft),
+        behavior: "smooth",
+      })
+    }
+
+    updateGlider()
+
+    const observer =
+      typeof ResizeObserver === "undefined" || !rowRef.current ? null : new ResizeObserver(() => updateGlider())
+    if (rowRef.current) observer?.observe(rowRef.current)
+    window.addEventListener("resize", updateGlider)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener("resize", updateGlider)
+    }
+  }, [selectedKey])
+
   return (
-    <div className="moment_pick_row" role="tablist" aria-label="Moment Pick">
+    <div ref={rowRef} className="moment_pick_row" role="tablist" aria-label="Moment Pick">
+      <motion.span
+        className="moment_pick_glider"
+        animate={glider}
+        initial={false}
+        transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+        aria-hidden="true"
+      />
       {homeMomentPickItems.map((item) => (
         <SituationButton
           key={item.key}
@@ -47,6 +86,9 @@ function SituationScroll({ selectedKey, onSelect }: { selectedKey: string; onSel
           iconSrc={item.iconSrc}
           isActive={selectedKey === item.key}
           onSelect={() => onSelect(item.key)}
+          ref={(node) => {
+            tabRefs.current[item.key] = node
+          }}
         />
       ))}
     </div>

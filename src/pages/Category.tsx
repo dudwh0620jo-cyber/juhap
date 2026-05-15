@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
+import { motion } from "motion/react"
 import AlertModal from "../components/AlertModal"
 import CategorySearch from "../components/CategorySearch"
 import CategorySearchFilterPanel from "../components/CategorySearchFilterPanel"
@@ -59,12 +60,14 @@ export default function Category() {
   const overlaySearchInputRef = useRef<HTMLInputElement | null>(null)
   const scrollPanelRef = useRef<HTMLDivElement | null>(null)
   const leftListRef = useRef<HTMLDivElement | null>(null)
+  const categoryTabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const sectionHeaderRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const handledResetCategorySearchRef = useRef(false)
   const [isPreparingModalOpen, setIsPreparingModalOpen] = useState(false)
   const isProgrammaticScrollRef = useRef(false)
   const programmaticScrollTimeoutRef = useRef<number | null>(null)
   const scrollRafRef = useRef<number | null>(null)
+  const [categoryGlider, setCategoryGlider] = useState({ y: 0, height: 0 })
 
   const [activeCategoryId, setActiveCategoryId] = useState(() => {
     const returnedCategory = drinkCategories.find((category) => category.label === returnedGroupLabel)
@@ -283,6 +286,15 @@ export default function Category() {
     })
   }
 
+  const handleCategoryHeaderClick = (category: DrinkCategory) => {
+    const params = new URLSearchParams()
+    params.set("group", category.label)
+    params.set("sub", "전체")
+    navigate(`/category/list?${params.toString()}`, {
+      state: { returnCategoryId: category.id, returnScrollTop: scrollPanelRef.current?.scrollTop ?? 0 },
+    })
+  }
+
   useEffect(() => {
     const root = scrollPanelRef.current
     const returnedScrollTop = returnedState?.scrollTop
@@ -367,11 +379,25 @@ export default function Category() {
     }, 450)
   }
 
-  useEffect(() => {
-    const leftRoot = leftListRef.current
-    if (!leftRoot) return
-    const el = leftRoot.querySelector(`[data-category-id="${effectiveActiveCategoryId}"]`) as HTMLElement | null
-    el?.scrollIntoView({ block: "nearest" })
+  useLayoutEffect(() => {
+    function updateGlider() {
+      const activeTab = categoryTabRefs.current[effectiveActiveCategoryId]
+      if (!activeTab) return
+      setCategoryGlider({ y: activeTab.offsetTop, height: activeTab.offsetHeight })
+      activeTab.scrollIntoView({ block: "nearest" })
+    }
+
+    updateGlider()
+
+    const observer =
+      typeof ResizeObserver === "undefined" || !leftListRef.current ? null : new ResizeObserver(() => updateGlider())
+    if (leftListRef.current) observer?.observe(leftListRef.current)
+    window.addEventListener("resize", updateGlider)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener("resize", updateGlider)
+    }
   }, [effectiveActiveCategoryId])
 
   useEffect(() => {
@@ -466,12 +492,22 @@ export default function Category() {
       <div className="category_layout category_layout_v2">
         <aside className="category_group_list category_group_list_v2" aria-label="주종 목록">
           <div className="category_group_list_inner" ref={leftListRef}>
+            <motion.span
+              className="category_group_glider"
+              animate={categoryGlider}
+              initial={false}
+              transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+              aria-hidden="true"
+            />
             {categoriesWithVisibleSubcategories.map(({ category }) => (
               <button
                 className={category.id === effectiveActiveCategoryId ? "category_group_button is_selected" : "category_group_button"}
                 key={category.id}
                 type="button"
                 data-category-id={category.id}
+                ref={(node) => {
+                  categoryTabRefs.current[category.id] = node
+                }}
                 onClick={() => scrollToCategory(category.id)}
               >
                 <span className="category_group_text">
@@ -498,24 +534,37 @@ export default function Category() {
             {categoriesWithVisibleSubcategories.map(({ category, subcategories }) => (
               <div className="category_section" key={category.id} data-category-id={category.id}>
                 <div
-                  className="category_section_header"
+                  className={category.id === effectiveActiveCategoryId ? "category_section_header is_active" : "category_section_header"}
                   data-category-id={category.id}
                   ref={(node) => {
                     sectionHeaderRefs.current[category.id] = node
                   }}
                   role="button"
                   tabIndex={0}
-                  onClick={() => scrollToCategory(category.id)}
+                  onClick={() => handleCategoryHeaderClick(category)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault()
-                      scrollToCategory(category.id)
+                      handleCategoryHeaderClick(category)
                     }
                   }}
                 >
-                  <span className="category_section_title">
-                    <strong>{category.label}</strong>
-                    <small>{category.englishLabel}</small>
+                  <div className="category_section_header_body">
+                    <span className="category_section_title">
+                      <strong>{category.label}</strong>
+                      <small>{category.englishLabel}</small>
+                    </span>
+                  </div>
+                  <span className="category_section_header_arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M6.25 3.25L10.75 7.75L6.25 12.25"
+                        stroke="currentColor"
+                        strokeWidth="1.1"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </span>
                 </div>
 

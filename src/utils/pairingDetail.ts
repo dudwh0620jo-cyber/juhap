@@ -21,8 +21,6 @@ export type PairingDetailNavState = {
   drinkType?: string
   foods?: string[]
   features?: string[]
-  rating?: number
-  voteCount?: number
   source?: "feed" | "ranking" | "free"
   feedFilter?: "review" | "follow" | "free"
   hideDetailSections?: boolean
@@ -71,10 +69,7 @@ export const deleteStoredUserPost = (postId: number, userPostsStorageKey: string
   window.dispatchEvent(new Event("community:user-posts-updated"))
 }
 
-export const getInitialPairingLikeCount = (post: FeedPost | undefined, source?: string, voteCount?: number) => {
-  if (source === "ranking" && typeof voteCount === "number" && Number.isFinite(voteCount)) {
-    return Math.max(0, Math.round(voteCount))
-  }
+export const getInitialPairingLikeCount = (post: FeedPost | undefined) => {
   const value = (post as { likeCount?: unknown } | undefined)?.likeCount
   return typeof value === "number" && Number.isFinite(value) ? value : 0
 }

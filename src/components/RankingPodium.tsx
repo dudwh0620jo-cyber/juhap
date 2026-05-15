@@ -1,4 +1,5 @@
 import { Link } from "react-router"
+import { getRankingRankBadgeSrc, getRankingThumbSrc, getRankingThumbSrcById } from "../utils/rankingThumbAssets"
 
 type PodiumRank = 1 | 2 | 3
 
@@ -23,41 +24,41 @@ export default function RankingPodium<CategoryKey extends string>({ podiumRankOr
     <article className="ranking_podium">
       {podiumRankOrder.map((rank) => {
         const podium = items.find((item) => item.rank === rank)
-        if (!podium) {
-          return null
-        }
+        if (!podium) return null
 
         const [drink, food] = podium.pair.split(" + ")
-        const deltaLabel = typeof podium.score === "number" && Number.isFinite(podium.score) ? podium.score.toFixed(1) : "0.0"
-        const voteCount = getVotes(podium)
+        const likeCount = getVotes(podium)
+        const drinkSrc = getRankingThumbSrcById("drink", podium.id) ?? getRankingThumbSrc("drink", drink)
+        const foodSrc = getRankingThumbSrcById("food", podium.id) ?? getRankingThumbSrc("food", food)
 
         return (
           <Link
             key={podium.id}
             className={
-              podium.rank === 1
-                ? "podium_card podium_first"
-                : podium.rank === 2
-                  ? "podium_card podium_second"
-                  : "podium_card podium_third"
+              podium.rank === 1 ? "podium_card podium_first" : podium.rank === 2 ? "podium_card podium_second" : "podium_card podium_third"
             }
             to={`/community/pairing/${podium.id}`}
             state={{
               pairingTitle: podium.pair,
-              rating: podium.score,
-              voteCount,
               source: "ranking",
             }}
           >
-            <span className="podium_rank">{podium.rank}</span>
+            <img className="podium_rank_badge" src={getRankingRankBadgeSrc(podium.rank)} alt="" aria-hidden="true" />
             <div className="podium_thumbs" aria-hidden="true">
-              <span className={podium.thumbVariant === "bottle" ? "podium_thumb is_bottle" : "podium_thumb is_drink"} />
-              <span className="podium_thumb is_food" />
+              {drinkSrc ? (
+                <img
+                  className={podium.thumbVariant === "bottle" ? "podium_thumb is_bottle" : "podium_thumb is_drink"}
+                  src={drinkSrc}
+                  alt=""
+                />
+              ) : (
+                <span className={podium.thumbVariant === "bottle" ? "podium_thumb is_bottle" : "podium_thumb is_drink"} />
+              )}
+              {foodSrc ? <img className="podium_thumb is_food" src={foodSrc} alt="" /> : <span className="podium_thumb is_food" />}
             </div>
             <strong>{drink}</strong>
             <p>{food}</p>
-            <em>{deltaLabel}</em>
-            <span className="podium_votes">{voteCount.toLocaleString()}짠</span>
+            <span className="podium_votes">{likeCount.toLocaleString()}짠</span>
           </Link>
         )
       })}

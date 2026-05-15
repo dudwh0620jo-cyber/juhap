@@ -1077,6 +1077,40 @@
   height: 17px;
 }
 
+.comment_like_icon {
+  transform-origin: 55% 85%;
+}
+
+.comment_like_icon.is_like_animated {
+  animation: comment_like_wiggle 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes comment_like_wiggle {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  16% {
+    transform: rotate(-10deg) scale(1.22);
+  }
+
+  34% {
+    transform: rotate(9deg) scale(1.14);
+  }
+
+  52% {
+    transform: rotate(-6deg) scale(1.08);
+  }
+
+  70% {
+    transform: rotate(3deg) scale(1.03);
+  }
+
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
 .comment_like_button.is_active {
   color: #d68a53;
 }

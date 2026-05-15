@@ -12,7 +12,6 @@ import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ReviewContentBlock from "../components/ReviewContentBlock"
 import SimilarPairingList from "../components/SimilarPairingList"
 import iconChat from "../assets/svg/chatcircledots_p.svg"
-import iconStar from "../assets/svg/star.svg"
 import "../styles/category-list.css"
 import "../styles/community.css"
 import "../styles/pairing-detail.css"
@@ -121,8 +120,8 @@ export default function PairingDetail() {
   const isBookmarked = Number.isFinite(numericId) ? Boolean(bookmarkListById[numericId] ?? bookmarkedById[numericId]) : false
 
   const initialLikeCount = useMemo(
-    () => getInitialPairingLikeCount(post, navState.source, navState.voteCount),
-    [navState.source, navState.voteCount, post],
+    () => getInitialPairingLikeCount(post),
+    [post],
   )
 
   const [likeCountByPostId, setLikeCountByPostId] = useState<Record<number, number>>({})
@@ -135,16 +134,6 @@ export default function PairingDetail() {
   const detailPhotoIds = Array.isArray(post?.photoIds) ? post.photoIds.slice(0, 3) : []
 
   const detailMock = useMemo(() => getPairingDetailMock(post?.detailMockKey ?? null), [post?.detailMockKey])
-
-  const rankingRating = useMemo(() => {
-    const value = navState.source === "ranking" ? navState.rating : undefined
-    return typeof value === "number" && Number.isFinite(value) ? value : null
-  }, [navState.rating, navState.source])
-
-  const rankingVoteCount = useMemo(() => {
-    const value = navState.source === "ranking" ? navState.voteCount : undefined
-    return typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.round(value)) : null
-  }, [navState.source, navState.voteCount])
 
   const similarItems = useMemo(
     () => resolveSimilarPairingItems(post, detailMock?.similarPostIds, numericId),
@@ -290,15 +279,6 @@ export default function PairingDetail() {
             title={
               <>
                 <h2>{pairingSummary || pairingTitle}</h2>
-                {rankingRating !== null && rankingVoteCount !== null ? (
-                  <p className="detail_ranking_meta" aria-label="랭킹 점수">
-                    <span className="detail_ranking_rating">
-                      <img className="detail_ranking_star" src={iconStar} alt="" aria-hidden="true" />
-                      <span>{rankingRating.toFixed(1)}</span>
-                    </span>
-                    <span className="detail_ranking_votes">{rankingVoteCount.toLocaleString("ko-KR")}짠</span>
-                  </p>
-                ) : null}
               </>
             }
             titleClassName="detail_content_heading"

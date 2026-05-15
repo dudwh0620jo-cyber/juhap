@@ -448,6 +448,22 @@
   cursor: pointer;
 }
 
+.my_taste_summary.is_open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: 2px dotted var(--color-point-03);
+}
+
+.my_taste_summary.is_open + .my_taste_profile {
+  margin-top: -18px;
+}
+
+.my_taste_summary.is_open + .my_taste_profile .my_taste_profile_card {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: 0;
+}
+
 .my_taste_summary_text {
   display: grid;
   gap: 4px;
@@ -624,8 +640,10 @@
   border: 1px solid rgba(177, 111, 16, 0.75);
   border-radius: 999px;
   color: var(--color-primary);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 100%;
+  letter-spacing: -1%;
 }
 
 .my_link_button {
@@ -1012,6 +1030,7 @@
   background: var(--color-bg-white);
 }
 
+
 .my_point_card_head {
   display: flex;
   align-items: flex-start;
@@ -1025,11 +1044,11 @@
 }
 
 .my_point_card_meta > span {
-  color: var(--color-gray-05);
+  color: var(--color-gray-06);
   font-size: 16px;
   font-weight: 500;
   line-height: 140%;
-  letter-spacing: -0.4px;
+  letter-spacing: -2.5%;
 }
 
 .my_point_card_meta > strong {
@@ -1040,11 +1059,24 @@
   line-height: 1;
 }
 
-.my_point_coin {
-  width: 59px;
-  height: 59px;
-  border-radius: 999px;
-  overflow: hidden;
+.my_point_coin { 
+  width: var(--my-point-coin-size, 59px); 
+  height: var(--my-point-coin-size, 59px); 
+  border-radius: 999px; 
+  overflow: hidden; 
+  display: grid; 
+  place-items: center; 
+} 
+ 
+.my_point_coin_burst { 
+  position: relative; 
+  width: var(--my-point-coin-size, 59px); 
+  height: var(--my-point-coin-size, 59px); 
+} 
+
+.my_point_coin_burst_motion {
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
 }
@@ -1054,6 +1086,25 @@
   height: 100%;
   display: block;
   object-fit: cover;
+}
+
+.my_point_confetti { 
+  position: absolute; 
+  inset: calc(0px - var(--my-point-confetti-pad, 10px)); 
+  pointer-events: none; 
+  display: block; 
+} 
+
+.my_point_confetti_piece {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 4px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.12));
+  will-change: transform, opacity;
 }
 
 .my_point_progress {
@@ -1083,6 +1134,8 @@
   color: var(--color-gray-05);
   font-size: 14px;
   font-weight: 400;
+  line-height: 145%;
+  letter-spacing: -2%;
 }
 
 .my_point_card p strong {
@@ -1107,6 +1160,15 @@
   justify-content: space-between;
   gap: 12px;
   text-align: left;
+}
+
+.my_setting_item.is_disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.my_setting_item.is_disabled img {
+  opacity: 0.35;
 }
 
 .my_setting_item img {
@@ -1142,10 +1204,8 @@
 .my_exchange_page {
   min-height: 100vh;
   padding: 68px 20px 128px;
-  background:
-    radial-gradient(circle at 50% 12%, rgba(112, 59, 38, 0.3), transparent 35%),
-    linear-gradient(180deg, #1b0710 0%, #17050c 54%, #12040a 100%);
-  color: #efe7d6;
+  background: #fbfaf9;
+  color: var(--color-text-primary);
 }
 
 .my_exchange_header {
@@ -1169,9 +1229,9 @@
   position: relative;
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
 }
 
 .my_exchange_back::before {
@@ -1179,7 +1239,7 @@
   position: absolute;
   inset: 10px;
   background: url("../assets/svg/caretleft.svg") center / 24px 24px no-repeat;
-  filter: invert(1);
+  filter: none;
 }
 
 .my_exchange_history {
@@ -1187,49 +1247,97 @@
   padding: 0 15px;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #efe7d6;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 600;
 }
 
-.my_exchange_balance {
+.my_exchange_top_tabs {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 14px;
-  margin-bottom: 22px;
-  padding: 18px 22px;
-  border: 1px solid rgba(177, 111, 16, 0.6);
-  border-radius: 22px;
-  background: linear-gradient(100deg, rgba(63, 33, 19, 0.92), rgba(31, 19, 27, 0.96));
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 0;
+  padding: 4px;
+  border: 1px solid var(--color-point-02);
+  border-radius: 999px;
+  backdrop-filter: blur(2px);
+  margin-bottom: 18px;
 }
 
-.my_exchange_balance span {
-  display: block;
-  margin-bottom: 12px;
-  color: rgba(239, 231, 214, 0.6);
-  font-size: 12px;
-  font-weight: 500;
+.my_exchange_top_tabs::after {
+  content: none;
 }
 
-.my_exchange_balance strong {
-  color: #d1b94d;
-  font-family: var(--font-title);
-  font-size: 32px;
-  font-weight: 400;
-  line-height: 1;
+.my_exchange_top_tabs_glider {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  z-index: 0;
+  width: 0;
+  height: 41px;
+  border-radius: 999px;
+  background: var(--color-point-03);
+  border: 1px solid var(--color-primary);
+  pointer-events: none;
 }
 
-.my_exchange_balance small {
+.my_exchange_top_tabs button {
+  position: relative;
+  z-index: 1;
+  min-height: 41px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-gray-05);
   font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 100%;
+  letter-spacing: -2%;
+  transition:
+    color 0.24s ease,
+    transform 0.24s ease;
+}
+
+.my_exchange_top_tabs button.is_active {
+  color: #d39262;
+  font-weight: 700;
+}
+
+.my_exchange_balance {
+  margin-bottom: 18px;
+  position: relative;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--color-bg-white), var(--color-bg-white)) padding-box,
+    linear-gradient(90deg, #d77636, #e8bc1d, #ccd277, #d77636) border-box;
+  background-size: 100% 100%, 260% 260%;
+  background-position: 0 0, 0% 50%;
+  animation: my_exchange_balance_border_flow 7s linear infinite;
 }
 
 .my_exchange_balance p {
   margin: 0 0 4px;
-  color: rgba(239, 231, 214, 0.48);
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--color-gray-05);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+@keyframes my_exchange_balance_border_flow {
+  0% {
+    background-position: 0 0, 0% 50%;
+  }
+  100% {
+    background-position: 0 0, 200% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my_exchange_balance {
+    animation: none;
+  }
 }
 
 .my_exchange_tabs {
@@ -1248,17 +1356,17 @@
   flex: 0 0 auto;
   min-height: 38px;
   padding: 0 16px;
-  border: 1px solid rgba(239, 231, 214, 0.1);
+  border: 1px solid var(--color-gray-02);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.02);
-  color: rgba(239, 231, 214, 0.56);
+  background: #fff;
+  color: var(--color-gray-05);
   font-size: 14px;
   font-weight: 600;
 }
 
 .my_exchange_tabs button.is_active {
-  border-color: #b52545;
-  background: #b52545;
+  border-color: var(--color-primary);
+  background: var(--color-primary);
   color: #ffffff;
 }
 
@@ -1274,7 +1382,7 @@
 
 .my_exchange_section h2 {
   margin: 0 4px;
-  color: rgba(239, 231, 214, 0.66);
+  color: var(--color-text-primary);
   font-size: 13px;
   font-weight: 500;
 }
@@ -1286,22 +1394,15 @@
 
 .my_exchange_item {
   display: grid;
-  grid-template-columns: 48px 1fr auto;
+  grid-template-columns: minmax(0, 1fr) 86px;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   min-height: 104px;
   padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-gray-01);
   border-radius: 18px;
-  background: linear-gradient(145deg, rgba(54, 42, 50, 0.96), rgba(34, 22, 30, 0.98));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.my_exchange_item_icon {
-  display: grid;
-  place-items: center;
-  font-size: 30px;
-  line-height: 1;
+  background: #fff;
+  box-shadow: none;
 }
 
 .my_exchange_item_body {
@@ -1310,7 +1411,7 @@
 
 .my_exchange_item_body h3 {
   margin: 0 0 8px;
-  color: #efe7d6;
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.25;
@@ -1318,7 +1419,7 @@
 
 .my_exchange_item_body p {
   margin: 0 0 10px;
-  color: rgba(239, 231, 214, 0.55);
+  color: var(--color-gray-05);
   font-size: 12px;
   font-weight: 500;
   line-height: 1.25;
@@ -1334,61 +1435,72 @@
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  padding: 0 10px;
-  border: 1px solid rgba(239, 231, 214, 0.1);
+  padding: 2px 8px;
   border-radius: 7px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(239, 231, 214, 0.72);
-  font-size: 11px;
-  font-weight: 500;
+  background: #F1F8FB;
+  color: #5E9DB4;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.my_exchange_item_tags.is_experience span {
+  background: #FEF4F4;
+  color: #A45F58;
 }
 
 .my_exchange_item_action {
   display: grid;
-  justify-items: end;
-  gap: 12px;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  justify-items: center;
+  align-content: center;
+  padding-left: 16px;
+  border-left: 1px dashed var(--color-gray-01);
 }
 
-.my_exchange_item_action strong {
-  color: #d1b94d;
-  font-size: 14px;
-  font-weight: 700;
+.my_exchange_item_download {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--color-gray-02);
+  background: var(--color-gray-00) url("../assets/svg/arrowlinedown.svg") center / 18px 18px no-repeat;
+  cursor: pointer;
 }
 
-.my_exchange_item_action button {
-  min-width: 56px;
-  min-height: 38px;
-  border: 0;
-  border-radius: 14px;
-  background: #b52545;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
+.my_exchange_item_download:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary) url("../assets/svg/arrowlinedown_w.svg") center / 18px 18px no-repeat;
 }
 
-.my_exchange_more_button {
-  width: 100%;
-  min-height: 44px;
-  border: 1px solid rgba(177, 111, 16, 0.55);
-  border-radius: 14px;
-  background: rgba(72, 39, 19, 0.42);
-  color: #d19a24;
-  font-size: 14px;
-  font-weight: 700;
+.my_exchange_item_download:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.my_exchange_item_download:focus-visible {
+  outline: 2px solid rgba(202, 128, 79, 0.35);
+  outline-offset: 2px;
+}
+
+.my_exchange_item_status {
+  color: var(--color-gray-05);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .my_exchange_empty {
   display: grid;
   place-items: center;
   min-height: 180px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-gray-01);
   border-radius: 18px;
-  background: linear-gradient(145deg, rgba(54, 42, 50, 0.72), rgba(34, 22, 30, 0.82));
+  background: #fff;
 }
 
 .my_exchange_empty p {
   margin: 0;
-  color: rgba(239, 231, 214, 0.72);
+  color: var(--color-gray-05);
   font-size: 15px;
   font-weight: 600;
 }
@@ -1398,48 +1510,153 @@
   padding: 0 0 10px;
 }
 
-.my_exchange_missions h2 {
-  margin: 0 0 18px;
-  color: #ffffff;
-  font-size: 22px;
+.my_exchange_missions_card {
+  position: relative;
+  padding: 32px 24px 10px;
+  border-radius: 24px;
+  background: var(--color-point-03-soft);
+  overflow: hidden;
+}
+
+.my_exchange_missions_mascot {
+  position: absolute;
+  right: 30px;
+  top:  18px;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.95;
+}
+
+.my_exchange_missions_card h2 {
+  margin: 0 0 14px;
+  color: var(--color-text-primary);
+  font-size: 18px;
   font-weight: 700;
 }
 
 .my_exchange_mission_list {
   display: grid;
-  background: rgba(255, 255, 255, 0.02);
+  background: transparent;
 }
 
 .my_exchange_mission {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 14px;
-  min-height: 48px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 12px;
+  padding: 14px 2px;
+  min-height: 62px;
 }
 
-.my_exchange_mission span {
-  color: #efe7d6;
+.my_exchange_mission + .my_exchange_mission {
+  border-top: 1px dashed var(--color-point-02);
+}
+
+.my_exchange_mission_icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: var(--color-bg-white);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.my_exchange_mission_icon img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  display: block;
+}
+
+.my_exchange_mission_meta {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.my_exchange_mission_title {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.my_exchange_mission_reward {
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 600;
 }
 
-.my_exchange_mission strong {
-  color: #4ebb72;
-  font-size: 15px;
+.my_exchange_mission button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--color-point-02);
+  border-radius: 999px;
+  background: var(--color-bg-white);
+  color: var(--color-primary);
+  font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.my_exchange_mission button {
-  min-height: 30px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #efe7d6;
-  font-size: 12px;
+.my_exchange_mission button.is_disabled,
+.my_exchange_mission button:disabled {
+  border-color: var(--color-gray-02);
+  background: var(--color-gray-00);
+  color: var(--color-gray-04);
+}
+
+.my_point_history_list {
+  display: grid;
+}
+
+.my_point_history_item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 4px;
+  border-bottom: 1px solid var(--color-gray-01);
+}
+
+.my_point_history_meta {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.my_point_history_title {
+  color: var(--color-text-primary);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 130%;
+  letter-spacing: -2.5%
+}
+
+.my_point_history_date {
+  color: var(--color-gray-04);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.my_point_history_amount {
+  font-size: 18px;
   font-weight: 600;
+  white-space: nowrap;
+  line-height: 140%;
+  letter-spacing: -2%;
+}
+
+.my_point_history_amount.is_positive {
+  color: var(--color-primary);
+}
+
+.my_point_history_amount.is_negative {
+  color: var(--color-gray-04);
 }
 
 @media (max-width: 390px) {

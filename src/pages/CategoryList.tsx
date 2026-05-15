@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router"
 import CategoryItemCard from "../components/CategoryItemCard"
-import CategorySearch from "../components/CategorySearch"
 import CategorySearchFilterPanel from "../components/CategorySearchFilterPanel"
 import { DEFAULT_DRINK_TYPE_LABEL, READY_SUBCATEGORY, drinkCategories } from "../data/categoryData"
 import {
@@ -43,7 +42,6 @@ export default function CategoryList() {
   const [isSearchOverlayOpen, setIsSearchOverlayOpen] = useState(false)
   const [searchStarted, setSearchStarted] = useState(false)
   const [searchSubmitted, setSearchSubmitted] = useState(false)
-  const searchInputRef = useRef<HTMLInputElement | null>(null)
   const overlaySearchInputRef = useRef<HTMLInputElement | null>(null)
 
   const returnState = location.state as
@@ -180,18 +178,18 @@ export default function CategoryList() {
         <button type="button" className="category_list_back" aria-label="카테고리로 돌아가기" onClick={handleBack}>
           ←
         </button>
-        <CategorySearch
-          ref={searchInputRef}
-          value={searchValue}
-          onChange={setSearchValue}
-          showConfirmButton={false}
-          onActivate={() => {
+        <button
+          type="button"
+          className="category_list_filter_open"
+          aria-label="검색/필터 열기"
+          onClick={() => {
             setSearchStarted(false)
             setSearchSubmitted(false)
             setIsSearchOverlayOpen(true)
           }}
-          readOnly
-        />
+        >
+          검색/필터
+        </button>
       </header>
 
       <div className="category_list_meta_row">

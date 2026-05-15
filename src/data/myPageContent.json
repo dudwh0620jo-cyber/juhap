@@ -11,16 +11,50 @@
     { "label": "단맛", "value": 30, "level": "약함", "className": "sweet" },
     { "label": "탄산", "value": 60, "level": "중간", "className": "sparkle" }
   ],
-  "exchangeTabs": ["전체", "할인권", "프리미엄", "체험권", "광고 상점"],
+  "exchangeTabs": ["전체", "할인권", "프리미엄", "체험권", "광고상점"],
   "discountItems": [
-    { "icon": "🏪", "title": "편의점 주류 500원 할인", "description": "GS25 · CU · 세븐일레븐 적용", "tags": ["즉시 사용", "편의점"], "point": "500P" },
-    { "icon": "🛒", "title": "마트 주류 1,000원 할인", "description": "이마트 · 홈플러스 · 롯데마트", "tags": ["7일 유효", "마트"], "point": "800P" },
-    { "icon": "🍸", "title": "파트너 바 10% 할인", "description": "전국 파트너 바 30곳 적용", "tags": ["14일 유효", "바·펍"], "point": "1,200P" },
-    { "icon": "🍷", "title": "와인 전문점 15% 할인", "description": "와인앤모어 · 보틀벙커", "tags": ["30일 유효", "와인샵"], "point": "2,000P" }
+    {
+      "title": "편의점 주류 500원 할인",
+      "description": "GS25 · CU · 세븐일레븐 적용",
+      "tags": ["즉시 사용", "편의점"],
+      "point": "500P",
+      "statusLabel": "발급 완료",
+      "actionDisabled": true
+    },
+    {
+      "title": "마트 주류 1,000원 할인",
+      "description": "이마트 · 홈플러스 · 롯데마트 적용",
+      "tags": ["7일 유효", "마트"],
+      "point": "800P",
+      "statusLabel": "발급 완료",
+      "actionDisabled": true
+    },
+    {
+      "title": "파트너 바 10% 할인",
+      "description": "전국 파트너 바 30곳 적용",
+      "tags": ["14일 유효", "바·펍"],
+      "point": "1,200P"
+    },
+    {
+      "title": "와인 전문점 15% 할인",
+      "description": "와인앤모어 · 보틀벙커",
+      "tags": ["30일 유효", "와인샵"],
+      "point": "2,000P"
+    }
   ],
   "experienceItems": [
-    { "icon": "🎓", "title": "주류 클래스 추첨권", "description": "파트너 소믈리에 온라인 클래스", "tags": ["추첨", "월 1회"], "point": "500P" },
-    { "icon": "🥂", "title": "파트너 바 시음 체험권", "description": "3종 페어링 시음 코스", "tags": ["예약 필요", "오프라인"], "point": "3000P" }
+    {
+      "title": "주류 클래스 추첨권",
+      "description": "파트너 소믈리에 온라인 클래스",
+      "tags": ["추천", "월 1회"],
+      "point": "500P"
+    },
+    {
+      "title": "파트너 바 시음 체험권",
+      "description": "3종 페어링 시음 코스",
+      "tags": ["예약 필요", "오프라인"],
+      "point": "3,000P"
+    }
   ],
   "pointMissions": [
     { "title": "기록 저장", "reward": "+50P", "action": "기록 둘러보기" },
@@ -28,8 +62,23 @@
     { "title": "후기 작성", "reward": "+50P", "action": "후기 작성하기" },
     { "title": "광고 시청", "reward": "+50P", "action": "광고 보기" }
   ],
+  "pointHistoryItems": [
+    { "title": "기록 저장", "dateLabel": "오늘", "pointLabel": "+50 P", "tone": "positive" },
+    { "title": "투표 참여", "dateLabel": "26.05.12", "pointLabel": "+20 P", "tone": "positive" },
+    { "title": "후기 작성", "dateLabel": "26.05.10", "pointLabel": "+50 P", "tone": "positive" },
+    { "title": "파트너 바 시음 체험권", "dateLabel": "26.05.10", "pointLabel": "-3,000 P", "tone": "negative" },
+    { "title": "투표 참여", "dateLabel": "26.05.09", "pointLabel": "+20 P", "tone": "positive" },
+    { "title": "투표 참여", "dateLabel": "26.05.08", "pointLabel": "+20 P", "tone": "positive" },
+    { "title": "광고 시청", "dateLabel": "26.05.08", "pointLabel": "+50 P", "tone": "positive" },
+    { "title": "편의점 주류 500원 할인", "dateLabel": "26.05.01", "pointLabel": "-500 P", "tone": "negative" },
+    { "title": "광고 시청", "dateLabel": "26.05.01", "pointLabel": "+50 P", "tone": "positive" },
+    { "title": "마트 주류 1,000원 할인", "dateLabel": "26.04.22", "pointLabel": "-800 P", "tone": "negative" },
+    { "title": "기록 저장", "dateLabel": "26.04.20", "pointLabel": "+50 P", "tone": "positive" },
+    { "title": "광고 시청", "dateLabel": "26.04.18", "pointLabel": "+50 P", "tone": "positive" },
+    { "title": "광고 시청", "dateLabel": "26.04.16", "pointLabel": "+50 P", "tone": "positive" }
+  ],
   "profile": {
-    "gradeLabel": "큐레이터",
+    "gradeLabel": "모더레이터",
     "followerCount": 74
   },
   "points": {

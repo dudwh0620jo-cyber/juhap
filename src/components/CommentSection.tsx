@@ -6,8 +6,8 @@ import AlertModal from "./AlertModal"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretDoubleRight from "../assets/svg/caretdoubleright.svg"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
-import iconHeart from "../assets/svg/heart_p.svg"
-import iconHeartActive from "../assets/svg/heart_active.svg"
+import iconBeerstein from "../assets/svg/beerstein_p.svg"
+import iconBeersteinActive from "../assets/svg/beerstein_active.svg"
 import iconReplyArrow from "../assets/svg/arrowbenddownright.svg"
 import {
   COMMUNITY_FOLLOWED_USERS_KEY,
@@ -277,6 +277,8 @@ export default function CommentSection({
   const swipeStartRef = useRef<{ x: number; y: number } | null>(null)
   const mainInputRef = useRef<HTMLInputElement | null>(null)
   const inlineInputRef = useRef<HTMLInputElement | null>(null)
+  const [likeAnimatingIds, setLikeAnimatingIds] = useState<Set<number>>(() => new Set())
+  const likeAnimationTimeoutByIdRef = useRef<Map<number, number>>(new Map())
   const getActiveInput = () => (inlineReplyCommentId !== null ? inlineInputRef.current : mainInputRef.current)
 
   const commentsStorageKey = useMemo(
@@ -613,6 +615,27 @@ export default function CommentSection({
   }
 
   const toggleCommentLike = (commentId: number) => {
+    const existingTimeoutId = likeAnimationTimeoutByIdRef.current.get(commentId)
+    if (existingTimeoutId) window.clearTimeout(existingTimeoutId)
+
+    setLikeAnimatingIds((prev) => {
+      const next = new Set(prev)
+      next.add(commentId)
+      return next
+    })
+
+    const timeoutId = window.setTimeout(() => {
+      likeAnimationTimeoutByIdRef.current.delete(commentId)
+      setLikeAnimatingIds((prev) => {
+        if (!prev.has(commentId)) return prev
+        const next = new Set(prev)
+        next.delete(commentId)
+        return next
+      })
+    }, 420)
+
+    likeAnimationTimeoutByIdRef.current.set(commentId, timeoutId)
+
     setCommentItems((prev) =>
       prev.map((item) => {
         if (item.id !== commentId) return item
@@ -866,7 +889,14 @@ export default function CommentSection({
                           aria-pressed={item.likedByCurrentUser}
                           onClick={() => toggleCommentLike(item.id)}
                         >
-                          <img src={item.likedByCurrentUser ? iconHeartActive : iconHeart} alt="" aria-hidden="true" />
+                          <img
+                            className={
+                              likeAnimatingIds.has(item.id) ? "comment_like_icon is_like_animated" : "comment_like_icon"
+                            }
+                            src={item.likedByCurrentUser ? iconBeersteinActive : iconBeerstein}
+                            alt=""
+                            aria-hidden="true"
+                          />
                           <span>{item.likeCount ?? 0}</span>
                         </button>
                       </div>

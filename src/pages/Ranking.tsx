@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import "../styles/community.css"
+import "../styles/ranking.css"
 import CommunityHeader from "../components/CommunityHeader"
 import CommunityRankingSection from "../components/CommunityRankingSection"
 import SearchFilterModal from "../components/SearchFilterModal"
@@ -27,6 +28,11 @@ type PopupChipGroup = {
 }
 
 const getPodiumVotes = (podium: RankingPodium) => {
+  const fromPost = feedPosts.find((post) => post.id === podium.id)?.likeCount
+  if (typeof fromPost === "number" && Number.isFinite(fromPost)) {
+    return Math.max(0, Math.round(fromPost))
+  }
+
   const explicitVotes = podium.votes ?? podiumVotesById[podium.id]
   if (typeof explicitVotes === "number" && Number.isFinite(explicitVotes)) {
     return Math.max(0, Math.round(explicitVotes))
@@ -384,6 +390,11 @@ export default function CommunityRanking() {
 
     return filteredRankingRows.map((row, index) => ({
       ...row,
+      votes: (() => {
+        const fromPost = feedPosts.find((post) => post.id === row.id)?.likeCount
+        if (typeof fromPost === "number" && Number.isFinite(fromPost)) return Math.max(0, Math.round(fromPost))
+        return row.votes
+      })(),
       rank: rankOffset + index + 1,
     }))
   }, [filteredRankingPodium, filteredRankingRows])

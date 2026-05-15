@@ -1,6 +1,6 @@
 import { extractPairingTitle, feedPosts } from "./communityPosts"
 
-export type RankingPeriod = "weekly" | "daily" | "monthly" | "all"
+export type RankingPeriod = "weekly" | "daily" | "monthly"
 
 export type RankingCategory = "all" | "soju" | "wine" | "beer" | "whisky" | "spirits" | "traditional" | "sake" | "etc"
 
@@ -38,7 +38,19 @@ export type PairRankingSummary = PairMeta & {
 
 const DEFAULT_META: PairMeta = { drink: "추천 술", drinkEmoji: "🍶", food: "추천 안주", foodEmoji: "🥘" }
 
+// 홈 화면(주간 랭킹) 기준 Top5 고정 매핑
+const HOME_WEEKLY_TOP5_META_BY_ID: Record<number, PairMeta> = {
+  1005: { drink: "진로 이즈백", drinkEmoji: "🍶", food: "삼겹살", foodEmoji: "🥓" },
+  1002: { drink: "화요25", drinkEmoji: "🍶", food: "회무침", foodEmoji: "🥗" },
+  1006: { drink: "복순도가 막걸리", drinkEmoji: "🥛", food: "해물파전", foodEmoji: "🥘" },
+  1025: { drink: "카스", drinkEmoji: "🍺", food: "후라이드 치킨", foodEmoji: "🍗" },
+  1010: { drink: "클라렛 2010", drinkEmoji: "🍷", food: "등심 스테이크", foodEmoji: "🥩" },
+}
+
 const resolvePairMetaFromPost = (id: number): PairMeta => {
+  const override = HOME_WEEKLY_TOP5_META_BY_ID[id]
+  if (override) return override
+
   const post = feedPosts.find((item) => item.id === id)
   const title = post?.title ? extractPairingTitle(post.title) : ""
   if (title.includes("+")) {
@@ -54,7 +66,6 @@ const pairLabel = (id: number) => {
 }
 
 export const rankingPeriods: Array<{ key: RankingPeriod; label: string }> = [
-  { key: "all", label: "전체" },
   { key: "daily", label: "일간" },
   { key: "weekly", label: "주간" },
   { key: "monthly", label: "월간" },
@@ -74,17 +85,18 @@ export const rankingCategories: Array<{ key: RankingCategory; label: string }> =
 
 export const podiumVotesById: Record<number, number> = {
   1001: 8122,
-  1002: 8494,
-  1005: 15432,
-  1006: 7621,
+  1002: 6124,
+  1005: 7621,
+  1006: 6321,
   1007: 5981,
   1009: 3011,
-  1010: 3891,
+  1010: 5421,
   1011: 3214,
+  1025: 5921,
 }
 
 export const normalizeRankingPeriod = (value: string | null): RankingPeriod | null => {
-  if (value === "weekly" || value === "daily" || value === "monthly" || value === "all") return value
+  if (value === "weekly" || value === "daily" || value === "monthly") return value
   return null
 }
 
@@ -139,7 +151,8 @@ export const rankingDataByPeriod: Record<
 > = {
   weekly: {
     podiumByCategory: {
-      all: makePodium([1005, 1002, 1006], "all", [4.7, 4.6, 4.5], [15432, 14311, 12010], "bottle"),
+      // 홈 화면 주간 Top5(1~3위) 기준으로 votes(짠) 맞춤
+      all: makePodium([1005, 1002, 1006], "all", [4.7, 4.6, 4.5], [7621, 6124, 6321], "bottle"),
       soju: makePodium([1007, 1014, 1015], "soju", [4.7, 4.6, 4.5], [10320, 11023, 10291]),
       wine: makePodium([1005, 1016, 1017], "wine", [4.8, 4.7, 4.6], [15432, 12018, 9850], "bottle"),
       beer: makePodium([1006, 1010, 1018], "beer", [4.6, 4.5, 4.4], [12010, 10481, 8122]),
@@ -150,14 +163,15 @@ export const rankingDataByPeriod: Record<
       etc: makePodium([1009, 1001, 1023], "etc", [4.6, 4.5, 4.4], [8011, 8122, 7621]),
     },
     rows: makeRows([
-      [1025, 4, "beer", 4.2, 13422, "+7"],
-      [1009, 4, "etc", 4.6, 8011, "+2"],
-      [1010, 5, "beer", 4.5, 10481, "+1"],
-      [1001, 6, "etc", 4.5, 8122, "—"],
-      [1007, 7, "soju", 4.6, 5981, "+3"],
-      [1011, 8, "whisky", 4.7, 3214, "-1"],
-      [1004, 9, "sake", 4.4, 2542, "+1"],
-      [1006, 10, "beer", 4.6, 12010, "+5"],
+      // 홈 화면 주간 Top5(4~5위) 기준으로 votes(짠) 맞춤
+      [1025, 4, "beer", 4.2, 5921, "+7"],
+      [1010, 5, "wine", 4.5, 5421, "+1"],
+      [1009, 6, "etc", 4.6, 8011, "+2"],
+      [1001, 7, "etc", 4.5, 8122, "—"],
+      [1007, 8, "soju", 4.6, 5981, "+3"],
+      [1011, 9, "whisky", 4.7, 3214, "-1"],
+      [1004, 10, "sake", 4.4, 2542, "+1"],
+      [1006, 11, "beer", 4.6, 12010, "+5"],
     ]),
   },
   daily: {
@@ -204,35 +218,19 @@ export const rankingDataByPeriod: Record<
       [1009, 10, "etc", 4.5, 7320, "-2"],
     ]),
   },
-  all: {
-    podiumByCategory: {
-      all: makePodium([1005, 1002, 1006], "all", [4.9, 4.8, 4.7], [54321, 49872, 46310], "bottle"),
-      soju: makePodium([1007, 1014, 1015], "soju", [4.8, 4.7, 4.6], [49872, 40318, 38012]),
-      wine: makePodium([1005, 1016, 1017], "wine", [4.9, 4.8, 4.7], [54321, 45102, 32018], "bottle"),
-      beer: makePodium([1006, 1010, 1018], "beer", [4.7, 4.6, 4.5], [46310, 35198, 29012]),
-      whisky: makePodium([1011, 1019, 1020], "whisky", [4.7, 4.6, 4.5], [28021, 26011, 23002]),
-      spirits: makePodium([1003, 1013, 1024], "spirits", [4.6, 4.5, 4.4], [22014, 20130, 19002]),
-      traditional: makePodium([1002, 1021, 1022], "traditional", [4.7, 4.7, 4.6], [24011, 21098, 19012]),
-      sake: makePodium([1004, 1008, 1012], "sake", [4.6, 4.5, 4.4], [18021, 17003, 16011]),
-      etc: makePodium([1009, 1001, 1023], "etc", [4.6, 4.5, 4.4], [15011, 14002, 13005]),
-    },
-    rows: makeRows([
-      [1009, 4, "etc", 4.8, 45102, "+3"],
-      [1002, 5, "traditional", 4.7, 24011, "+2"],
-      [1011, 6, "whisky", 4.7, 28021, "-1"],
-      [1010, 7, "beer", 4.6, 35198, "+1"],
-      [1004, 8, "sake", 4.6, 18021, "—"],
-      [1001, 9, "etc", 4.6, 26011, "+1"],
-      [1006, 10, "beer", 4.5, 23002, "-2"],
-    ]),
-  },
 }
 
 const weeklyAll = rankingDataByPeriod.weekly
-const weeklyTop5Entries = [
-  ...weeklyAll.podiumByCategory.all,
-  ...weeklyAll.rows.filter((row) => row.rank === 4 || row.rank === 5).sort((a, b) => a.rank - b.rank),
-]
+const weeklyTop5Rows = (() => {
+  const rowsByRank = new Map<number, RankingRow>()
+  for (const row of weeklyAll.rows) {
+    if (row.rank !== 4 && row.rank !== 5) continue
+    if (!rowsByRank.has(row.rank)) rowsByRank.set(row.rank, row)
+  }
+  return Array.from(rowsByRank.values()).sort((a, b) => a.rank - b.rank)
+})()
+
+const weeklyTop5Entries = [...weeklyAll.podiumByCategory.all, ...weeklyTop5Rows]
 
 export type HomeRankingItem = PairMeta & { rating: number; count: number }
 
