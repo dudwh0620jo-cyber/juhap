@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router"
 import { motion } from "motion/react"
 import TodayHeroCopy from "../components/TodayHeroCopy"
-import { todayPairingDetailContent } from "../data/todayPairingDetail"
+import { todayPairingDetailByTitle, todayPairingDetailContent } from "../data/todayPairingDetail"
 import { useHomePageData } from "../hooks/useHomePageData"
 import caretLeft from "../assets/svg/caretleft.svg"
+import caretRightWhite from "../assets/svg/caretright_w.svg"
 import featherIcon from "../assets/svg/feather.svg"
 import dropHalfIcon from "../assets/svg/drophalf.svg"
 import scalesIcon from "../assets/svg/scales.svg"
@@ -89,7 +90,7 @@ export default function TodayPairingDetail() {
 
   const safeIndex = total > 0 ? (total <= 1 ? 0 : (positionIndex - 1 + total) % total) : 0
   const hero = recommendationItems[safeIndex]
-  const detail = todayPairingDetailContent[safeIndex % todayPairingDetailContent.length]
+  const detail = (hero ? todayPairingDetailByTitle[hero.title] : undefined) ?? todayPairingDetailContent[0]
 
   if (!hero) return null
 
@@ -181,6 +182,14 @@ export default function TodayPairingDetail() {
 
           {dots.length > 1 ? (
             <div className="today_pairing_banner_dots" aria-label="배너 페이지 표시">
+              <button
+                type="button"
+                className="today_pairing_banner_nav is_prev"
+                aria-label="이전 배너"
+                onClick={() => goToByPosition(positionIndex - 1)}
+              >
+                <img src={caretRightWhite} alt="" aria-hidden="true" />
+              </button>
               {dots.map((dotIndex) => (
                 <button
                   key={dotIndex}
@@ -193,6 +202,14 @@ export default function TodayPairingDetail() {
                   }}
                 />
               ))}
+              <button
+                type="button"
+                className="today_pairing_banner_nav is_next"
+                aria-label="다음 배너"
+                onClick={() => goToByPosition(positionIndex + 1)}
+              >
+                <img src={caretRightWhite} alt="" aria-hidden="true" />
+              </button>
             </div>
           ) : null}
         </div>

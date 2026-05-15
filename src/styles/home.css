@@ -4,16 +4,10 @@
   padding-top: 56px; 
   padding-bottom: 120px; 
   gap: 20px; 
-  height: 100dvh; 
-  overflow-y: auto; 
   overflow-x: hidden;
-  overscroll-behavior: contain; 
-  scrollbar-width: none; 
 } 
 
-.home_page::-webkit-scrollbar {
-  display: none;
-}
+.home_page::-webkit-scrollbar { display: none; }
 
 .home_header {
   display: flex;
@@ -2235,6 +2229,7 @@
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  height: 100%;
 }
 
 .home_quiz_card:active {

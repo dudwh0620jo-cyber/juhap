@@ -365,7 +365,7 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
               <p className="home_weekly_rank_subcopy">{subtitle}</p>
             </div>
           <Link to={linkTo} className="more_button">
-            더보기
+            랭킹보러가기
             <img src={iconCaretRight} alt="" aria-hidden="true" />
           </Link>
           </div>
