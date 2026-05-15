@@ -5,6 +5,14 @@
   background: var(--color-bg-base);
 }
 
+.quiz_page.page_screen {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
 .quiz_topbar {
   display: flex;
   align-items: center;
@@ -187,6 +195,7 @@
   transform: translateX(-50%);
   border-radius:  999px;
   background: #F6CAA3;
+  pointer-events: none;
 }
 
 .quiz_today_page {
