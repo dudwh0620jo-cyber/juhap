@@ -1651,51 +1651,63 @@
 
 .review_author_meta {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   flex-direction: column;
 }
 
 .review_nickname {
   display: flex;
-  align-items: flex-start;
-  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin: 0;
   line-height: 1.4;
   white-space: nowrap;
+  min-width: 0;
+  width: 100%;
+}
+
+.review_author_name_grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
 .review_nickname strong,
 .review_nickname span,
 .review_nickname button {
   font-size: 14px;
-  font-weight: 400;
 }
 
 .review_nickname strong {
   color: var(--color-text-primary);
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .review_nickname span {
   color: #ad7321;
+  font-weight: 400;
 }
 
-.review_nickname i {
-  color: var(--color-text-primary);
-  font-style: normal;
-  font-size: 16px;
-}
-
-.review_nickname button,
-.review_nickname .follow_toggle_button {
-  min-height: unset;
+.review_author_follow_button.follow_toggle_button {
+  flex: 0 0 auto;
+  min-height: 26px;
   border: 0;
-  padding: 0;
-  background: transparent;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: #eef6ff;
   color: #73b4ff;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.review_nickname .follow_toggle_button.is_following {
+.review_author_follow_button.follow_toggle_button.is_following {
+  background: var(--color-gray-01);
   color: var(--color-gray-04);
 }
 

@@ -90,27 +90,17 @@ export default function CommunityReviewCard({
         metaClassName="community_review_author_meta"
         avatarFallback={<span className="community_review_avatar_fallback">{authorInitial}</span>}
         title={
-          <>
-            <strong className="community_review_author_name">{authorName}</strong>
-            <span className={badgeClassName}>{badgeText}</span>
-          </>
-        }
-        titleMeta={
-          typeof onOpenMenu === "function" ? null : (
-            <>
-              <span className="community_review_follow_divider" aria-hidden="true">
-                ㆍ
-              </span>
-              <button
-                type="button"
-                className={followButtonClassName}
-                aria-label={followAriaLabel}
-                onClick={onToggleFollow}
-              >
+          <span className="community_review_author_line">
+            <span className="community_review_author_name_grade">
+              <strong className="community_review_author_name">{authorName}</strong>
+              <span className={badgeClassName}>{badgeText}</span>
+            </span>
+            {typeof onOpenMenu === "function" ? null : (
+              <button type="button" className={followButtonClassName} aria-label={followAriaLabel} onClick={onToggleFollow}>
                 {followText}
               </button>
-            </>
-          )
+            )}
+          </span>
         }
         meta={authorMeta}
         rightAction={
