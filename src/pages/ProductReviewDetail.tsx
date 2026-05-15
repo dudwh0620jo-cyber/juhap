@@ -23,6 +23,8 @@ import "../styles/product-review-detail.css"
 
 const normalizeHashTagValue = (tag: string) => tag.replace(/^#/, "").trim()
 
+const getReviewCommentTargetId = (reviewId: string) => (/^\d+$/.test(reviewId) ? reviewId : `product-review-comments-${reviewId}`)
+
 export default function ProductReviewDetail() {
   const navigate = useNavigate()
   const { id, reviewId } = useParams()
@@ -38,7 +40,7 @@ export default function ProductReviewDetail() {
   const [isLiked, setIsLiked] = useState(false)
   const [isLikeAnimating, setIsLikeAnimating] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
-  const commentTargetId = review ? `product-review-comments-${review.id}` : ""
+  const commentTargetId = review ? getReviewCommentTargetId(review.id) : ""
   const [commentCountOverride, setCommentCountOverride] = useState<number | null>(() =>
     commentTargetId ? readStoredPairingCommentCount(commentTargetId) : null,
   )
@@ -171,7 +173,7 @@ export default function ProductReviewDetail() {
 
       <div className="product_review_detail_comments" id="product-review-comments">
         <CommentSection
-          pairingId={`product-review-comments-${review.id}`}
+          pairingId={commentTargetId}
           currentUser={currentUser}
           getTierClassName={getUserGradeBadgeClassNameByUserId}
           getTierLabel={getPairingTierLabelByUserId}

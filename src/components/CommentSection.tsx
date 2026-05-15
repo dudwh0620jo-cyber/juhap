@@ -1,4 +1,4 @@
-﻿import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
 import { useNavigate } from "react-router"
 
@@ -65,7 +65,7 @@ const resolveCommentIdentity = (item: Pick<CommentItem, "userId" | "userName" | 
 }
 
 const resolveCommentGrade = (item: Pick<CommentItem, "userId" | "userGrade">, fallbackLabel: (userId: number) => string) =>
-  item.userGrade?.trim() || usersMockById[item.userId]?.grade?.trim() || fallbackLabel(item.userId)
+  usersMockById[item.userId]?.grade?.trim() || item.userGrade?.trim() || fallbackLabel(item.userId)
 
 const normalizeCommentItems = (items: CommentItem[]) =>
   items.map((item, index) => ({
@@ -84,8 +84,9 @@ const mergeStoredCommentsWithSeed = (storedComments: CommentItem[], seedComments
     return {
       ...item,
       userId: seedComment.userId,
-      userName: seedComment.userName,
-      userGrade: item.userGrade?.trim() || seedComment.userGrade,
+      text: seedComment.text,
+      timeLabel: seedComment.timeLabel ?? item.timeLabel,
+      replyTo: seedComment.replyTo,
     }
   })
   const storedIdSet = new Set(hydratedStoredComments.map((item) => item.id))

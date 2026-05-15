@@ -90,7 +90,8 @@ const getPairingReviewPostId = (review: DrinkReview) => {
 
 const getProductReviewCommentTargetId = (review: DrinkReview) => {
   const pairingPostId = getPairingReviewPostId(review)
-  return Number.isFinite(pairingPostId) ? String(pairingPostId) : `product-review-comments-${review.id}`
+  if (Number.isFinite(pairingPostId)) return String(pairingPostId)
+  return /^\d+$/.test(review.id) ? review.id : `product-review-comments-${review.id}`
 }
 
 const getProductReviewCommentCount = (review: DrinkReview) => readStoredPairingCommentCount(getProductReviewCommentTargetId(review))
@@ -512,12 +513,13 @@ export default function ProductDetail() {
                   <img className="review_profile" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
                   <div className="review_author_meta">
                     <p className="review_nickname">
-                      <strong>{review.author.name}</strong>
-                      <span>{review.author.grade}</span>
-                      <i>ㆍ</i>
+                      <span className="review_author_name_grade">
+                        <strong>{review.author.name}</strong>
+                        <span>{review.author.grade}</span>
+                      </span>
                       <button
                         type="button"
-                        className={followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"}
+                        className={`${followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"} review_author_follow_button`}
                         aria-pressed={followedAuthorNames.has(review.author.name)}
                         onClick={(event) => {
                           event.stopPropagation()
@@ -662,12 +664,13 @@ export default function ProductDetail() {
                     <img className="review_profile" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
                     <div className="review_author_meta">
                       <p className="review_nickname">
-                        <strong>{review.author.name}</strong>
-                        <span>{review.author.grade}</span>
-                        <i>ㆍ</i>
+                        <span className="review_author_name_grade">
+                          <strong>{review.author.name}</strong>
+                          <span>{review.author.grade}</span>
+                        </span>
                         <button
                           type="button"
-                          className={followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"}
+                          className={`${followedAuthorNames.has(review.author.name) ? "follow_toggle_button is_following" : "follow_toggle_button"} review_author_follow_button`}
                           aria-pressed={followedAuthorNames.has(review.author.name)}
                           onClick={(event) => {
                             event.stopPropagation()

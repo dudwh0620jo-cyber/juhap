@@ -1,10 +1,6 @@
-export type CommentUserGrade = "테이스터" | "셀렉터" | "큐레이터" | "소믈리에" | "마스터"
-
 export type SeedCommentItem = {
   id: number
   userId: number
-  userName?: string
-  userGrade?: CommentUserGrade
   text: string
   timeLabel?: string
   likeCount?: number
@@ -13,178 +9,174 @@ export type SeedCommentItem = {
 }
 
 export const ALCOHOL_REVIEW_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedCommentItem[]> = {
-  "product-review-comments-review-photo-1": [
-    { id: 1, userId: 1001, userName: "유나로그", userGrade: "테이스터", text: "향 설명 보니까 차갑게 마셔보고 싶네요." },
-    { id: 2, userId: 1002, userName: "사토유키", userGrade: "셀렉터", text: "사진이랑 후기 분위기가 잘 맞아요." },
-    { id: 3, userId: 1004, userName: "프로워박러", userGrade: "큐레이터", text: "입문자도 부담 없을지 궁금합니다." },
+  "30002": [
+    { id: 1, userId: 1006, text: "드라이한 스타일이면 회식 자리에서도 부담 없어서 좋죠 😄" },
+    { id: 2, userId: 1011, text: "기름진 안주랑 잘 어울린다는 부분 공감돼요." },
   ],
-  "product-review-comments-review-text-1": [
-    { id: 1, userId: 1006, userName: "삼차원구", userGrade: "테이스터", text: "회식 자리용으로 참고할게요." },
-    { id: 2, userId: 1011, userName: "콩깐대끼", userGrade: "셀렉터", text: "부드럽다는 설명이 딱 와닿네요." },
+  "30004": [
+    { id: 1, userId: 1015, text: "튀김류랑 같이 먹으면 진짜 깔끔하게 잘 어울릴 것 같네요 😄" },
+    { id: 2, userId: 1020, text: "향이 안 튄다는 부분 보니까 식사 술로 좋을 듯해요." },
   ],
-  "product-review-comments-review-text-2": [
-    { id: 1, userId: 1012, userName: "감자감자감자", userGrade: "큐레이터", text: "처음 마시는 사람에게 추천하기 좋겠어요." },
-    { id: 2, userId: 1013, userName: "남집사촌", userGrade: "셀렉터", text: "단맛이 강하지 않다니 궁금합니다." },
+  "30001": [
+    { id: 1, userId: 1001, text: "배나 멜론 느낌 난다는 표현 보니까 향이 궁금해지네요 😄" },
+    { id: 2, userId: 1002, text: "회랑 같이 먹으면 깔끔하게 잘 어울릴 것 같아요." },
+    { id: 3, userId: 1004, text: "단맛이 과하지 않다는 부분이 되게 매력적으로 느껴지네요." },
   ],
-  "product-review-comments-review-photo-2": [
-    { id: 1, userId: 1015, userName: "나비나기", userGrade: "셀렉터", text: "생선구이랑 같이 먹어보고 싶네요." },
-    { id: 2, userId: 1020, userName: "샴페인조아", userGrade: "테이스터", text: "사진 있는 후기가 확실히 참고돼요." },
+  "30003": [
+    { id: 1, userId: 1012, text: "목넘김 부드러운 스타일이면 입문용으로 괜찮죠 😄" },
+    { id: 2, userId: 1013, text: "끝에 남는 쌀향이 깔끔하다는 부분이 되게 궁금하네요." },
   ],
-  "product-review-comments-review-text-3": [],
-  "product-review-comments-review-text-4": [],
+  "30005": [
+    { id: 1, userId: 3006, text: "강하게 튀기보다 균형감 있는 스타일 좋아하면 만족할 것 같네요 😄" },
+  ],
+  "30006": [
+    { id: 1, userId: 5001, text: "온도에 따라 느낌 달라지는 술은 마시는 재미가 있는 것 같아요 😄" },
+  ],
 }
 
 export const PAIRING_REVIEW_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedCommentItem[]> = {
   "1101": [
-    { id: 1, userId: 1021, userName: "보틀노트", userGrade: "소믈리에", text: "우니랑 닷사이23 조합 진짜 좋죠 😭" },
-    { id: 2, userId: 3001, userName: "순대렐라", userGrade: "테이스터", text: "끝맛 깔끔해서 계속 들어갈 것 같네요." },
-    { id: 3, userId: 3002, userName: "벼랑위의 당뇨", userGrade: "소믈리에", text: "분위기 좋은 이자카야에서 먹으면 완벽할 듯해요." },
-    { id: 4, userId: 3003, userName: "이웃집 또터러", userGrade: "테이스터", text: "우니 느끼함을 잘 잡아주는 조합 같아요." },
-    { id: 5, userId: 3004, userName: "엄마곗돈", userGrade: "테이스터", text: "이거 보니까 닷사이23 마시고 싶어졌네요 🍶" },
-    { id: 6, userId: 3005, userName: "달려야하니", userGrade: "셀렉터", text: "우니 어디서 드신 건지 궁금해요!" },
+    { id: 1, userId: 1021, text: "우니랑 닷사이23 조합 진짜 좋죠 😭" },
+    { id: 2, userId: 3001, text: "끝맛 깔끔해서 계속 들어갈 것 같네요." },
+    { id: 3, userId: 3002, text: "분위기 좋은 이자카야에서 먹으면 완벽할 듯해요." },
+    { id: 4, userId: 3003, text: "우니 느끼함을 잘 잡아주는 조합 같아요." },
+    { id: 5, userId: 3004, text: "이거 보니까 닷사이23 마시고 싶어졌네요 🍶" },
+    { id: 6, userId: 3005, text: "우니 어디서 드신 건지 궁금해요!" },
   ],
   "1102": [
-    { id: 1, userId: 3006, userName: "잔잔한리뷰어", userGrade: "테이스터", text: "치즈 플래터랑 사케 조합 의외로 잘 맞네요." },
-    { id: 2, userId: 5001, userName: "옹심이", userGrade: "셀렉터", text: "브리 치즈 추천 완전 동의합니다." },
-    { id: 3, userId: 5002, userName: "사케가 좋아", userGrade: "셀렉터", text: "견과류 추가하면 식감이 확실히 살아나요." },
-    { id: 4, userId: 6001, userName: "용시이", userGrade: "큐레이터", text: "홈파티 메뉴로 딱이에요." },
+    { id: 1, userId: 3006, text: "방어나 도미랑 잘 어울린다는 말 보니까 바로 생각나네요 🍶" },
+    { id: 2, userId: 5001, text: "회식 때 가져가면 반응 진짜 좋을 것 같은 조합이에요." },
+    { id: 3, userId: 3005, text: "향이 과하지 않아서 음식 흐름 안 깨는 거 완전 공감돼요." },
+    { id: 4, userId: 6001, text: "이자카야에서 사시미에 닷사이23이면 실패하기 어렵죠 😄" },
+  ],
+  "99001": [
+    { id: 1, userId: 1021, text: "주욘다이는 진짜 왜 유명한지 마셔보면 바로 이해되는 것 같아요 🍶" },
+  ],
+  "99002": [
+    { id: 1, userId: 3002, text: "매운 음식이랑 쿠보타 만쥬 조합 의외로 잘 어울리죠 😄" },
+  ],
+  "1025": [
+    { id: 1, userId: 1001, text: "토마토 파스타랑 라거 조합은 깔끔해서 은근 잘 들어가죠 🍺" },
   ],
   "1001": [
-    { id: 1, userId: 6002, userName: "서연", userGrade: "소믈리에", text: "하이볼에 새우깡은 진짜 인정입니다." },
-    { id: 2, userId: 6003, userName: "오크데이", userGrade: "마스터", text: "얼음 크게 넣으면 더 깔끔하게 마셔져요." },
+  { id: 1, userId: 1012, text: "해물파전이랑 막걸리는 한국 오면 꼭 먹어봐야 하는 조합이죠 😄" },
+  { id: 2, userId: 3001, text: "비 오는 날이면 더 생각나는 메뉴인 것 같아요." },
   ],
-  "1002": [
-    { id: 1, userId: 6004, userName: "프로워박러", userGrade: "큐레이터", text: "막걸리 향이 해물파전 기름짐 잡아줘요." },
-    { id: 2, userId: 6005, userName: "감자감자감자", userGrade: "큐레이터", text: "비 오는 날에 이 조합이면 끝이죠." },
-    { id: 3, userId: 6006, userName: "삼차원구", userGrade: "테이스터", text: "김치전으로 바꿔도 잘 어울릴까요?" },
-  ],
-  "1003": [
-    { id: 1, userId: 6007, userName: "주합러", userGrade: "테이스터", text: "버번 다음이면 블렌디드부터 가는 게 편해요." },
-    { id: 2, userId: 2001, userName: "민지", userGrade: "테이스터", text: "피트향 약한 싱글몰트로 넘어가도 괜찮습니다." },
-    { id: 3, userId: 2002, userName: "현우", userGrade: "셀렉터", text: "하이볼 위주면 산뜻한 스타일 먼저 드셔보세요." },
-    { id: 4, userId: 2003, userName: "노아", userGrade: "테이스터", text: "입문이면 도수 40도 안팎 제품이 무난했어요." },
-    { id: 5, userId: 2019, userName: "태형", userGrade: "테이스터", text: "예산대 알려주시면 더 구체적으로 추천 가능해요." },
-  ],
-  "1004": [
-    { id: 1, userId: 2025, userName: "윤아", userGrade: "테이스터", text: "명란구이+오이는 준비도 쉽고 사케랑 잘 맞아요." },
-    { id: 2, userId: 2101, userName: "지훈", userGrade: "큐레이터", text: "두부김치도 의외로 괜찮았어요. 너무 맵지만 않게요." },
-    { id: 3, userId: 2102, userName: "도윤", userGrade: "셀렉터", text: "연어구이 소량으로 곁들이는 것도 추천합니다." },
-    { id: 4, userId: 2103, userName: "나연", userGrade: "큐레이터", text: "전자레인지 가능한 안주면 계란찜도 좋아요." },
-  ],
-  "1005": [
-    { id: 1, userId: 2104, userName: "수빈", userGrade: "테이스터", text: "스테이크 굽기 미디움으로 맞추면 최고예요." },
-    { id: 2, userId: 2105, userName: "시카", userGrade: "테이스터", text: "탄닌 있는 레드 추천도 부탁해요." },
-    { id: 3, userId: 2113, userName: "하린", userGrade: "테이스터", text: "감자퓨레랑 같이 먹으면 더 맛있더라구요." },
-    { id: 4, userId: 2115, userName: "준호", userGrade: "테이스터", text: "가격대 비슷한 대체 와인도 궁금합니다." },
-    { id: 5, userId: 2116, userName: "서준", userGrade: "테이스터", text: "고기 시즈닝 강하면 와인도 묵직한 게 맞아요." },
-  ],
+"1002": [
+  { id: 1, userId: 6004, text: "모엣 샹동은 파티 분위기 내기 진짜 좋은 것 같아요 🥂" },
+  { id: 2, userId: 6005, text: "트러플 크림 파스타랑 같이 먹으면 더 고급스러운 느낌 나겠네요." },
+  { id: 3, userId: 6006, text: "사진까지 잘 나오면 생일파티용으로 완벽하죠 😄" },
+],
+"1003": [
+  { id: 1, userId: 6007, text: "도토리묵이랑 밤막걸리 조합 은근 잘 어울리죠." },
+  { id: 2, userId: 2001, text: "구수한 맛 좋아하면 딱 취향일 것 같네요 😄" },
+  { id: 3, userId: 2002, text: "주말에 가볍게 한잔하기 좋은 조합 같아요." },
+  { id: 4, userId: 2003, text: "밤막걸리 단맛이 묵이랑 잘 이어질 것 같네요." },
+  { id: 5, userId: 2019, text: "이런 한식 안주 조합은 괜히 계속 생각나요." },
+],
+"1004": [
+  { id: 1, userId: 2025, text: "치킨이랑 라거 조합은 역시 실패하기 어렵죠 🍺" },
+  { id: 2, userId: 2101, text: "달콩이까지 관심 보이는 거 너무 귀엽네요 😄" },
+  { id: 3, userId: 2102, text: "감자튀김까지 있으면 진짜 계속 들어갈 것 같아요." },
+  { id: 4, userId: 2103, text: "혼술인데도 되게 분위기 좋아 보이네요." },
+],
+"1005": [
+  { id: 1, userId: 2104, text: "캠핑장에서 먹는 소금구이는 분위기까지 맛인 것 같아요 😄" },
+  { id: 2, userId: 2105, text: "불멍하면서 카스 한잔이면 진짜 낭만이네요." },
+  { id: 3, userId: 2113, text: "닭목살 소금구이는 라거랑 은근 잘 어울리죠." },
+  { id: 4, userId: 2115, text: "캠핑 가서 이런 조합 먹으면 괜히 더 맛있게 느껴져요." },
+  { id: 5, userId: 2116, text: "청계산 캠핑장 분위기도 좋아 보이네요 👀" },
+],
+"91011": [
+  { id: 1, userId: 6002, text: "육회랑 일품진로 조합 은근 깔끔해서 좋죠." },
+  { id: 2, userId: 1001, text: "낙지까지 있었으면 진짜 완벽했겠네요 😭" },
+  { id: 3, userId: 1002, text: "육회에 증류식 소주 조합은 실패하기 어려운 것 같아요." },
+  { id: 4, userId: 1004, text: "일품진로는 확실히 부드럽게 넘어가서 좋더라고요." },
+  { id: 5, userId: 1013, text: "강남에서 이런 조합이면 회식 때 딱이네요." },
+  { id: 6, userId: 1012, text: "육회 기름진 맛을 깔끔하게 잡아주는 느낌 좋죠." },
+  { id: 7, userId: 1015, text: "프리미엄 소주랑 육회 조합은 분위기도 사는 것 같아요." },
+  { id: 8, userId: 1020, text: "육회에 일품진로 한 잔이면 계속 들어가죠 😄" },
+  { id: 9, userId: 1021, text: "낙지 품절이라 아쉽긴 한데 육회만으로도 괜찮았을 듯해요." },
+  { id: 10, userId: 3001, text: "일품진로 좋아하시는 분들 꽤 만족할 조합 같네요." },
+  { id: 11, userId: 3002, text: "깔끔한 술 좋아하면 이런 조합 진짜 좋아할 것 같아요." },
+  { id: 12, userId: 3005, text: "육회 어디서 드신 건지 궁금하네요 👀" },
+],
   "1006": [
-    { id: 1, userId: 2117, userName: "유진", userGrade: "테이스터", text: "IPA 쓴맛이 치즈 느끼함 잡아주는 게 포인트죠." },
+    { id: 1, userId: 2117, text: "비 오는 날 감자전에 막걸리는 진짜 못 참죠 😄" },
   ],
-  "1007": [
-    { id: 1, userId: 2118, userName: "태오", userGrade: "테이스터", text: "족발은 마늘이랑 같이 먹어야 진짜죠." },
-    { id: 2, userId: 1001, userName: "유나로그", userGrade: "테이스터", text: "새우젓 찍고 소주 한잔하면 밸런스 좋아요." },
-    { id: 3, userId: 1002, userName: "사토유키", userGrade: "셀렉터", text: "매운 무침 곁들이면 더 잘 어울립니다." },
-    { id: 4, userId: 1004, userName: "프로워박러", userGrade: "큐레이터", text: "야식으로 이만한 조합이 없어요." },
+"1007": [
+  { id: 1, userId: 2118, text: "기네스랑 수제버거 조합은 묵직해서 만족감 크죠 🍔" },
+  { id: 2, userId: 1001, text: "패티 육즙이랑 흑맥주가 진짜 잘 어울릴 것 같네요." },
+  { id: 3, userId: 1002, text: "행궁동에서 이런 조합이면 분위기도 좋았을 듯해요 😄" },
+  { id: 4, userId: 1004, text: "느끼함 잡아주는 흑맥주 조합은 역시 믿고 먹죠." },
+],
+"91012": [
+  { id: 1, userId: 1006, text: "감자전이랑 막걸리는 역시 실패하기 어렵죠." },
+  { id: 2, userId: 1001, text: "비 오는 날 생각나는 조합이네요 😄" },
+  { id: 3, userId: 1002, text: "장수 막걸리랑 감자전이면 편하게 한잔하기 좋죠." },
+  { id: 4, userId: 1004, text: "감자전 바삭하게 부쳐졌으면 진짜 최고였겠네요." },
+  { id: 5, userId: 1011, text: "혼술로도 은근 만족감 큰 조합 같아요." },
+  { id: 6, userId: 1013, text: "막걸리 특유의 톡 쏘는 맛이 감자전이랑 잘 맞죠." },
+  { id: 7, userId: 1015, text: "이런 조합은 괜히 자꾸 생각나는 것 같아요." },
+  { id: 8, userId: 1020, text: "인천 쪽이면 저도 한번 가보고 싶네요." },
+  { id: 9, userId: 3001, text: "김치 하나 같이 나오면 더 완벽할 듯해요." },
+  { id: 10, userId: 3002, text: "막걸리 좋아하는 사람들은 딱 좋아할 조합이네요." },
+],
+"91013": [
+  { id: 1, userId: 1002, text: "닭꼬치 소금구이에 시원한 카스면 가볍게 즐기기 딱 좋죠 😄" },
+],
+"1008": [
+  { id: 1, userId: 1006, text: "화이트 라자냐랑 샤도네이 조합은 진짜 부드럽죠 😄" },
+  { id: 2, userId: 1011, text: "버터리한 향이 크림소스랑 잘 이어질 것 같네요." },
+  { id: 3, userId: 1012, text: "데이트 분위기로도 딱 어울리는 조합 같아요." },
+  { id: 4, userId: 1013, text: "오크향 있는 샤도네이면 더 잘 맞을 듯해요." },
+  { id: 5, userId: 1015, text: "전포동 분위기랑도 잘 어울리는 메뉴네요 🍷" },
+  { id: 6, userId: 1020, text: "느끼하지 않게 잡아주는 밸런스가 좋았을 것 같아요." },
+],
+"1009": [
+  { id: 1, userId: 1021, text: "해물탕에 복순도가는 진짜 시원하게 잘 어울리죠 😄" },
+  { id: 2, userId: 3001, text: "탄산감이 매운맛 잡아주는 느낌 공감돼요." },
+  { id: 3, userId: 3002, text: "오랜만에 친구 만나서 먹으면 더 맛있는 조합 같네요." },
+  { id: 4, userId: 3003, text: "해물탕 국물에 막걸리 한잔이면 계속 들어가죠." },
+  { id: 5, userId: 3004, text: "송도 쪽 분위기 좋은 곳에서 드신 것 같아요 👀" },
+  { id: 6, userId: 3005, text: "복순도가 특유의 탄산감이 해물탕이랑 잘 맞을 듯해요." },
+],
+  "1010": [
+    { id: 1, userId: 1015, text: "브리치즈랑 샴페인은 산미가 잡아줘서 좋죠." },
   ],
-  "1008": [
-    { id: 1, userId: 1006, userName: "삼차원구", userGrade: "테이스터", text: "기름진 회면 사케, 담백한 흰살생선이면 화이트와인 추천해요." },
-    { id: 2, userId: 1011, userName: "콩깐대끼", userGrade: "셀렉터", text: "와사비 강하면 사케 쪽이 더 부드럽게 잡아주더라구요." },
-    { id: 3, userId: 1012, userName: "감자감자감자", userGrade: "큐레이터", text: "산미 원하는 날은 화이트, 감칠맛 원하면 사케로 고릅니다." },
-    { id: 4, userId: 1013, userName: "남집사촌", userGrade: "셀렉터", text: "둘 다 두고 회 종류별로 번갈아 마셔도 재밌어요." },
-    { id: 5, userId: 1015, userName: "나비나기", userGrade: "셀렉터", text: "가격 맞추기 쉬운 건 사케 쪽이었어요." },
-    { id: 6, userId: 1020, userName: "샴페인조아", userGrade: "테이스터", text: "광어/도미는 화이트, 참치 뱃살은 사케가 좋았습니다." },
-  ],
-  "1009": [
-    { id: 1, userId: 1021, userName: "보틀노트", userGrade: "소믈리에", text: "타코엔 라임 계열 칵테일이 제일 깔끔해요." },
-    { id: 2, userId: 3001, userName: "순대렐라", userGrade: "테이스터", text: "데킬라 베이스에 소금 테두리도 추천합니다." },
-    { id: 3, userId: 3002, userName: "벼랑위의 당뇨", userGrade: "소믈리에", text: "살사 매운맛이 강하면 단맛 있는 칵테일도 좋아요." },
-    { id: 4, userId: 3003, userName: "이웃집 또터러", userGrade: "테이스터", text: "홈파티 메뉴로 바로 가져갈게요." },
-    { id: 5, userId: 3004, userName: "엄마곗돈", userGrade: "테이스터", text: "무알콜 버전도 하나 있으면 좋겠네요." },
-    { id: 6, userId: 3005, userName: "달려야하니", userGrade: "셀렉터", text: "타코 종류별 추천도 올려주세요." },
-  ],
-  "1010": [],
-  "1011": [
-    { id: 1, userId: 3006, userName: "잔잔한리뷰어", userGrade: "테이스터", text: "입문이면 40~43도 버번이 가장 무난했어요." },
-    { id: 2, userId: 5001, userName: "옹심이", userGrade: "셀렉터", text: "다크초콜릿은 카카오 70% 전후가 잘 맞더라구요." },
-    { id: 3, userId: 5002, userName: "사케가 좋아", userGrade: "셀렉터", text: "버번이 달면 초콜릿은 너무 달지 않은 걸 추천합니다." },
-    { id: 4, userId: 6001, userName: "용시이", userGrade: "큐레이터", text: "소량씩 번갈아 먹으면 밸런스 잡기 쉬워요." },
-    { id: 5, userId: 6002, userName: "서연", userGrade: "소믈리에", text: "초콜릿 먼저 한 입 먹고 버번 마시면 좋았어요." },
-    { id: 6, userId: 6003, userName: "오크데이", userGrade: "마스터", text: "입문용으로는 바닐라 향 나는 버번도 괜찮습니다." },
-    { id: 7, userId: 6004, userName: "프로워박러", userGrade: "큐레이터", text: "도수 부담되면 큰 얼음 한 개 넣어서 드셔보세요." },
-  ],
-  "1012": [
-    { id: 1, userId: 6005, userName: "감자감자감자", userGrade: "큐레이터", text: "맥주는 라거/IPA 반반 준비하면 대부분 좋아해요." },
-    { id: 2, userId: 6006, userName: "삼차원구", userGrade: "테이스터", text: "전통주는 막걸리+전 조합이 실패가 적었습니다." },
-    { id: 3, userId: 6007, userName: "주합러", userGrade: "테이스터", text: "와인은 화이트 1, 레드 1 정도가 안전해요." },
-    { id: 4, userId: 2001, userName: "민지", userGrade: "테이스터", text: "안주는 짠맛/담백한 맛 둘 다 준비하면 좋아요." },
-    { id: 5, userId: 2002, userName: "현우", userGrade: "셀렉터", text: "처음엔 도수 낮은 술부터 내는 순서 추천합니다." },
-    { id: 6, userId: 2003, userName: "노아", userGrade: "테이스터", text: "예산 정해두고 병 수를 먼저 계산하면 편해요." },
-    { id: 7, userId: 2019, userName: "태형", userGrade: "테이스터", text: "무알콜 음료 1~2개 같이 두면 만족도 높아요." },
-  ],
-  "1025": [],
-  "90001": [
-    { id: 1, userId: 2025, userName: "윤아", userGrade: "테이스터", text: "사시미랑 준마이 다이긴죠 조합은 진짜 깔끔하네요." },
-    { id: 2, userId: 2101, userName: "지훈", userGrade: "큐레이터", text: "레몬 한 방울 팁 좋습니다." },
-    { id: 3, userId: 2102, userName: "도윤", userGrade: "셀렉터", text: "간장보다 소금 쪽이 더 어울린다는 말 공감해요." },
-    { id: 4, userId: 2103, userName: "나연", userGrade: "큐레이터", text: "다음 모임 메뉴로 그대로 해볼게요." },
-    { id: 5, userId: 2104, userName: "수빈", userGrade: "테이스터", text: "사케 온도는 어느 정도가 좋았나요?" },
-    { id: 6, userId: 2105, userName: "시카", userGrade: "테이스터", text: "너무 차갑지 않게 마시면 향이 더 살아요." },
-    { id: 7, userId: 2113, userName: "하린", userGrade: "테이스터", text: "플레이팅 팁도 공유해주셔서 좋네요." },
-  ],
-  "90002": [
-    { id: 1, userId: 2115, userName: "준호", userGrade: "테이스터", text: "치즈 플래터랑 사케 조합 의외로 잘 맞네요." },
-    { id: 2, userId: 2116, userName: "서준", userGrade: "테이스터", text: "브리 치즈 추천 완전 동의합니다." },
-    { id: 3, userId: 2117, userName: "유진", userGrade: "테이스터", text: "견과류 추가하면 식감이 확실히 살아나요." },
-    { id: 4, userId: 2118, userName: "태오", userGrade: "테이스터", text: "홈파티 메뉴로 딱이에요." },
-    { id: 5, userId: 1001, userName: "유나로그", userGrade: "테이스터", text: "가격대 비슷한 대체 사케도 궁금합니다." },
-    { id: 6, userId: 1002, userName: "사토유키", userGrade: "셀렉터", text: "짠 치즈보다 순한 치즈가 더 낫더라구요." },
-    { id: 7, userId: 1004, userName: "프로워박러", userGrade: "큐레이터", text: "저도 다음엔 이 조합으로 준비해볼게요." },
-    { id: 8, userId: 1006, userName: "삼차원구", userGrade: "테이스터", text: "크래커랑 과일도 같이 두면 더 좋아요." },
-  ],
-  "90003": [
-    { id: 1, userId: 1011, userName: "콩깐대끼", userGrade: "셀렉터", text: "굴 초회랑 사케는 산뜻해서 좋네요." },
-    { id: 2, userId: 1012, userName: "감자감자감자", userGrade: "큐레이터", text: "비린 향 잡는 팁 덕분에 따라하기 쉬워요." },
-    { id: 3, userId: 1013, userName: "남집사촌", userGrade: "셀렉터", text: "차갑게 칠링해서 마셔봐야겠어요." },
-  ],
-  "91011": [],
-  "91012": [],
-  "91013": [],
-  "99001": [],
-  "99002": [],
 }
 
 export const QUESTION_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedCommentItem[]> = {
-  "92001": [
-    { id: 1, userId: 1015, userName: "나비나기", userGrade: "셀렉터", text: "해산물 쪽이면 막걸리보다 가벼운 사케도 잘 맞아요." },
-    { id: 2, userId: 1020, userName: "샴페인조아", userGrade: "테이스터", text: "맥주는 라거로 시작하면 부담이 적었습니다." },
-    { id: 3, userId: 1021, userName: "보틀노트", userGrade: "소믈리에", text: "안주가 기름지면 산미 있는 술을 같이 보세요." },
-  ],
-  "92002": [
-    { id: 1, userId: 3001, userName: "순대렐라", userGrade: "테이스터", text: "혼술이면 캔 하이볼이 준비하기 제일 편했어요." },
-    { id: 2, userId: 3002, userName: "벼랑위의 당뇨", userGrade: "소믈리에", text: "치즈보다 과일이나 견과류 같이 두면 더 깔끔해요." },
-  ],
-  "92003": [
-    { id: 1, userId: 3003, userName: "이웃집 또터러", userGrade: "테이스터", text: "복순도가 산미가 있어서 전이나 감자전이랑 잘 맞았어요." },
-    { id: 2, userId: 3004, userName: "엄마곗돈", userGrade: "테이스터", text: "너무 차갑게보다 살짝 덜 차갑게 마시면 향이 좋아요." },
-  ],
-  "92004": [
-    { id: 1, userId: 3005, userName: "달려야하니", userGrade: "셀렉터", text: "조니워커 블랙은 하이볼로 내도 반응 무난했습니다." },
-    { id: 2, userId: 3006, userName: "잔잔한리뷰어", userGrade: "테이스터", text: "얼음 크게 넣고 레몬만 살짝 더해도 좋아요." },
-    { id: 3, userId: 5001, userName: "옹심이", userGrade: "셀렉터", text: "위스키 처음인 분들 있으면 진하게 타지 않는 게 좋더라구요." },
-  ],
-  "92005": [
-    { id: 1, userId: 5002, userName: "사케가 좋아", userGrade: "셀렉터", text: "가성비보다는 향 경험 쪽으로 기대하면 만족도가 높아요." },
-    { id: 2, userId: 6001, userName: "용시이", userGrade: "큐레이터", text: "입문이면 먼저 바에서 한 잔 마셔보고 병 구매 추천합니다." },
-  ],
-  "91001": [
-    { id: 1, userId: 6002, userName: "서연", userGrade: "소믈리에", text: "메이커스 다음이면 버팔로 트레이스도 편하게 넘어가요." },
-    { id: 2, userId: 6003, userName: "오크데이", userGrade: "마스터", text: "바닐라 향 좋아하면 우드포드 리저브도 괜찮습니다." },
-  ],
-  "99003": [
-    { id: 1, userId: 6004, userName: "프로워박러", userGrade: "큐레이터", text: "일식이면 준마이 계열 사케가 무난해요." },
-    { id: 2, userId: 6005, userName: "감자감자감자", userGrade: "큐레이터", text: "튀김류면 산뜻한 하이볼도 괜찮았습니다." },
-  ],
+"92001": [
+  { id: 1, userId: 1015, text: "삼겹살이면 의외로 하이볼이 깔끔해서 잘 어울리더라구요." },
+  { id: 2, userId: 1020, text: "라거 맥주랑 같이 먹으면 기름진 맛 잡아줘서 좋았어요." },
+  { id: 3, userId: 1021, text: "전통주 좋아하시면 탄산감 있는 막걸리도 한번 드셔보세요 😄" },
+],
+"92002": [
+  { id: 1, userId: 3001, text: "올리브나 크래커 같은 안주도 편의점 와인이랑 잘 어울려요." },
+  { id: 2, userId: 3002, text: "프로슈토나 육포 같이 짭짤한 안주도 은근 괜찮더라구요 😄" },
+],
+"92003": [
+  { id: 1, userId: 3003, text: "탄산감 꽤 강한 편이라 깔끔하게 넘어가는 느낌 좋더라구요." },
+  { id: 2, userId: 3004, text: "해물파전이나 감자전이랑 같이 먹으면 진짜 잘 어울려요 😄" },
+],
+"92004": [
+  { id: 1, userId: 3005, text: "블루라벨은 선물 받으면 대부분 만족도 꽤 높은 편이죠 😄" },
+  { id: 2, userId: 3006, text: "패키지나 브랜드 인지도 때문에 선물용으로 무난하게 좋은 것 같아요." },
+  { id: 3, userId: 5001, text: "위스키 좋아하시는 분이면 한 번쯤은 반가워할 선택 아닐까요?" },
+],
+"92005": [
+  { id: 1, userId: 5002, text: "오크향이나 쉐리 계열 좋아하시면 만족감 꽤 클 거예요 😄" },
+  { id: 2, userId: 6001, text: "가격 부담은 있지만 한 번쯤 경험해볼 만하다는 의견 많더라구요." },
+],
+"91001": [
+  { id: 1, userId: 6002, text: "메이커스 마크 다음이면 버팔로 트레이스 많이 추천하시더라구요." },
+  { id: 2, userId: 3006, text: "부드러운 스타일 좋아하시면 와일드 터키 101도 한번 드셔보세요 😄" },
+],
+"99003": [
+  { id: 1, userId: 6004, text: "퇴근 후엔 캔 하이볼처럼 가볍게 마실 수 있는 술이 편하더라구요 😄" },
+  { id: 2, userId: 6005, text: "치킨이나 야식류엔 라거 맥주도 부담 없이 잘 어울려요." },
+],
 }
 
 export const COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedCommentItem[]> = {

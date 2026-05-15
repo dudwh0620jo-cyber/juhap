@@ -35,6 +35,7 @@ import { currentUserMock, usersMockById } from "../utils/usersMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { communityPageData } from "../data/communityPageData"
 import { getPairingDetailMock } from "../utils/pairingDetailMock"
+import { resolveQuestionImage } from "../utils/questionImages"
 import {
   deleteStoredUserPost,
   findPairingDetailPost,
@@ -83,17 +84,17 @@ export default function PairingDetail() {
     })
   }, [navState.drinkType, navState.features, navState.foods, pairingTitle, post])
 
+  const { metaLine: myMetaLine, nickname: myNickname } = useMyOnboardingMeta()
 
   const authorId = typeof navState.authorId === "number" ? navState.authorId : typeof post?.authorId === "number" ? post.authorId : null
   const authorMock = authorId !== null ? usersMockById[authorId] : undefined
-  const authorName = authorMock?.name || post?.authorName?.trim() || navState.authorName?.trim() || "익명"
+  const isMyPost = authorId === currentUserMock.id
+  const authorName = isMyPost ? myNickname : authorMock?.name || post?.authorName?.trim() || navState.authorName?.trim() || "익명"
   const profile = authorMock?.profile || navState.profile?.trim() || "20대 / 미설정"
   const locationLabel = navState.locationLabel?.trim() || post?.locationLabel?.trim() || ""
   const detailBodyText = (post?.body?.trim() || navState.body?.trim() || "").trim()
   const authorTier = authorId !== null ? getPairingTierByUserId(authorId) : undefined
 
-  const { metaLine: myMetaLine, nickname: myNickname } = useMyOnboardingMeta()
-  const isMyPost = authorId === currentUserMock.id && authorName === myNickname
   const mySubProfile = isMyPost ? myMetaLine : profile
   const currentUser = useMemo(() => ({ ...currentUserMock, id: currentUserMock.id, name: myNickname, meta: "작성자" }), [myNickname])
 
@@ -219,8 +220,8 @@ export default function PairingDetail() {
     } catch {
       // ignore
     }
-    navigate("/community?filter=review")
-  }, [navigate, numericId])
+    navigate(`/community?filter=${isQnaDetail ? "free" : "review"}`)
+  }, [isQnaDetail, navigate, numericId])
 
   return (
     <section className="pairing_detail_page page_screen" aria-label="페어링 상세">
@@ -246,6 +247,13 @@ export default function PairingDetail() {
 
       {isQnaDetail ? (
         <>
+          <PairingDetailMedia
+            key={numericId}
+            numericId={numericId}
+            photoIds={detailPhotoIds}
+            resolveImage={resolveQuestionImage}
+            ariaLabel="질문 이미지"
+          />
           <h2>{pairingTitle}</h2>
           {detailBodyText ? <p className="detail_text">{detailBodyText}</p> : null}
           <div className="detail_qna_actions" aria-label="댓글 액션">

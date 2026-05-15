@@ -31,7 +31,7 @@ import {
   useStoredNumberSet,
   useStoredStringArray,
 } from "../utils/storage"
-import { usersMockById } from "../utils/usersMock"
+import { getFollowingCount, usersMockById } from "../utils/usersMock"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY } from "../utils/communityStorage"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { useCommunityStoredPosts } from "../hooks/useCommunityStoredPosts"
@@ -266,6 +266,7 @@ export default function Community() {
     COMMUNITY_FOLLOWED_USERS_KEY,
     defaultFollowedUserIdsMock,
   )
+  const followingCount = useMemo(() => getFollowingCount(followedUserIds), [followedUserIds])
   const { value: likedById, toggle: toggleLike } = useStoredBooleanRecordFromIds(COMMUNITY_LIKED_POSTS_KEY)
   const { value: bookmarkListById, setValue: setBookmarkListById } = useStoredNullableStringRecord(
     COMMUNITY_BOOKMARK_LIST_BY_POST_KEY,
@@ -751,7 +752,7 @@ export default function Community() {
             accentText={myPageProfileSummary.gradeLabel}
             stats={[
               { value: myPageProfileSummary.followerCount.toLocaleString("ko-KR"), label: "팔로워" },
-              { value: followedUserIds.size.toLocaleString("ko-KR"), label: "팔로잉" },
+              { value: followingCount.toLocaleString("ko-KR"), label: "팔로잉" },
             ]}
             menuAriaLabel="프로필 수정"
             menuIconSrc={iconDots}
