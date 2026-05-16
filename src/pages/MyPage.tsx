@@ -42,6 +42,9 @@ import iconCaretRight from "../assets/svg/caretright.svg"
 import iconDotsThreeVertical from "../assets/svg/dotsthreevertical.svg"
 import iconCaretDown from "../assets/svg/caretdown.png"
 import iconGearSix from "../assets/svg/gearsix.svg"
+import iconX from "../assets/svg/x.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
+import iconCheck from "../assets/svg/check_g.svg"
 import myPointCoinImage from "../assets/my_point_coin.png"
 import myPointMascotImage from "../assets/my_point_mascot_01.png"
 import myMissionRecordSave from "../assets/my_record_save_01.png"
@@ -128,8 +131,17 @@ function getTasteSummary(tastePreferences: UserTastePreferences) {
   return { summaryTitle, summaryDescription, situationLine }
 }
 
-function ExchangeItemCard({ item, tone }: { item: ExchangeItem; tone?: "discount" | "experience" }) {
+function ExchangeItemCard({
+  item,
+  tone,
+  onActionClick,
+}: {
+  item: ExchangeItem
+  tone?: "discount" | "experience"
+  onActionClick?: (item: ExchangeItem) => void
+}) {
   const tagToneClass = tone === "experience" ? " is_experience" : ""
+  const isDisabled = Boolean(item.actionDisabled)
   return (
     <article className="my_exchange_item">
       <div className="my_exchange_item_body">
@@ -145,8 +157,13 @@ function ExchangeItemCard({ item, tone }: { item: ExchangeItem; tone?: "discount
         <button
           type="button"
           className="my_exchange_item_download"
-          disabled={Boolean(item.actionDisabled)}
+          disabled={isDisabled}
+          aria-disabled={isDisabled}
           aria-label={item.actionDisabled ? "발급 완료" : "교환하기"}
+          onClick={() => {
+            if (isDisabled) return
+            onActionClick?.(item)
+          }}
         />
         <span className="my_exchange_item_status">{item.statusLabel ?? `${item.point} 차감`}</span>
       </div>
@@ -210,7 +227,7 @@ function CoinConfetti({ seed }: { seed: number }) {
   )
 }
 
-function PointCoinBurst({ seed, imageSrc }: { seed: number; imageSrc: string }) {
+function PointCoinBurst({ seed, imageSrc, onCoinTap }: { seed: number; imageSrc: string; onCoinTap?: () => void }) {
   const prefersReducedMotion = usePrefersReducedMotion()
   const burstRef = useRef<HTMLDivElement | null>(null)
   const [coinSizePx, setCoinSizePx] = useState<number | null>(null)
@@ -245,7 +262,9 @@ function PointCoinBurst({ seed, imageSrc }: { seed: number; imageSrc: string }) 
         }
       >
         <div className="my_point_coin">
-          <img src={imageSrc} alt="" aria-hidden="true" />
+          <button type="button" className="my_point_coin_tap" aria-label="포인트 코인" onClick={onCoinTap}>
+            <img src={imageSrc} alt="" aria-hidden="true" />
+          </button>
         </div>
       </div>
     )
@@ -277,7 +296,9 @@ function PointCoinBurst({ seed, imageSrc }: { seed: number; imageSrc: string }) 
           <CoinConfetti seed={seed} key={`confetti-${seed}`} />
         </AnimatePresence>
         <div className="my_point_coin">
-          <img src={imageSrc} alt="" aria-hidden="true" />
+          <button type="button" className="my_point_coin_tap" aria-label="포인트 코인" onClick={onCoinTap}>
+            <img src={imageSrc} alt="" aria-hidden="true" />
+          </button>
         </div>
       </motion.div>
     </div>
@@ -314,6 +335,13 @@ export default function MyPage() {
   const exchangeTabsRef = useRef<HTMLElement | null>(null)
   const exchangeTabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [exchangeTabsGlider, setExchangeTabsGlider] = useState({ x: 0, width: 0 })
+  const [myAlertToast, setMyAlertToast] = useState<{ tone: "success" | "warning"; message: string } | null>(null)
+  const myAlertToastTimerRef = useRef<number | null>(null)
+  const [livePointHistoryItems, setLivePointHistoryItems] = useState(pointHistoryItems)
+  const [exchangeBalance, setExchangeBalance] = useState(myPagePointsSummary.balance)
+  const [liveDiscountItems, setLiveDiscountItems] = useState(discountItems)
+  const [liveExperienceItems, setLiveExperienceItems] = useState(experienceItems)
+  const [coinTapCount, setCoinTapCount] = useState(0)
   const myAvatarSrc = resolveMyUserAvatar()
   const [selectedByGroup, setSelectedByGroup] = useState<UserTastePreferences>(() =>
     normalizeTastePreferences(profile.tastePreferences),
@@ -371,6 +399,93 @@ export default function MyPage() {
       navigate(`/category/list?${params.toString()}`)
     }
   }
+
+  const showMyAlertToast = (tone: "success" | "warning", message: string) => {
+    if (myAlertToast) return
+    setMyAlertToast({ tone, message })
+    if (myAlertToastTimerRef.current) window.clearTimeout(myAlertToastTimerRef.current)
+    myAlertToastTimerRef.current = window.setTimeout(() => {
+      setMyAlertToast(null)
+      myAlertToastTimerRef.current = null
+    }, 5000)
+  }
+
+  const handleExchangeItemAction = (item: ExchangeItem) => {
+    if (item.actionDisabled) {
+      showMyAlertToast("warning", "가지고 있는 포인트로는 교환할 수 없어요.")
+      return
+    }
+
+    const requiredPoint = Number(item.point.replace(/[^\d]/g, ""))
+    if (Number.isFinite(requiredPoint) && exchangeBalance < requiredPoint) {
+      showMyAlertToast("warning", "가지고 있는 포인트로는 교환할 수 없어요.")
+      return
+    }
+
+    if (Number.isFinite(requiredPoint) && requiredPoint > 0) {
+      setExchangeBalance((prev) => Math.max(0, prev - requiredPoint))
+      setLivePointHistoryItems((prev) => [
+        {
+          title: item.title,
+          dateLabel: "오늘",
+          pointLabel: `-${requiredPoint.toLocaleString("ko-KR")} P`,
+          tone: "negative",
+        },
+        ...prev,
+      ])
+    }
+    setLiveDiscountItems((prev) =>
+      prev.map((entry) => (entry.title === item.title ? { ...entry, actionDisabled: true, statusLabel: "사용 완료" } : entry)),
+    )
+    setLiveExperienceItems((prev) =>
+      prev.map((entry) => (entry.title === item.title ? { ...entry, actionDisabled: true, statusLabel: "사용 완료" } : entry)),
+    )
+
+    showMyAlertToast("success", "교환이 완료됐어요!")
+  }
+
+  const handleCoinTapReset = () => {
+    setCoinTapCount((prev) => {
+      const next = prev + 1
+      if (next < 4) return next
+      setExchangeBalance(myPagePointsSummary.balance)
+      setLiveDiscountItems(discountItems)
+      setLiveExperienceItems(experienceItems)
+      setLivePointHistoryItems(pointHistoryItems)
+      showMyAlertToast("success", "초기 상태로 되돌렸어요.")
+      return 0
+    })
+  }
+
+  const renderMyAlertToast = () =>
+    myAlertToast ? (
+      <div className="app_alert_toast" role="status" aria-live="polite">
+        <span className={myAlertToast.tone === "success" ? "app_alert_toast_icon is_success" : "app_alert_toast_icon is_warning"}>
+          <img src={myAlertToast.tone === "success" ? iconCheck : iconWarning} alt="" aria-hidden="true" />
+        </span>
+        <p>{myAlertToast.message}</p>
+        <button
+          type="button"
+          className="app_alert_toast_close"
+          aria-label="닫기"
+          onClick={() => {
+            if (myAlertToastTimerRef.current) {
+              window.clearTimeout(myAlertToastTimerRef.current)
+              myAlertToastTimerRef.current = null
+            }
+            setMyAlertToast(null)
+          }}
+        >
+          <img src={iconX} alt="" aria-hidden="true" />
+        </button>
+      </div>
+    ) : null
+
+  useEffect(() => {
+    return () => {
+      if (myAlertToastTimerRef.current) window.clearTimeout(myAlertToastTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isPointExchangeOpen) return
@@ -767,8 +882,8 @@ export default function MyPage() {
     const showDiscount = activeExchangeTab === "전체" || activeExchangeTab === "할인권"
     const showExperience = activeExchangeTab === "전체" || activeExchangeTab === "체험권"
     const showPreparing = activeExchangeTab === "프리미엄" || activeExchangeTab === "광고 적립"
-    const visibleDiscountItems = discountItems
-    const visibleExperienceItems = experienceItems
+    const visibleDiscountItems = liveDiscountItems
+    const visibleExperienceItems = liveExperienceItems
 
     return (
       <section className="my_exchange_page" aria-label="포인트 교환소">
@@ -823,10 +938,11 @@ export default function MyPage() {
               <div className="my_point_card_head">
                 <div className="my_point_card_meta">
                   <span>보유 포인트</span>
-                  <strong>{myPagePointsSummary.balance.toLocaleString("ko-KR")} P</strong>
+                  <strong>{exchangeBalance.toLocaleString("ko-KR")} P</strong>
                 </div>
-                <PointCoinBurst seed={exchangeCoinBurstId} imageSrc={myPointCoinImage} />
+                <PointCoinBurst seed={exchangeCoinBurstId} imageSrc={myPointCoinImage} onCoinTap={handleCoinTapReset} />
               </div>
+              <small className="my_point_card_reset_hint">코인 4번 탭하면 초기화 ({coinTapCount}/4)</small>
               <p>교환 시 포인트가 차감돼요</p>
             </section>
 
@@ -859,7 +975,7 @@ export default function MyPage() {
                   <h2 id="exchange-discount">할인권</h2>
                   <div className="my_exchange_item_list">
                     {visibleDiscountItems.map((item) => (
-                      <ExchangeItemCard item={item} tone="discount" key={item.title} />
+                      <ExchangeItemCard item={item} tone="discount" key={item.title} onActionClick={handleExchangeItemAction} />
                     ))}
                   </div>
                 </section>
@@ -870,7 +986,7 @@ export default function MyPage() {
                   <h2 id="exchange-experience">체험권</h2>
                   <div className="my_exchange_item_list">
                     {visibleExperienceItems.map((item) => (
-                      <ExchangeItemCard item={item} tone="experience" key={item.title} />
+                      <ExchangeItemCard item={item} tone="experience" key={item.title} onActionClick={handleExchangeItemAction} />
                     ))}
                   </div>
                 </section>
@@ -905,7 +1021,13 @@ export default function MyPage() {
                           type="button"
                           className={isDisabled ? "is_disabled" : ""}
                           disabled={isDisabled}
-                          onClick={() => handleMissionAction(mission.title)}
+                          onClick={() => {
+                            if (isDisabled) {
+                              showMyAlertToast("warning", "현재 지원되지 않는 기능이에요.")
+                              return
+                            }
+                            handleMissionAction(mission.title)
+                          }}
                         >
                           {mission.action}
                         </button>
@@ -915,11 +1037,12 @@ export default function MyPage() {
                 </div>
               </div>
             </section>
+            {renderMyAlertToast()}
           </>
         ) : (
           <section className="my_point_history" aria-label="포인트 내역">
             <div className="my_point_history_list">
-              {pointHistoryItems.map((item) => (
+              {livePointHistoryItems.map((item) => (
                 <article className="my_point_history_item" key={`${item.title}-${item.dateLabel}-${item.pointLabel}`}>
                   <div className="my_point_history_meta">
                     <strong className="my_point_history_title">{item.title}</strong>
@@ -937,6 +1060,7 @@ export default function MyPage() {
                 </article>
               ))}
             </div>
+            {renderMyAlertToast()}
           </section>
         )}
       </section>
@@ -944,8 +1068,8 @@ export default function MyPage() {
   }
 
   if (isCouponVaultOpen) {
-    const issuedDiscountItems = discountItems.filter((item) => Boolean(item.actionDisabled) && item.statusLabel?.includes("발급"))
-    const issuedExperienceItems = experienceItems.filter(
+    const issuedDiscountItems = liveDiscountItems.filter((item) => Boolean(item.actionDisabled) && item.statusLabel?.includes("발급"))
+    const issuedExperienceItems = liveExperienceItems.filter(
       (item) => Boolean(item.actionDisabled) && item.statusLabel?.includes("발급"),
     )
 
@@ -968,7 +1092,7 @@ export default function MyPage() {
               <h2 id="coupon-discount">할인권</h2>
               <div className="my_exchange_item_list">
                 {issuedDiscountItems.map((item) => (
-                  <ExchangeItemCard item={item} tone="discount" key={item.title} />
+                  <ExchangeItemCard item={item} tone="discount" key={item.title} onActionClick={handleExchangeItemAction} />
                 ))}
               </div>
             </section>
@@ -979,7 +1103,7 @@ export default function MyPage() {
               <h2 id="coupon-experience">체험권</h2>
               <div className="my_exchange_item_list">
                 {issuedExperienceItems.map((item) => (
-                  <ExchangeItemCard item={item} tone="experience" key={item.title} />
+                  <ExchangeItemCard item={item} tone="experience" key={item.title} onActionClick={handleExchangeItemAction} />
                 ))}
               </div>
             </section>
@@ -991,12 +1115,14 @@ export default function MyPage() {
             </section>
           ) : null}
         </div>
+        {renderMyAlertToast()}
       </section>
     )
   }
 
   return (
     <section className="my_page" aria-label="마이페이지">
+      {renderMyAlertToast()}
       <header className="my_profile_header">
         <div className="my_profile_header_inner">
           <div className="my_profile_avatar" aria-hidden="true">
