@@ -18,7 +18,7 @@ export const todayPairingDetailContent: TodayPairingDetailContent[] = [
   {
     storyTitle: "소세지나초 × 산토리하이볼",
     storyBody:
-      "가볍고 시원한 하이볼의 탄산감으로" +
+      "가볍고 시원한 하이볼의 탄산감으로\n" +
       "스낵류의 풍미를 부담 없이 즐기게 해주는 \n" +
       "실패 없는 미식 공식이에요.",
     points: [{ label: "맛의균형" }, { label: "캐주얼" }, { label: "향의조화" }],

@@ -1,8 +1,10 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Chiron+Sung+HK:ital,wght@0,200..900;1,200..900&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200..900&display=swap');
+
 :root {
   /* font family */
-  --font-title: "Chiron Sung HK", serif;
+  --font-title: "Chiron Sung HK", "Noto Serif KR", serif;
   --font-main: "Pretendard Variable", sans-serif;
 
   /* brand */
@@ -247,7 +249,7 @@ body {
 
 .page_screen {
   min-height: 100vh;
-  padding: 68px 24px 132px;
+  padding: 68px 20px 132px;
 }
 
 .status_bar {
@@ -414,4 +416,27 @@ body {
 
 .post_owner_action_button.is_danger {
   color: #c84e45;
+}
+
+.ui_orb_motion {
+  transform-origin: center;
+  animation-name: ui_orb_rotate_loop;
+  animation-duration: var(--orb-rotate-duration, 420s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes ui_orb_rotate_loop {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui_orb_motion {
+    animation: none;
+  }
 }

@@ -294,6 +294,7 @@ export default function Community() {
   const [expandedChipGroups, setExpandedChipGroups] = useState<Set<string>>(() => new Set())
   const chipGroupRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
   const myUserId = currentUserMock.id
+  const myTierLabel = getPairingTierLabelByUserId(myUserId)
   const myAvatarSrc = resolveMyUserAvatar()
   const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
   const { commentCountByPostId, persistUserPosts, userPostIdSet, userPosts } = useCommunityStoredPosts(feedPosts)
@@ -749,7 +750,7 @@ export default function Community() {
           <ProfileSummaryCard
             avatarSrc={myAvatarSrc}
             title={myNickname}
-            accentText={myPageProfileSummary.gradeLabel}
+            accentText={myTierLabel}
             stats={[
               { value: myPageProfileSummary.followerCount.toLocaleString("ko-KR"), label: "팔로워" },
               { value: followingCount.toLocaleString("ko-KR"), label: "팔로잉" },

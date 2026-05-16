@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+﻿import { useMemo } from "react"
 import type { CategoryListItem } from "../components/CategoryItemCard"
 import { FEATURE_CHIPS } from "../data/categoryFilterConfig"
 import { drinkCategories } from "../data/categoryData"
@@ -46,11 +46,25 @@ export type SortKey = "default" | "recommended" | "popular"
 
 export const sortOptions: Array<{ key: SortKey; label: string }> = [
   { key: "default", label: "최신순" },
-  { key: "recommended", label: "추천순" },
-  { key: "popular", label: "인기순" },
+  { key: "recommended", label: "가격 낮은순" },
+  { key: "popular", label: "가격 높은순" },
 ]
 
-const ALL_SUBCATEGORY = "전체"
+export const ALL_SUBCATEGORY = "전체"
+
+const normalizeSubcategoryKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[()]/g, "")
+    .replace(/\//g, "")
+    .replace(/데킬라/g, "테킬라")
+    .replace(/sober/g, "")
+    .replace(/소주$/g, "")
+    .replace(/soju$/g, "")
+    .trim()
+
+const isSameSubcategory = (a: string, b: string) => normalizeSubcategoryKey(a) === normalizeSubcategoryKey(b)
 
 const imageByProductId: Record<string, string> = {
   "sake-dassai-23": imgDassai23,
@@ -196,6 +210,8 @@ const inferFeatures = (tokens: string[]) => {
   const joined = tokens.join(" ").toLowerCase()
   const features: string[] = []
   if (joined.includes("과일") || joined.includes("fruity")) features.push("과일향")
+  if (joined.includes("상큼") || joined.includes("산뜻") || joined.includes("fresh") || joined.includes("citrus")) features.push("상큼한")
+  if (joined.includes("은은") || joined.includes("섬세") || joined.includes("delicate")) features.push("은은함")
   if (joined.includes("부드") || joined.includes("스무") || joined.includes("smooth")) features.push("부드러운")
   if (joined.includes("가벼") || joined.includes("라이트") || joined.includes("light")) features.push("가벼운")
   if (joined.includes("진한") || joined.includes("묵직") || joined.includes("무거") || joined.includes("heavy")) features.push("무거운")
@@ -230,7 +246,7 @@ const inferSearchTags = (tokens: string[]) => {
 
 const createSakeItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   sakeProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -248,7 +264,7 @@ const createSakeItems = (drinkTypeLabel: string, subcategory: string): CategoryL
 
 const createSojuItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   sojuProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -265,7 +281,7 @@ const createSojuItems = (drinkTypeLabel: string, subcategory: string): CategoryL
 
 const createWineItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   wineProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -282,7 +298,7 @@ const createWineItems = (drinkTypeLabel: string, subcategory: string): CategoryL
 
 const createBeerItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   beerProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -299,7 +315,7 @@ const createBeerItems = (drinkTypeLabel: string, subcategory: string): CategoryL
 
 const createWhiskeyItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   whiskeyProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -316,7 +332,7 @@ const createWhiskeyItems = (drinkTypeLabel: string, subcategory: string): Catego
 
 const createSpiritsItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   spiritsProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -333,7 +349,7 @@ const createSpiritsItems = (drinkTypeLabel: string, subcategory: string): Catego
 
 const createTraditionalItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   traditionalProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -350,7 +366,7 @@ const createTraditionalItems = (drinkTypeLabel: string, subcategory: string): Ca
 
 const createEtcItems = (drinkTypeLabel: string, subcategory: string): CategoryListItem[] =>
   etcProductsMock
-    .filter((product) => product.subcategory === subcategory)
+    .filter((product) => isSameSubcategory(product.subcategory, subcategory))
     .map((product) => ({
       id: product.id,
       name: product.name,
@@ -365,89 +381,99 @@ const createEtcItems = (drinkTypeLabel: string, subcategory: string): CategoryLi
       keywords: product.keywords,
     }))
 
-export function useCategoryListPageData(group = "사케", sub = "준마이 다이긴죠/다이긴죠") {
-  const items = useMemo(() => {
-    if (sub === ALL_SUBCATEGORY) {
-      const category = drinkCategories.find((item) => item.label === group)
-      if (!category) return []
+export function getCategoryListItems(group = "사케", sub = "준마이 다이긴죠/다이긴죠") {
+  if (sub === ALL_SUBCATEGORY) {
+    const category = drinkCategories.find((item) => item.label === group)
+    if (!category) return []
 
-      return category.subcategories.flatMap((subcategory) => {
-        if (category.id === "sake") return createSakeItems(group, subcategory)
-        if (category.id === "soju") return createSojuItems(group, subcategory)
-        if (category.id === "wine") return createWineItems(group, subcategory)
-        if (category.id === "beer") return createBeerItems(group, subcategory)
-        if (category.id === "whisky") return createWhiskeyItems(group, subcategory)
-        if (category.id === "spirits") return createSpiritsItems(group, subcategory)
-        if (category.id === "traditional") return createTraditionalItems(group, subcategory)
-        if (category.id === "etc") return createEtcItems(group, subcategory)
-        return []
-      })
-    }
-    if (group === "소주") {
-      if (sub === "데일리(희석식)" || sub === "프리미엄(증류식)" || sub === "플레이버") {
-        return createSojuItems(group, sub)
-      }
+    return category.subcategories.flatMap((subcategory) => {
+      if (category.id === "sake") return createSakeItems(group, subcategory)
+      if (category.id === "soju") return createSojuItems(group, subcategory)
+      if (category.id === "wine") return createWineItems(group, subcategory)
+      if (category.id === "beer") return createBeerItems(group, subcategory)
+      if (category.id === "whisky") return createWhiskeyItems(group, subcategory)
+      if (category.id === "spirits") return createSpiritsItems(group, subcategory)
+      if (category.id === "traditional") return createTraditionalItems(group, subcategory)
+      if (category.id === "etc") return createEtcItems(group, subcategory)
       return []
+    })
+  }
+  if (group === "소주") {
+    if (sub === "데일리(희석식)" || sub === "프리미엄(증류식)" || sub === "플레이버") {
+      return createSojuItems(group, sub)
     }
-
-    if (group === "와인") {
-      if (sub === "레드" || sub === "화이트" || sub === "로제" || sub === "스파클링" || sub === "내추럴" || sub === "포트" || sub === "디저트") {
-        return createWineItems(group, sub)
-      }
-      return []
-    }
-
-    if (group === "맥주") {
-      if (sub === "라거/필스너" || sub === "에일/IPA" || sub === "흑맥주(스타우트)" || sub === "과일맥주") {
-        return createBeerItems(group, sub)
-      }
-      return []
-    }
-
-    if (group === "위스키") {
-      if (
-        sub === "싱글몰트 위스키" ||
-        sub === "블렌디드 몰트" ||
-        sub === "블렌디드 위스키" ||
-        sub === "아메리칸(버번/라이/테네시)" ||
-        sub === "그레인 위스키" ||
-        sub === "기타 국가 위스키"
-      ) {
-        return createWhiskeyItems(group, sub)
-      }
-      return []
-    }
-
-    if (group === "증류주") {
-      if (sub === "백주/고량주" || sub === "진/보드카" || sub === "테킬라/럼" || sub === "브랜디(꼬냑/아르마냑)") {
-        return createSpiritsItems(group, sub)
-      }
-      return []
-    }
-
-    if (group === "전통주") {
-      if (sub === "막걸리/탁주" || sub === "약주/청주" || sub === "과실주(한국 와인)") {
-        return createTraditionalItems(group, sub)
-      }
-      return []
-    }
-
-    if (group === "기타") {
-      if (sub === "리큐르" || sub === "하이볼/칵테일" || sub === "논알콜/저도수 (Sober)") {
-        return createEtcItems(group, sub)
-      }
-      return []
-    }
-
-    if (group === "사케") {
-      if (sub === "준마이 다이긴죠/다이긴죠" || sub === "준마이 긴죠/긴죠" || sub === "준마이" || sub === "혼죠조/후츠슈") {
-        return createSakeItems(group, sub)
-      }
-      return []
-    }
-
     return []
-  }, [group, sub])
+  }
+
+  if (group === "와인") {
+    if (
+      sub === "레드 와인" ||
+      sub === "화이트 와인" ||
+      sub === "로제 와인" ||
+      sub === "스파클링 와인" ||
+      sub === "내추럴 와인" ||
+      sub === "포트 와인" ||
+      sub === "디저트 와인"
+    ) {
+      return createWineItems(group, sub)
+    }
+    return []
+  }
+
+  if (group === "맥주") {
+    if (sub === "라거/필스너" || sub === "에일 / IPA" || sub === "흑맥주 (스타우트)" || sub === "과일맥주") {
+      return createBeerItems(group, sub)
+    }
+    return []
+  }
+
+  if (group === "위스키") {
+    if (
+      sub === "싱글몰트 위스키" ||
+      sub === "블렌디드 몰트" ||
+      sub === "블렌디드 위스키" ||
+      sub === "아메리칸(버번/라이/테네시)" ||
+      sub === "그레인 위스키" ||
+      sub === "기타 국가 위스키"
+    ) {
+      return createWhiskeyItems(group, sub)
+    }
+    return []
+  }
+
+  if (group === "증류주") {
+    if (sub === "백주/고량주" || sub === "진/보드카" || sub === "테킬라/럼" || sub === "브랜디(꼬냑/아르마냑)") {
+      return createSpiritsItems(group, sub)
+    }
+    return []
+  }
+
+  if (group === "전통주") {
+    if (sub === "막걸리/탁주" || sub === "약주/청주" || sub === "과실주(한국 와인)") {
+      return createTraditionalItems(group, sub)
+    }
+    return []
+  }
+
+  if (group === "기타") {
+    if (sub === "리큐르" || sub === "하이볼/칵테일" || sub === "논알콜/저도수 (Sober)") {
+      return createEtcItems(group, sub)
+    }
+    return []
+  }
+
+  if (group === "사케") {
+    if (sub === "준마이 다이긴죠/다이긴죠" || sub === "준마이 긴죠/긴죠" || sub === "준마이" || sub === "혼죠조/후츠슈") {
+      return createSakeItems(group, sub)
+    }
+    return []
+  }
+
+  return []
+}
+
+export function useCategoryListPageData(group = "사케", sub = "준마이 다이긴죠/다이긴죠") {
+  const items = useMemo(() => getCategoryListItems(group, sub), [group, sub])
 
   return useMemo(() => ({ items, sortOptions }), [items])
 }

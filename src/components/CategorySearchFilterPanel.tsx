@@ -1,4 +1,4 @@
-import type { RefObject } from "react"
+﻿import type { RefObject } from "react"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
 import type { FilterGroup } from "../data/categoryFilterConfig"
@@ -188,12 +188,7 @@ export default function CategorySearchFilterPanel({
                   <p className="category_search_mode_title">추천 검색어</p>
                   <div className="category_search_suggest_list">
                     {suggestedKeywords.map((keyword) => (
-                      <button
-                        key={keyword}
-                        type="button"
-                        className="category_search_suggest_item"
-                        onClick={() => onSelectSuggestion(keyword)}
-                      >
+                      <button key={keyword} type="button" className="category_search_suggest_item" onClick={() => onSelectSuggestion(keyword)}>
                         <img className="category_search_suggest_icon" src={iconSearch} alt="" aria-hidden="true" />
                         {keyword}
                       </button>
@@ -204,15 +199,10 @@ export default function CategorySearchFilterPanel({
 
               {showProductSection ? (
                 <div className="category_search_result_suggest" onClick={(event) => event.stopPropagation()} role="presentation">
-                  <h3 className="category_filter_group_title">추천 제품</h3>
+                  <h3 className="category_filter_group_title">추천 상품</h3>
                   <div className="category_search_result_products">
                     {recommendedProducts.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        className="category_search_result_item"
-                        onClick={() => onSelectSuggestion(item.name)}
-                      >
+                      <button key={item.id} type="button" className="category_search_result_item" onClick={() => onSelectSuggestion(item.name)}>
                         <strong>{item.name}</strong>
                         <small>{productPathText(item)}</small>
                       </button>
@@ -223,17 +213,12 @@ export default function CategorySearchFilterPanel({
 
               {showEmptySection ? (
                 <>
-                  <p className="category_search_empty_hint">찾으시는 제품이 없어요. 비슷한 제품으로 이건 어떠세요?</p>
+                  <p className="category_search_empty_hint">찾으시는 상품이 없어요. 비슷한 상품으로 이건 어떠세요?</p>
                   <div className="category_search_result_suggest" onClick={(event) => event.stopPropagation()} role="presentation">
-                    <h3 className="category_filter_group_title">추천 제품</h3>
+                    <h3 className="category_filter_group_title">추천 상품</h3>
                     <div className="category_search_result_products">
                       {recommendedProducts.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          className="category_search_result_item"
-                          onClick={() => onSelectSuggestion(item.name)}
-                        >
+                        <button key={item.id} type="button" className="category_search_result_item" onClick={() => onSelectSuggestion(item.name)}>
                           <strong>{item.name}</strong>
                           <small>{productPathText(item)}</small>
                         </button>
@@ -247,44 +232,47 @@ export default function CategorySearchFilterPanel({
 
           <div className="category_search_filter_content">
             {visibleOverlayGroups.map((groupItem) => {
-              const shouldShowChips = groupItem.title !== "특징" || Boolean(selectedCategoryChip)
+              const isDrinkTypeGroup = groupItem.title === "주종"
+              const isCategoryGroup = groupItem.title === "카테고리"
+              const isFeatureGroup = groupItem.title === "특징"
+              const shouldShowGroup =
+                isDrinkTypeGroup || (isCategoryGroup && Boolean(selectedDrinkTypeLabel)) || (isFeatureGroup && Boolean(selectedCategoryChip))
+
+              if (!shouldShowGroup) return null
 
               return (
                 <div className="category_filter_group category_filter_group_chips" key={groupItem.title}>
                   <h3 className="category_filter_group_title">{groupItem.title}</h3>
-                  <div className={shouldShowChips ? "category_filter_chip_row" : "category_filter_chip_row is_placeholder"}>
-                    {shouldShowChips
-                      ? groupItem.chips.map((chip) => {
-                          const isEnabled = isOverlayChipEnabled(groupItem.title, chip)
-                          const isActive =
-                            groupItem.title === "주종"
-                              ? selectedDrinkTypeLabel === chip
-                              : groupItem.title === "카테고리"
-                                ? selectedCategoryChip === chip
-                                : selectedFeatureChips.has(chip)
+                  <div className="category_filter_chip_row">
+                    {groupItem.chips.map((chip) => {
+                      const isEnabled = isOverlayChipEnabled(groupItem.title, chip)
+                      const isActive = isDrinkTypeGroup
+                        ? selectedDrinkTypeLabel === chip
+                        : isCategoryGroup
+                          ? selectedCategoryChip === chip
+                          : selectedFeatureChips.has(chip)
 
-                          return (
-                            <button
-                              key={chip}
-                              type="button"
-                              className={
-                                isEnabled
-                                  ? isActive
-                                    ? "category_filter_chip is_active"
-                                    : "category_filter_chip"
-                                  : "category_filter_chip is_disabled"
-                              }
-                              onClick={() => {
-                                if (!isEnabled) return
-                                toggleFilterChip(groupItem.title, chip)
-                              }}
-                              disabled={!isEnabled}
-                            >
-                              {chip}
-                            </button>
-                          )
-                        })
-                      : null}
+                      return (
+                        <button
+                          key={chip}
+                          type="button"
+                          className={
+                            isEnabled
+                              ? isActive
+                                ? "category_filter_chip is_active"
+                                : "category_filter_chip"
+                              : "category_filter_chip is_disabled"
+                          }
+                          onClick={() => {
+                            if (!isEnabled) return
+                            toggleFilterChip(groupItem.title, chip)
+                          }}
+                          disabled={!isEnabled}
+                        >
+                          {chip}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )

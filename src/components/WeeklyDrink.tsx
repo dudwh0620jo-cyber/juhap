@@ -54,7 +54,10 @@ function DrinkStat({ iconSrc, label, value }: { iconSrc: string; label: string; 
 
 export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
   const backgrounds = [weeklyDrinkBg01, weeklyDrinkBg02, weeklyDrinkBg03] as const
-  const formatPriceLabel = (value: string) => value.replace(/^[^\d]+/, "")
+  const formatPriceLabel = (value: string) => {
+    const numeric = value.replace(/[^\d,]/g, "")
+    return `₩${numeric}`
+  }
 
   return (
     <section className="home_block home_weekly_drink" aria-label="금주의 주류 소개">
@@ -80,15 +83,17 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
 
               <div className="weekly_drink_card_inner">
                 <div className="weekly_drink_left">
-                  <h4 className="weekly_drink_name">{renderWithLineBreaks(item.name)}</h4>
-                  <div className="weekly_drink_kv">
-                    <span className="weekly_drink_kv_type">{item.type}</span>
-                    <span className="weekly_drink_kv_divider" aria-hidden="true">
-                      |
-                    </span>
-                    <span className="weekly_drink_kv_origin">{item.origin}</span>
+                  <div className="weekly_drink_info_panel">
+                    <h4 className="weekly_drink_name">{renderWithLineBreaks(item.name)}</h4>
+                    <div className="weekly_drink_kv">
+                      <span className="weekly_drink_kv_type">{item.type}</span>
+                      <span className="weekly_drink_kv_divider" aria-hidden="true">
+                        |
+                      </span>
+                      <span className="weekly_drink_kv_origin">{item.origin}</span>
+                    </div>
+                    <div className="weekly_drink_price">{formatPriceLabel(item.priceLabel)}</div>
                   </div>
-                  <div className="weekly_drink_price">{formatPriceLabel(item.priceLabel)}</div>
                 </div>
 
                 <div className="weekly_drink_right">
@@ -119,4 +124,3 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
     </section>
   )
 }
-

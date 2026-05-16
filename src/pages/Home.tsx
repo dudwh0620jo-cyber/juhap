@@ -1,6 +1,6 @@
 ﻿import "../styles/home.css"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Link, useNavigate } from "react-router"
+import { Link, useLocation, useNavigate } from "react-router"
 import { motion } from "motion/react"
 import bellIcon from "../assets/svg/bell.svg"
 import logoSvg from "../assets/svg/logo.svg"
@@ -9,7 +9,6 @@ import voteSvg from "../assets/svg/vote.svg"
 import peopleSvg from "../assets/svg/people.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
-import AlertModal from "../components/AlertModal"
 import type { RecommendationItem } from "../components/RecommendationCard"
 import SituationSection from "../components/SituationSection"
 import TodayHeroCopy from "../components/TodayHeroCopy"
@@ -308,6 +307,7 @@ function WeeklyRankingCard({
 }
 
 function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitle: string; linkTo: string }) {
+  const navigate = useNavigate()
   const [activeIndex, setActiveIndex] = useState(() =>
     Math.max(0, homeWeeklyRankingCards.findIndex((card) => card.isCenter)),
   )
@@ -406,15 +406,15 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
                 transition={{ type: "spring", stiffness: 380, damping: 70, mass: 0.9 }}
                 aria-hidden={opacity === 0}
                 onClick={() => {
-                  setDragOffsetX(0)
-                  setActiveIndex(index)
-                  setIsAutoPlayPaused(true)
-                  window.setTimeout(() => setIsAutoPlayPaused(false), 3500)
+                  navigate(`/community/pairing/${card.communityPairingId}`)
                 }}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") setActiveIndex(index)
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    navigate(`/community/pairing/${card.communityPairingId}`)
+                  }
                 }}
               >
                 <WeeklyRankingCard
@@ -454,13 +454,26 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
 export default function Home() {
   const { recommendationItems, situationItems, weeklyDrinkItems } = useHomePageData()
   const featuredVote = voteItems.find((v) => v.id === FEATURED_VOTE_ID) ?? voteItems[0]
-  const [isQuizPreparingOpen, setIsQuizPreparingOpen] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const voteSectionRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const shouldScroll = Boolean((location.state as { scrollToHomeVote?: boolean } | null)?.scrollToHomeVote)
+    if (!shouldScroll) return
+    const target = voteSectionRef.current
+    if (!target) return
+    const raf = window.requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "center" })
+    })
+    return () => window.cancelAnimationFrame(raf)
+  }, [location.state])
 
   return (
     <section className="home_page page_screen" aria-label="홈">
       <header className="home_header">
         <img className="home_logo" src={logoSvg} alt="주합" />
-        <button className="home_notice_button" type="button" aria-label="알림">
+        <button className="home_notice_button is_disabled" type="button" aria-label="알림" disabled>
           <img src={bellIcon} alt="" aria-hidden="true" />
         </button>
       </header>
@@ -478,15 +491,17 @@ export default function Home() {
 
       <SituationSection items={situationItems} />
 
-      <VoteSection
-        voteId={featuredVote.id}
-        question={featuredVote.question}
-        totalVotes={featuredVote.totalVotes}
-        options={[
-          { id: 1, ...featuredVote.options[0] },
-          { id: 2, ...featuredVote.options[1] },
-        ]}
-      />
+      <div ref={voteSectionRef}>
+        <VoteSection
+          voteId={featuredVote.id}
+          question={featuredVote.question}
+          totalVotes={featuredVote.totalVotes}
+          options={[
+            { id: 1, ...featuredVote.options[0] },
+            { id: 2, ...featuredVote.options[1] },
+          ]}
+        />
+      </div>
 
       <HomeWeeklyRanking
         title="이번 주 주합 랭킹"
@@ -500,28 +515,22 @@ export default function Home() {
         type="button"
         className="home_quiz_card"
         aria-label="오늘의 퀴즈"
-        onClick={() => setIsQuizPreparingOpen(true)}
+        onClick={() => navigate("/quiz")}
         style={{ backgroundImage: `url(${homeAssets.todayQuizBanner})` }}
       >
         <div className="home_quiz_left">
           <div className="home_quiz_badge">오늘의 퀴즈 도전!</div>
-          <div className="home_quiz_title">퀴즈 풀고 포인트 받기</div>
-          <div className="home_quiz_subtitle">매일 퀴즈 참여하고 포인트를 모아보세요.</div>
+          <div className="home_quiz_text_group">
+            <div className="home_quiz_title">퀴즈 풀고 포인트 받기</div>
+            <div className="home_quiz_subtitle">매일 퀴즈 참여하고 포인트를 모아보세요.</div>
+          </div>
         </div>
         <div className="home_quiz_right" aria-hidden="true">
           <img className="home_quiz_arrow" src={iconCaretRight} alt="" />
         </div>
       </button>
-
-      {isQuizPreparingOpen ? (
-        <AlertModal
-          title="준비중"
-          message="서비스 준비중이에요."
-          confirmLabel="확인"
-          variant="preparing"
-          onConfirm={() => setIsQuizPreparingOpen(false)}
-        />
-      ) : null}
     </section>
   )
 }
+
+

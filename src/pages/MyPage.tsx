@@ -339,11 +339,37 @@ export default function MyPage() {
     [],
   )
   const isSavedListOpen = searchParams.get("view") === "saved"
+  const isExchangeViewOpen = searchParams.get("view") === "exchange"
+  const exchangeQueryTab = searchParams.get("tab")
 
   const openPointExchange = () => {
     setPointExchangeTopTab("exchange")
     setActiveExchangeTab("전체")
     setIsPointExchangeOpen(true)
+  }
+
+  useEffect(() => {
+    if (!isExchangeViewOpen) return
+    setPointExchangeTopTab(exchangeQueryTab === "history" ? "history" : "exchange")
+    setActiveExchangeTab("전체")
+    setIsPointExchangeOpen(true)
+  }, [isExchangeViewOpen, exchangeQueryTab])
+
+  const handleMissionAction = (missionTitle: string) => {
+    if (missionTitle === "기록 저장") {
+      navigate("/my/record")
+      return
+    }
+    if (missionTitle === "투표 참여") {
+      navigate("/home", { state: { scrollToHomeVote: true } })
+      return
+    }
+    if (missionTitle === "후기 작성") {
+      const params = new URLSearchParams()
+      params.set("group", "사케")
+      params.set("sub", "전체")
+      navigate(`/category/list?${params.toString()}`)
+    }
   }
 
   useEffect(() => {
@@ -527,6 +553,26 @@ export default function MyPage() {
       next.delete("view")
       return next
     })
+
+  const closePointExchangeView = () => {
+    if (isExchangeViewOpen) {
+      if (window.history.length > 1) {
+        navigate(-1)
+        return
+      }
+
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete("view")
+        next.delete("tab")
+        return next
+      })
+      setIsPointExchangeOpen(false)
+      return
+    }
+
+    setIsPointExchangeOpen(false)
+  }
 
   useEffect(() => {
     const readStoredUserPosts = () => {
@@ -731,7 +777,7 @@ export default function MyPage() {
             type="button"
             className="my_exchange_back"
             aria-label="마이페이지로 돌아가기"
-            onClick={() => setIsPointExchangeOpen(false)}
+            onClick={closePointExchangeView}
           />
           <h1 className="my_exchange_title">포인트</h1>
           <div />
@@ -855,7 +901,12 @@ export default function MyPage() {
                           <strong className="my_exchange_mission_title">{mission.title}</strong>
                           <span className="my_exchange_mission_reward">{mission.reward}</span>
                         </div>
-                        <button type="button" className={isDisabled ? "is_disabled" : ""} disabled={isDisabled}>
+                        <button
+                          type="button"
+                          className={isDisabled ? "is_disabled" : ""}
+                          disabled={isDisabled}
+                          onClick={() => handleMissionAction(mission.title)}
+                        >
                           {mission.action}
                         </button>
                       </article>

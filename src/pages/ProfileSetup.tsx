@@ -18,7 +18,7 @@ const TEXT = {
   nicknamePlaceholder: "\uB2C9\uB124\uC784\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694",
   nicknameWarning: "\uB2C9\uB124\uC784\uC744 \uC785\uB825\uD574 \uC8FC\uC138\uC694.",
   phoneLabel: "\uD734\uB300\uD3F0 \uBC88\uD638",
-  phonePlaceholder: "\uD734\uB300\uD3F0 \uBC88\uD638\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694",
+  phonePlaceholder: "000-0000-0000",
   verifyButton: "\uC778\uC99D\uBC88\uD638",
   phoneWarning: "\uC804\uD654\uBC88\uD638\uB97C \uB05D\uAE4C\uC9C0 \uC785\uB825\uD574 \uC8FC\uC138\uC694.",
   verifyWarning: "\uC804\uD654\uBC88\uD638 \uC778\uC99D\uC744 \uC644\uB8CC\uD574 \uC8FC\uC138\uC694.",
@@ -30,6 +30,13 @@ const TEXT = {
   verifyComplete: "\uC778\uC99D\uB418\uC5C8\uC2B5\uB2C8\uB2E4",
   confirm: "\uD655\uC778",
   postcodeError: "\uC8FC\uC18C \uAC80\uC0C9\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.",
+}
+
+function formatPhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
 }
 
 type DaumPostcodeData = {
@@ -185,7 +192,7 @@ export default function ProfileSetup() {
               autoComplete="tel"
               value={phone}
               onChange={(event) => {
-                setPhone(event.target.value)
+                setPhone(formatPhoneNumber(event.target.value))
                 setIsPhoneVerified(false)
               }}
             />

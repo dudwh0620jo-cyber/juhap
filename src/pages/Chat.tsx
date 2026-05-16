@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from "react"
+﻿import { useEffect, useReducer, useRef, useState } from "react"
 import type { FormEvent } from "react"
 import { useNavigate } from "react-router"
 import AlertModal from "../components/AlertModal"
@@ -6,7 +6,11 @@ import ChatStepPanel from "../components/ChatStepPanel"
 import introRecommendIcon from "../assets/banner_ai_recommend.png"
 import introGlossaryIcon from "../assets/banner_drink_glossary.png"
 import introScanIcon from "../assets/banner_label_scan.png"
-import mascotSearching from "../assets/picture_mascot_searching.png"
+import introBeerDeco from "../assets/chatbot_intro_beer_01.png"
+import introHighballDeco from "../assets/chatbot_intro_highball_01.png"
+import introSakeDeco from "../assets/chatbot_intro_sake_01.png"
+import introSojuDeco from "../assets/chatbot_intro_soju_01.png"
+import introWineDeco from "../assets/chatbot_intro_wine_01.png"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import iconCaretRightWhite from "../assets/svg/caretright_w.svg"
 import iconMicrophone from "../assets/svg/microphone.svg"
@@ -64,6 +68,7 @@ type ChatAction =
   | { type: "APPEND_USER_MESSAGE"; text: string }
   | { type: "APPEND_AI_MESSAGE"; text: string }
   | { type: "GO_BACK" }
+  | { type: "RESET_TO_INTRO"; userName: string }
 
 const scanPromptLabel = "라벨 스캔하기" satisfies (typeof introPromptOptions)[number]
 const fastPromptLabel = "나에게 맞는 추천받기" satisfies (typeof introPromptOptions)[number]
@@ -80,14 +85,9 @@ const MICROPHONE_PERMISSION_MODAL = {
   message: "\uC74C\uC131 \uC785\uB825\uC744 \uC0AC\uC6A9\uD558\uB824\uBA74\n\uB9C8\uC774\uD06C \uAD8C\uD55C\uC744 \uD5C8\uC6A9\uD574 \uC8FC\uC138\uC694.",
   confirmLabel: "\uD655\uC778",
 } as const
-const INTRO_HERO_MESSAGE = [
-  "\uBE44 \uC624\uB294 \uD654\uC694\uC77C \uD1F4\uADFC\uAE38\uC774\uB124\uC694.",
-  "\uC624\uB298\uC740 \uCC28\uBD84\uD55C \uD654\uC774\uD2B8 \uC640\uC778",
-  "\uD55C \uC794 \uC5B4\uB5A0\uC138\uC694?",
-].join("\n")
-const BACK_MESSAGE = "\uB4A4\uB85C\uAC00\uAE30"
-const MORE_DRINKS_MESSAGE = "\uB2E4\uB978 \uC220 \uB354\uBCF4\uAE30"
-const FEATURE_PREPARING_MESSAGE = "\uC900\uBE44\uC911\uC778 \uAE30\uB2A5\uC774\uC5D0\uC694"
+const BACK_MESSAGE = "뒤로가기"
+const MORE_DRINKS_MESSAGE = "다른 술 더보기"
+const FEATURE_PREPARING_MESSAGE = "준비중인 기능이에요"
 
 function getIntroPromptIcon(item: (typeof introPromptOptions)[number]) {
   if (item === scanPromptLabel) return introScanIcon
@@ -122,10 +122,10 @@ function findExactOptionMatch(options: readonly string[], rawInput: string) {
 
 function buildGreetingMessage(userName: string) {
   return [
-    `안녕하세요. ${userName}님!`,
-    "어떤 자리의 술을 찾고 계신가요?",
+    `안녕하세요, ${userName}님!`,
+    "어떤 자리에 술을 찾고 계신가요?",
     "상황을 알려주시면",
-    "완벽한 한 잔을 추천해 드릴게요.",
+    "완벽한 한 잔을 추천해드릴게요.",
   ].join("\n")
 }
 
@@ -144,17 +144,17 @@ function pushUser(messages: ChatMessage[], text: string) {
 function getNextAiPrompt(step: ChatStep) {
   switch (step) {
     case "glossary":
-      return "알고 싶은 용어를 골라주세요."
+      return "궁금한 용어를 골라주세요."
     case "party_mood":
-      return "어떤 자리의 술을 찾고 계신가요?"
+      return "어떤 자리에 술을 찾고 계신가요?"
     case "food":
       return "주로 어떤 음식과 함께하시나요?"
     case "wine_style":
       return "오늘은 어떤 느낌의 술이 좋으세요?"
     case "recommend":
-      return "조건에 맞는 페어링을 찾고 있어요."
+      return "조건에 맞는 완벽한 술을 찾고 있어요."
     case "detail":
-      return "좋아요. 이 추천 주류에 대해 핵심만 정리해드릴게요."
+      return "좋아요. 추천 주류의 핵심만 정리해드릴게요."
     case "pairing":
       return "페어링까지 준비하면 완벽해요. 같이 즐기면 좋은 음식도 알려드릴게요."
     case "done":
@@ -366,6 +366,16 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return state
     }
 
+    case "RESET_TO_INTRO": {
+      return {
+        ...state,
+        step: "intro",
+        session: {},
+        messages: [{ id: createMessageId(), role: "ai" as const, text: buildGreetingMessage(action.userName) }],
+        selectedWine: null,
+      }
+    }
+
     default:
       return state
   }
@@ -383,6 +393,9 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
   const [isMicrophoneModalOpen, setIsMicrophoneModalOpen] = useState(false)
   const actionLockRef = useRef(false)
   const messageInputRef = useRef<HTMLInputElement | null>(null)
+  const messagesRef = useRef<HTMLDivElement | null>(null)
+  const [showTopFade, setShowTopFade] = useState(false)
+  const [showBottomFade, setShowBottomFade] = useState(false)
 
   const userName = userNameProp?.trim() ? userNameProp.trim() : "회원"
   const [state, dispatch] = useReducer(chatReducer, undefined, () => ({
@@ -447,6 +460,23 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     endOfMessagesRef.current?.scrollIntoView({ block: "end" })
   }, [state.messages.length, state.step, isTyping, isStepPanelVisible])
 
+  useEffect(() => {
+    const el = messagesRef.current
+    if (!el) return
+    const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight)
+    const nextTop = el.scrollTop > 6
+    const nextBottom = el.scrollTop < maxScrollTop - 6
+    setShowTopFade(nextTop)
+    setShowBottomFade(nextBottom)
+  }, [state.messages.length, state.step, isTyping, isStepPanelVisible])
+
+  function handleMessagesScroll(event: React.UIEvent<HTMLDivElement>) {
+    const el = event.currentTarget
+    const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight)
+    setShowTopFade(el.scrollTop > 6)
+    setShowBottomFade(el.scrollTop < maxScrollTop - 6)
+  }
+
   function closeModal() {
     if (introTransitionTimeoutRef.current) {
       window.clearTimeout(introTransitionTimeoutRef.current)
@@ -482,16 +512,16 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     setIsTyping(false)
     setIsStepPanelVisible(true)
     actionLockRef.current = false
-    dispatch({ type: "GO_BACK" })
+    dispatch({ type: "RESET_TO_INTRO", userName })
   }
 
-  function dispatchAfterIntroClose(nextAction: ChatAction) {
+  function dispatchAfterIntroClose(nextActions: ChatAction[]) {
     if (actionLockRef.current) return
     actionLockRef.current = true
 
     if (isThread) {
       setMessageValue("")
-      dispatch(nextAction)
+      for (const action of nextActions) dispatch(action)
       actionLockRef.current = false
       return
     }
@@ -503,7 +533,7 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
       setIsIntroClosing(false)
       setIsTyping(true)
       introTransitionTimeoutRef.current = window.setTimeout(() => {
-        dispatch(nextAction)
+        for (const action of nextActions) dispatch(action)
         setIsTyping(false)
         stepPanelTimeoutRef.current = window.setTimeout(() => {
           setIsStepPanelVisible(true)
@@ -540,9 +570,6 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     setMatchingLabels(shouldShowMatching ? Array.from(new Set([...getSelectedSessionLabels(state.session), text])) : [])
     selectionEchoTimeoutRef.current = window.setTimeout(() => {
       setSelectionEcho(null)
-      if (shouldShowMatching) {
-        dispatch({ type: "APPEND_AI_MESSAGE", text: getNextAiPrompt("recommend") })
-      }
       setIsTyping(true)
       selectionEchoTimeoutRef.current = window.setTimeout(() => {
         for (const action of actions) {
@@ -574,11 +601,14 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
   function handleIntroPromptClick(item: (typeof introPromptOptions)[number]) {
     if (item === scanPromptLabel) {
       closeModal()
-      navigate("/ai-scan")
+      navigate("/ai-scan?from=chat")
       return
     }
     setMessageValue("")
-    dispatchAfterIntroClose({ type: "SELECT_INTRO_PROMPT", value: item, userName })
+    dispatchAfterIntroClose([
+      { type: "APPEND_USER_MESSAGE", text: item },
+      { type: "SELECT_INTRO_PROMPT", value: item, userName },
+    ])
   }
 
   function submitMessage(event: FormEvent<HTMLFormElement>) {
@@ -587,7 +617,10 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     if (!trimmedMessage) return
 
     if (state.step === "intro") {
-      dispatchAfterIntroClose({ type: "SELECT_INTRO_PROMPT", value: fastPromptLabel, userName })
+      dispatchAfterIntroClose([
+        { type: "APPEND_USER_MESSAGE", text: fastPromptLabel },
+        { type: "SELECT_INTRO_PROMPT", value: fastPromptLabel, userName },
+      ])
       setMessageValue("")
       return
     }
@@ -746,7 +779,7 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
                 <path d="M15 5L8 12L15 19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            <strong>AI 추천 상담</strong>
+            <strong aria-hidden="true" />
             <button type="button" aria-label="닫기" onClick={closeModal}>
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 <path d="M6 6L18 18M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -760,8 +793,22 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
               aria-hidden={isThread}
             >
               <div className="chat_hero">
-                <div className="ai_face ai_face_large" aria-hidden="true" />
-                <p>{INTRO_HERO_MESSAGE}</p>
+                <div className="chat_intro_mascot_cluster" aria-hidden="true">
+                  <img className="chat_intro_deco chat_intro_deco_wine" src={introWineDeco} alt="" />
+                  <img className="chat_intro_deco chat_intro_deco_soju" src={introSojuDeco} alt="" />
+                  <img className="chat_intro_deco chat_intro_deco_sake" src={introSakeDeco} alt="" />
+                  <img className="chat_intro_deco chat_intro_deco_highball" src={introHighballDeco} alt="" />
+                  <img className="chat_intro_deco chat_intro_deco_beer" src={introBeerDeco} alt="" />
+                  <div className="ai_face ai_face_large" />
+                </div>
+                <p className="chat_intro_title">
+                  반가워요.
+                  <br />
+                  무엇을 도와드릴까요?
+                </p>
+                <p className="chat_intro_subtitle">
+                  주류용어, 페어링, 맛 설명까지 주아가 쉽게 알려드릴게요.
+                </p>
               </div>
               <div className="chat_suggestion_list" aria-label="빠른 선택">
                 {introPromptOptions.map((item) => (
@@ -781,110 +828,119 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
 
             {isThread ? (
             <section className="chat_thread chat_panel is_active">
-              <div className="chat_messages">
-                {state.step !== "done"
-                  ? state.messages.map((message) =>
-                      message.role === "ai" ? (
-                        <div className="chat_bubble_row" key={message.id}>
-                          <p>{message.text}</p>
-                        </div>
-                      ) : (
-                        <div className="chat_bubble_row user_bubble_row" key={message.id}>
-                          <p>{message.text}</p>
-                        </div>
-                      ),
-                    )
-                  : null}
-
-                {state.step !== "done" && isTyping ? (
-                  isMatchingRecommendations ? (
-                    <div className="chat_matching_panel" aria-label="페어링 찾는 중">
-                      <div className="chat_matching_bubble" aria-hidden="true">
-                        찾고 있는 중…
-                      </div>
-                      <div className="chat_matching_mascot_wrap" aria-hidden="true">
-                        <img className="chat_matching_mascot" src={mascotSearching} alt="" />
-                      </div>
-                      <div className="chat_matching_chips">
-                        {matchingSessionLabels.map((label) => (
-                          <span key={label}>{label}</span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="chat_bubble_row" aria-label="AI 입력 중">
-                      <p className="chat_typing_bubble" aria-hidden="true">
-                        . . .
+              <div className={`chat_messages_wrap${showTopFade ? " is_scroll_top" : ""}${showBottomFade ? " is_scroll_bottom" : ""}`}>
+                <div
+                  ref={messagesRef}
+                  className="chat_messages"
+                  onScroll={handleMessagesScroll}
+                >
+                  {state.step !== "done" && state.session.introPrompt === fastPromptLabel ? (
+                    <div className="chat_thread_intro_hero" aria-hidden="true">
+                      <div className="chat_thread_intro_mascot ai_face ai_face_large" />
+                      <p className="chat_thread_intro_title">
+                        반가워요.
+                        <br />
+                        무엇을 도와드릴까요?
                       </p>
                     </div>
-                  )
-                ) : null}
+                  ) : null}
+                  {state.step !== "done"
+                    ? state.messages.map((message) =>
+                        message.role === "ai" ? (
+                          <div className="chat_bubble_row" key={message.id}>
+                            <p>{message.text}</p>
+                          </div>
+                        ) : (
+                          <div className="chat_bubble_row user_bubble_row" key={message.id}>
+                            <p>{message.text}</p>
+                          </div>
+                        ),
+                      )
+                    : null}
 
-                <ChatStepPanel
-                  key={`${state.step}-${state.messages.length}`}
-                  step={state.step}
-                  isVisible={state.step === "done" ? isThread : isThread && isStepPanelVisible && !isTyping}
-                  selectionEcho={selectionEcho}
-                  glossaryItems={visibleGlossaryItems}
-                  activeGlossaryOption={isGlossaryTyping ? DIRECT_GLOSSARY_INPUT_LABEL : null}
-                  selectedWine={state.selectedWine}
-                  recommendations={recommendations}
-                  onSelectGlossaryTopic={(value) =>
-                    value === DIRECT_GLOSSARY_INPUT_LABEL
-                      ? messageInputRef.current?.focus()
-                      : dispatchAfterSelectionEcho(getGlossaryUserBubbleText(value), [
-                          { type: "APPEND_USER_MESSAGE", text: getGlossaryUserBubbleText(value) },
-                          { type: "SELECT_GLOSSARY_TOPIC", value },
-                        ])
-                  }
-                  onSelectPartyMood={(value) =>
-                    dispatchAfterSelectionEcho(value, [
-                      { type: "APPEND_USER_MESSAGE", text: value },
-                      { type: "SELECT_PARTY_MOOD", value },
-                    ])
-                  }
-                  onSelectFood={(value) =>
-                    dispatchAfterSelectionEcho(value, [
-                      { type: "APPEND_USER_MESSAGE", text: value },
-                      { type: "SELECT_FOOD", value },
-                    ])
-                  }
-                  onSelectWineStyle={(value) =>
-                    dispatchAfterSelectionEcho(value, [
-                      { type: "APPEND_USER_MESSAGE", text: value },
-                      { type: "SELECT_WINE_STYLE", value },
-                    ])
-                  }
-                  onSelectRecommendation={(wineId) => dispatch({ type: "SELECT_RECOMMENDATION", wineId })}
-                  onGoProductDetail={(wineId) => {
-                    navigate(`/product/${wineId}?tab=pairing`)
-                  }}
-                  onBackToRecommend={() =>
-                    dispatchAfterSelectionEcho("다른 주류 보기", [
-                      { type: "APPEND_USER_MESSAGE", text: "다른 주류 보기" },
-                      { type: "BACK_TO_RECOMMEND" },
-                    ])
-                  }
-                  onMoreRecommendations={() =>
-                    dispatchAfterSelectionEcho(
-                      MORE_DRINKS_MESSAGE,
-                      [
-                        { type: "APPEND_USER_MESSAGE", text: MORE_DRINKS_MESSAGE },
-                        { type: "APPEND_AI_MESSAGE", text: FEATURE_PREPARING_MESSAGE },
-                      ],
-                      FEATURE_PREPARING_DELAY_MS,
-                    )
-                  }
-                  onConfirmSelection={() =>
-                    dispatchAfterSelectionEcho("이 주류로 선택할게요!", [
-                      { type: "APPEND_USER_MESSAGE", text: "이 주류로 선택할게요!" },
-                      { type: "CONFIRM_SELECTION" },
-                    ])
-                  }
-                  onClose={closeModal}
-                />
+                  {state.step !== "done" && isTyping ? (
+                    <div className="chat_bubble_row" aria-label={isMatchingRecommendations ? "추천 찾는 중" : "AI 입력 중"}>
+                      <p className="chat_typing_bubble" aria-hidden="true">
+                        <span />
+                        <span />
+                        <span />
+                      </p>
+                    </div>
+                  ) : null}
+                  <ChatStepPanel
+                    key={`${state.step}-${state.messages.length}`}
+                    step={state.step}
+                    isVisible={state.step === "done" ? isThread : isThread && isStepPanelVisible && !isTyping}
+                    selectionEcho={selectionEcho}
+                    glossaryItems={visibleGlossaryItems}
+                    activeGlossaryOption={isGlossaryTyping ? DIRECT_GLOSSARY_INPUT_LABEL : null}
+                    selectedWine={state.selectedWine}
+                    recommendations={recommendations}
+                    onSelectGlossaryTopic={(value) =>
+                      value === DIRECT_GLOSSARY_INPUT_LABEL
+                        ? messageInputRef.current?.focus()
+                        : dispatchAfterSelectionEcho(getGlossaryUserBubbleText(value), [
+                            { type: "APPEND_USER_MESSAGE", text: getGlossaryUserBubbleText(value) },
+                            { type: "SELECT_GLOSSARY_TOPIC", value },
+                          ])
+                    }
+                    onSelectPartyMood={(value) =>
+                      dispatchAfterSelectionEcho(value, [
+                        { type: "APPEND_USER_MESSAGE", text: value },
+                        { type: "SELECT_PARTY_MOOD", value },
+                      ])
+                    }
+                    onSelectFood={(value) =>
+                      dispatchAfterSelectionEcho(value, [
+                        { type: "APPEND_USER_MESSAGE", text: value },
+                        { type: "SELECT_FOOD", value },
+                      ])
+                    }
+                    onSelectWineStyle={(value) =>
+                      dispatchAfterSelectionEcho(value, [
+                        { type: "APPEND_USER_MESSAGE", text: value },
+                        { type: "SELECT_WINE_STYLE", value },
+                      ])
+                    }
+                    onGoBack={() =>
+                      dispatchAfterSelectionEcho(BACK_MESSAGE, [
+                        { type: "APPEND_USER_MESSAGE", text: BACK_MESSAGE },
+                        { type: "GO_BACK" },
+                      ])
+                    }
+                    onSelectRecommendation={(wineId) => dispatch({ type: "SELECT_RECOMMENDATION", wineId })}
+                    onGoProductDetail={(wineId) => {
+                      navigate(`/product/${wineId}?tab=pairing`)
+                    }}
+                    onBackToRecommend={() =>
+                      dispatchAfterSelectionEcho("다른 주류 보기", [
+                        { type: "APPEND_USER_MESSAGE", text: "다른 주류 보기" },
+                        { type: "BACK_TO_RECOMMEND" },
+                      ])
+                    }
+                    onMoreRecommendations={() =>
+                      dispatchAfterSelectionEcho(
+                        MORE_DRINKS_MESSAGE,
+                        [
+                          { type: "APPEND_USER_MESSAGE", text: MORE_DRINKS_MESSAGE },
+                          { type: "APPEND_AI_MESSAGE", text: FEATURE_PREPARING_MESSAGE },
+                        ],
+                        FEATURE_PREPARING_DELAY_MS,
+                      )
+                    }
+                    onConfirmSelection={() =>
+                      dispatchAfterSelectionEcho("이 주류로 선택할게요!", [
+                        { type: "APPEND_USER_MESSAGE", text: "이 주류로 선택할게요!" },
+                        { type: "CONFIRM_SELECTION" },
+                      ])
+                    }
+                    onClose={closeModal}
+                  />
 
-                <div ref={endOfMessagesRef} />
+                  <div ref={endOfMessagesRef} />
+                </div>
+                <div className="chat_messages_fade chat_messages_fade_top" aria-hidden="true" />
+                <div className="chat_messages_fade chat_messages_fade_bottom" aria-hidden="true" />
               </div>
             </section>
             ) : null}

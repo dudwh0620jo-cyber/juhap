@@ -147,7 +147,7 @@ const weeklyDrinkItems: WeeklyDrinkItem[] = [
   },
   {
     id: "weekly-kendall-jackson",
-    name: "캔달잭슨 빈터너스\n리저브 샤르도네",
+    name: "캔달잭슨\n빈터너스\n리저브 샤르도네",
     type: "화이트와인",
     origin: "미국",
     variety: "Chardonnay",
@@ -161,7 +161,7 @@ const weeklyDrinkItems: WeeklyDrinkItem[] = [
   },
   {
     id: "weekly-caymus-2023",
-    name: "케이머스 나파 밸리\n카베네 소비뇽",
+    name: "케이머스\n나파 벨리\n카베네 소비뇽",
     type: "레드와인",
     origin: "미국",
     variety: "Cabernet\nSauvignon",
@@ -266,5 +266,4 @@ export function useHomePageData() {
     [orderedSituationItems, recommendationItems],
   )
 }
-
 

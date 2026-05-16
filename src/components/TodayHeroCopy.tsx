@@ -1,4 +1,5 @@
-import { Link } from "react-router"
+﻿import { Link } from "react-router"
+import iconCaretRightWhite from "../assets/svg/caretright_w.svg"
 
 function splitPairingTitle(title: string) {
   if (!title.includes("+")) return null
@@ -40,7 +41,8 @@ export default function TodayHeroCopy({
       <div className="home_today_hero_desc">{description}</div>
       {showMorePill ? (
         <div className="home_today_hero_link" aria-hidden="true">
-          자세히 보기
+          <span>자세히 보기</span>
+          <img src={iconCaretRightWhite} alt="" />
         </div>
       ) : null}
     </>
@@ -58,4 +60,3 @@ export default function TodayHeroCopy({
 
   return <div className={className}>{content}</div>
 }
-

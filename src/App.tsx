@@ -18,7 +18,10 @@ import PairingTagList from "./pages/PairingTagList"
 import ProductDetail from "./pages/ProductDetail"
 import ProductReviewDetail from "./pages/ProductReviewDetail"
 import ProfileSetup from "./pages/ProfileSetup"
-import Quiz from "./pages/Quiz"
+import QuizMain from "./pages/QuizMain"
+import QuizToday from "./pages/QuizToday"
+import QuizResult from "./pages/QuizResult"
+import QuizPrevious from "./pages/QuizPrevious"
 import CommunityRanking from "./pages/Ranking"
 import TasteSetup from "./pages/TasteSetup"
 import TodayPairingDetail from "./pages/TodayPairingDetail"
@@ -150,11 +153,18 @@ export default function App() {
     }
   }, [isChatOpen, navigationType, pathname])
 
+  useEffect(() => {
+    const handleOpenChat = () => setIsChatOpen(true)
+    window.addEventListener("ui:open-chat", handleOpenChat)
+    return () => window.removeEventListener("ui:open-chat", handleOpenChat)
+  }, [])
+
   const isAuthPage =
     pathname === "/onboarding" ||
     pathname === "/login" ||
     pathname === "/profile-setup" ||
     pathname === "/taste-setup"
+  const isQuizPage = pathname.startsWith("/quiz")
   const isRankingActive = pathname === "/community/ranking"
   const isCategoryActive =
     pathname === "/category" ||
@@ -218,7 +228,10 @@ export default function App() {
           <Route path="/my/record" element={<MyRecord />} />
           <Route path="/product/:id/review/:reviewId" element={<ProductReviewDetail />} />
           <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/quiz" element={<QuizMain />} />
+          <Route path="/quiz/today" element={<QuizToday />} />
+          <Route path="/quiz/result/:kind" element={<QuizResult />} />
+          <Route path="/quiz/previous/:quizId" element={<QuizPrevious />} />
           <Route path="/vote" element={<VoteList />} />
           <Route path="/today-pairing/:pairingId" element={<TodayPairingDetail />} />
           <Route path="/ai-scan" element={<AiScan />} />
@@ -231,7 +244,7 @@ export default function App() {
           <Chat onClose={() => setIsChatOpen(false)} userName={chatUserName} isHidden={isChatHidden} />
         ) : null}
 
-        {!isAuthPage ? (
+        {!isAuthPage && !isQuizPage ? (
           <nav className="bottom_nav" aria-label="주요 메뉴">
             {leftNavItems.map((item) => (
               <NavLink
@@ -301,5 +314,3 @@ export default function App() {
     </main>
   )
 }
-
-

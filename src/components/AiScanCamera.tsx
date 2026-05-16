@@ -59,6 +59,7 @@ export default function AiScanCamera({
         <AiScanActions
           secondaryLabel={aiScanCopy.upload}
           primaryLabel={aiScanCopy.scan}
+          foodModeHint={mode === "food" ? "실패화면 구현" : null}
           onSecondary={onUpload}
           onPrimary={onScan}
         />
@@ -66,7 +67,6 @@ export default function AiScanCamera({
     </div>
   )
 }
-
 
 
 

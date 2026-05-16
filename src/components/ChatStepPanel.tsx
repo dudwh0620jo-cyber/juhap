@@ -24,6 +24,7 @@ type ChatStepPanelProps = {
   onSelectPartyMood: (value: string) => void
   onSelectFood: (value: string) => void
   onSelectWineStyle: (value: string) => void
+  onGoBack: () => void
   onSelectRecommendation: (wineId: string) => void
   onGoProductDetail: (wineId: string) => void
   onBackToRecommend: () => void
@@ -44,6 +45,7 @@ export default function ChatStepPanel({
   onSelectPartyMood,
   onSelectFood,
   onSelectWineStyle,
+  onGoBack,
   onSelectRecommendation,
   onGoProductDetail,
   onBackToRecommend,
@@ -67,6 +69,9 @@ export default function ChatStepPanel({
               {item}
             </button>
           ))}
+          <button type="button" className="chat_chip chat_chip_back" onClick={onGoBack}>
+            이전으로
+          </button>
         </ChatChoiceRow>
       ) : null}
 
@@ -77,6 +82,9 @@ export default function ChatStepPanel({
               {item}
             </button>
           ))}
+          <button type="button" className="chat_chip chat_chip_back" onClick={onGoBack}>
+            이전으로
+          </button>
         </ChatChoiceRow>
       ) : null}
 
@@ -87,21 +95,22 @@ export default function ChatStepPanel({
               {item}
             </button>
           ))}
+          <button type="button" className="chat_chip chat_chip_back" onClick={onGoBack}>
+            이전으로
+          </button>
         </ChatChoiceRow>
       ) : null}
 
       {step === "wine_style" ? (
         <ChatChoiceRow echoText={selectionEcho}>
           {wineStyleOptions.map((item) => (
-            <button
-              type="button"
-              key={item}
-              className="chat_chip"
-              onClick={() => onSelectWineStyle(item)}
-            >
+            <button type="button" key={item} className="chat_chip" onClick={() => onSelectWineStyle(item)}>
               {item}
             </button>
           ))}
+          <button type="button" className="chat_chip chat_chip_back" onClick={onGoBack}>
+            이전으로
+          </button>
         </ChatChoiceRow>
       ) : null}
 
@@ -115,9 +124,13 @@ export default function ChatStepPanel({
         />
       ) : null}
 
-      {step === "detail" && selectedWine ? <ChatDetailPanel wine={selectedWine} onBack={onBackToRecommend} onConfirm={onConfirmSelection} /> : null}
+      {step === "detail" && selectedWine ? (
+        <ChatDetailPanel wine={selectedWine} onBack={onBackToRecommend} onConfirm={onConfirmSelection} />
+      ) : null}
 
-      {step === "pairing" && selectedWine ? <ChatPairingPanel wine={selectedWine} onConfirm={onConfirmSelection} onBack={onBackToRecommend} /> : null}
+      {step === "pairing" && selectedWine ? (
+        <ChatPairingPanel wine={selectedWine} onConfirm={onConfirmSelection} onBack={onBackToRecommend} />
+      ) : null}
 
       {step === "done" && selectedWine ? <ChatDonePanel wine={selectedWine} onClose={onClose} /> : null}
     </div>
