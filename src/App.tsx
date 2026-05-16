@@ -7,7 +7,7 @@ import CategoryList from "./pages/CategoryList"
 import Chat from "./pages/Chat"
 import Community from "./pages/Community"
 import CommunityWrite from "./pages/CommunityWrite"
-import { readUserProfile } from "./data/userProfile"
+import { isUserOnboardingComplete, readUserProfile } from "./data/userProfile"
 import Home from "./pages/Home"
 import Login from "./pages/Login"
 import MyPage from "./pages/MyPage"
@@ -124,8 +124,9 @@ export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const location = useLocation()
   const { pathname } = location
-  const navState = (location.state ?? {}) as { bottomNavActive?: "category" }
+  const navState = (location.state ?? {}) as { bottomNavActive?: "category"; skipOnboardingGate?: boolean }
   const navigationType = useNavigationType()
+  const initialEntryPathRef = useRef(`${pathname}${location.search}${location.hash}`)
   const prevPathnameRef = useRef("")
   const chatUserName = isChatOpen ? readUserProfile().personalInfo.nickname : ""
   const isChatHidden = pathname.startsWith("/product/")
@@ -173,6 +174,12 @@ export default function App() {
     navState.bottomNavActive === "category"
   const isCommunityActive = pathname.startsWith("/community") && !isRankingActive && !isCategoryActive
   const isChatFabHidden = useChatFabVisibility({ pathname, isAuthPage, isWritePage, isProductDetailPage, isCommunityPage })
+  const currentPath = `${pathname}${location.search}${location.hash}`
+  const shouldShowOnboardingGate =
+    !isAuthPage &&
+    !navState.skipOnboardingGate &&
+    initialEntryPathRef.current === currentPath &&
+    !isUserOnboardingComplete()
 
   return (
     <main className="app_root">
@@ -208,35 +215,43 @@ export default function App() {
           </div>
         ) : null}
 
-        <Routes>
-          <Route path="/" element={<Navigate to="/onboarding" replace />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/profile-setup" element={<ProfileSetup />} />
-          <Route path="/taste-setup" element={<TasteSetup />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/category" element={<Category />} />
-          <Route path="/category/list" element={<CategoryList />} />
-          <Route path="/chat" element={<Navigate to="/home" replace />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/community/ranking" element={<CommunityRanking />} />
-          <Route path="/community/write" element={<CommunityWrite />} />
-          <Route path="/product/:id/write" element={<CommunityWrite />} />
-          <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
-          <Route path="/community/tag" element={<PairingTagList />} />
-          <Route path="/my" element={<MyPage />} />
-          <Route path="/my/record" element={<MyRecord />} />
-          <Route path="/product/:id/review/:reviewId" element={<ProductReviewDetail />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/quiz" element={<QuizMain />} />
-          <Route path="/quiz/today" element={<QuizToday />} />
-          <Route path="/quiz/result/:kind" element={<QuizResult />} />
-          <Route path="/quiz/previous/:quizId" element={<QuizPrevious />} />
-          <Route path="/vote" element={<VoteList />} />
-          <Route path="/today-pairing/:pairingId" element={<TodayPairingDetail />} />
-          <Route path="/ai-scan" element={<AiScan />} />
-          <Route path="*" element={<Navigate to="/home" replace />} />
-        </Routes>
+        {shouldShowOnboardingGate ? (
+          <Navigate
+            to="/onboarding"
+            replace
+            state={{ redirectTo: `${pathname}${location.search}${location.hash}` }}
+          />
+        ) : (
+          <Routes>
+            <Route path="/" element={<Navigate to={isUserOnboardingComplete() ? "/home" : "/onboarding"} replace />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route path="/taste-setup" element={<TasteSetup />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/category" element={<Category />} />
+            <Route path="/category/list" element={<CategoryList />} />
+            <Route path="/chat" element={<Navigate to="/home" replace />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/community/ranking" element={<CommunityRanking />} />
+            <Route path="/community/write" element={<CommunityWrite />} />
+            <Route path="/product/:id/write" element={<CommunityWrite />} />
+            <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
+            <Route path="/community/tag" element={<PairingTagList />} />
+            <Route path="/my" element={<MyPage />} />
+            <Route path="/my/record" element={<MyRecord />} />
+            <Route path="/product/:id/review/:reviewId" element={<ProductReviewDetail />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/quiz" element={<QuizMain />} />
+            <Route path="/quiz/today" element={<QuizToday />} />
+            <Route path="/quiz/result/:kind" element={<QuizResult />} />
+            <Route path="/quiz/previous/:quizId" element={<QuizPrevious />} />
+            <Route path="/vote" element={<VoteList />} />
+            <Route path="/today-pairing/:pairingId" element={<TodayPairingDetail />} />
+            <Route path="/ai-scan" element={<AiScan />} />
+            <Route path="*" element={<Navigate to="/home" replace />} />
+          </Routes>
+        )}
 
         <FeatureGuide />
 

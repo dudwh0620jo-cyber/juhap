@@ -18,6 +18,7 @@ type Props = {
   followAriaLabel: string
   followText: string
   onToggleFollow: () => void
+  isAuthor?: boolean
   menuAriaLabel?: string
   onOpenMenu?: () => void
   linkTo: string
@@ -52,6 +53,7 @@ export default function CommunityReviewCard({
   followAriaLabel,
   followText,
   onToggleFollow,
+  isAuthor = false,
   menuAriaLabel,
   onOpenMenu,
   linkTo,
@@ -94,6 +96,7 @@ export default function CommunityReviewCard({
             <span className="community_review_author_name_grade">
               <strong className="community_review_author_name">{authorName}</strong>
               <span className={badgeClassName}>{badgeText}</span>
+              {isAuthor ? <span className="author_owner_badge">작성자</span> : null}
             </span>
             {typeof onOpenMenu === "function" ? null : (
               <button type="button" className={followButtonClassName} aria-label={followAriaLabel} onClick={onToggleFollow}>

@@ -1,5 +1,5 @@
 ﻿import { useState } from "react"
-import { useNavigate } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import mascotImage from "../assets/onboarding-mascot_06.png"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import {
@@ -32,6 +32,9 @@ function normalizeTastePreferences(tastePreferences: UserTastePreferences) {
 
 export default function TasteSetup() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirectTo = ((location.state as { redirectTo?: string } | null)?.redirectTo ?? "").trim()
+  const nextPath = redirectTo && redirectTo !== "/" && redirectTo.startsWith("/") ? redirectTo : "/home"
   const savedProfile = readUserProfile()
   const [selectedByGroup, setSelectedByGroup] = useState<UserTastePreferences>(() =>
     normalizeTastePreferences(savedProfile.tastePreferences),
@@ -52,7 +55,7 @@ export default function TasteSetup() {
     }
 
     updateUserTastePreferences(selectedByGroup)
-    navigate("/home", { replace: true })
+    navigate(nextPath, { replace: true })
   }
 
   function toggleOption(group: PreferenceGroup, option: string) {
@@ -122,4 +125,3 @@ export default function TasteSetup() {
     </section>
   )
 }
-

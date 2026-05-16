@@ -390,7 +390,7 @@ export const getPairingCommentNavigationState = (post: FeedPost | undefined) => 
     authorName: usersMockById[post.authorId]?.name ?? "익명",
     profile: usersMockById[post.authorId]?.profile ?? "",
     locationLabel: post.locationLabel?.trim() ?? "",
-    drinkType: post.categories?.[0] ?? "",
+    drinkType: post.drinkType ?? post.categories?.[0] ?? "",
     source: "feed",
   }
 }

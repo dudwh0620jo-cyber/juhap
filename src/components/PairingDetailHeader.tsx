@@ -13,6 +13,7 @@ type Props = {
   showTier: boolean
   isFollowing: boolean
   followDisabled: boolean
+  isAuthor?: boolean
   menuAriaLabel?: string
   onOpenMenu?: () => void
   onBack: () => void
@@ -28,6 +29,7 @@ export default function PairingDetailHeader({
   showTier,
   isFollowing,
   followDisabled,
+  isAuthor = false,
   menuAriaLabel,
   onOpenMenu,
   onBack,
@@ -59,6 +61,7 @@ export default function PairingDetailHeader({
           <span className="detail_author_line">
             <span className="detail_author_name_grade">
               {authorName} {showTier ? <span className={tierClassName}>{tierLabel}</span> : null}
+              {isAuthor ? <span className="author_owner_badge">작성자</span> : null}
             </span>
             {typeof onOpenMenu !== "function" ? (
               <button

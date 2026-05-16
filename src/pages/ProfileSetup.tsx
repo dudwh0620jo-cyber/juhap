@@ -1,5 +1,5 @@
 import { type FormEvent, useRef, useState } from "react"
-import { useNavigate } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import mascotImage from "../assets/onboarding-mascot_05.png"
 import mapPinIcon from "../assets/svg/mappin.svg"
 import AlertModal from "../components/AlertModal"
@@ -78,6 +78,8 @@ function loadDaumPostcode() {
 
 export default function ProfileSetup() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirectTo = ((location.state as { redirectTo?: string } | null)?.redirectTo ?? "").trim()
   const detailAddressInputRef = useRef<HTMLInputElement>(null)
   const savedProfile = readUserProfile()
   const [nickname, setNickname] = useState(savedProfile.personalInfo.nickname.slice(0, NICKNAME_MAX_LENGTH))
@@ -111,7 +113,7 @@ export default function ProfileSetup() {
       detailAddress,
       isPhoneVerified,
     })
-    navigate("/taste-setup")
+    navigate("/taste-setup", { state: redirectTo ? { redirectTo } : undefined })
   }
 
   function handleVerifyPhone() {

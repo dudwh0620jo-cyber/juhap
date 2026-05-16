@@ -834,7 +834,7 @@ export default function Community() {
               const tagBundle = deriveCommunityTagBundle({
                 pairingTitle,
                 title: post.title,
-                drinkType: post.categories?.[0] ?? "",
+                drinkType: post.drinkType ?? post.categories?.[0] ?? "",
                 foods: post.foods,
                 features: post.features,
               })
@@ -848,6 +848,7 @@ export default function Community() {
                   authorMeta={authorMeta}
                   badgeClassName={getTierClassName(getPairingTierByUserId(post.authorId), "feed_post_badge")}
                   badgeText={getPairingTierLabelByUserId(post.authorId)}
+                  isAuthor={post.authorId === myUserId || userPostIdSet.has(post.id)}
                   menuAriaLabel={userPostIdSet.has(post.id) ? "게시글 설정" : undefined}
                   onOpenMenu={userPostIdSet.has(post.id) ? () => setOwnerPostAction(post) : undefined}
                   followButtonClassName={
@@ -865,7 +866,7 @@ export default function Community() {
                     authorName,
                     profile: usersMockById[post.authorId]?.profile ?? "",
                     locationLabel: post.locationLabel?.trim() ?? "",
-                    drinkType: post.categories?.[0] ?? "",
+                    drinkType: post.drinkType ?? post.categories?.[0] ?? "",
                     features: tagBundle.featureTags,
                     source: "feed",
                     feedFilter: feedFilter,
