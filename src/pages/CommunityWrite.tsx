@@ -9,6 +9,7 @@ import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
 import iconX from "../assets/svg/x.svg"
+import iconCheck from "../assets/svg/check_g.svg"
 import iconBell from "../assets/svg/bell.svg"
 import iconPlus from "../assets/svg/plus.svg"
 import iconStar from "../assets/svg/star.svg"
@@ -373,6 +374,8 @@ export default function CommunityWrite() {
   const [pairingBody, setPairingBody] = useState("")
   const [pairingPhotoIds, setPairingPhotoIds] = useState<string[]>([])
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
+  const [writeSuccessToast, setWriteSuccessToast] = useState<string | null>(null)
+  const writeSuccessTimerRef = useRef<number | null>(null)
 
   const exitPath =
     writeKind === "question"
@@ -896,6 +899,24 @@ export default function CommunityWrite() {
     }
   }, [draftStorageKey])
 
+  const showSuccessToastThenNavigate = useCallback(
+    (message: string, to: string) => {
+      if (writeSuccessTimerRef.current) window.clearTimeout(writeSuccessTimerRef.current)
+      setWriteSuccessToast(message)
+      writeSuccessTimerRef.current = window.setTimeout(() => {
+        setWriteSuccessToast(null)
+        navigate(to)
+      }, 900)
+    },
+    [navigate],
+  )
+
+  useEffect(() => {
+    return () => {
+      if (writeSuccessTimerRef.current) window.clearTimeout(writeSuccessTimerRef.current)
+    }
+  }, [])
+
   function handleTempSave() {
     try {
       const payload = buildDraftPayload()
@@ -994,8 +1015,8 @@ export default function CommunityWrite() {
         // ignore storage errors
       }
 
-      navigate(exitPath)
       clearDraft()
+      showSuccessToastThenNavigate("글 작성을 완료했어요!", exitPath)
       return
     }
 
@@ -1057,8 +1078,11 @@ export default function CommunityWrite() {
         // ignore storage errors
       }
 
-      navigate(writeKind === "drink-review" && productId ? `/product/${productId}?tab=review` : "/community?filter=review")
       clearDraft()
+      showSuccessToastThenNavigate(
+        "글 작성을 완료했어요!",
+        writeKind === "drink-review" && productId ? `/product/${productId}?tab=review` : "/community?filter=review",
+      )
       return
     }
 
@@ -1122,8 +1146,8 @@ export default function CommunityWrite() {
       // ignore storage errors
     }
 
-    navigate(exitPath)
     clearDraft()
+    showSuccessToastThenNavigate("글 작성을 완료했어요!", exitPath)
   }
 
   if (isQuestionWrite) {
@@ -1212,6 +1236,17 @@ export default function CommunityWrite() {
         ) : null}
 
         {alertMessage ? <AlertModal message={alertMessage} onConfirm={() => setAlertMessage(null)} /> : null}
+        {writeSuccessToast ? (
+          <div className="app_alert_toast" role="status" aria-live="polite">
+            <span className="app_alert_toast_icon is_success">
+              <img src={iconCheck} alt="" aria-hidden="true" />
+            </span>
+            <p>{writeSuccessToast}</p>
+            <button type="button" className="app_alert_toast_close" aria-label="닫기" onClick={() => setWriteSuccessToast(null)}>
+              <img src={iconX} alt="" aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
       </>
     )
   }
@@ -2552,6 +2587,17 @@ export default function CommunityWrite() {
       ) : null}
 
       {alertMessage ? <AlertModal message={alertMessage} onConfirm={() => setAlertMessage(null)} /> : null}
+      {writeSuccessToast ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_success">
+            <img src={iconCheck} alt="" aria-hidden="true" />
+          </span>
+          <p>{writeSuccessToast}</p>
+          <button type="button" className="app_alert_toast_close" aria-label="닫기" onClick={() => setWriteSuccessToast(null)}>
+            <img src={iconX} alt="" aria-hidden="true" />
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }

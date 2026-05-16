@@ -225,16 +225,18 @@
 }
 
 .category_item_text {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-left: 4px;
+  justify-content: space-between;
+  padding: 20px 0 20px 4px;
 }
 
 .category_item_main {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+
+  /* gap: 2px; */
 }
 
 .category_item_name {
