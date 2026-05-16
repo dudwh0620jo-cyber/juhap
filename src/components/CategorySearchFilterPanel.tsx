@@ -1,4 +1,4 @@
-import type { RefObject } from "react"
+﻿import type { RefObject } from "react"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
 import type { FilterGroup } from "../data/categoryFilterConfig"
@@ -188,12 +188,7 @@ export default function CategorySearchFilterPanel({
                   <p className="category_search_mode_title">추천 검색어</p>
                   <div className="category_search_suggest_list">
                     {suggestedKeywords.map((keyword) => (
-                      <button
-                        key={keyword}
-                        type="button"
-                        className="category_search_suggest_item"
-                        onClick={() => onSelectSuggestion(keyword)}
-                      >
+                      <button key={keyword} type="button" className="category_search_suggest_item" onClick={() => onSelectSuggestion(keyword)}>
                         <img className="category_search_suggest_icon" src={iconSearch} alt="" aria-hidden="true" />
                         {keyword}
                       </button>
@@ -204,15 +199,10 @@ export default function CategorySearchFilterPanel({
 
               {showProductSection ? (
                 <div className="category_search_result_suggest" onClick={(event) => event.stopPropagation()} role="presentation">
-                  <h3 className="category_filter_group_title">추천 제품</h3>
+                  <h3 className="category_filter_group_title">추천 상품</h3>
                   <div className="category_search_result_products">
                     {recommendedProducts.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        className="category_search_result_item"
-                        onClick={() => onSelectSuggestion(item.name)}
-                      >
+                      <button key={item.id} type="button" className="category_search_result_item" onClick={() => onSelectSuggestion(item.name)}>
                         <strong>{item.name}</strong>
                         <small>{productPathText(item)}</small>
                       </button>
@@ -223,17 +213,12 @@ export default function CategorySearchFilterPanel({
 
               {showEmptySection ? (
                 <>
-                  <p className="category_search_empty_hint">찾으시는 제품이 없어요. 비슷한 제품으로 이건 어떠세요?</p>
+                  <p className="category_search_empty_hint">찾으시는 상품이 없어요. 비슷한 상품으로 이건 어떠세요?</p>
                   <div className="category_search_result_suggest" onClick={(event) => event.stopPropagation()} role="presentation">
-                    <h3 className="category_filter_group_title">추천 제품</h3>
+                    <h3 className="category_filter_group_title">추천 상품</h3>
                     <div className="category_search_result_products">
                       {recommendedProducts.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          className="category_search_result_item"
-                          onClick={() => onSelectSuggestion(item.name)}
-                        >
+                        <button key={item.id} type="button" className="category_search_result_item" onClick={() => onSelectSuggestion(item.name)}>
                           <strong>{item.name}</strong>
                           <small>{productPathText(item)}</small>
                         </button>

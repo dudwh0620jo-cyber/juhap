@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+﻿import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import { motion } from "motion/react"
 import AlertModal from "../components/AlertModal"
@@ -37,15 +37,19 @@ import "../styles/category.css"
 const inferSearchableFeatures = (tokens: string[]) => {
   const joined = tokens.join(" ").toLowerCase()
   const features: string[] = []
+
   if (joined.includes("과일")) features.push("과일향")
   if (joined.includes("부드")) features.push("부드러운")
   if (joined.includes("가벼")) features.push("가벼운")
-  if (joined.includes("묵직") || joined.includes("무거")) features.push("무거운")
-  if (joined.includes("탄산") || joined.includes("톡")) features.push("톡쏘는")
-  if (joined.includes("오크")) features.push("오크향")
+  if (joined.includes("무거") || joined.includes("묵직")) features.push("무거운")
+  if (joined.includes("상큼") || joined.includes("산미")) features.push("상큼한")
+  if (joined.includes("톡") || joined.includes("탄산")) features.push("톡쏘는")
+  if (joined.includes("은은")) features.push("은은한")
+
   FEATURE_CHIPS.forEach((feature) => {
     if (joined.includes(feature.toLowerCase())) features.push(feature)
   })
+
   return Array.from(new Set(features)).filter((feature) => FEATURE_CHIPS.includes(feature as (typeof FEATURE_CHIPS)[number]))
 }
 
@@ -55,7 +59,7 @@ const normalizeFilterKey = (value: string) =>
     .replace(/\s+/g, "")
     .replace(/[()]/g, "")
     .replace(/\//g, "")
-    .replace(/데킬라/g, "테킬라")
+    .replace(/은은한과일향/g, "과일향")
     .replace(/sober/g, "")
     .trim()
 
@@ -128,7 +132,7 @@ export default function Category() {
           subcategory: product.subcategory,
           features: inferSearchableFeatures([...product.tags, ...product.keywords]),
           price: product.priceWon,
-          tags: ["와인", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          tags: ["와인", ...(product.abv ? [`${product.abv}%`] : []), ...product.tags],
           keywords: product.keywords,
         })),
         ...beerProductsMock.map((product) => ({
@@ -138,7 +142,7 @@ export default function Category() {
           subcategory: product.subcategory,
           features: inferSearchableFeatures([...product.tags, ...product.keywords]),
           price: product.priceWon,
-          tags: ["맥주", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          tags: ["맥주", ...(product.abv ? [`${product.abv}%`] : []), ...product.tags],
           keywords: product.keywords,
         })),
         ...whiskeyProductsMock.map((product) => ({
@@ -148,7 +152,7 @@ export default function Category() {
           subcategory: product.subcategory,
           features: inferSearchableFeatures([...product.tags, ...product.keywords]),
           price: product.priceWon,
-          tags: ["위스키", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          tags: ["위스키", ...(product.abv ? [`${product.abv}%`] : []), ...product.tags],
           keywords: product.keywords,
         })),
         ...spiritsProductsMock.map((product) => ({
@@ -158,7 +162,7 @@ export default function Category() {
           subcategory: product.subcategory,
           features: inferSearchableFeatures([...product.tags, ...product.keywords]),
           price: product.priceWon,
-          tags: ["증류주", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          tags: ["증류주", ...(product.abv ? [`${product.abv}%`] : []), ...product.tags],
           keywords: product.keywords,
         })),
         ...traditionalProductsMock.map((product) => ({
@@ -168,7 +172,7 @@ export default function Category() {
           subcategory: product.subcategory,
           features: inferSearchableFeatures([...product.tags, ...product.keywords]),
           price: product.priceWon,
-          tags: ["전통주", ...(product.abv ? [`${product.abv}도`] : []), ...product.tags],
+          tags: ["전통주", ...(product.abv ? [`${product.abv}%`] : []), ...product.tags],
           keywords: product.keywords,
         })),
         ...etcProductsMock.map((product) => ({
@@ -178,7 +182,7 @@ export default function Category() {
           subcategory: product.subcategory,
           features: inferSearchableFeatures([...product.tags, ...product.keywords]),
           price: product.priceWon,
-          tags: ["기타", ...(product.abv !== undefined ? [`${product.abv}도`] : []), ...product.tags],
+          tags: ["기타", ...(product.abv !== undefined ? [`${product.abv}%`] : []), ...product.tags],
           keywords: product.keywords,
         })),
       ],
@@ -229,18 +233,6 @@ export default function Category() {
 
     return FEATURE_CHIPS.filter((chip) => available.has(chip))
   }, [defaultSakeLabel, searchableItems, selectedDrinkTypeLabel, selectedCategoryChip])
-
-  useEffect(() => {
-    setSelectedFeatureChips((prev) => {
-      if (prev.size === 0) return prev
-      const allowed = new Set(dynamicFeatureChips)
-      const next = new Set<string>()
-      prev.forEach((chip) => {
-        if (allowed.has(chip)) next.add(chip)
-      })
-      return next.size === prev.size ? prev : next
-    })
-  }, [dynamicFeatureChips, setSelectedFeatureChips])
 
   const openSearchOverlay = () => {
     setSearchStarted(false)
@@ -769,7 +761,7 @@ export default function Category() {
 
       {isPreparingModalOpen ? (
         <AlertModal
-          title={"아직 준비 중인 서비스 입니다\n곧 만나뵐 수 있어용"}
+          title={"아직 준비 중인 서비스입니다.\n곧 만나요."}
           confirmLabel="닫기"
           variant="preparing"
           onConfirm={() => setIsPreparingModalOpen(false)}
@@ -778,3 +770,4 @@ export default function Category() {
     </section>
   )
 }
+
