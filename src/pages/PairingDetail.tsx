@@ -34,13 +34,14 @@ import { useStoredBooleanRecordFromIds, useStoredNullableStringRecord } from "..
 import { currentUserMock, usersMockById } from "../utils/usersMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { communityPageData } from "../data/communityPageData"
-import { getPairingDetailMock } from "../utils/pairingDetailMock"
+import { getPairingDetailMock, resolvePairingDetailProduct } from "../utils/pairingDetailMock"
 import { resolveQuestionImage } from "../utils/questionImages"
 import {
   deleteStoredUserPost,
   findPairingDetailPost,
   getInitialPairingCommentCount,
   getInitialPairingLikeCount,
+  readStoredUserPosts,
   type PairingDetailNavState,
   readStoredNumberSet,
   resolveSimilarPairingItems,
@@ -78,7 +79,7 @@ export default function PairingDetail() {
     return deriveCommunityTagBundle({
       pairingTitle,
       title: post?.title ?? "",
-      drinkType: navState.drinkType ?? post?.categories?.[0] ?? "",
+      drinkType: navState.drinkType ?? post?.drinkType ?? post?.categories?.[0] ?? "",
       foods: Array.isArray(navState.foods) ? navState.foods : post?.foods,
       features: fromNavFeatures.length > 0 ? fromNavFeatures : post?.features,
     })
@@ -142,9 +143,25 @@ export default function PairingDetail() {
   )
 
   const { liquorTag, foodTag } = pairingTagBundle
+  const detailProduct = useMemo(() => {
+    return detailMock?.product ?? resolvePairingDetailProduct(post, liquorTag)
+  }, [detailMock?.product, liquorTag, post])
 
   const hasPairingTags = Boolean(liquorTag) && Boolean(foodTag)
-  const isQnaDetail = Boolean(post?.isQna) || navState.source === "free"
+  const isPairingTitle = pairingTitle.includes("+")
+  const hasPairingFood = Boolean(post?.foods?.some((food) => typeof food === "string" && food.trim()))
+  const isPairingReviewDetail = Boolean(
+    post &&
+      post.sourceType !== "question" &&
+      (post.sourceType === "pairing-review" || isPairingTitle || hasPairingFood),
+  )
+  const isStoredUserPost = useMemo(() => {
+    if (!Number.isFinite(numericId)) return false
+    return readStoredUserPosts(COMMUNITY_USER_POSTS_KEY).some((item) => item?.id === numericId)
+  }, [numericId])
+  const isQnaDetail = post
+    ? post.sourceType === "question" || (Boolean(post.isQna) && !isPairingReviewDetail)
+    : navState.source === "free"
   const hideDetailSections = Boolean(navState.hideDetailSections)
   const bottomNavActive = navState.bottomNavActive
 
@@ -234,10 +251,11 @@ export default function PairingDetail() {
         showTier={authorId !== null}
         isFollowing={isFollowing}
         followDisabled={authorId === null || isMyPost}
+        isAuthor={isMyPost}
         menuAriaLabel={isMyPost ? "게시글 설정" : undefined}
         onOpenMenu={isMyPost && Number.isFinite(numericId) ? () => setIsOwnerActionOpen(true) : undefined}
         onBack={() => {
-          if (navState.source === "ranking") return navigate("/community/ranking")
+          if (navState.source === "ranking") return navigate(-1)
           if (navState.source === "feed") return navigate(`/community?filter=${navState.feedFilter ?? (isQnaDetail ? "free" : "review")}`)
           if (navState.source === "free") return navigate("/community?filter=free")
           navigate(-1)
@@ -273,7 +291,7 @@ export default function PairingDetail() {
             getTierClassName={getUserGradeBadgeClassNameByUserId}
             getTierLabel={getPairingTierLabelByUserId}
             onCountChange={handleCommentCountChange}
-            emptyByDefault={isMyPost}
+            emptyByDefault={isStoredUserPost}
           />
         </>
       ) : (
@@ -324,10 +342,24 @@ export default function PairingDetail() {
             onBookmark={openBookmarkPicker}
           />
 
-          {detailMock?.product ? <PairingDetailProductCard product={detailMock.product} /> : null}
+          {detailProduct ? (
+            <PairingDetailProductCard
+              product={detailProduct}
+              onOpen={detailProduct.disabled ? undefined : () => navigate(`/product/${detailProduct.id}`)}
+            />
+          ) : null}
 
           {!hideDetailSections ? (
             <>
+              <CommentSection
+                pairingId={pairingId}
+                currentUser={currentUser}
+                getTierClassName={getUserGradeBadgeClassNameByUserId}
+                getTierLabel={getPairingTierLabelByUserId}
+                onCountChange={handleCommentCountChange}
+                emptyByDefault={isStoredUserPost}
+              />
+
               <SimilarPairingList
                 items={similarItems}
                 titleVariant="text"
@@ -346,15 +378,6 @@ export default function PairingDetail() {
                     } satisfies PairingDetailNavState,
                   })
                 }
-              />
-
-              <CommentSection
-                pairingId={pairingId}
-                currentUser={currentUser}
-                getTierClassName={getUserGradeBadgeClassNameByUserId}
-                getTierLabel={getPairingTierLabelByUserId}
-                onCountChange={handleCommentCountChange}
-                emptyByDefault={isMyPost}
               />
             </>
           ) : null}

@@ -7,10 +7,12 @@ import SearchFilterModal from "../components/SearchFilterModal"
 import CommunityFilterPanel from "../components/CommunityFilterPanel"
 import { useRankingQueryParams } from "../hooks/useRankingQueryParams"
 import {
-  podiumVotesById,
+  getRankingPairLabel,
   rankingCategories,
   rankingDataByPeriod,
   rankingPeriods,
+  sojuDummyRankingItems,
+  type RankingCategory,
   type RankingPodium,
 } from "../utils/rankingData"
 import { feedPosts, type FeedPost } from "../utils/communityPosts"
@@ -27,21 +29,49 @@ type PopupChipGroup = {
   chips: string[]
 }
 
-const getPodiumVotes = (podium: RankingPodium) => {
-  const fromPost = feedPosts.find((post) => post.id === podium.id)?.likeCount
-  if (typeof fromPost === "number" && Number.isFinite(fromPost)) {
-    return Math.max(0, Math.round(fromPost))
-  }
-
-  const explicitVotes = podium.votes ?? podiumVotesById[podium.id]
-  if (typeof explicitVotes === "number" && Number.isFinite(explicitVotes)) {
-    return Math.max(0, Math.round(explicitVotes))
-  }
-
-  const base = 5200
-  const noise = (podium.id * 37 + podium.rank * 191) % 3600
-  return base + noise
+const getRankingLikeCount = (postId: number) => {
+  const fromPost = feedPosts.find((post) => post.id === postId)?.likeCount
+  return typeof fromPost === "number" && Number.isFinite(fromPost) ? Math.max(0, Math.round(fromPost)) : 0
 }
+
+const RANKING_CATEGORY_BY_POST_CATEGORY: Record<string, RankingCategory> = {
+  소주: "soju",
+  와인: "wine",
+  맥주: "beer",
+  위스키: "whisky",
+  증류주: "spirits",
+  전통주: "traditional",
+  사케: "sake",
+  기타: "etc",
+}
+
+const getPostRankingCategory = (post: FeedPost): RankingCategory | null =>
+  RANKING_CATEGORY_BY_POST_CATEGORY[post.categories?.[0] ?? ""] ?? null
+
+const getPodiumVotes = (podium: RankingPodium) => {
+  if (typeof podium.votes === "number" && Number.isFinite(podium.votes)) return Math.max(0, Math.round(podium.votes))
+  return getRankingLikeCount(podium.id)
+}
+
+const MAX_VISIBLE_RANKING_ITEMS = 10
+
+const RANKING_DELTA_BY_POST_ID: Record<number, string> = {
+  1005: "+1",
+  1002: "-1",
+  1006: "+3",
+  1025: "+1",
+  1009: "-4",
+  1010: "-2",
+  1001: "+1",
+  99003: "-1",
+  1101: "+2",
+  1003: "—",
+  1004: "—",
+  1007: "+1",
+  91011: "+1",
+}
+
+const getRankingDelta = (postId: number) => RANKING_DELTA_BY_POST_ID[postId] ?? "—"
 
 export default function CommunityRanking() {
   const { rankingPeriod, rankingCategory, setQueryParam } = useRankingQueryParams()
@@ -274,11 +304,54 @@ export default function CommunityRanking() {
   ])
 
   const rankingData = rankingDataByPeriod[rankingPeriod]
+  const categoryRankedPosts = useMemo(() => {
+    if (rankingCategory === "all") return []
+    return feedPosts
+      .filter((post) => getPostRankingCategory(post) === rankingCategory)
+      .sort((a, b) => getRankingLikeCount(b.id) - getRankingLikeCount(a.id))
+  }, [rankingCategory])
+
+  const rankingPodium = useMemo(() => {
+    if (rankingCategory === "all") return rankingData.podiumByCategory.all
+    const dynamicPodium = categoryRankedPosts.slice(0, rankingCategory === "soju" ? 2 : 3).map((post, index) => ({
+      id: post.id,
+      rank: (index + 1) as 1 | 2 | 3,
+      pair: getRankingPairLabel(post.id),
+      category: rankingCategory,
+      score: 0,
+      delta: getRankingDelta(post.id),
+    }))
+    if (rankingCategory !== "soju") return dynamicPodium
+
+    const thirdSojuItem = sojuDummyRankingItems[0]
+    return [
+      ...dynamicPodium,
+      {
+        id: thirdSojuItem.id,
+        rank: 3 as const,
+        pair: thirdSojuItem.pair,
+        category: "soju" as const,
+        score: thirdSojuItem.score,
+        votes: thirdSojuItem.votes,
+        delta: thirdSojuItem.delta,
+        disabled: true,
+      },
+    ]
+  }, [categoryRankedPosts, rankingCategory, rankingData.podiumByCategory.all])
+
   const rankingRows = useMemo(() => {
-    return rankingCategory === "all"
-      ? rankingData.rows
-      : rankingData.rows.filter((row) => row.category === rankingCategory)
-  }, [rankingCategory, rankingData.rows])
+    if (rankingCategory === "all") return rankingData.rows
+    if (rankingCategory === "soju") return sojuDummyRankingItems.slice(1)
+    return categoryRankedPosts.slice(3).map((post, index) => ({
+      id: post.id,
+      rank: index + 4,
+      pair: getRankingPairLabel(post.id),
+      category: rankingCategory,
+      score: 0,
+      votes: getRankingLikeCount(post.id),
+      delta: getRankingDelta(post.id),
+    }))
+  }, [categoryRankedPosts, rankingCategory, rankingData.rows])
 
   const filteredRankingRows = useMemo(() => {
     if (!isCommunitySearchActive) {
@@ -331,7 +404,6 @@ export default function CommunityRanking() {
     PRICE_MAX_WON,
   ])
 
-  const rankingPodium = rankingData.podiumByCategory[rankingCategory] ?? rankingData.podiumByCategory.all
   const podiumRankOrder: Array<1 | 2 | 3> = [2, 1, 3]
 
   const filteredRankingPodium = useMemo(() => {
@@ -387,16 +459,17 @@ export default function CommunityRanking() {
 
   const visibleRankingRows = useMemo(() => {
     const rankOffset = filteredRankingPodium.length
+    const maxRowCount = Math.max(0, MAX_VISIBLE_RANKING_ITEMS - rankOffset)
+    const podiumIdSet = new Set(filteredRankingPodium.map((item) => item.id))
 
-    return filteredRankingRows.map((row, index) => ({
-      ...row,
-      votes: (() => {
-        const fromPost = feedPosts.find((post) => post.id === row.id)?.likeCount
-        if (typeof fromPost === "number" && Number.isFinite(fromPost)) return Math.max(0, Math.round(fromPost))
-        return row.votes
-      })(),
-      rank: rankOffset + index + 1,
-    }))
+    return filteredRankingRows
+      .filter((row) => !podiumIdSet.has(row.id))
+      .slice(0, maxRowCount)
+      .map((row, index) => ({
+        ...row,
+        votes: "disabled" in row && row.disabled ? row.votes : getRankingLikeCount(row.id) || row.votes,
+        rank: rankOffset + index + 1,
+      }))
   }, [filteredRankingPodium, filteredRankingRows])
 
   const isRankingNoResults =
@@ -541,7 +614,7 @@ export default function CommunityRanking() {
   }
 
   return (
-    <section className="community_page page_screen" aria-label="랭킹">
+    <section className="ranking_page page_screen" aria-label="랭킹">
       <CommunityHeader
         title="랭킹"
         topTab="ranking"

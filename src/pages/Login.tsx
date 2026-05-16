@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react"
-import { useNavigate } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import AlertModal from "../components/AlertModal"
 import mascotImage from "../assets/onboarding-mascot_01.png"
 import eyeIcon from "../assets/svg/Eye.svg"
@@ -44,6 +44,8 @@ const TEXT = {
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirectTo = ((location.state as { redirectTo?: string } | null)?.redirectTo ?? "").trim()
   const [email, setEmail] = useState(VALID_EMAIL)
   const [password, setPassword] = useState(VALID_PASSWORD)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
@@ -72,7 +74,7 @@ export default function Login() {
 
   function goSignup() {
     updateUserAccount({ email: trimmedEmail, password })
-    navigate("/profile-setup", { replace: true })
+    navigate("/profile-setup", { replace: true, state: redirectTo ? { redirectTo } : undefined })
   }
 
   return (
@@ -140,7 +142,11 @@ export default function Login() {
         </button>
       </form>
 
-      <button className="login_signup_link" type="button" onClick={() => navigate("/profile-setup", { replace: true })}>
+      <button
+        className="login_signup_link"
+        type="button"
+        onClick={() => navigate("/profile-setup", { replace: true, state: redirectTo ? { redirectTo } : undefined })}
+      >
         {TEXT.signupLink}
       </button>
 

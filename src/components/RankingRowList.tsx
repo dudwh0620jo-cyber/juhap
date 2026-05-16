@@ -1,10 +1,11 @@
 import { Link } from "react-router"
-import { getRankingThumbSrc, getRankingThumbSrcById } from "../utils/rankingThumbAssets"
-
-type RankingCategoryItem = {
-  key: string
-  label: string
-}
+import iconBeerStein from "../assets/svg/beerstein_p.svg"
+import {
+  getRankingDrinkSrcForItem,
+  getRankingPostPhotoSrc,
+  getRankingThumbSrc,
+  getRankingThumbSrcById,
+} from "../utils/rankingThumbAssets"
 
 type RankingRow = {
   id: number
@@ -13,6 +14,7 @@ type RankingRow = {
   category: string
   votes: number
   delta: string
+  disabled?: boolean
 }
 
 type Props = {
@@ -20,7 +22,6 @@ type Props = {
   suggestionTags: readonly string[]
   onSelectSuggestionTag: (tag: string) => void
   rows: readonly RankingRow[]
-  categories: readonly RankingCategoryItem[]
 }
 
 const formatDelta = (delta: string) => {
@@ -38,7 +39,7 @@ const getDeltaClassName = (delta: string) => {
   return "row_delta is_up"
 }
 
-export default function RankingRowList({ isNoResults, suggestionTags, onSelectSuggestionTag, rows, categories }: Props) {
+export default function RankingRowList({ isNoResults, suggestionTags, onSelectSuggestionTag, rows }: Props) {
   return (
     <div className="ranking_list">
       {isNoResults ? (
@@ -61,30 +62,28 @@ export default function RankingRowList({ isNoResults, suggestionTags, onSelectSu
         </div>
       ) : null}
 
-      {rows.map((row) => (
-        <Link
-          className="ranking_row"
-          key={row.id}
-          to={`/community/pairing/${row.id}`}
-          state={{
-            pairingTitle: row.pair,
-            source: "ranking",
-          }}
-        >
+      {rows.map((row) => {
+        const className = row.disabled ? "ranking_row is_disabled" : "ranking_row"
+        const content = (
+          <>
           <strong className="row_rank">{row.rank}</strong>
           <div className="row_images" aria-hidden="true">
             {(() => {
               const [drink, food] = row.pair.split(" + ")
-              const drinkSrc = getRankingThumbSrcById("drink", row.id) ?? getRankingThumbSrc("drink", drink ?? "")
-              const foodSrc = getRankingThumbSrcById("food", row.id) ?? getRankingThumbSrc("food", food ?? "")
+              const drinkSrc =
+                getRankingDrinkSrcForItem(row.id, row.rank) ??
+                getRankingThumbSrcById("drink", row.id) ??
+                getRankingThumbSrc("drink", drink ?? "")
+              const photoSrc = getRankingPostPhotoSrc(row.id)
+              const sideImageSrc = photoSrc ?? getRankingThumbSrcById("food", row.id) ?? getRankingThumbSrc("food", food ?? "")
               return (
                 <>
+                  {sideImageSrc ? <img className="row_thumb is_food" src={sideImageSrc} alt="" /> : <span className="row_thumb is_food" />}
                   {drinkSrc ? (
                     <img className="row_thumb is_drink" src={drinkSrc} alt="" />
                   ) : (
                     <span className="row_thumb is_drink" />
                   )}
-                  {foodSrc ? <img className="row_thumb is_food" src={foodSrc} alt="" /> : <span className="row_thumb is_food" />}
                 </>
               )
             })()}
@@ -93,16 +92,39 @@ export default function RankingRowList({ isNoResults, suggestionTags, onSelectSu
             <h3>{row.pair}</h3>
             <p className="row_meta">
               <span className="row_votes">
+                <img src={iconBeerStein} alt="" aria-hidden="true" />
                 {row.votes.toLocaleString()}짠
-                <span className={getDeltaClassName(row.delta)}>{formatDelta(row.delta)}</span>
               </span>
             </p>
           </div>
-          <span className="row_category">
-            {categories.find((category) => category.key === row.category)?.label ?? "전체"}
-          </span>
-        </Link>
-      ))}
+          <span className={getDeltaClassName(row.delta)}>{formatDelta(row.delta)}</span>
+          </>
+        )
+
+        if (row.disabled) {
+          return (
+            <div className={className} key={row.id} aria-disabled="true">
+              {content}
+            </div>
+          )
+        }
+
+        return (
+          <Link
+            className={className}
+            key={row.id}
+            to={`/community/pairing/${row.id}`}
+            state={{
+              pairingTitle: row.pair,
+              drinkType: row.pair.split(" + ")[0]?.trim(),
+              foods: [row.pair.split(" + ")[1]?.trim()].filter(Boolean),
+              source: "ranking",
+            }}
+          >
+            {content}
+          </Link>
+        )
+      })}
     </div>
   )
 }

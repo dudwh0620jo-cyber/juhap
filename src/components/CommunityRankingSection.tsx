@@ -15,6 +15,8 @@ type RankingPodiumItem<CategoryKey extends string> = {
   category: CategoryKey
   score: number
   votes?: number
+  delta?: string
+  disabled?: boolean
   thumbVariant?: "default" | "bottle"
 }
 
@@ -26,6 +28,7 @@ type RankingRow = {
   score: number
   votes: number
   delta: string
+  disabled?: boolean
 }
 
 type Props<PeriodKey extends string, CategoryKey extends string> = {
@@ -63,7 +66,7 @@ export default function CommunityRankingSection<PeriodKey extends string, Catego
   rows,
 }: Props<PeriodKey, CategoryKey>) {
   return (
-    <section className="ranking_page" aria-label="랭킹 목록">
+    <section className="ranking_content" aria-label="랭킹 목록">
       <RankingPeriodTabs items={periodItems} activeKey={activePeriod} onChange={onChangePeriod} />
       <RankingCategoryTabs items={categoryItems} activeKey={activeCategory} onChange={onChangeCategory} />
       <RankingPodium podiumRankOrder={podiumRankOrder} items={podiumItems} getVotes={getPodiumVotes} />
@@ -72,7 +75,6 @@ export default function CommunityRankingSection<PeriodKey extends string, Catego
         suggestionTags={suggestionTags}
         onSelectSuggestionTag={onSelectSuggestionTag}
         rows={rows}
-        categories={categoryItems}
       />
     </section>
   )

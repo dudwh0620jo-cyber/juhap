@@ -85,7 +85,7 @@ export const QUESTION_MOCK_SEEDS = [
     minutesAgo: 11520,
   },
   {
-    id: 99003,
+    id: 92006,
     authorId: 6007,
     title: "야식이랑 부담 없이 마시기 좋은 술 추천해주세요",
     body: "퇴근하고 집에서 간단하게 한잔하는 걸 좋아해요. 너무 세지 않은 걸로 추천 부탁해요.",

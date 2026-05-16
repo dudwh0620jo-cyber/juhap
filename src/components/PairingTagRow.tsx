@@ -29,11 +29,17 @@ type RenderTagProps = {
 
 function RenderTag({ label, toneClassName, tagClassName, to, state, onClick }: RenderTagProps) {
   const className = [tagClassName, toneClassName].filter(Boolean).join(" ")
+  const content = (
+    <>
+      <span className={`${tagClassName}_label`}>{label}</span>
+      <span className={`${tagClassName}_icon`} aria-hidden="true" />
+    </>
+  )
 
   if (to) {
     return (
       <Link className={className} to={to} state={state} onClick={(event) => event.stopPropagation()}>
-        {label}
+        {content}
       </Link>
     )
   }
@@ -48,12 +54,12 @@ function RenderTag({ label, toneClassName, tagClassName, to, state, onClick }: R
           onClick()
         }}
       >
-        {label}
+        {content}
       </button>
     )
   }
 
-  return <span className={className}>{label}</span>
+  return <span className={className}>{content}</span>
 }
 
 export default function PairingTagRow({

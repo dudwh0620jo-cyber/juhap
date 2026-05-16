@@ -1524,14 +1524,17 @@
 }
 
 .my_exchange_header {
-  display: grid;
-  grid-template-columns: 48px 1fr auto;
+  position: relative;
+  display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 18px;
 }
 
 .my_exchange_header h1 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   margin: 0;
   text-align: center;
   font-family: var(--font-title);
@@ -1542,6 +1545,7 @@
 
 .my_exchange_back {
   position: relative;
+  z-index: 1;
   width: 44px;
   height: 44px;
   border: 0;

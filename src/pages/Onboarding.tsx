@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { useNavigate } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import mascot01 from "../assets/onboarding-mascot_01.png"
 import mascot02 from "../assets/onboarding-mascot_02.png"
 import mascot03 from "../assets/onboarding-mascot_03.png"
@@ -37,6 +37,8 @@ function renderAccentText(text: string, accent: string) {
 
 export default function Onboarding() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirectTo = ((location.state as { redirectTo?: string } | null)?.redirectTo ?? "").trim()
   const [activeIndex, setActiveIndex] = useState(0)
   const [shouldSlideInFooter, setShouldSlideInFooter] = useState(false)
   const pointerStartX = useRef<number | null>(null)
@@ -52,7 +54,7 @@ export default function Onboarding() {
   }
 
   function finishOnboarding() {
-    navigate("/login", { replace: true })
+    navigate("/login", { replace: true, state: redirectTo ? { redirectTo } : undefined })
   }
 
   function goNextSlide() {
@@ -96,7 +98,7 @@ export default function Onboarding() {
     mascotTapCountRef.current += 1
     if (mascotTapCountRef.current >= 3) {
       mascotTapCountRef.current = 0
-      navigate("/home", { replace: true })
+      navigate("/home", { replace: true, state: { skipOnboardingGate: true } })
       return
     }
 

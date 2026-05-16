@@ -251,7 +251,12 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
       {isConfirmOpen ? (
         <PurchaseConfirmModal
           ariaLabel="투표 참여 확인"
-          message="투표하고 결과보기로 이동하면 바로 참여가 완료돼요. 진행할까요?"
+          message={
+            <>
+              투표하고 결과보기로 이동하면 바로 참여가 완료돼요. <br />
+              진행할까요?
+            </>
+          }
           cancelLabel="취소"
           confirmLabel="확인"
           onCancel={() => setIsConfirmOpen(false)}
@@ -532,5 +537,4 @@ export default function Home() {
     </section>
   )
 }
-
 

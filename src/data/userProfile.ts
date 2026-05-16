@@ -83,6 +83,17 @@ export function readUserProfile(): UserProfile {
   }
 }
 
+export function isUserOnboardingComplete(profile = readUserProfile()) {
+  const hasProfile =
+    profile.personalInfo.nickname.trim().length > 0 &&
+    profile.personalInfo.phone.trim().length > 0 &&
+    profile.personalInfo.isPhoneVerified
+
+  const hasTastePreferences = preferenceGroups.every((group) => (profile.tastePreferences[group.key] ?? []).length > 0)
+
+  return hasProfile && hasTastePreferences
+}
+
 export function writeUserProfile(nextProfile: UserProfile) {
   if (!canUseStorage()) return
   window.localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))

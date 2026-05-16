@@ -35,6 +35,19 @@ export const ALCOHOL_REVIEW_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedComme
 }
 
 export const PAIRING_REVIEW_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedCommentItem[]> = {
+  "99003":[
+    { id: 1, userId: 3001, text: "회무침 양념이랑 화요25 조합 생각보다 진짜 잘 어울리죠 😄"},
+    { id: 6, userId: 3002, text: "맞아요 특히 새콤한 양념이랑 같이 마시면 더 깔끔하더라고요.", replyTo: { userName: "순대렐라", commentId: 1 } },
+    { id: 7, userId: 3004, text: "저도 이 조합 먹고 화요25 다시 보게 됐어요.", replyTo: { userName: "순대렐라", commentId: 1 } },
+    { id: 8, userId: 5001, text: "회무침 매운맛 잡아주는 느낌 진짜 공감돼요.", replyTo: { userName: "순대렐라", commentId: 1 } },
+    { id: 9, userId: 6002, text: "증류식 소주라 끝맛이 덜 텁텁해서 좋은 것 같아요.", replyTo: { userName: "순대렐라", commentId: 1 } },
+    { id: 10, userId: 1021, text: "차갑게 마시면 더 잘 어울릴 것 같네요 🍶", replyTo: { userName: "순대렐라", commentId: 1 } },
+    { id: 11, userId: 3005, text: "다음에 회무침 시키면 화요25 같이 먹어봐야겠어요.", replyTo: { userName: "순대렐라", commentId: 1 } },
+    { id: 2, userId: 3004, text: "차갑게 마셨을 때 입안 정리되는 느낌 공감돼요."},
+    { id: 3, userId: 6002, text: "맵고 새콤한 안주엔 증류식 소주가 확실히 깔끔하네요."},
+    { id: 4, userId: 1021, text: "곡물향 은은하게 올라온다는 표현 보니까 바로 마셔보고 싶어졌어요."},
+    { id: 5, userId: 5001, text: "회무침 한입에 화요25 한잔이면 계속 들어갈 것 같은 조합이네요 🔥"},
+  ],
   "1101": [
     { id: 1, userId: 1021, text: "우니랑 닷사이23 조합 진짜 좋죠 😭" },
     { id: 2, userId: 3001, text: "끝맛 깔끔해서 계속 들어갈 것 같네요." },
@@ -50,7 +63,7 @@ export const PAIRING_REVIEW_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedComme
     { id: 4, userId: 6001, text: "이자카야에서 사시미에 닷사이23이면 실패하기 어렵죠 😄" },
   ],
   "99001": [
-    { id: 1, userId: 1021, text: "주욘다이는 진짜 왜 유명한지 마셔보면 바로 이해되는 것 같아요 🍶" },
+    { id: 1, userId: 1021, text: "쥬욘다이는 진짜 왜 유명한지 마셔보면 바로 이해되는 것 같아요 🍶" },
   ],
   "99002": [
     { id: 1, userId: 3002, text: "매운 음식이랑 쿠보타 만쥬 조합 의외로 잘 어울리죠 😄" },
@@ -113,7 +126,7 @@ export const PAIRING_REVIEW_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedComme
 "91012": [
   { id: 1, userId: 1006, text: "감자전이랑 막걸리는 역시 실패하기 어렵죠." },
   { id: 2, userId: 1001, text: "비 오는 날 생각나는 조합이네요 😄" },
-  { id: 3, userId: 1002, text: "장수 막걸리랑 감자전이면 편하게 한잔하기 좋죠." },
+  { id: 3, userId: 1002, text: "장수 생막걸리랑 감자전이면 편하게 한잔하기 좋죠." },
   { id: 4, userId: 1004, text: "감자전 바삭하게 부쳐졌으면 진짜 최고였겠네요." },
   { id: 5, userId: 1011, text: "혼술로도 은근 만족감 큰 조합 같아요." },
   { id: 6, userId: 1013, text: "막걸리 특유의 톡 쏘는 맛이 감자전이랑 잘 맞죠." },
@@ -173,7 +186,7 @@ export const QUESTION_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedCommentItem
   { id: 1, userId: 6002, text: "메이커스 마크 다음이면 버팔로 트레이스 많이 추천하시더라구요." },
   { id: 2, userId: 3006, text: "부드러운 스타일 좋아하시면 와일드 터키 101도 한번 드셔보세요 😄" },
 ],
-"99003": [
+"92006": [
   { id: 1, userId: 6004, text: "퇴근 후엔 캔 하이볼처럼 가볍게 마실 수 있는 술이 편하더라구요 😄" },
   { id: 2, userId: 6005, text: "치킨이나 야식류엔 라거 맥주도 부담 없이 잘 어울려요." },
 ],

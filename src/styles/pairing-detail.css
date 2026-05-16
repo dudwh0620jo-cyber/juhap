@@ -110,6 +110,23 @@
   min-width: 0;
 }
 
+.author_owner_badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+  padding: 2px 6px;
+  border: 0.7px solid #d9d9d9;
+  border-radius: 999px;
+  background: #fbfaf9;
+  color: #8c8c8c;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
 .detail_header_title .user_grade_badge {
   min-width: auto;
   height: auto;
@@ -434,95 +451,121 @@
 
 .detail_product_card {
   display: grid;
-  grid-template-columns: 102px minmax(0, 1fr) 20px;
+  grid-template-columns: 101px minmax(0, 1fr) 43px;
   gap: 12px;
   align-items: center;
-  min-height: 130px;
-  padding: 16px 18px;
-  border: 1px solid var(--color-point-02);
-  border-radius: 18px;
-  background: var(--color-bg-white);
+  width: 100%;
+  min-height: 132px;
+  padding: 20px;
+  border: 1px solid #e6d0c2;
+  border-radius: 16px;
+  background: transparent;
+}
+
+.detail_product_card.is_disabled {
+  filter: grayscale(1);
+  opacity: 0.72;
 }
 
 .product_thumb {
-  width: 102px;
-  height: 94px;
+  width: 101px;
+  height: 92px;
   border-radius: 12px;
-  background: var(--color-gray-00);
+  background: #f4f0ed;
   display: grid;
   place-items: center;
   overflow: hidden;
 }
 
 .product_thumb_image {
-  width: 100%;
-  height: 100%;
+  width: 86px;
+  height: 86px;
   object-fit: contain;
 }
 
 .product_info {
   min-width: 0;
   display: grid;
-  align-content: center;
-  gap: 20px;
+  align-self: stretch;
+  align-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
 }
 
 .product_text {
   min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: 4px;
 }
 
 .product_text h3 {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.28;
-  letter-spacing: -2%;
-  font-weight: 600;
+  color: #44413f;
   font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
   word-break: keep-all;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .product_text p {
   margin: 0;
-  font-size: 13px;
-  color: var(--color-gray-05);
-  line-height: 1.25;
+  color: #44413f;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .chips span {
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
-  padding: 0 10px;
+  min-height: 21px;
+  padding: 2px 8px;
   border-radius: 999px;
-  background: var(--color-point-04);
-  color: var(--color-point-01);
+  background: #f9e7c9;
+  color: #b57c25;
   font-size: 12px;
-  line-height: 1;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
 }
 
 .detail_product_arrow {
-  width: 20px;
-  height: 20px;
+  width: 43px;
+  height: 43px;
   display: grid;
   place-items: center;
   align-self: center;
   border: 0;
   padding: 0;
-  background: transparent;
+  border-radius: 999px;
+  background: #fbf4ee;
+  cursor: pointer;
+}
+
+.detail_product_arrow:disabled {
+  cursor: default;
 }
 
 .detail_product_arrow img {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   display: block;
+  transform: rotate(180deg);
+  opacity: 0.72;
 }
 
 .recommend_panel {
@@ -587,7 +630,6 @@
 .similar_title {
   margin: 18px 0 10px;
   padding-top: 18px;
-  border-top: 1px dashed var(--color-point-02);
   font-size: 20px;
   font-weight: 400;
   letter-spacing: -2.5%;
@@ -810,7 +852,66 @@
 }
 
 .comment_row.is_reply {
-  padding-left: 12px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding-left: 27px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.comment_reply_corner_icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.comment_row.is_reply .comment_row_layout {
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.comment_row.is_reply .comment_avatar {
+  width: 30px;
+  height: 30px;
+}
+
+.comment_row.is_reply .comment_avatar_fallback {
+  font-size: 12px;
+}
+
+.comment_row.is_reply .comment_header_main {
+  gap: 4px;
+}
+
+.comment_row.is_reply .comment_author_name,
+.comment_row.is_reply .comment_header_main .user_grade_badge {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.comment_row.is_reply .comment_header_dot {
+  font-size: 13px;
+}
+
+.comment_row.is_reply .comment_time {
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.comment_row.is_reply .comment_reply_line {
+  font-size: 13px;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.comment_row.is_reply .comment_reply_button {
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0;
 }
 
 .comment_row_layout {
@@ -904,6 +1005,10 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.comment_owner_badge {
+  margin-left: -2px;
 }
 
 .comment_content_block {
@@ -1092,6 +1197,37 @@
   cursor: pointer;
 }
 
+.comment_reply_toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  min-height: 30px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #757575;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.comment_reply_toggle_bar {
+  width: 16px;
+  height: 1px;
+  background: #a8a8a8;
+}
+
+.comment_reply_toggle img {
+  width: 10px;
+  height: 10px;
+  display: block;
+  opacity: 0.72;
+  transform: rotate(180deg);
+}
+
 .comment_like_button {
   display: inline-flex;
   align-items: center;
@@ -1155,12 +1291,19 @@
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
+  grid-column: 1 / -1;
   gap: 10px;
   margin-top: 12px;
-  padding: 12px 14px;
-  border-radius: 18px;
-  background: var(--color-bg-white);
-  border: 1px solid rgba(224, 194, 167, 0.7);
+  margin-left: 58px;
+  min-height: 56px;
+  padding: 0 10px 0 18px;
+  border-radius: 999px;
+  background: var(--color-bg-base);
+  border: 1px solid rgba(239, 227, 214, 0.96);
+}
+
+.comment_row.is_reply .comment_inline_reply {
+  margin-left: 44px;
 }
 
 .comment_inline_reply_field {
@@ -1169,20 +1312,20 @@
   outline: none;
   background: transparent;
   color: #443f3a;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .comment_inline_reply_field::placeholder {
-  color: #a19a92;
+  color: #9d978f;
 }
 
 .comment_inline_reply button {
-  min-width: 48px;
-  height: 34px;
-  padding: 0 10px;
+  min-width: 52px;
+  height: 32px;
+  padding: 0 14px;
   border: 0;
   border-radius: 999px;
-  background: #d99561;
+  background: #dea06f;
   font-size: 13px;
   font-weight: 700;
   color: #fff;

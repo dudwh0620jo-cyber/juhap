@@ -1,7 +1,7 @@
 ﻿import type { ReactNode } from "react"
 
 type Props = {
-  message: string
+  message: ReactNode
   onConfirm: () => void
   onCancel: () => void
   confirmLabel?: string
