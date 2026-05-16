@@ -249,7 +249,7 @@ body {
 
 .page_screen {
   min-height: 100vh;
-  padding: 68px 24px 132px;
+  padding: 68px 20px 132px;
 }
 
 .status_bar {
@@ -416,4 +416,27 @@ body {
 
 .post_owner_action_button.is_danger {
   color: #c84e45;
+}
+
+.ui_orb_motion {
+  transform-origin: center;
+  animation-name: ui_orb_rotate_loop;
+  animation-duration: var(--orb-rotate-duration, 420s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes ui_orb_rotate_loop {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui_orb_motion {
+    animation: none;
+  }
 }

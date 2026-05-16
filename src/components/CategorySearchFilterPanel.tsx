@@ -247,44 +247,47 @@ export default function CategorySearchFilterPanel({
 
           <div className="category_search_filter_content">
             {visibleOverlayGroups.map((groupItem) => {
-              const shouldShowChips = groupItem.title !== "특징" || Boolean(selectedCategoryChip)
+              const isDrinkTypeGroup = groupItem.title === "주종"
+              const isCategoryGroup = groupItem.title === "카테고리"
+              const isFeatureGroup = groupItem.title === "특징"
+              const shouldShowGroup =
+                isDrinkTypeGroup || (isCategoryGroup && Boolean(selectedDrinkTypeLabel)) || (isFeatureGroup && Boolean(selectedCategoryChip))
+
+              if (!shouldShowGroup) return null
 
               return (
                 <div className="category_filter_group category_filter_group_chips" key={groupItem.title}>
                   <h3 className="category_filter_group_title">{groupItem.title}</h3>
-                  <div className={shouldShowChips ? "category_filter_chip_row" : "category_filter_chip_row is_placeholder"}>
-                    {shouldShowChips
-                      ? groupItem.chips.map((chip) => {
-                          const isEnabled = isOverlayChipEnabled(groupItem.title, chip)
-                          const isActive =
-                            groupItem.title === "주종"
-                              ? selectedDrinkTypeLabel === chip
-                              : groupItem.title === "카테고리"
-                                ? selectedCategoryChip === chip
-                                : selectedFeatureChips.has(chip)
+                  <div className="category_filter_chip_row">
+                    {groupItem.chips.map((chip) => {
+                      const isEnabled = isOverlayChipEnabled(groupItem.title, chip)
+                      const isActive = isDrinkTypeGroup
+                        ? selectedDrinkTypeLabel === chip
+                        : isCategoryGroup
+                          ? selectedCategoryChip === chip
+                          : selectedFeatureChips.has(chip)
 
-                          return (
-                            <button
-                              key={chip}
-                              type="button"
-                              className={
-                                isEnabled
-                                  ? isActive
-                                    ? "category_filter_chip is_active"
-                                    : "category_filter_chip"
-                                  : "category_filter_chip is_disabled"
-                              }
-                              onClick={() => {
-                                if (!isEnabled) return
-                                toggleFilterChip(groupItem.title, chip)
-                              }}
-                              disabled={!isEnabled}
-                            >
-                              {chip}
-                            </button>
-                          )
-                        })
-                      : null}
+                      return (
+                        <button
+                          key={chip}
+                          type="button"
+                          className={
+                            isEnabled
+                              ? isActive
+                                ? "category_filter_chip is_active"
+                                : "category_filter_chip"
+                              : "category_filter_chip is_disabled"
+                          }
+                          onClick={() => {
+                            if (!isEnabled) return
+                            toggleFilterChip(groupItem.title, chip)
+                          }}
+                          disabled={!isEnabled}
+                        >
+                          {chip}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )

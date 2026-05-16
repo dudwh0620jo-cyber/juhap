@@ -41,3 +41,9 @@ export function writeTodayQuizProgress(progress: TodayQuizProgress) {
   const state = readState()
   writeState({ ...state, today: progress })
 }
+
+export function clearTodayQuizProgress() {
+  const state = readState()
+  const { today: _today, ...rest } = state
+  writeState(rest)
+}

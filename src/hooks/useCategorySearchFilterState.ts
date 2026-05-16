@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+﻿import { useEffect, useMemo, useState } from "react"
 import type { DrinkCategory } from "../data/categoryData"
 import type { PricePreset } from "../utils/pricePreset"
 
@@ -12,7 +12,6 @@ type UseCategorySearchFilterStateParams = {
   abvMax: number
   drinkCategories: DrinkCategory[]
   featureChips: readonly string[]
-  readySubcategory: string
 }
 
 export function useCategorySearchFilterState({
@@ -25,7 +24,6 @@ export function useCategorySearchFilterState({
   abvMax,
   drinkCategories,
   featureChips,
-  readySubcategory,
 }: UseCategorySearchFilterStateParams) {
   const [selectedDrinkTypeLabel, setSelectedDrinkTypeLabel] = useState<string | null>(initialDrinkTypeLabel)
   const [selectedCategoryChip, setSelectedCategoryChip] = useState<string | null>(initialCategoryChip)
@@ -45,6 +43,18 @@ export function useCategorySearchFilterState({
       { title: "특징", chips: [...featureChips] },
     ]
   }, [drinkCategories, featureChips, selectedDrinkTypeLabel])
+
+  useEffect(() => {
+    setSelectedFeatureChips((prev) => {
+      if (prev.size === 0) return prev
+      const allowed = new Set(featureChips)
+      const next = new Set<string>()
+      prev.forEach((chip) => {
+        if (allowed.has(chip)) next.add(chip)
+      })
+      return next.size === prev.size ? prev : next
+    })
+  }, [featureChips])
 
   const toggleFilterChip = (groupTitle: string, chip: string) => {
     if (groupTitle === "주종") {
@@ -70,9 +80,9 @@ export function useCategorySearchFilterState({
     }
   }
 
-  const isOverlayChipEnabled = (groupTitle: string, chip: string) => {
+  const isOverlayChipEnabled = (groupTitle: string, _chip: string) => {
     if (groupTitle === "주종") return true
-    if (groupTitle === "카테고리") return chip === readySubcategory
+    if (groupTitle === "카테고리") return Boolean(selectedDrinkTypeLabel)
     if (groupTitle === "특징") return Boolean(selectedCategoryChip)
     return true
   }

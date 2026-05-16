@@ -2,7 +2,6 @@
   display: flex; 
   flex-direction: column; 
   padding-top: 56px; 
-  padding-bottom: 120px; 
   gap: 20px; 
   overflow-x: hidden;
 } 
@@ -638,30 +637,52 @@
 .weekly_drink_card_inner {
   position: relative;
   z-index: 2;
-  min-height: 220px;
-  padding: 18px 150px 62px 18px;
+  height: 230px;
+  padding: 18px 150px 62px 14px;
 }
 
 .weekly_drink_left {
+  width: 122px;
+}
+
+.weekly_drink_info_panel {
+  position: relative;
+  height: 167px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  overflow: hidden;
+  padding: 60px 12px 30px 20px;
+  gap: 4px;
+}
+
+.weekly_drink_info_panel::before {
+  content: "";
+  position: absolute;
+  height: 167px;
+  inset: 0;
+  background: url("../assets/svg/weekly_drink_info_tag.svg") no-repeat center / cover;
+  z-index: 0;
+}
+
+.weekly_drink_info_panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .weekly_drink_name {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 130%;
   letter-spacing: -1%;
-  white-space: pre-line;
+  font-family: var(--font-title);
 }
 
 .weekly_drink_kv {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 3px;
+  font-size: 10px;
   font-weight: 400;
   color: var(--color-primary);
   line-height: 140%;
@@ -669,19 +690,12 @@
 }
 
 .weekly_drink_price {
+  padding: 2px 0 ;
   display: inline-flex;
   align-items: center;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 400;
   color: var(--color-text-primary);
-}
-
-.weekly_drink_price::before {
-  content: "";
-  width: 14px;
-  height: 14px;
-  background: url("../assets/svg/tag.svg") no-repeat center / contain;
-  opacity: 0.75;
 }
 
 
@@ -692,7 +706,7 @@
   top: -20%;
   transform: translateX(-50%);
   width: 67px;
-  height: 215px;
+  height: 235px;
   pointer-events: none;
 }
 
@@ -704,41 +718,73 @@
 
 .weekly_drink_right {
   position: absolute;
-  top: 18px;
+  top: 40px;
   right: 16px;
   display: flex;
   flex-direction: column;
   align-items: end;
-  gap: 10px;
+  gap: 14px;
   z-index: 2;
 }
 
 .weekly_drink_stat {
   width: fit-content;
-  padding: 4px 4px;
+  min-width: 80px;
+  height: fit-content;
+  padding: 2px 8px 2px 4px ;
   border-radius: 999px;
   display: flex;
-  gap: 4px;
+  gap: 2px;
   align-items: center;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
-  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.4);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(2px) saturate(140%);
+  -webkit-backdrop-filter: blur(2px) saturate(140%);
+  transform-origin: center right;
+}
+.weekly_drink_right>.weekly_drink_stat:nth-child(1){
+  position: relative;
+  top: 0;
+  right: 20px;
 }
 
+.weekly_drink_right>.weekly_drink_stat:nth-child(2){
+  position: relative;
+  top: 0;
+  right: 2px;
+}
+
+.weekly_drink_right>.weekly_drink_stat:nth-child(3){
+  position: relative;
+  top: 0;
+  right: 0;
+}
+
+.weekly_drink_right>.weekly_drink_stat:nth-child(4){
+  position: relative;
+  top: 0;
+  right: 10px;
+}
+
+.weekly_drink_card.is_white .weekly_drink_right>.weekly_drink_stat:nth-child(4){
+  right: -4px;
+}
 .weekly_drink_stat_icon {
-  width: 21px;
-  height: 21px;
+  width: 15px;
+  height: 15px;
   border-radius: 999px;
   background: var(--color-bg-base);
   border: 1px solid rgba(205, 170, 120, 0.45);
   display: grid;
   place-items: center;
 }
-
+.weekly_drink_card.is_red .weekly_drink_right>.weekly_drink_stat:nth-child(4){
+  padding: 4px;
+}
 .weekly_drink_stat_icon img {
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   object-fit: cover;
 }
 
@@ -749,6 +795,8 @@
   min-width: 0;
   font-size: 10px;
   font-weight: 400;
+  line-height: 100%;
+  letter-spacing: 0px;
   color: var(--color-text-primary);
 }
 
@@ -766,7 +814,7 @@
   position: absolute;
   left: 16px;
   right: 16px;
-  bottom: 14px;
+  bottom: 10px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -777,8 +825,12 @@
 .weekly_drink_tag {
   padding: 6px 10px;
   border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.1);
   background: rgba(160, 160, 124, 1);
-  color: var(--color-gray-00);
+  box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+  backdrop-filter: blur(2px) saturate(140%);
+  -webkit-backdrop-filter: blur(2px) saturate(140%);
+  color: rgba(255, 255, 255, 1);
   font-size: 10px;
   font-weight: 400;
   letter-spacing: 1%;
@@ -786,10 +838,12 @@
 }
 
 .weekly_drink_card.is_white .weekly_drink_tag {
+  color: var(--color-bg-white);
   background: rgba(161, 108, 16, 1);
 }
 
 .weekly_drink_card.is_red .weekly_drink_tag {
+  color: var(--color-bg-white);
   background: rgba(78, 56, 19, 1);
 }
 
@@ -1110,12 +1164,24 @@
   height: 20px;
 }
 
+.home_notice_button.is_disabled {
+  background: var(--color-gray-00);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.home_notice_button.is_disabled img {
+  opacity: 0.55;
+  filter: grayscale(0.9);
+}
+
 .home_block_header h3 {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -1%;
   font-family:var(--font-title);
+  padding-bottom: 8px;
 }
 
 .home_block_subtitle {
@@ -1133,7 +1199,7 @@
   /* full-bleed background inside .page_screen padding */
   margin: -20px 0 0;
   margin-left: -24px;
-  padding: 42px 24px 18px;
+  padding: 28px 24px 48px;
   background: var(--color-point-03);
 }
 
@@ -1239,6 +1305,9 @@
 .home_block.home_today{
   padding: 20px 0 0;
   position: relative;
+  gap: 24px;
+  display: flex;
+  flex-direction: column;
 }
 
 .home_today_carousel {
@@ -1348,6 +1417,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   align-self: flex-start;
   height: 34px;
   padding: 0 14px;
@@ -1367,8 +1437,14 @@
   -webkit-backdrop-filter: blur(2px) saturate(140%);
 }
 
+.home_today_hero_link img {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+}
+
 .home_today_dots {
-  padding: 8px;
+  padding: 14px 0;
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -1382,8 +1458,8 @@
 }
 
 .home_today_dot.is_active {
-  width: 18px;
-  background: var(--color-point-01);
+  width: 30px;
+  background: var(--color-primary);
 }
 
 .home_today_card_link {
@@ -1411,8 +1487,9 @@
 .moment_pick_glider { 
   position: absolute; 
   left: 0; 
-  bottom: 2px; 
-  height: 2px; 
+  bottom: 2px;
+  width: 20px; 
+  height: 5px; 
   border-radius: 999px; 
   background: var(--color-point-01); 
   pointer-events: none; 
@@ -1442,6 +1519,7 @@
   display: grid;
   place-items: center;
   box-sizing: border-box;
+  transition: background .3s ease, box-shadow .3s ease ;
 }
 
 .moment_pick_icon img {
@@ -1507,23 +1585,22 @@
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
   scroll-snap-align: start;
   overflow: visible;
-  --moment-pick-surface: var(--color-point-01);
-  --moment-pick-accent: var(--color-point-02);
   --moment-pick-desc: rgba(157, 62, 0, 1);
 }
 
-.moment_pick_card.is_secondary {
-  --moment-pick-surface: #FDECD2;
-  --moment-pick-accent: #F9D9AA;
-  --moment-pick-desc: rgba(157, 62, 0, 0.9);
-}
+.moment_pick_card_button:nth-child(2) .moment_pick_card .moment_pick_card_surface{
+  background: rgba(249, 216, 167, 1);
 
+}
+.moment_pick_card_button:nth-child(2) .moment_pick_card_surface::before {
+  background-color: rgba(253, 236, 210, 1);
+}
 .moment_pick_card_surface {
   position: relative;
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background: var(--moment-pick-surface);
+  background: rgba(241, 178, 123, 1);
   overflow: hidden;
   z-index: 0;
 }
@@ -1538,7 +1615,7 @@
   width: 260px;
   height: 170px;
   border-radius: 125px 125px 0 0 ;
-  background: var(--moment-pick-accent);
+  background: rgba(246, 202, 163, 1);
   pointer-events: none;
 }
 
@@ -1584,7 +1661,7 @@
   padding: 80px 20px 20px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   text-align: left;
   gap: 6px;
   z-index: 1;
@@ -1608,9 +1685,11 @@
 .moment_pick_card_tags {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   margin-top: 10px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .moment_pick_card_tags span {
@@ -1788,7 +1867,7 @@
 
 .home_vote_option.is_selected {
   border-color: var(--color-point-01);
-  background: var(--color-point-03);
+  background: #F9F3EF;
 }
 
 .home_vote_option_left {
@@ -2023,7 +2102,7 @@
   width: var(--weekly-rank-card-w);
   min-height: var(--weekly-rank-card-h);
   border-radius: 18px;
-  background: var(--color-bg-white);
+  background: #FFFEFC;
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
   padding: 12px 10px 10px;
   display: grid;
@@ -2035,6 +2114,7 @@
   width: 156px;
   height: 309px;
   box-shadow: 0 7px 14.8px rgba(224, 224, 224, 1);
+  background: #FFFAF6;
 }
 
 .home_weekly_rank_badge img {
@@ -2163,9 +2243,9 @@
   width: fit-content;
   padding: 10px 56.5px 9px 25.5px;
   border-radius: 16px 16px 16px 0;
-  background: var(--color-bg-white);
+  background: rgba(254, 246, 239, 30%);
   border: 1px solid var(--font-title);
-  box-shadow: 2px 2px 8px rgba(207, 179, 139, 1);
+  box-shadow: 2px 2px 8px #CFB38B;
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text-primary);
@@ -2219,8 +2299,7 @@
 
 .home_quiz_card {  
   width: calc(100% + 48px); 
-  margin-left: -24px; 
-  margin-right: -24px; 
+  margin: 28px -24px 0 -24px;
   box-sizing: border-box; 
   border: 0;  
   background-repeat: no-repeat;  
@@ -2249,17 +2328,22 @@
   gap: 6px;
 }
 
+.home_quiz_text_group {
+  display: grid;
+  gap: 0;
+}
+
 .home_quiz_badge { 
   justify-self: start; 
   padding: 4px 8px; 
   border-radius: 999px; 
   background: rgba(239, 180, 90, 1); 
-  color: var(--color-gray-00); 
+  color: var(--color-bg-white); 
   font-size: 10px; 
-  font-weight: 400; 
+  font-weight: 300; 
   letter-spacing: -1%; 
   line-height: 140%; 
-  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.08); 
+  box-shadow: 0 0 5px var(--color-point-01); 
 } 
  
 .home_quiz_title { 

@@ -153,6 +153,12 @@ export default function App() {
     }
   }, [isChatOpen, navigationType, pathname])
 
+  useEffect(() => {
+    const handleOpenChat = () => setIsChatOpen(true)
+    window.addEventListener("ui:open-chat", handleOpenChat)
+    return () => window.removeEventListener("ui:open-chat", handleOpenChat)
+  }, [])
+
   const isAuthPage =
     pathname === "/onboarding" ||
     pathname === "/login" ||

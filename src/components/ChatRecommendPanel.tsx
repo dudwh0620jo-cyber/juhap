@@ -1,4 +1,4 @@
-import imgDassai23 from "../assets/chat_dassai_23.png"
+﻿import imgDassai23 from "../assets/chat_dassai_23.png"
 import imgKubotaManju from "../assets/chat_kubota_manju.png"
 import imgDenshuJunmaiDaiginjo from "../assets/drink_denshu_junmai_daiginjo.png"
 import imgGekkeikanHorin from "../assets/drink_gekkeikan_horin.png"
@@ -9,6 +9,9 @@ import imgKubotaManjyuList from "../assets/drink_kubota_manjyu.png"
 import imgNabeshimaDaiginjo from "../assets/drink_nabeshima_daiginjo.png"
 import imgOnnanakase from "../assets/drink_onnanakase.png"
 import imgDassai23List from "../assets/product_dassai_23.png"
+import imgMoreMascot from "../assets/ai_chat_more_01.png"
+import iconSparkle from "../assets/svg/boxicons_sparkle_01.svg"
+import iconCaretRight from "../assets/svg/caretright.svg"
 import type { WineCandidate } from "../utils/chatBotFlow"
 
 type ChatRecommendPanelProps = {
@@ -36,11 +39,11 @@ const categoryListImageById: Record<string, string> = {
   "sake-onnanakase": imgOnnanakase,
 }
 
-const RESULT_LABEL = "\uCD94\uCC9C \uACB0\uACFC"
-const TAG_LABEL = "\uD0DC\uADF8"
-const DETAILS_LABEL = "\uC790\uC138\uD788 \uBCF4\uAE30"
-const SAVE_LABEL = "\uCD94\uCC9C \uC800\uC7A5\uD558\uAE30"
-const MORE_LABEL = "\uB2E4\uB978 \uC220 \uB354\uBCF4\uAE30"
+const RESULT_LABEL = "추천 결과"
+const TAG_LABEL = "태그"
+const DETAILS_LABEL = "자세히 보기"
+const SAVE_LABEL = "추천 저장하기"
+const MORE_LABEL = "다른 술 더보기"
 
 function getCandidateImage(candidateId: string) {
   return featuredImageById[candidateId] ?? categoryListImageById[candidateId]
@@ -66,6 +69,10 @@ export default function ChatRecommendPanel({
 
           return (
             <article key={candidate.id} className={isSelected ? "chat_recommend_card is_selected" : "chat_recommend_card"}>
+              <div className="chat_recommend_badge" aria-label="주아의 추천">
+                <img src={iconSparkle} alt="" aria-hidden="true" />
+                <span>주아의 추천</span>
+              </div>
               <p className="chat_recommend_quote">{candidate.notes[0]}</p>
               <div className="chat_recommend_card_inner">
                 <div className="chat_recommend_card_thumb" aria-hidden="true">
@@ -88,7 +95,7 @@ export default function ChatRecommendPanel({
                     </button>
                     <button
                       type="button"
-                      className="chat_action_button chat_action_button_secondary"
+                      className="chat_action_button chat_action_button_secondary chat_action_button_save"
                       onClick={() => onSelect(candidate.id)}
                     >
                       {SAVE_LABEL}
@@ -100,10 +107,16 @@ export default function ChatRecommendPanel({
           )
         })}
 
-        <article className="chat_recommend_card chat_recommend_more_card">
-          <button type="button" className="chat_action_button chat_action_button_secondary" onClick={onMore}>
-            {MORE_LABEL}
-          </button>
+        <article className="chat_recommend_card chat_recommend_more_card" aria-label="추가 추천">
+          <div className="chat_recommend_more_inner">
+            <h4>다른 추천도 준비했어요</h4>
+            <p>분위기에 취향에 맞는 다양한 술을 더 만나보세요!</p>
+            <img src={imgMoreMascot} alt="" aria-hidden="true" />
+            <button type="button" className="chat_action_button chat_action_button_secondary chat_action_button_more" onClick={onMore}>
+              <span>{MORE_LABEL}</span>
+              <img src={iconCaretRight} alt="" aria-hidden="true" />
+            </button>
+          </div>
         </article>
       </div>
     </div>

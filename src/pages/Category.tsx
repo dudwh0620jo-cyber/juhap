@@ -6,7 +6,6 @@ import CategorySearch from "../components/CategorySearch"
 import CategorySearchFilterPanel from "../components/CategorySearchFilterPanel"
 import {
   DEFAULT_DRINK_TYPE_LABEL,
-  READY_SUBCATEGORY,
   drinkCategories,
   subcategoryInfoByCategoryId,
   type DrinkCategory,
@@ -29,6 +28,7 @@ import { traditionalProductsMock } from "../data/traditionalProductsMock"
 import { etcProductsMock } from "../data/etcProductsMock"
 import { useCategorySearchExperience } from "../hooks/useCategorySearchExperience"
 import { useCategorySearchFilterState } from "../hooks/useCategorySearchFilterState"
+import { ALL_SUBCATEGORY } from "../hooks/useCategoryListPageData"
 import { resolvePricePresetToggle } from "../utils/pricePreset"
 import { calculateRangePercent } from "../utils/range"
 import arrowRightPoint from "../assets/svg/arrowright_p.svg"
@@ -47,6 +47,21 @@ const inferSearchableFeatures = (tokens: string[]) => {
     if (joined.includes(feature.toLowerCase())) features.push(feature)
   })
   return Array.from(new Set(features)).filter((feature) => FEATURE_CHIPS.includes(feature as (typeof FEATURE_CHIPS)[number]))
+}
+
+const normalizeFilterKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[()]/g, "")
+    .replace(/\//g, "")
+    .replace(/데킬라/g, "테킬라")
+    .replace(/sober/g, "")
+    .trim()
+
+const toCanonicalFeature = (token: string) => {
+  const normalized = normalizeFilterKey(token)
+  return FEATURE_CHIPS.find((feature) => normalized.includes(normalizeFilterKey(feature))) ?? null
 }
 
 export default function Category() {
@@ -80,6 +95,7 @@ export default function Category() {
   const [searchSubmitted, setSearchSubmitted] = useState(false)
   const [showTopFade, setShowTopFade] = useState(false)
   const [showBottomFade, setShowBottomFade] = useState(true)
+  const [isGroupMotionReady, setIsGroupMotionReady] = useState(false)
   const defaultSakeLabel = useMemo(() => DEFAULT_DRINK_TYPE_LABEL, [])
 
   const searchableItems = useMemo(
@@ -192,8 +208,39 @@ export default function Category() {
     abvMax: ABV_MAX,
     drinkCategories,
     featureChips: FEATURE_CHIPS,
-    readySubcategory: READY_SUBCATEGORY,
   })
+
+  const dynamicFeatureChips = useMemo(() => {
+    const drinkType = (selectedDrinkTypeLabel ?? defaultSakeLabel).trim()
+    if (!drinkType) return [] as string[]
+
+    let pool = searchableItems.filter((item) => (item.drinkTypeLabel ?? "").trim() === drinkType)
+    if (selectedCategoryChip) {
+      pool = pool.filter((item) => normalizeFilterKey(item.subcategory ?? "") === normalizeFilterKey(selectedCategoryChip))
+    }
+
+    const available = new Set<string>()
+    pool.forEach((item) => {
+      ;[...(item.features ?? []), ...(item.tags ?? [])].forEach((token) => {
+        const canonical = toCanonicalFeature(token)
+        if (canonical) available.add(canonical)
+      })
+    })
+
+    return FEATURE_CHIPS.filter((chip) => available.has(chip))
+  }, [defaultSakeLabel, searchableItems, selectedDrinkTypeLabel, selectedCategoryChip])
+
+  useEffect(() => {
+    setSelectedFeatureChips((prev) => {
+      if (prev.size === 0) return prev
+      const allowed = new Set(dynamicFeatureChips)
+      const next = new Set<string>()
+      prev.forEach((chip) => {
+        if (allowed.has(chip)) next.add(chip)
+      })
+      return next.size === prev.size ? prev : next
+    })
+  }, [dynamicFeatureChips, setSelectedFeatureChips])
 
   const openSearchOverlay = () => {
     setSearchStarted(false)
@@ -214,7 +261,53 @@ export default function Category() {
     }
   }, [])
 
-  const visibleOverlayGroups = overlayFilterGroups
+  const visibleOverlayGroups = useMemo(
+    () =>
+      overlayFilterGroups.map((group) =>
+        group.title === "특징" ? { ...group, chips: dynamicFeatureChips } : group,
+      ),
+    [overlayFilterGroups, dynamicFeatureChips],
+  )
+
+  const isFeatureChipEnabledByData = (chip: string) => {
+    const drinkType = (selectedDrinkTypeLabel ?? defaultSakeLabel).trim()
+    let pool = searchableItems.filter((item) => (item.drinkTypeLabel ?? "").trim() === drinkType)
+    if (selectedCategoryChip) {
+      pool = pool.filter((item) => normalizeFilterKey(item.subcategory ?? "") === normalizeFilterKey(selectedCategoryChip))
+    }
+    return pool.some((item) => {
+      const featurePool = [...(item.features ?? []), ...(item.tags ?? [])]
+      const needle = normalizeFilterKey(chip)
+      return featurePool.some((token) => normalizeFilterKey(token).includes(needle))
+    })
+  }
+
+  const isCategoryChipEnabledByFeatureData = (chip: string) => {
+    const drinkType = (selectedDrinkTypeLabel ?? defaultSakeLabel).trim()
+    const pool = searchableItems.filter(
+      (item) =>
+        (item.drinkTypeLabel ?? "").trim() === drinkType &&
+        normalizeFilterKey(item.subcategory ?? "") === normalizeFilterKey(chip),
+    )
+    if (pool.length === 0) return false
+
+    return pool.some((item) => {
+      const canonicalSet = new Set<string>()
+      ;[...(item.features ?? []), ...(item.tags ?? [])].forEach((token) => {
+        const canonical = toCanonicalFeature(token)
+        if (canonical) canonicalSet.add(canonical)
+      })
+      return canonicalSet.size > 0
+    })
+  }
+
+  const isOverlayChipEnabledResolved = (groupTitle: string, chip: string) => {
+    const baseEnabled = isOverlayChipEnabled(groupTitle, chip)
+    if (!baseEnabled) return false
+    if (groupTitle === "카테고리") return isCategoryChipEnabledByFeatureData(chip)
+    if (groupTitle !== "특징") return true
+    return isFeatureChipEnabledByData(chip)
+  }
 
   const showPriceSection = true
   const showAbvSection = true
@@ -271,6 +364,7 @@ export default function Category() {
   useEffect(() => {
     const root = scrollPanelRef.current
     const returnedScrollTop = returnedState?.scrollTop
+    if (returnedState?.resetCategorySearch && returnedGroupLabel) return
     if (!root || returnedScrollTop === undefined) return
 
     isProgrammaticScrollRef.current = true
@@ -279,7 +373,28 @@ export default function Category() {
     programmaticScrollTimeoutRef.current = window.setTimeout(() => {
       isProgrammaticScrollRef.current = false
     }, 120)
-  }, [returnedState?.scrollTop])
+  }, [returnedState?.scrollTop, returnedState?.resetCategorySearch, returnedGroupLabel])
+
+  useEffect(() => {
+    if (!returnedState?.resetCategorySearch || !returnedGroupLabel) return
+
+    const targetCategory = drinkCategories.find((category) => category.label === returnedGroupLabel)
+    if (!targetCategory) return
+
+    const root = scrollPanelRef.current
+    const target = sectionHeaderRefs.current[targetCategory.id]
+    if (!root || !target) return
+
+    const paddingTop = Number.parseFloat(window.getComputedStyle(root).paddingTop || "0") || 0
+    isProgrammaticScrollRef.current = true
+    setActiveCategoryId(targetCategory.id)
+    root.scrollTo({ top: Math.max(0, target.offsetTop - paddingTop), behavior: "auto" })
+
+    if (programmaticScrollTimeoutRef.current) window.clearTimeout(programmaticScrollTimeoutRef.current)
+    programmaticScrollTimeoutRef.current = window.setTimeout(() => {
+      isProgrammaticScrollRef.current = false
+    }, 120)
+  }, [returnedState?.resetCategorySearch, returnedGroupLabel])
 
   useEffect(() => {
     const root = scrollPanelRef.current
@@ -319,6 +434,9 @@ export default function Category() {
     }
 
     const onScroll = () => {
+      if (!isProgrammaticScrollRef.current && !isGroupMotionReady) {
+        setIsGroupMotionReady(true)
+      }
       if (scrollRafRef.current) return
       scrollRafRef.current = window.requestAnimationFrame(() => {
         scrollRafRef.current = null
@@ -331,9 +449,10 @@ export default function Category() {
     updateFadeVisibility()
     pickActiveCategoryId()
     return () => root.removeEventListener("scroll", onScroll)
-  }, [categoriesWithVisibleSubcategories, effectiveActiveCategoryId])
+  }, [categoriesWithVisibleSubcategories, effectiveActiveCategoryId, isGroupMotionReady])
 
   const scrollToCategory = (categoryId: string) => {
+    if (!isGroupMotionReady) setIsGroupMotionReady(true)
     const root = scrollPanelRef.current
     const target = sectionHeaderRefs.current[categoryId]
     if (!root || !target) {
@@ -409,20 +528,6 @@ export default function Category() {
       return
     }
 
-    const hasAdvancedFilters =
-      searchValue.trim().length > 0 ||
-      selectedFeatureChips.size > 0 ||
-      priceRange[0] !== PRICE_MIN ||
-      priceRange[1] !== PRICE_MAX ||
-      abvRange[0] !== ABV_MIN ||
-      abvRange[1] !== ABV_MAX
-
-    if (!hasAdvancedFilters) {
-      scrollToCategory(targetCategory.id)
-      closeSearchOverlay()
-      return
-    }
-
     const payload: CategoryFilterPayload = {
       keywordQuery: searchValue.trim(),
       drinkTypeLabel: effectiveDrinkTypeLabel,
@@ -434,7 +539,7 @@ export default function Category() {
 
     const params = new URLSearchParams()
     params.set("group", effectiveDrinkTypeLabel)
-    params.set("sub", selectedCategoryChip ?? READY_SUBCATEGORY)
+    params.set("sub", selectedCategoryChip ?? ALL_SUBCATEGORY)
     if (searchValue.trim()) params.set("q", searchValue.trim())
     navigate(`/category/list?${params.toString()}`, {
       state: {
@@ -443,7 +548,6 @@ export default function Category() {
         categoryFilterPayload: payload,
       },
     })
-    closeSearchOverlay()
   }
 
   const handleConfirmInSearchInput = () => {
@@ -463,13 +567,16 @@ export default function Category() {
       />
 
       <div className="category_layout category_layout_v2">
-        <aside className="category_group_list category_group_list_v2" aria-label="주종 목록">
+        <aside
+          className={isGroupMotionReady ? "category_group_list category_group_list_v2 is_motion_ready" : "category_group_list category_group_list_v2"}
+          aria-label="주종 목록"
+        >
           <div className="category_group_list_inner" ref={leftListRef}>
             <motion.span
               className="category_group_glider"
               animate={categoryGlider}
               initial={false}
-              transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+              transition={isGroupMotionReady ? { type: "spring", stiffness: 360, damping: 32, mass: 0.8 } : { duration: 0 }}
               aria-hidden="true"
             />
             {categoriesWithVisibleSubcategories.map(({ category }) => (
@@ -586,7 +693,7 @@ export default function Category() {
           selectedDrinkTypeLabel={selectedDrinkTypeLabel}
           selectedCategoryChip={selectedCategoryChip}
           selectedFeatureChips={selectedFeatureChips}
-          isOverlayChipEnabled={isOverlayChipEnabled}
+          isOverlayChipEnabled={isOverlayChipEnabledResolved}
           toggleFilterChip={toggleFilterChip}
           onClose={closeSearchOverlay}
           onChangeSearchValue={(value) => {

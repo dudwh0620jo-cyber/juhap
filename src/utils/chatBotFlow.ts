@@ -51,35 +51,34 @@ export type WineCandidate = {
 
 const fallbackChatById: Record<string, Pick<WineCandidate, "notes" | "tastingNotes" | "pairingFoods" | "tips">> = {
   "sake-dassai-23": {
-    notes: ["요리의 풍미를 완성하는 투명함과 섬세한 향", "쌀을 23%만 남기고 깎아낸 최고급 준마이 다이긴죠"],
+    notes: ["해산물 풍미를 살려주는 투명하고 섬세한 향", "쌀을 23% 남기고 깎아낸 최고급 준마이 다이긴죠"],
     tastingNotes: ["깔끔한 맛", "과일향", "균형감"],
     pairingFoods: ["해산물", "사시미", "가벼운 치즈"],
-    tips: ["차갑게 칠링하면 과일향이 더 선명해져요.", "담백한 해산물과 함께하면 술의 섬세함이 살아나요."],
+    tips: ["차갑게 칠링하면 과일향이 더욱 선명해져요.", "담백한 해산물과 함께하면 술의 섬세함이 살아나요."],
   },
   "sake-kubota-manju": {
     notes: ["일식의 섬세한 맛을 조화롭게 이어주는 밸런스", "향이 과하지 않고 부드럽게 넘어가는 프리미엄 사케"],
     tastingNotes: ["드라이", "프루티", "깊이감"],
     pairingFoods: ["해산물", "초밥", "맑은 국물 요리"],
-    tips: ["대화가 긴 모임에서는 온도를 너무 낮추지 않는 편이 좋아요."],
+    tips: ["공식 모임에서도 만족도가 높은 무난한 스타일이에요."],
   },
   "sake-hakkaisan-daiginjo": {
-    notes: ["가볍고 산뜻한 질감에 톡쏘는 인상이 있는 사케", "기름진 안주를 깔끔하게 정리해줘요."],
-    tastingNotes: ["톡쏘는", "가벼운", "깔끔한"],
-    pairingFoods: ["튀김/안주류", "해산물", "배달음식"],
-    tips: ["튀김류와 함께 마시면 느끼함을 줄여줘요."],
+    notes: ["가볍고 여린 질감에 쌀향의 인상이 남는 사케", "기름진 안주를 깔끔하게 정리해줘요"],
+    tastingNotes: ["쌀향", "가벼움", "깔끔함"],
+    pairingFoods: ["안주류", "해산물", "배달음식"],
+    tips: ["너무 자극적인 안주보다 담백한 음식과 어울려요."],
   },
 }
 
 const fallbackChat = {
-  notes: ["부담 없이 즐기기 좋은 균형 잡힌 스타일"],
-  tastingNotes: ["깔끔한", "부드러운", "향긋한"],
+  notes: ["부담 없이 즐기기 좋은 균형 잡힌 스타일이에요."],
+  tastingNotes: ["깔끔함", "부드러움", "은은함"],
   pairingFoods: ["해산물", "가벼운 안주", "치즈"],
   tips: ["차갑게 준비하면 더 산뜻하게 즐길 수 있어요."],
 }
 
 function fillCandidateChat(candidate: WineCandidate): WineCandidate {
   const fallback = fallbackChatById[candidate.id] ?? fallbackChat
-
   return {
     ...candidate,
     notes: candidate.notes.length > 0 ? candidate.notes : fallback.notes,
@@ -143,12 +142,15 @@ export const wineCandidatesMock: WineCandidate[] = [
 function scoreCandidate(candidate: WineCandidate, session: ChatSession) {
   const haystack = [...candidate.tags, ...candidate.pairingFoods, ...candidate.tastingNotes, candidate.name].join(" ")
   let score = 0
+
   if (session.wineStyle && haystack.includes(session.wineStyle.split(" ")[0])) score += 5
   if (session.foodCategory && haystack.includes(session.foodCategory)) score += 3
   if (session.partyMood && haystack.includes(session.partyMood)) score += 1
+
   if (session.foodCategory === "해산물" && candidate.tags.includes("사케")) score += 4
-  if (session.foodCategory === "튀김/안주류" && candidate.tags.includes("톡쏘는")) score += 4
-  if (session.wineStyle === "특별한 술" && candidate.tags.includes("사케")) score += 3
+  if (session.foodCategory === "안주류" && candidate.tags.includes("깔끔한 맛")) score += 4
+  if (session.wineStyle === "향긋한 술" && candidate.tags.includes("사케")) score += 3
+
   return score
 }
 

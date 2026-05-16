@@ -1,6 +1,6 @@
 ﻿import { useEffect, useRef, useState } from "react"
 import type { ChangeEvent } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
 import AiScanCamera from "../components/AiScanCamera"
 import AiScanResult from "../components/AiScanResult"
@@ -9,6 +9,7 @@ import "../styles/ai-scan.css"
 
 export default function AiScan() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [mode, setMode] = useState<ScanMode>("drink")
   const [status, setStatus] = useState<AiScanStatus>("ready")
   const [previewSrc, setPreviewSrc] = useState<string | null>(null)
@@ -19,6 +20,7 @@ export default function AiScan() {
   const stageSrc = previewSrc ?? aiScanAssets.scanSample01
   const isScanning = status === "scanning"
   const isResult = status === "success" || status === "failure"
+  const isFromChat = searchParams.get("from") === "chat"
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: true } }))
@@ -41,6 +43,11 @@ export default function AiScan() {
   }, [previewSrc])
 
   function moveBack() {
+    if (isFromChat) {
+      window.dispatchEvent(new CustomEvent("ui:open-chat"))
+      navigate("/home")
+      return
+    }
     navigate(-1)
   }
 
@@ -126,5 +133,4 @@ export default function AiScan() {
     </section>
   )
 }
-
 

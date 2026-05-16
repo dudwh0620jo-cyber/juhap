@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef, useState } from "react"
+﻿import { useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router"
 import CategoryItemCard from "../components/CategoryItemCard"
 import CategorySearchFilterPanel from "../components/CategorySearchFilterPanel"
@@ -11,7 +11,7 @@ import {
   PRICE_MIN,
   type CategoryFilterPayload,
 } from "../data/categoryFilterConfig"
-import { useCategoryListPageData, type SortKey } from "../hooks/useCategoryListPageData"
+import { ALL_SUBCATEGORY, getCategoryListItems, useCategoryListPageData, type SortKey } from "../hooks/useCategoryListPageData"
 import { useCategorySearchExperience } from "../hooks/useCategorySearchExperience"
 import { useCategorySearchFilterState } from "../hooks/useCategorySearchFilterState"
 import { resolvePricePresetToggle } from "../utils/pricePreset"
@@ -25,6 +25,21 @@ const sortLabels: Record<SortKey, string> = {
   default: "최신순",
   recommended: "가격 낮은순",
   popular: "가격 높은순",
+}
+
+const normalizeFilterKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[()]/g, "")
+    .replace(/\//g, "")
+    .replace(/데킬라/g, "테킬라")
+    .replace(/sober/g, "")
+    .trim()
+
+const toCanonicalFeature = (token: string) => {
+  const normalized = normalizeFilterKey(token)
+  return FEATURE_CHIPS.find((feature) => normalized.includes(normalizeFilterKey(feature))) ?? null
 }
 
 export default function CategoryList() {
@@ -45,6 +60,8 @@ export default function CategoryList() {
   const [searchStarted, setSearchStarted] = useState(false)
   const [searchSubmitted, setSearchSubmitted] = useState(false)
   const overlaySearchInputRef = useRef<HTMLInputElement | null>(null)
+  const listRef = useRef<HTMLDivElement | null>(null)
+  const [listFade, setListFade] = useState({ top: false, bottom: false })
 
   const returnState = location.state as
     | {
@@ -79,12 +96,49 @@ export default function CategoryList() {
     abvMax: ABV_MAX,
     drinkCategories,
     featureChips: FEATURE_CHIPS,
-    readySubcategory: READY_SUBCATEGORY,
   })
 
   const [filterPayload, setFilterPayload] = useState<CategoryFilterPayload | null>(returnState?.categoryFilterPayload ?? null)
 
   const visibleOverlayGroups = overlayFilterGroups
+
+  const isFeatureChipEnabledByData = (chip: string) => {
+    const drinkType = (selectedDrinkTypeLabel ?? group).trim()
+    let pool = getCategoryListItems(drinkType, ALL_SUBCATEGORY)
+    if (selectedCategoryChip) {
+      pool = pool.filter((item) => normalizeFilterKey(item.subcategory ?? "") === normalizeFilterKey(selectedCategoryChip))
+    }
+    return pool.some((item) => {
+      const featurePool = [...(item.features ?? []), ...(item.tags ?? [])]
+      const needle = normalizeFilterKey(chip)
+      return featurePool.some((token) => normalizeFilterKey(token).includes(needle))
+    })
+  }
+
+  const isCategoryChipEnabledByFeatureData = (chip: string) => {
+    const drinkType = (selectedDrinkTypeLabel ?? group).trim()
+    const pool = getCategoryListItems(drinkType, ALL_SUBCATEGORY).filter(
+      (item) => normalizeFilterKey(item.subcategory ?? "") === normalizeFilterKey(chip),
+    )
+    if (pool.length === 0) return false
+
+    return pool.some((item) => {
+      const canonicalSet = new Set<string>()
+      ;[...(item.features ?? []), ...(item.tags ?? [])].forEach((token) => {
+        const canonical = toCanonicalFeature(token)
+        if (canonical) canonicalSet.add(canonical)
+      })
+      return canonicalSet.size > 0
+    })
+  }
+
+  const isOverlayChipEnabledResolved = (groupTitle: string, chip: string) => {
+    const baseEnabled = isOverlayChipEnabled(groupTitle, chip)
+    if (!baseEnabled) return false
+    if (groupTitle === "카테고리") return isCategoryChipEnabledByFeatureData(chip)
+    if (groupTitle !== "특징") return true
+    return isFeatureChipEnabledByData(chip)
+  }
 
   const showPriceSection = true
   const showAbvSection = true
@@ -118,10 +172,21 @@ export default function CategoryList() {
 
     if (filterPayload) {
       const { drinkTypeLabel, categoryChip, featureChips, priceRange: payloadPriceRange, abvRange: payloadAbvRange } = filterPayload
+      const targetDrinkType = (drinkTypeLabel ?? group).trim()
+      items = getCategoryListItems(targetDrinkType, ALL_SUBCATEGORY)
+
       items = items.filter((item) => {
         const drinkTypeMatches = !drinkTypeLabel || item.drinkTypeLabel === drinkTypeLabel
-        const categoryMatches = !categoryChip || item.subcategory === categoryChip
-        const featureMatches = featureChips.length === 0 || featureChips.some((feature) => item.features?.includes(feature))
+        const categoryMatches =
+          !categoryChip ||
+          normalizeFilterKey(item.subcategory ?? "") === normalizeFilterKey(categoryChip)
+        const featurePool = [...(item.features ?? []), ...(item.tags ?? [])]
+        const featureMatches =
+          featureChips.length === 0 ||
+          featureChips.some((feature) => {
+            const needle = normalizeFilterKey(feature)
+            return featurePool.some((token) => normalizeFilterKey(token).includes(needle))
+          })
         const priceValue = item.price ?? 0
         const priceMatches = priceValue >= payloadPriceRange[0] && priceValue <= payloadPriceRange[1]
         const abvValue = item.abv ?? 0
@@ -162,6 +227,30 @@ export default function CategoryList() {
     return nextItems
   }, [activeSortKey, filteredItems])
 
+  useEffect(() => {
+    const el = listRef.current
+    if (!el) return
+
+    const updateFade = () => {
+      const canScroll = el.scrollHeight - el.clientHeight > 2
+      if (!canScroll) {
+        setListFade({ top: false, bottom: false })
+        return
+      }
+      const top = el.scrollTop > 2
+      const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2
+      setListFade({ top, bottom })
+    }
+
+    updateFade()
+    el.addEventListener("scroll", updateFade, { passive: true })
+    window.addEventListener("resize", updateFade)
+    return () => {
+      el.removeEventListener("scroll", updateFade)
+      window.removeEventListener("resize", updateFade)
+    }
+  }, [sortedItems.length, filterPayload, searchValue])
+
   const handleBack = () => {
     setSearchValue("")
     setSearchStarted(false)
@@ -201,11 +290,21 @@ export default function CategoryList() {
         </div>
       </header>
 
-      <div className="category_list_cards" aria-label="카테고리 상품 목록">
-        {sortedItems.length === 0 ? <p className="category_list_empty">검색 결과가 없어요</p> : null}
-        {sortedItems.map((item) => (
-          <CategoryItemCard key={item.id} item={item} onOpen={handleOpenItem} />
-        ))}
+      <div
+        className={`category_list_cards_shell${listFade.top ? " is_fade_top" : ""}${listFade.bottom ? " is_fade_bottom" : ""}`}
+      >
+        <div
+          ref={listRef}
+          className="category_list_cards"
+          aria-label="카테고리 상품 목록"
+        >
+          {sortedItems.length === 0 ? <p className="category_list_empty">검색 결과가 없어요</p> : null}
+          {sortedItems.map((item) => {
+            const drinkType = item.drinkTypeLabel ?? group
+            const isDisabled = drinkType !== defaultSakeLabel
+            return <CategoryItemCard key={item.id} item={item} onOpen={handleOpenItem} disabled={isDisabled} />
+          })}
+        </div>
       </div>
 
       {isSortSheetOpen ? (
@@ -256,7 +355,7 @@ export default function CategoryList() {
           selectedDrinkTypeLabel={selectedDrinkTypeLabel}
           selectedCategoryChip={selectedCategoryChip}
           selectedFeatureChips={selectedFeatureChips}
-          isOverlayChipEnabled={isOverlayChipEnabled}
+          isOverlayChipEnabled={isOverlayChipEnabledResolved}
           toggleFilterChip={toggleFilterChip}
           onClose={() => {
             setSearchStarted(false)

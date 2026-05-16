@@ -174,6 +174,7 @@ export const homeMomentPickCards = [
 export const homeWeeklyRankingCards = [
   {
     id: "weekly-rank-1",
+    communityPairingId: 1006,
     badgeSrc: homeAssets.weeklyRankingBadge01,
     title: "진로 이즈백",
     subtitle: "삼겹살",
@@ -184,6 +185,7 @@ export const homeWeeklyRankingCards = [
   },
   {
     id: "weekly-rank-2",
+    communityPairingId: 1007,
     badgeSrc: homeAssets.weeklyRankingBadge02,
     title: "화요25",
     subtitle: "회무침",
@@ -194,6 +196,7 @@ export const homeWeeklyRankingCards = [
   },
   {
     id: "weekly-rank-3",
+    communityPairingId: 1001,
     badgeSrc: homeAssets.weeklyRankingBadge03,
     title: "복순도가 막걸리",
     subtitle: "해물파전",
@@ -204,6 +207,7 @@ export const homeWeeklyRankingCards = [
   },
   {
     id: "weekly-rank-4",
+    communityPairingId: 1004,
     badgeSrc: homeAssets.weeklyRankingBadge04,
     title: "카스",
     subtitle: "후라이드 치킨",
@@ -214,6 +218,7 @@ export const homeWeeklyRankingCards = [
   },
   {
     id: "weekly-rank-5",
+    communityPairingId: 1010,
     badgeSrc: homeAssets.weeklyRankingBadge05,
     title: "클라렛 2010",
     subtitle: "등심 스테이크",
