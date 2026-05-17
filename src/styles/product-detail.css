@@ -349,7 +349,7 @@
   height: 98px;
   padding: 0 20px;
   align-items: center;
-  gap: 38px;
+  gap: 32px;
   align-self: stretch;
   border-radius: 20px;
   background: var(--color-bg-white);
@@ -378,6 +378,8 @@
 
 .product_taste_name {
   display: flex;
+  width: 48px;
+  flex: 0 0 48px;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
@@ -546,6 +548,11 @@
   }
 }
 
+.product_guide_section {
+  width: 100%;
+  align-self: stretch;
+}
+
 .product_guide_section h3 {
   color: #212121;
   font-family: var(--font-main);
@@ -590,6 +597,7 @@
 
 .product_guide_scale_group {
   display: flex;
+  width: 100%;
   flex-direction: column;
   align-items: flex-start;
   gap: 20px;
@@ -713,6 +721,8 @@
 }
 
 .guide_scale {
+  box-sizing: border-box;
+  width: 100%;
   border-radius: 12px;
   background: #f7f1ec;
   padding: 18px 28px 22px;
@@ -936,12 +946,6 @@
   > .product_guide_section:nth-of-type(3)
   .guide_scale_bottle {
   width: 42px;
-}
-
-.product_guide_body
-  > .product_guide_section:nth-of-type(3)
-  .guide_scale_caption {
-  min-height: 102px;
 }
 
 .guide_scale_marks {
@@ -1659,6 +1663,7 @@
   height: 46px;
   flex: 0 0 auto;
   border-radius: 999px;
+  object-fit: cover;
   background: var(--color-gray-00);
 }
 
@@ -1686,6 +1691,23 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+}
+
+.review_nickname .author_owner_badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+  padding: 2px 6px;
+  border: 0.7px solid #d9d9d9;
+  border-radius: 999px;
+  background: #fdfdfd;
+  color: var(--color-text-primary);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .review_nickname strong,

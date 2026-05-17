@@ -224,6 +224,14 @@ export const sakeDummyRankingItems: Array<RankingRow & { category: "sake" }> = [
   { id: 97010, rank: 10, pair: "키쿠마사무네 + 해물나베", category: "sake", score: 0, votes: 9011, delta: "+1", disabled: true },
 ]
 
+export const traditionalDummyRankingItems: Array<RankingRow & { category: "traditional" }> = [
+  { id: 99006, rank: 6, pair: "해창막걸리 + 해물파전", category: "traditional", score: 0, votes: 9987, delta: "+2", disabled: true },
+  { id: 99007, rank: 7, pair: "설화 + 보쌈", category: "traditional", score: 0, votes: 9734, delta: "-1", disabled: true },
+  { id: 99008, rank: 8, pair: "복순도가 + 치즈 플래터", category: "traditional", score: 0, votes: 9512, delta: "—", disabled: true },
+  { id: 99009, rank: 9, pair: "서울의밤 + 육회", category: "traditional", score: 0, votes: 9286, delta: "+1", disabled: true },
+  { id: 99010, rank: 10, pair: "문배술23 + 훈제오리", category: "traditional", score: 0, votes: 9043, delta: "-2", disabled: true },
+]
+
 export const etcDummyPodiumItems: Array<RankingPodium & { category: "etc" }> = [
   {
     id: 98001,
@@ -434,6 +442,31 @@ export const weeklyAllTop5 = weeklyTop5Entries.map((entry) => {
   const meta = resolvePairMetaFromPost(entry.id)
   return { ...meta, rating: entry.score, count: entry.votes ?? 0 }
 }) as [HomeRankingItem, HomeRankingItem, HomeRankingItem, HomeRankingItem, HomeRankingItem]
+
+const weeklyAllVotesById = new Map<number, number>()
+for (const item of weeklyAll.podiumByCategory.all) {
+  if (typeof item.votes === "number" && Number.isFinite(item.votes)) weeklyAllVotesById.set(item.id, item.votes)
+}
+for (const item of weeklyAll.rows) {
+  if (typeof item.votes === "number" && Number.isFinite(item.votes)) weeklyAllVotesById.set(item.id, item.votes)
+}
+
+const setWeeklyCategoryVoteIfMissing = (id: number, votes: number) => {
+  if (!weeklyAllVotesById.has(id)) weeklyAllVotesById.set(id, votes)
+}
+
+setWeeklyCategoryVoteIfMissing(91011, 13422)
+setWeeklyCategoryVoteIfMissing(99003, 10018)
+setWeeklyCategoryVoteIfMissing(1008, 9942)
+setWeeklyCategoryVoteIfMissing(1004, 10012)
+setWeeklyCategoryVoteIfMissing(1007, 9984)
+setWeeklyCategoryVoteIfMissing(91013, 9726)
+setWeeklyCategoryVoteIfMissing(91012, 9991)
+setWeeklyCategoryVoteIfMissing(99001, 9981)
+setWeeklyCategoryVoteIfMissing(99002, 9874)
+setWeeklyCategoryVoteIfMissing(1102, 9728)
+
+export const getWeeklyAllRankingVotesById = (id: number) => weeklyAllVotesById.get(id) ?? null
 
 const rankingPreviewById: Record<number, PairRankingSummary> = {
   91011: { drink: "일품진로", food: "육회", rating: 4.6, count: 13422 },

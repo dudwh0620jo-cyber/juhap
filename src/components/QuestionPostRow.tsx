@@ -1,6 +1,7 @@
 ﻿import { Link } from "react-router"
 
 import iconChat from "../assets/svg/chatcircledots_p.svg"
+import iconShare from "../assets/svg/sharenetwork_p.svg"
 import { resolveQuestionImage } from "../utils/questionImages"
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
   likeAriaLabel: string
   onToggleLike: () => void
   onViewComments: () => void
+  onShare?: () => void
   linkTo: string
   linkState: Record<string, unknown>
   photoIds?: string[]
@@ -45,6 +47,7 @@ export default function QuestionPostRow({
   createdAt,
   commentCount,
   onViewComments,
+  onShare,
   linkTo,
   linkState,
   photoIds,
@@ -87,6 +90,11 @@ export default function QuestionPostRow({
         <span className="question_meta_time" aria-label="작성 시간">
           {timeLabel}
         </span>
+        {onShare ? (
+          <button type="button" className="question_meta_share" aria-label="공유" onClick={onShare}>
+            <img className="question_meta_share_icon" src={iconShare} alt="" aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
     </article>
   )

@@ -55,6 +55,7 @@ import {
   getPairingCommentNavigationState,
   isCommunityFeedSearchActive,
 } from "../utils/communityFeed"
+import { getWeeklyAllRankingVotesById } from "../utils/rankingData"
 
 const feedPosts: FeedPost[] = communityFeedPosts
 const EMPTY_FILTER_SET = new Set<string>()
@@ -469,7 +470,7 @@ export default function Community() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [isFeedFilterPopupOpen])
 
-  const getLikeCount = (post: FeedPost) => post.likeCount + (likedById[post.id] ? 1 : 0)
+  const getLikeCount = (post: FeedPost) => (getWeeklyAllRankingVotesById(post.id) ?? post.likeCount) + (likedById[post.id] ? 1 : 0)
   const getCommentCount = (post: FeedPost) => commentCountByPostId[post.id] ?? post.commentCount
 
   const openBookmarkPicker = (postId: number) => {
@@ -840,40 +841,47 @@ export default function Community() {
         ) : null}
 
         {feedFilter === "free"
-          ? filteredPosts.map((post) => (
-              <QuestionPostRow
-                key={post.id}
-                postId={post.id}
-                title={post.title}
-                body={post.body}
-                createdAt={post.createdAt}
-                likeCount={getLikeCount(post)}
-                commentCount={getCommentCount(post)}
-                likeActive={Boolean(likedById[post.id])}
-                likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
-                onToggleLike={() => toggleLike(post.id)}
-                onViewComments={() => goToComments(post.id)}
-                linkTo={`/community/pairing/${post.id}`}
-                linkState={{
-                  pairingTitle: extractPairingTitle(post.title),
-                  body: post.body,
-                  pairingSummary: post.pairingSummary ?? "",
-                  authorId: post.authorId,
-                  authorName: post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명",
-                  profile: usersMockById[post.authorId]?.profile ?? "",
-                  locationLabel: post.locationLabel?.trim() ?? "",
-                  drinkType: post.drinkType ?? "",
-                  features: post.features ?? [],
-                  source: "feed",
-                  feedFilter: "free",
-                }}
-                photoIds={post.photoIds}
-                thumbVariant={resolveQuestionThumbVariant(post)}
-              />
-            ))
+          ? filteredPosts.map((post) => {
+              const isMyPost = post.authorId === myUserId || userPostIdSet.has(post.id)
+              const authorName = isMyPost ? myNickname : post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명"
+              const authorMeta = isMyPost ? myHeaderProfile : usersMockById[post.authorId]?.profile ?? ""
+
+              return (
+                <QuestionPostRow
+                  key={post.id}
+                  postId={post.id}
+                  title={post.title}
+                  body={post.body}
+                  createdAt={post.createdAt}
+                  likeCount={getLikeCount(post)}
+                  commentCount={getCommentCount(post)}
+                  likeActive={Boolean(likedById[post.id])}
+                  likeAriaLabel={likedById[post.id] ? "좋아요 취소" : "좋아요"}
+                  onToggleLike={() => toggleLike(post.id)}
+                  onViewComments={() => goToComments(post.id)}
+                  linkTo={`/community/pairing/${post.id}`}
+                  linkState={{
+                    pairingTitle: extractPairingTitle(post.title),
+                    body: post.body,
+                    pairingSummary: post.pairingSummary ?? "",
+                    authorId: post.authorId,
+                    authorName,
+                    profile: authorMeta,
+                    locationLabel: post.locationLabel?.trim() ?? "",
+                    drinkType: post.drinkType ?? "",
+                    features: post.features ?? [],
+                    source: "feed",
+                    feedFilter: "free",
+                  }}
+                  photoIds={post.photoIds}
+                  thumbVariant={resolveQuestionThumbVariant(post)}
+                />
+              )
+            })
           : filteredPosts.map((post) => {
-              const authorName = post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명"
-              const authorMeta = post.authorId === myUserId ? myHeaderProfile : usersMockById[post.authorId]?.profile ?? ""
+              const isMyPost = post.authorId === myUserId || userPostIdSet.has(post.id)
+              const authorName = isMyPost ? myNickname : post.authorName?.trim() || usersMockById[post.authorId]?.name || "익명"
+              const authorMeta = isMyPost ? myHeaderProfile : usersMockById[post.authorId]?.profile ?? ""
               const pairingTitle = extractPairingTitle(post.title)
               const tagBundle = deriveCommunityTagBundle({
                 pairingTitle,
@@ -892,7 +900,7 @@ export default function Community() {
                   authorMeta={authorMeta}
                   badgeClassName={getTierClassName(getPairingTierByUserId(post.authorId), "feed_post_badge")}
                   badgeText={getPairingTierLabelByUserId(post.authorId)}
-                  isAuthor={post.authorId === myUserId || userPostIdSet.has(post.id)}
+                  isAuthor={isMyPost}
                   menuAriaLabel={userPostIdSet.has(post.id) ? "게시글 설정" : undefined}
                   onOpenMenu={userPostIdSet.has(post.id) ? () => setOwnerPostAction(post) : undefined}
                   followButtonClassName={
@@ -908,7 +916,7 @@ export default function Community() {
                     pairingSummary: post.pairingSummary ?? "",
                     authorId: post.authorId,
                     authorName,
-                    profile: usersMockById[post.authorId]?.profile ?? "",
+                    profile: authorMeta,
                     locationLabel: post.locationLabel?.trim() ?? "",
                     drinkType: post.drinkType ?? post.categories?.[0] ?? "",
                     features: tagBundle.featureTags,

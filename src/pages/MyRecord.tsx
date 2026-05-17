@@ -8,10 +8,11 @@ import iconPairing from "../assets/svg/forkknife.svg"
 import iconPairingActive from "../assets/svg/forkknife_p.svg"
 import iconQuestion from "../assets/svg/chatcircledots.svg"
 import iconQuestionActive from "../assets/svg/chatcircledots_p.svg"
-import iconHeart from "../assets/svg/heart_p.svg"
+import iconCheers from "../assets/svg/beerstein_p.svg"
 import iconChat from "../assets/svg/chatcircledots_p.svg"
 import iconShare from "../assets/svg/sharenetwork_p.svg"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
 
 import QuestionPostRow from "../components/QuestionPostRow"
 import {
@@ -25,6 +26,14 @@ import { COMMUNITY_USER_POSTS_KEY } from "../utils/communityStorage"
 import { readStoredCommunityUserPosts } from "../utils/communityFeed"
 import { resolveReviewImage } from "../utils/reviewImages"
 import { isAlcoholReviewPost, isMyWrittenPost, isPairingReviewPost } from "../utils/myWrittenPosts"
+import { sakeProductsMock } from "../data/sakeProductsMock"
+import { sojuProductsMock } from "../data/sojuProductsMock"
+import { wineProductsMock } from "../data/wineProductsMock"
+import { beerProductsMock } from "../data/beerProductsMock"
+import { whiskeyProductsMock } from "../data/whiskeyProductsMock"
+import { spiritsProductsMock } from "../data/spiritsProductsMock"
+import { traditionalProductsMock } from "../data/traditionalProductsMock"
+import { etcProductsMock } from "../data/etcProductsMock"
 import "../styles/my.css"
 
 type RecordTab = "alcohol" | "pairing" | "question"
@@ -36,9 +45,55 @@ const parseTab = (value: string | null): RecordTab => {
 
 const toHashTag = (value: string) => `#${value.replace(/\s+/g, "")}`
 
+type CatalogProductSummary = {
+  id: string
+  categoryId: string
+  subcategory: string
+  name: string
+}
+
+const catalogProducts: CatalogProductSummary[] = [
+  ...sakeProductsMock,
+  ...sojuProductsMock,
+  ...wineProductsMock,
+  ...beerProductsMock,
+  ...whiskeyProductsMock,
+  ...spiritsProductsMock,
+  ...traditionalProductsMock,
+  ...etcProductsMock,
+]
+
+const normalizeProductName = (value: string | undefined) => (value ?? "").replace(/\s+/g, "").toLowerCase()
+
+const findCatalogProduct = (post: FeedPost) => {
+  if (post.productId) {
+    const byId = catalogProducts.find((product) => product.id === post.productId)
+    if (byId) return byId
+  }
+
+  const normalizedDrinkName = normalizeProductName(post.drinkName)
+  if (!normalizedDrinkName) return null
+
+  return (
+    catalogProducts.find((product) => normalizeProductName(product.name) === normalizedDrinkName) ??
+    catalogProducts.find((product) => normalizeProductName(product.name).includes(normalizedDrinkName))
+  )
+}
+
+const getAlcoholRecordCategoryLine = (post: FeedPost) => {
+  const product = findCatalogProduct(post)
+  return product?.name ?? post.drinkName?.trim() ?? post.title
+}
+
 const getRecordCardTitle = (post: FeedPost, tab: RecordTab) => {
   if (tab === "pairing") return extractPairingTitle(post.title)
-  return post.drinkName?.trim() ? `${post.drinkName.trim()} 후기` : post.title
+  if (tab === "alcohol") return getAlcoholRecordCategoryLine(post)
+  return post.title
+}
+
+const getRecordCardDescription = (post: FeedPost, tab: RecordTab) => {
+  if (tab === "alcohol") return post.title
+  return post.body?.trim() || getPairingSummaryText(post)
 }
 
 const getRecordCardLink = (post: FeedPost, tab: RecordTab) => {
@@ -46,9 +101,9 @@ const getRecordCardLink = (post: FeedPost, tab: RecordTab) => {
   return `/community/pairing/${post.id}`
 }
 
-function RecordReviewCard({ post, tab }: { post: FeedPost; tab: RecordTab }) {
+function RecordReviewCard({ post, tab, onShare }: { post: FeedPost; tab: RecordTab; onShare: () => void }) {
   const title = getRecordCardTitle(post, tab)
-  const desc = post.body?.trim() || getPairingSummaryText(post)
+  const desc = getRecordCardDescription(post, tab)
   const thumbSrc = post.photoIds?.[0] ? resolveReviewImage(post.photoIds[0]) : undefined
   const tags = (post.searchTags ?? [])
     .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
@@ -73,7 +128,7 @@ function RecordReviewCard({ post, tab }: { post: FeedPost; tab: RecordTab }) {
           </div>
           <div className="my_record_meta" aria-label="반응">
             <span className="my_record_meta_item">
-              <img src={iconHeart} alt="" aria-hidden="true" />
+              <img src={iconCheers} alt="" aria-hidden="true" />
               <span>{post.likeCount.toLocaleString("ko-KR")}</span>
             </span>
             <span className="my_record_meta_item">
@@ -81,7 +136,18 @@ function RecordReviewCard({ post, tab }: { post: FeedPost; tab: RecordTab }) {
               <span>{post.commentCount.toLocaleString("ko-KR")}</span>
             </span>
             <span className="my_record_meta_spacer" aria-hidden="true" />
-            <img className="my_record_share" src={iconShare} alt="" aria-hidden="true" />
+            <button
+              type="button"
+              className="my_record_share_button"
+              aria-label="공유"
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                onShare()
+              }}
+            >
+              <img className="my_record_share" src={iconShare} alt="" aria-hidden="true" />
+            </button>
           </div>
         </div>
       </Link>
@@ -93,10 +159,17 @@ export default function MyRecord() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = parseTab(searchParams.get("tab"))
+  const [alertMessage, setAlertMessage] = useState<string | null>(null)
   const [userPosts, setUserPosts] = useState<FeedPost[]>([])
   const recordTabsRef = useRef<HTMLDivElement | null>(null)
   const recordTabRefs = useRef<Record<RecordTab, HTMLButtonElement | null>>({ alcohol: null, pairing: null, question: null })
   const [recordTabsGlider, setRecordTabsGlider] = useState({ x: 0, width: 0 })
+
+  useEffect(() => {
+    if (!alertMessage) return
+    const timerId = window.setTimeout(() => setAlertMessage(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [alertMessage])
 
   useEffect(() => {
     const readPosts = () => setUserPosts(readStoredCommunityUserPosts(COMMUNITY_USER_POSTS_KEY))
@@ -161,6 +234,14 @@ export default function MyRecord() {
 
   return (
     <section className="my_record_page" aria-label="기록">
+      {alertMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_warning">
+            <img src={iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{alertMessage}</p>
+        </div>
+      ) : null}
       <header className="my_record_header" aria-label="기록 헤더">
         <button type="button" className="my_record_back" aria-label="뒤로가기" onClick={() => navigate("/my")}>
           <img src={iconCaretLeft} alt="" aria-hidden="true" />
@@ -240,6 +321,7 @@ export default function MyRecord() {
                   likeActive={false}
                   likeAriaLabel="좋아요"
                   onToggleLike={() => {}}
+                  onShare={() => setAlertMessage("현재 지원되지 않는 기능이에요.")}
                   onViewComments={() => navigate(`/community/pairing/${post.id}#comments`, { state: {} })}
                   linkTo={`/community/pairing/${post.id}`}
                   linkState={{}}
@@ -251,7 +333,12 @@ export default function MyRecord() {
           ) : (
             <div className="my_record_review_list" aria-label={tab === "alcohol" ? "내 주류 후기" : "내 페어링 후기"}>
               {visiblePosts.map((post) => (
-                <RecordReviewCard key={post.id} post={post} tab={tab} />
+                <RecordReviewCard
+                  key={post.id}
+                  post={post}
+                  tab={tab}
+                  onShare={() => setAlertMessage("현재 지원되지 않는 기능이에요.")}
+                />
               ))}
             </div>
           )}
@@ -260,9 +347,3 @@ export default function MyRecord() {
     </section>
   )
 }
-
-
-
-
-
-

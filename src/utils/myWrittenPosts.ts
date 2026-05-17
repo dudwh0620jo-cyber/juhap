@@ -41,7 +41,7 @@ const getMyMetaLine = () => {
 }
 
 const toStoredAuthor = (post: FeedPost) => ({
-  name: post.authorName?.trim() || "익명",
+  name: readUserProfile().personalInfo.nickname.trim() || post.authorName?.trim() || "익명",
   grade: getPairingTierLabelByUserId(post.authorId ?? MY_WRITTEN_POST_AUTHOR_ID),
   preference: getMyMetaLine(),
   avatar: resolveUserAvatar(post.authorId) ?? "",

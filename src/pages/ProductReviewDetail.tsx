@@ -21,6 +21,7 @@ import { getDrinkReviewBookmarkPostId } from "../utils/drinkReviewBookmark"
 import { isAlcoholReviewPost, readStoredMyWrittenPosts, toStoredDrinkReview } from "../utils/myWrittenPosts"
 import { getPairingTierLabelByUserId, getUserGradeBadgeClassNameByUserId } from "../utils/pairingTier"
 import { useStoredNullableStringRecord } from "../utils/storage"
+import { resolveMyUserAvatar } from "../utils/userAvatars"
 import { currentUserMock } from "../utils/usersMock"
 import "../styles/pairing-detail.css"
 import "../styles/product-review-detail.css"
@@ -72,6 +73,7 @@ export default function ProductReviewDetail() {
   const displayAuthorName = isMyReview ? myNickname : review.author.name
   const displayAuthorGrade = isMyReview ? getPairingTierLabelByUserId(currentUserMock.id) : review.author.grade
   const displayAuthorProfile = isMyReview ? myMetaLine : review.author.preference
+  const displayAuthorAvatar = isMyReview ? resolveMyUserAvatar() : review.author.avatar || imgDefaultUserAvatar
 
   const commentCount = commentCountOverride ?? readStoredPairingCommentCount(commentTargetId)
   const reviewBookmarkPostId = getDrinkReviewBookmarkPostId(review.id)
@@ -161,7 +163,7 @@ export default function ProductReviewDetail() {
 
       <article className="product_review_detail_card">
         <div className="product_review_detail_author">
-          <img className="product_review_detail_avatar" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
+          <img className="product_review_detail_avatar" src={displayAuthorAvatar} alt="" aria-hidden="true" />
           <div className="product_review_detail_author_text">
             <p className="product_review_detail_nickname">
               <strong>{displayAuthorName}</strong>

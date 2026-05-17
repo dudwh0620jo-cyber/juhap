@@ -27,6 +27,8 @@ const sortLabels: Record<SortKey, string> = {
   popular: "가격 높은순",
 }
 
+const ENABLED_SAKE_PRODUCT_ID = "sake-dassai-23"
+
 const normalizeFilterKey = (value: string) =>
   value
     .toLowerCase()
@@ -317,7 +319,8 @@ export default function CategoryList() {
           {sortedItems.length === 0 ? <p className="category_list_empty">검색 결과가 없어요</p> : null}
           {sortedItems.map((item) => {
             const drinkType = item.drinkTypeLabel ?? group
-            const isDisabled = drinkType !== defaultSakeLabel
+            const isSake = drinkType === defaultSakeLabel
+            const isDisabled = !isSake || item.id !== ENABLED_SAKE_PRODUCT_ID
             return <CategoryItemCard key={item.id} item={item} onOpen={handleOpenItem} disabled={isDisabled} />
           })}
         </div>

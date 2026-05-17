@@ -52,6 +52,10 @@ import rankingDrink47 from "../assets/rankimg/ranking_drink47.png"
 import rankingDrink48 from "../assets/rankimg/ranking_drink48.png"
 import rankingDrink49 from "../assets/rankimg/ranking_drink49.png"
 import rankingDrink50 from "../assets/rankimg/ranking_drink50.png"
+import rankingDrink51 from "../assets/rankimg/ranking_drink51.png"
+import rankingDrink52 from "../assets/rankimg/ranking_drink52.png"
+import rankingDrink53 from "../assets/rankimg/ranking_drink53.png"
+import rankingDrink54 from "../assets/rankimg/ranking_drink54.png"
 import rankingDrinkWine01 from "../assets/rankimg/ranking_drink_wine01.png"
 import rankingDrinkWine02 from "../assets/rankimg/ranking_drink_wine02.png"
 import rankingDrinkWine03 from "../assets/rankimg/ranking_drink_wine03.png"
@@ -90,6 +94,11 @@ import rankingDrinkSake03 from "../assets/rankimg/ranking_drink_sake03.png"
 import rankingDrinkSake04 from "../assets/rankimg/ranking_drink_sake04.png"
 import rankingDrinkSake05 from "../assets/rankimg/ranking_drink_sake05.png"
 import rankingDrinkSake06 from "../assets/rankimg/ranking_drink_sake06.png"
+import rankingDrinkTra01 from "../assets/rankimg/ranking_drink_tra01.png"
+import rankingDrinkTra02 from "../assets/rankimg/ranking_drink_tra02.png"
+import rankingDrinkTra03 from "../assets/rankimg/ranking_drink_tra03.png"
+import rankingDrinkTra04 from "../assets/rankimg/ranking_drink_tra04.png"
+import rankingDrinkTra05 from "../assets/rankimg/ranking_drink_tra05.png"
 import rankingDrinkEtc01 from "../assets/rankimg/ranking_drink_etc01.png"
 import rankingDrinkEtc02 from "../assets/rankimg/ranking_drink_etc02.png"
 import rankingDrinkEtc03 from "../assets/rankimg/ranking_drink_etc03.png"
@@ -230,6 +239,11 @@ const RANKING_DRINK_BY_ID: Record<number, string> = {
   97008: rankingDrink43,
   97009: rankingDrink44,
   97010: rankingDrink45,
+  99006: rankingDrink51,
+  99007: rankingDrink52,
+  99008: rankingDrink5,
+  99009: rankingDrink53,
+  99010: rankingDrink54,
   98001: rankingDrink50,
   98002: rankingDrink50,
   98003: rankingDrink46,
@@ -289,6 +303,11 @@ const RANKING_PHOTO_BY_ID: Record<number, string> = {
   97008: rankingDrinkSake04,
   97009: rankingDrinkSake05,
   97010: rankingDrinkSake06,
+  99006: rankingDrinkTra01,
+  99007: rankingDrinkTra02,
+  99008: rankingDrinkTra03,
+  99009: rankingDrinkTra04,
+  99010: rankingDrinkTra05,
   98001: rankingDrinkEtc01,
   98002: rankingDrinkEtc02,
   98003: rankingDrinkEtc03,

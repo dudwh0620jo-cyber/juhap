@@ -1,6 +1,6 @@
 .product_review_detail_page.page_screen {
   min-height: 100vh;
-  background: #fbfaf9;
+  background: #fdfdfd;
   padding: 50px 0 88px;
 }
 
@@ -57,6 +57,7 @@
   flex: 0 0 auto;
   border-radius: 999px;
   object-fit: cover;
+  object-position: center;
   background: #f2f2f2;
 }
 
@@ -67,8 +68,25 @@
 .product_review_detail_nickname {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   margin: 0 0 2px;
+  white-space: nowrap;
+}
+
+.product_review_detail_nickname .author_owner_badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+  padding: 2px 6px;
+  border: 0.7px solid #d9d9d9;
+  border-radius: 999px;
+  background: #fbfaf9;
+  color: var(--color-text-primary);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 

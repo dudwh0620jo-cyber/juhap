@@ -40,6 +40,11 @@ import weeklyRankingBadge03 from "../assets/weekly_ranking_badge_03.png"
 import weeklyRankingBadge04 from "../assets/weekly_ranking_badge_04.png"
 import weeklyRankingBadge05 from "../assets/weekly_ranking_badge_05.png"
 import weeklyBestMascot from "../assets/weekly_best_mascot_01.png"
+import homeFood01 from "../assets/home_food01.png"
+import homeFood02 from "../assets/home_food02.png"
+import homeFood03 from "../assets/home_food03.png"
+import homeFood04 from "../assets/home_food04.png"
+import homeFood05 from "../assets/home_food05.png"
 import drinkJinroIsBack from "../assets/drink_jinro_is_back_01.png"
 import drinkHwayo25 from "../assets/drink_hwayo_25.png"
 import drinkBoksoondogaMakgeolli from "../assets/drink_boksoondoga_makgeolli_01.png"
@@ -50,6 +55,8 @@ import foodHoeMuchim from "../assets/food_hoe_muchim_01.png"
 import foodHaemulPajeon from "../assets/food_haemul_pajeon_01.png"
 import foodFriedChicken from "../assets/food_fried_chicken_01.png"
 import foodSirloinSteak from "../assets/food_sirloin_steak_01.png"
+import { getRankingPairLabel, rankingDataByPeriod } from "../utils/rankingData"
+import { getRankingDrinkSrcForItem } from "../utils/rankingThumbAssets"
 
 export const homeAssets = {
   mainScanButton,
@@ -94,6 +101,11 @@ export const homeAssets = {
   weeklyRankingBadge04,
   weeklyRankingBadge05,
   weeklyBestMascot,
+  homeFood01,
+  homeFood02,
+  homeFood03,
+  homeFood04,
+  homeFood05,
   drinkJinroIsBack,
   foodSamgyeopsal,
   drinkHwayo25,
@@ -261,60 +273,54 @@ export const homeMomentPickCardsBySituation = {
   ],
 } as const
 
-export const homeWeeklyRankingCards = [
-  {
-    id: "weekly-rank-1",
-    communityPairingId: 1006,
-    badgeSrc: homeAssets.weeklyRankingBadge01,
-    title: "진로 이즈백",
-    subtitle: "삼겹살",
-    drinkSrc: homeAssets.drinkJinroIsBack,
-    foodSrc: homeAssets.foodSamgyeopsal,
-    scoreLabel: "7,621짠",
-    isCenter: true,
-  },
-  {
-    id: "weekly-rank-2",
-    communityPairingId: 1007,
-    badgeSrc: homeAssets.weeklyRankingBadge02,
-    title: "화요25",
-    subtitle: "회무침",
-    drinkSrc: homeAssets.drinkHwayo25,
-    foodSrc: homeAssets.foodHoeMuchim,
-    scoreLabel: "6,124짠",
-    isCenter: false,
-  },
-  {
-    id: "weekly-rank-3",
-    communityPairingId: 1001,
-    badgeSrc: homeAssets.weeklyRankingBadge03,
-    title: "복순도가 막걸리",
-    subtitle: "해물파전",
-    drinkSrc: homeAssets.drinkBoksoondogaMakgeolli,
-    foodSrc: homeAssets.foodHaemulPajeon,
-    scoreLabel: "6,321짠",
-    isCenter: false,
-  },
-  {
-    id: "weekly-rank-4",
-    communityPairingId: 1004,
-    badgeSrc: homeAssets.weeklyRankingBadge04,
-    title: "카스",
-    subtitle: "후라이드 치킨",
-    drinkSrc: homeAssets.drinkCass,
-    foodSrc: homeAssets.foodFriedChicken,
-    scoreLabel: "5,921짠",
-    isCenter: false,
-  },
-  {
-    id: "weekly-rank-5",
-    communityPairingId: 1010,
-    badgeSrc: homeAssets.weeklyRankingBadge05,
-    title: "클라렛 2010",
-    subtitle: "등심 스테이크",
-    drinkSrc: homeAssets.drinkClaret2010,
-    foodSrc: homeAssets.foodSirloinSteak,
-    scoreLabel: "5,421짠",
-    isCenter: false,
-  },
+const homeWeeklyRankingBadges = [
+  homeAssets.weeklyRankingBadge01,
+  homeAssets.weeklyRankingBadge02,
+  homeAssets.weeklyRankingBadge03,
+  homeAssets.weeklyRankingBadge04,
+  homeAssets.weeklyRankingBadge05,
 ] as const
+
+const homeWeeklyRankingFoods = [
+  homeAssets.homeFood01,
+  homeAssets.homeFood05,
+  homeAssets.homeFood02,
+  homeAssets.homeFood03,
+  homeAssets.homeFood04,
+] as const
+
+const weeklyRankingData = rankingDataByPeriod.weekly
+const weeklyRankingTop5Rows = weeklyRankingData.rows
+  .filter((row) => row.rank === 4 || row.rank === 5)
+  .sort((a, b) => a.rank - b.rank)
+
+const homeWeeklyRankingTop5 = [...weeklyRankingData.podiumByCategory.all, ...weeklyRankingTop5Rows].slice(0, 5)
+
+const splitRankingPair = (pair: string) => {
+  const [drink = "", food = ""] = pair.split("+").map((part) => part.trim())
+  return { drink, food }
+}
+
+const getHomeWeeklyDrinkClassName = (id: number) => {
+  if (id === 1005) return "is_cass"
+  if (id === 1025) return "is_heineken"
+  return undefined
+}
+
+export const homeWeeklyRankingCards = homeWeeklyRankingTop5.map((item, index) => {
+  const { drink, food } = splitRankingPair(getRankingPairLabel(item.id))
+  const rank = index + 1
+
+  return {
+    id: `weekly-rank-${rank}`,
+    communityPairingId: item.id,
+    badgeSrc: homeWeeklyRankingBadges[index],
+    title: drink,
+    subtitle: food,
+    drinkSrc: getRankingDrinkSrcForItem(item.id, item.rank) ?? homeAssets.drinkJinroIsBack,
+    foodSrc: homeWeeklyRankingFoods[index],
+    scoreLabel: `${(item.votes ?? 0).toLocaleString("ko-KR")}짠`,
+    isCenter: rank === 1,
+    drinkClassName: getHomeWeeklyDrinkClassName(item.id),
+  }
+})

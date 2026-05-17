@@ -1250,6 +1250,8 @@
 }
 
 .home_ai_subtitle {
+  margin: 0;
+  padding-top: 4px;
   font-size: 14px;
   font-weight: 300;
   color: var(--color-text-primary);
@@ -1513,7 +1515,7 @@
   position: relative;   
   display: flex;   
   justify-content: center;
-  gap: 28px;
+  gap: 14px;
   margin-right: -24px;    
   padding-right: 24px; 
   padding-bottom: 10px;  
@@ -1784,9 +1786,9 @@
   gap: 4px;
   border: 0;
   background: transparent;
-  color: rgba(255, 228, 209, 1);
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -2076,9 +2078,10 @@
   padding: 0 24px;
 }
 .home_weekly_rank_header_copy .more_button{
-  font-size: 14px;
   line-height: 140%;
-  font-weight: 300;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 500;
 }
 .home_weekly_rank_header_text{
   display: flex;
@@ -2233,7 +2236,16 @@
   right: 12%;
   width: 50px;
   height: 159px;
-  object-fit: cover;
+  object-fit: contain;
+}
+
+.home_weekly_rank_drink.is_cass {
+  top: 14%;
+  width: 58px;
+}
+
+.home_weekly_rank_drink.is_heineken {
+  top: 14%;
 }
 
 .home_weekly_rank_food {
