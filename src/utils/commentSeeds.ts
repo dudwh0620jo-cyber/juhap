@@ -37,12 +37,12 @@ export const ALCOHOL_REVIEW_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedComme
 export const PAIRING_REVIEW_COMMENT_SEEDS_BY_TARGET_ID: Record<string, SeedCommentItem[]> = {
   "99003":[
     { id: 1, userId: 3001, text: "회무침 양념이랑 화요25 조합 생각보다 진짜 잘 어울리죠 😄"},
-    { id: 6, userId: 3002, text: "맞아요 특히 새콤한 양념이랑 같이 마시면 더 깔끔하더라고요.", replyTo: { userName: "순대렐라", commentId: 1 } },
-    { id: 7, userId: 3004, text: "저도 이 조합 먹고 화요25 다시 보게 됐어요.", replyTo: { userName: "순대렐라", commentId: 1 } },
-    { id: 8, userId: 5001, text: "회무침 매운맛 잡아주는 느낌 진짜 공감돼요.", replyTo: { userName: "순대렐라", commentId: 1 } },
-    { id: 9, userId: 6002, text: "증류식 소주라 끝맛이 덜 텁텁해서 좋은 것 같아요.", replyTo: { userName: "순대렐라", commentId: 1 } },
-    { id: 10, userId: 1021, text: "차갑게 마시면 더 잘 어울릴 것 같네요 🍶", replyTo: { userName: "순대렐라", commentId: 1 } },
-    { id: 11, userId: 3005, text: "다음에 회무침 시키면 화요25 같이 먹어봐야겠어요.", replyTo: { userName: "순대렐라", commentId: 1 } },
+    { id: 6, userId: 3002, text: "맞아요 특히 새콤한 양념이랑 같이 마시면 더 깔끔하더라고요.", replyTo: { userName: "옹심이", commentId: 5 } },
+    { id: 7, userId: 3004, text: "저도 이 조합 먹고 화요25 다시 보게 됐어요.", replyTo: { userName: "옹심이", commentId: 5 } },
+    { id: 8, userId: 5001, text: "회무침 매운맛 잡아주는 느낌 진짜 공감돼요.", replyTo: { userName: "옹심이", commentId: 5 } },
+    { id: 9, userId: 6002, text: "증류식 소주라 끝맛이 덜 텁텁해서 좋은 것 같아요.", replyTo: { userName: "옹심이", commentId: 5 } },
+    { id: 10, userId: 1021, text: "차갑게 마시면 더 잘 어울릴 것 같네요 🍶", replyTo: { userName: "옹심이", commentId: 5 } },
+    { id: 11, userId: 3005, text: "다음에 회무침 시키면 화요25 같이 먹어봐야겠어요.", replyTo: { userName: "옹심이", commentId: 5 } },
     { id: 2, userId: 3004, text: "차갑게 마셨을 때 입안 정리되는 느낌 공감돼요."},
     { id: 3, userId: 6002, text: "맵고 새콤한 안주엔 증류식 소주가 확실히 깔끔하네요."},
     { id: 4, userId: 1021, text: "곡물향 은은하게 올라온다는 표현 보니까 바로 마셔보고 싶어졌어요."},
@@ -206,5 +206,8 @@ export const getSeedCommentsByTargetId = (targetId: string | undefined): SeedCom
 export const getCommentItemIdCount = (comments: SeedCommentItem[]) =>
   new Set(comments.map((comment) => comment.id).filter((id) => Number.isFinite(id))).size
 
+export const getTopLevelCommentItemIdCount = (comments: SeedCommentItem[]) =>
+  new Set(comments.filter((comment) => !comment.replyTo).map((comment) => comment.id).filter((id) => Number.isFinite(id))).size
+
 export const getSeedCommentCount = (targetId: string | undefined) =>
-  getCommentItemIdCount(getSeedCommentsByTargetId(targetId))
+  getTopLevelCommentItemIdCount(getSeedCommentsByTargetId(targetId))
