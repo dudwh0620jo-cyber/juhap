@@ -3973,6 +3973,16 @@
   color: var(--color-text-primary);
 }
 
+.write_field_subtext {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-gray-05);
+}
+
+.write_required_mark {
+  color: var(--color-point-01);
+}
+
 .write_input {
   width: 100%;
   min-height: 44px;
@@ -3991,6 +4001,15 @@
 
 .write_input:focus-visible {
   box-shadow: 0 0 10px rgba(202, 128, 79, 0.1);
+}
+
+.write_input.is_locked {
+  background: #f4f4f4;
+  border-color: #e3e3e3;
+  color: #8a8a8a;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
 }
 
 .write_input_suffix_row {

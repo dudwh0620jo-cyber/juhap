@@ -1,13 +1,14 @@
 import { useLayoutEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
+import type { Variants } from "motion/react"
 import "../styles/vote-list.css"
 import VoteListCard from "../components/VoteListCard"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import { getStoredPicks } from "../utils/votePicks"
 import { voteItems, VOTE_INITIAL_COUNT } from "../data/voteData"
 
-const listVariants = {
+const listVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -18,7 +19,7 @@ const listVariants = {
   },
 }
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: {
     opacity: 1,
@@ -32,7 +33,7 @@ const cardVariants = {
   },
 }
 
-const moreItemVariants = {
+const moreItemVariants: Variants = {
   hidden: { opacity: 0, y: 24 },
   show: {
     opacity: 1,

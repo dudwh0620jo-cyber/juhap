@@ -959,7 +959,7 @@ export default function MyPage() {
                   </div>
                   <div className="my_saved_product_body">
                     <strong>{item.name}</strong>
-                    <p>{`${item.price.toLocaleString("ko-KR")}원`}</p>
+                    <p>{`${(item.price ?? 0).toLocaleString("ko-KR")}원`}</p>
                     <div className="my_saved_product_tags">
                       {(item.tags ?? []).slice(0, 3).map((tag) => (
                         <span key={`${item.id}-${tag}`}>{`#${tag}`}</span>

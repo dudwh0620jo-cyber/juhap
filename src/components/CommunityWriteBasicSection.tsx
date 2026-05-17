@@ -37,6 +37,11 @@ export default function CommunityWriteBasicSection({
   bodyMaxLength,
   onBodyChange,
 }: Props) {
+  const parsedTitleLabel = titleLabel.replace(/\s*\(필수\)\s*/g, "").trim()
+  const parsedBodyLabel = bodyLabel.replace(/\s*\(필수\)\s*/g, "").trim()
+  const isTitleRequired = titleLabel.includes("필수")
+  const isBodyRequired = bodyLabel.includes("필수")
+
   return (
     <div className="write_section">
       {sectionTitle ? <h4 className="write_section_title">{sectionTitle}</h4> : null}
@@ -87,7 +92,10 @@ export default function CommunityWriteBasicSection({
       </div>
 
       <label className="write_field">
-        <span className="write_field_label">{titleLabel}</span>
+        <span className="write_field_label">
+          {parsedTitleLabel}
+          {isTitleRequired ? <span className="write_required_mark"> *</span> : null}
+        </span>
         <input
           className="write_input"
           value={titleValue}
@@ -97,7 +105,10 @@ export default function CommunityWriteBasicSection({
       </label>
 
       <label className="write_field">
-        <span className="write_field_label">{bodyLabel}</span>
+        <span className="write_field_label">
+          {parsedBodyLabel}
+          {isBodyRequired ? <span className="write_required_mark"> *</span> : null}
+        </span>
         <textarea
           className="write_textarea"
           value={bodyValue}

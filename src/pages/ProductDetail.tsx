@@ -203,7 +203,6 @@ export default function ProductDetail() {
       if (!container) return
       const containerRect = container.getBoundingClientRect()
       const tabCount = tabItems.length
-      if (tabCount === 0) return
       const activeIndex = Math.max(0, tabItems.indexOf(activeTab))
       const segmentWidth = containerRect.width / tabCount
 
