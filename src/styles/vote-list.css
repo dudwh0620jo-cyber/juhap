@@ -11,8 +11,8 @@
 
 .vote_list_header h2 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 400;
 }
 
 .vote_list_filter {
@@ -240,6 +240,8 @@
   font-weight: 700;
   color: var(--color-text-primary);
   letter-spacing: -5px;
+  padding-right: 5px;
+
 }
 
 .vote_list_result_bar {
@@ -272,6 +274,12 @@
   height: 100%;
   background: var(--vote-left);
   border-radius:  0 999px 999px 0 ;
+}
+
+.vote_list_result_bar.is_right_winner .vote_list_result_left::after {
+  right: -18px;
+  background: var(--vote-right);
+  border-radius: 999px 0 0 999px;
 }
 
 .vote_list_result_right {
@@ -314,6 +322,7 @@
 .vote_list_result_label {
   color: var(--color-text-primary);
   min-width: 0;
+  font-size: 14px;
 }
 
 .vote_list_result_label.is_left {
@@ -322,6 +331,11 @@
 
 .vote_list_result_label.is_right {
   text-align: right;
+}
+
+.vote_list_result_label.is_winner {
+  color: var(--color-point-01);
+  font-size: 16px;
 }
 
 .vote_list_total {

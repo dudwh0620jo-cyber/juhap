@@ -5,6 +5,8 @@ import "../styles/community.css"
 import askQuestionBanner from "../assets/ask_question_banner.png"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
 import iconPencil from "../assets/svg/pencilsimple_p.svg"
+import iconX from "../assets/svg/x.svg"
+import iconCheck from "../assets/svg/check_g.svg"
 import AlertModal from "../components/AlertModal"
 import CommunityHeader from "../components/CommunityHeader"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
@@ -290,6 +292,7 @@ export default function Community() {
   const [isFeedSearchConfirmed, setIsFeedSearchConfirmed] = useState(false)
   const [reviewSort, setReviewSort] = useState<ReviewSortKey>("latest")
   const [isReviewSortSheetOpen, setIsReviewSortSheetOpen] = useState(false)
+  const [entryToastMessage, setEntryToastMessage] = useState<string | null>(null)
   const feedSearchInputRef = useRef<HTMLInputElement | null>(null)
   const [expandedChipGroups, setExpandedChipGroups] = useState<Set<string>>(() => new Set())
   const chipGroupRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
@@ -305,6 +308,23 @@ export default function Community() {
       window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: false } }))
     }
   }, [])
+
+  useEffect(() => {
+    const state = (location.state ?? {}) as { writeSuccessToast?: string; initialFilter?: string }
+    const toastMessage = state.writeSuccessToast?.trim()
+    if (!toastMessage) return
+
+    setEntryToastMessage(toastMessage)
+    const timer = window.setTimeout(() => setEntryToastMessage(null), 5000)
+
+    const { writeSuccessToast: _dropToast, ...restState } = state
+    navigate(`${location.pathname}${location.search}${location.hash}`, {
+      replace: true,
+      state: Object.keys(restState).length ? restState : null,
+    })
+
+    return () => window.clearTimeout(timer)
+  }, [location.hash, location.pathname, location.search, location.state, navigate])
 
   const deleteUserPost = useCallback(
     (postId: number) => {
@@ -993,6 +1013,18 @@ export default function Community() {
             setPendingUnfollowUser(null)
           }}
         />
+      ) : null}
+
+      {entryToastMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_success">
+            <img src={iconCheck} alt="" aria-hidden="true" />
+          </span>
+          <p>{entryToastMessage}</p>
+          <button type="button" className="app_alert_toast_close" aria-label="닫기" onClick={() => setEntryToastMessage(null)}>
+            <img src={iconX} alt="" aria-hidden="true" />
+          </button>
+        </div>
       ) : null}
 
       <ScrollTopButton />

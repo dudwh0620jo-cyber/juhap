@@ -87,6 +87,7 @@ export default function Category() {
   const isProgrammaticScrollRef = useRef(false)
   const programmaticScrollTimeoutRef = useRef<number | null>(null)
   const scrollRafRef = useRef<number | null>(null)
+  const activeSyncTimeoutRef = useRef<number | null>(null)
   const [categoryGlider, setCategoryGlider] = useState({ y: 0, height: 0 })
 
   const [activeCategoryId, setActiveCategoryId] = useState(() => {
@@ -250,6 +251,7 @@ export default function Category() {
     return () => {
       if (programmaticScrollTimeoutRef.current) window.clearTimeout(programmaticScrollTimeoutRef.current)
       if (scrollRafRef.current) window.cancelAnimationFrame(scrollRafRef.current)
+      if (activeSyncTimeoutRef.current) window.clearTimeout(activeSyncTimeoutRef.current)
     }
   }, [])
 
@@ -405,15 +407,6 @@ export default function Category() {
       const paddingTop = Number.parseFloat(window.getComputedStyle(root).paddingTop || "0") || 0
       const probeLine = scrollTop + paddingTop + 12
 
-      if (categoriesWithVisibleSubcategories.length > 0) {
-        const isNearBottom = scrollTop + root.clientHeight >= root.scrollHeight - 2
-        if (isNearBottom) {
-          const lastId = categoriesWithVisibleSubcategories[categoriesWithVisibleSubcategories.length - 1].category.id
-          if (lastId !== effectiveActiveCategoryId) setActiveCategoryId(lastId)
-          return
-        }
-      }
-
       let nextActiveId: string | null = null
       for (const { category } of categoriesWithVisibleSubcategories) {
         const header = sectionHeaderRefs.current[category.id]
@@ -433,7 +426,11 @@ export default function Category() {
       scrollRafRef.current = window.requestAnimationFrame(() => {
         scrollRafRef.current = null
         updateFadeVisibility()
-        pickActiveCategoryId()
+        if (activeSyncTimeoutRef.current) window.clearTimeout(activeSyncTimeoutRef.current)
+        activeSyncTimeoutRef.current = window.setTimeout(() => {
+          pickActiveCategoryId()
+          activeSyncTimeoutRef.current = null
+        }, 120)
       })
     }
 
@@ -466,9 +463,17 @@ export default function Category() {
   useLayoutEffect(() => {
     function updateGlider() {
       const activeTab = categoryTabRefs.current[effectiveActiveCategoryId]
+      const listRoot = leftListRef.current
       if (!activeTab) return
       setCategoryGlider({ y: activeTab.offsetTop, height: activeTab.offsetHeight })
-      activeTab.scrollIntoView({ block: "nearest" })
+      if (!listRoot) return
+      const listTop = listRoot.scrollTop
+      const listBottom = listTop + listRoot.clientHeight
+      const tabTop = activeTab.offsetTop
+      const tabBottom = tabTop + activeTab.offsetHeight
+      if (tabTop < listTop || tabBottom > listBottom) {
+        activeTab.scrollIntoView({ block: "nearest", behavior: "auto" })
+      }
     }
 
     updateGlider()
@@ -568,7 +573,7 @@ export default function Category() {
               className="category_group_glider"
               animate={categoryGlider}
               initial={false}
-              transition={isGroupMotionReady ? { type: "spring", stiffness: 360, damping: 32, mass: 0.8 } : { duration: 0 }}
+              transition={isGroupMotionReady ? { type: "spring", stiffness: 220, damping: 28, mass: 0.95 } : { duration: 0 }}
               aria-hidden="true"
             />
             {categoriesWithVisibleSubcategories.map(({ category }) => (

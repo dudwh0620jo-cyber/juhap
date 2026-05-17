@@ -8,6 +8,8 @@ import timeSvg from "../assets/svg/time.svg"
 import voteSvg from "../assets/svg/vote.svg"
 import peopleSvg from "../assets/svg/people.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
+import iconX from "../assets/svg/x.svg"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import type { RecommendationItem } from "../components/RecommendationCard"
 import SituationSection from "../components/SituationSection"
@@ -130,7 +132,12 @@ function VoteCard({
 }) {
   const iconSrc = resolveVoteOptionIconSrc(title)
   return (
-    <button type="button" className={`home_vote_option${isSelected ? " is_selected" : ""}`} onClick={onVote}>
+    <button
+      type="button"
+      className={`home_vote_option${isSelected ? " is_selected" : ""}`}
+      onClick={onVote}
+      disabled={voted}
+    >
       <span className="home_vote_option_left">
         <span className="home_vote_option_icon" aria-hidden="true">
           {iconSrc ? <img src={iconSrc} alt="" /> : null}
@@ -163,6 +170,10 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
   const [selectedIndex, setSelectedIndex] = useState<0 | 1 | null>(() => getStoredPicks()[String(voteId)] ?? null)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(() => formatVoteRemaining())
+  const [voteAlertMessage, setVoteAlertMessage] = useState<string | null>(null)
+  const [mascotTapCount, setMascotTapCount] = useState(0)
+  const [showResetGuide, setShowResetGuide] = useState(false)
+  const mascotTapTimerRef = useRef<number | null>(null)
 
   const voted = votedIndex !== null
 
@@ -171,9 +182,46 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
     return () => window.clearInterval(id)
   }, [])
 
+  useEffect(() => {
+    if (!voteAlertMessage) return
+    const timerId = window.setTimeout(() => setVoteAlertMessage(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [voteAlertMessage])
+
+  useEffect(() => {
+    if (voted) setShowResetGuide(true)
+  }, [voted])
+
+  useEffect(() => {
+    return () => {
+      if (mascotTapTimerRef.current) window.clearTimeout(mascotTapTimerRef.current)
+    }
+  }, [])
+
   function handleSelect(index: 0 | 1) {
     if (voted) return
     setSelectedIndex(index)
+  }
+
+  function handleMascotResetTap() {
+    setShowResetGuide(true)
+    if (mascotTapTimerRef.current) window.clearTimeout(mascotTapTimerRef.current)
+    setMascotTapCount((prev) => {
+      const next = prev + 1
+      if (next < 4) {
+        mascotTapTimerRef.current = window.setTimeout(() => {
+          setMascotTapCount(0)
+        }, 900)
+        return next
+      }
+      storePick(voteId, null)
+      setVotedIndex(null)
+      setSelectedIndex(null)
+      setVoteAlertMessage("투표 상태를 초기화했어요.")
+      setShowResetGuide(false)
+      mascotTapTimerRef.current = null
+      return 0
+    })
   }
 
   return (
@@ -200,9 +248,17 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
             </div>
           </div>
 
-          <div className="home_vote_mascot" aria-hidden="true">
-            <img src={homeAssets.todayVoteMascot} alt="" />
-          </div>
+          <button type="button" className="home_vote_mascot" onClick={handleMascotResetTap} aria-label="투표 상태 리셋">
+            <img src={homeAssets.todayVoteMascot} alt="" aria-hidden="true" />
+          </button>
+          {showResetGuide ? (
+            <div className="feature_guide feature_guide_bottom home_vote_reset_guide" role="status" aria-live="polite">
+              <p className="feature_guide_message">저를 4번 누르시면 리셋해드릴게요</p>
+              <button type="button" className="feature_guide_close" aria-label="닫기" onClick={() => setShowResetGuide(false)}>
+                <img src={iconX} alt="" aria-hidden="true" />
+              </button>
+            </div>
+          ) : null}
 
           <div className="home_vote_options" role="group" aria-label="투표 선택지">
             <VoteCard
@@ -239,6 +295,10 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
               disabled={voted}
               onClick={() => {
                 if (voted) return
+                if (selectedIndex === null) {
+                  setVoteAlertMessage("선택지를 선택해주세요.")
+                  return
+                }
                 setIsConfirmOpen(true)
               }}
             >
@@ -253,8 +313,8 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
           ariaLabel="투표 참여 확인"
           message={
             <>
-              투표하고 결과보기로 이동하면 바로 참여가 완료돼요. <br />
-              진행할까요?
+              한 번 투표하면 다시는 바꿀 수 없어요. <br />
+              해당 조합에 투표하시겠어요?
             </>
           }
           cancelLabel="취소"
@@ -266,10 +326,19 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
               storePick(voteId, selectedIndex)
               setVotedIndex(selectedIndex)
             }
-            navigate("/vote")
           }}
         />
       ) : null}
+
+      {voteAlertMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_warning">
+            <img src={iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{voteAlertMessage}</p>
+        </div>
+      ) : null}
+
     </>
   )
 }
@@ -520,7 +589,11 @@ export default function Home() {
         type="button"
         className="home_quiz_card"
         aria-label="오늘의 퀴즈"
-        onClick={() => navigate("/quiz")}
+        onClick={() =>
+          navigate("/quiz", {
+            state: { fromPath: `${location.pathname}${location.search}${location.hash}` },
+          })
+        }
         style={{ backgroundImage: `url(${homeAssets.todayQuizBanner})` }}
       >
         <div className="home_quiz_left">
@@ -537,4 +610,3 @@ export default function Home() {
     </section>
   )
 }
-

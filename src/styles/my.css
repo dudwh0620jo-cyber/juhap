@@ -563,11 +563,37 @@
   padding: 68px 12px 132px;
 }
 
+.my_record_header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.my_record_back {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.my_record_back img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
 .my_record_tabs_shell {
   padding: 10px 0;
 }
 
 .my_record_tabs {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -577,9 +603,24 @@
   background: var(--color-bg-white);
 }
 
+.my_record_tabs_glider {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  z-index: 0;
+  width: 0;
+  height: calc(100% - 12px);
+  border-radius: 999px;
+  border: 1px solid var(--color-primary);
+  background: #faf5f0;
+  pointer-events: none;
+}
+
 .my_record_tab {
   width: 124px;
   flex: 1;
+  position: relative;
+  z-index: 1;
   border: 0;
   background: transparent;
   padding: 12px 2px;
@@ -600,9 +641,6 @@
 }
 
 .my_record_tab.is_active {
-  width: 124px;
-  background: #faf5f0;
-  border: 1px solid var(--color-primary);
   color: var(--color-primary);
 }
 
@@ -1531,7 +1569,49 @@
 
 .my_saved_page {
   display: grid;
-  gap: 18px;
+  gap: 12px;
+}
+
+.my_saved_tabs {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--color-point-02);
+  border-radius: 999px;
+  background: var(--color-bg-base);
+}
+
+.my_saved_tabs_glider {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  z-index: 0;
+  width: 0;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--color-primary);
+  background: #faf5f0;
+  pointer-events: none;
+}
+
+.my_saved_tab {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-gray-05);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.my_saved_tab.is_active {
+  color: var(--color-primary);
 }
 
 .my_exchange_page {

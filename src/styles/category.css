@@ -1,5 +1,5 @@
 .category_page {
-  padding: 68px 16px 132px;
+  padding: 68px 16px 88px;
   background: var(--color-bg-base);
   display: flex;
   flex-direction: column;
@@ -642,7 +642,7 @@
 }
 .category_section:last-child .category_subcategory_list:after{
   content: "";
-  height: 100dvh;
+  height: 32dvh;
 }
 
 .category_subcategory_item {

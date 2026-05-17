@@ -283,6 +283,8 @@ export default function CategoryList() {
             <img src={caretRight} alt="" aria-hidden="true" />
             <span>{sub}</span>
           </button>
+        </div>
+        <div className="category_list_sort_row">
           <button className="category_sort_button" type="button" onClick={() => setIsSortSheetOpen(true)}>
             {sortLabels[activeSortKey]}
             <span aria-hidden="true" />

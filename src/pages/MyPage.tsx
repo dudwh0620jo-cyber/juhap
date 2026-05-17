@@ -323,6 +323,13 @@ export default function MyPage() {
   const [isTasteEditorOpen, setIsTasteEditorOpen] = useState(false)
   const [isTasteEditorClosing, setIsTasteEditorClosing] = useState(false)
   const [isPointExchangeOpen, setIsPointExchangeOpen] = useState(false)
+  const [savedListTab, setSavedListTab] = useState<"alcohol" | "pairing">("alcohol")
+  const savedTabsRef = useRef<HTMLDivElement | null>(null)
+  const savedTabRefs = useRef<Record<"alcohol" | "pairing", HTMLButtonElement | null>>({
+    alcohol: null,
+    pairing: null,
+  })
+  const [savedTabsGlider, setSavedTabsGlider] = useState({ x: 0, width: 0 })
   const [pointExchangeTopTab, setPointExchangeTopTab] = useState<"exchange" | "history">("exchange")
   const [activeExchangeTab, setActiveExchangeTab] = useState<ExchangeTab>("전체")
   const [exchangeCoinBurstId, setExchangeCoinBurstId] = useState(0)
@@ -435,10 +442,10 @@ export default function MyPage() {
       ])
     }
     setLiveDiscountItems((prev) =>
-      prev.map((entry) => (entry.title === item.title ? { ...entry, actionDisabled: true, statusLabel: "사용 완료" } : entry)),
+      prev.map((entry) => (entry.title === item.title ? { ...entry, actionDisabled: true, statusLabel: "발급 완료" } : entry)),
     )
     setLiveExperienceItems((prev) =>
-      prev.map((entry) => (entry.title === item.title ? { ...entry, actionDisabled: true, statusLabel: "사용 완료" } : entry)),
+      prev.map((entry) => (entry.title === item.title ? { ...entry, actionDisabled: true, statusLabel: "발급 완료" } : entry)),
     )
 
     showMyAlertToast("success", "교환이 완료됐어요!")
@@ -509,6 +516,34 @@ export default function MyPage() {
     if (!isTasteOpen) return
     setTasteChartRunId((value) => value + 1)
   }, [isTasteOpen])
+
+  useLayoutEffect(() => {
+    if (!isSavedListOpen) return
+
+    function updateSavedTabsGlider() {
+      const activeTab = savedTabRefs.current[savedListTab]
+      if (!activeTab) return
+      setSavedTabsGlider({
+        x: activeTab.offsetLeft,
+        width: activeTab.offsetWidth,
+      })
+    }
+
+    updateSavedTabsGlider()
+
+    const observer =
+      typeof ResizeObserver === "undefined" || !savedTabsRef.current
+        ? null
+        : new ResizeObserver(() => updateSavedTabsGlider())
+
+    if (savedTabsRef.current) observer?.observe(savedTabsRef.current)
+    window.addEventListener("resize", updateSavedTabsGlider)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener("resize", updateSavedTabsGlider)
+    }
+  }, [isSavedListOpen, savedListTab])
 
   useLayoutEffect(() => {
     if (!isPointExchangeOpen) return
@@ -781,6 +816,7 @@ export default function MyPage() {
   const sparkleArc = buildArcMetric(16, tasteValueByKey.sparkle ?? 0)
 
   if (isSavedListOpen) {
+    const showSavedAlcohol = savedListTab === "alcohol"
     return (
       <section className="my_exchange_page my_saved_page" aria-label="저장한 리스트">
         <header className="my_exchange_header">
@@ -793,8 +829,45 @@ export default function MyPage() {
           <h1>저장한 리스트</h1>
           <div />
         </header>
+        <div ref={savedTabsRef} className="my_saved_tabs" role="tablist" aria-label="저장 리스트 탭">
+          <motion.span
+            className="my_saved_tabs_glider"
+            animate={savedTabsGlider}
+            initial={false}
+            transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+            aria-hidden="true"
+          />
+          <button
+            type="button"
+            role="tab"
+            aria-selected={showSavedAlcohol}
+            className={showSavedAlcohol ? "my_saved_tab is_active" : "my_saved_tab"}
+            onClick={() => setSavedListTab("alcohol")}
+            ref={(node) => {
+              savedTabRefs.current.alcohol = node
+            }}
+          >
+            주류 상품
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!showSavedAlcohol}
+            className={!showSavedAlcohol ? "my_saved_tab is_active" : "my_saved_tab"}
+            onClick={() => setSavedListTab("pairing")}
+            ref={(node) => {
+              savedTabRefs.current.pairing = node
+            }}
+          >
+            페어링 후기
+          </button>
+        </div>
 
-        {bookmarkedPosts.length > 0 ? (
+        {showSavedAlcohol ? (
+          <div className="my_saved_empty" role="status">
+            저장한 주류 상품이 아직 없어요.
+          </div>
+        ) : bookmarkedPosts.length > 0 ? (
           <div className="feed_cards my_saved_list" aria-label="저장한 게시글 목록">
             {bookmarkedPosts.map(({ post, listId }) => {
               const authorId = typeof post.authorId === "number" ? post.authorId : currentUserMock.id
@@ -1177,12 +1250,15 @@ export default function MyPage() {
               .map((stat) => {
                 const isSavedStat = stat.label === savedActivityLabel
                 const isRecordStat = stat.label === "기록"
+                const isVoteStat = stat.label === "투표 참여"
                 const value = isSavedStat ? bookmarkSavedCount : isRecordStat ? myWrittenPostCount : stat.value
-                const Element: "button" | "div" = isSavedStat || isRecordStat ? "button" : "div"
+                const Element: "button" | "div" = isSavedStat || isRecordStat || isVoteStat ? "button" : "div"
                 const extraProps = isSavedStat
                   ? ({ type: "button", onClick: openSavedList, "aria-label": "저장한 리스트 보기" } as const)
                   : isRecordStat
                     ? ({ type: "button", onClick: () => navigate("/my/record"), "aria-label": "기록 보기" } as const)
+                    : isVoteStat
+                      ? ({ type: "button", onClick: () => navigate("/vote?filter=my"), "aria-label": "내 투표 참여 내역 보기" } as const)
                   : ({} as const)
                 return (
                   <Element key={stat.label} className="my_activity_item" {...extraProps}>

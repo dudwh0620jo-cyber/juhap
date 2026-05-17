@@ -3,11 +3,10 @@ import { aiScanAssets } from "../data/aiScanContent"
 
 type AiScanFrameProps = {
   isScanning?: boolean
-  onSelectPhoto?: () => void
   children?: ReactNode
 }
 
-export default function AiScanFrame({ isScanning = false, onSelectPhoto, children }: AiScanFrameProps) {
+export default function AiScanFrame({ isScanning = false, children }: AiScanFrameProps) {
   const corners = isScanning
     ? [
         { className: "top_left", src: aiScanAssets.cornerRadiusP01 },
@@ -38,27 +37,12 @@ export default function AiScanFrame({ isScanning = false, onSelectPhoto, childre
     </>
   )
 
-  if (onSelectPhoto) {
-    return (
-      <button
-        type="button"
-        className={`ai_scan_viewfinder${isScanning ? " is_scanning" : ""}`}
-        aria-label="카메라 뷰파인더"
-        onClick={onSelectPhoto}
-        disabled={isScanning}
-      >
-        {content}
-      </button>
-    )
-  }
-
   return (
     <div className={`ai_scan_viewfinder${isScanning ? " is_scanning" : ""}`} aria-label="카메라 뷰파인더">
       {content}
     </div>
   )
 }
-
 
 
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import type { VoteItem } from "../data/voteData"
+﻿import { useEffect, useState } from "react"
+import { FEATURED_VOTE_ID, type VoteItem } from "../data/voteData"
 import timeSvg from "../assets/svg/time.svg"
 import { resolveVoteOptionIconSrc } from "../data/homeContent"
 
@@ -14,7 +14,11 @@ function formatDate(dateStr: string) {
 }
 
 function isToday(dateStr: string) {
-  return dateStr === new Date().toISOString().slice(0, 10)
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, "0")
+  const day = String(now.getDate()).padStart(2, "0")
+  return dateStr === `${y}-${m}-${day}`
 }
 
 function formatVoteRemaining() {
@@ -31,11 +35,16 @@ function formatVoteRemaining() {
 
 export default function VoteListCard({ item }: { item: VoteItem }) {
   const active = isToday(item.date)
+  const shouldMaskResultBar = active && item.id === FEATURED_VOTE_ID && item.myPickIndex === null
   const [timeRemaining, setTimeRemaining] = useState(() => (active ? formatVoteRemaining() : ""))
   const leftIconSrc = resolveVoteOptionIconSrc(item.options[0].title)
   const rightIconSrc = resolveVoteOptionIconSrc(item.options[1].title)
   const leftFlip = shouldFlipVoteIcon(item.options[0].title)
   const rightFlip = shouldFlipVoteIcon(item.options[1].title)
+  const leftPercent = item.options[0].percent
+  const rightPercent = item.options[1].percent
+  const isLeftWinner = leftPercent > rightPercent
+  const isRightWinner = rightPercent > leftPercent
 
   useEffect(() => {
     if (!active) return
@@ -57,12 +66,7 @@ export default function VoteListCard({ item }: { item: VoteItem }) {
         <div className={`vote_list_vs_side is_left${item.myPickIndex === 0 ? " is_my_pick" : ""}`}>
           <div className="vote_list_vs_icon">
             {leftIconSrc ? (
-              <img
-                className={leftFlip ? "is_flipped" : undefined}
-                src={leftIconSrc}
-                alt=""
-                aria-hidden="true"
-              />
+              <img className={leftFlip ? "is_flipped" : undefined} src={leftIconSrc} alt="" aria-hidden="true" />
             ) : null}
             {item.myPickIndex === 0 ? <span className="vote_list_my_pick_badge">내 선택</span> : null}
           </div>
@@ -71,28 +75,31 @@ export default function VoteListCard({ item }: { item: VoteItem }) {
         <div className={`vote_list_vs_side is_right${item.myPickIndex === 1 ? " is_my_pick" : ""}`}>
           <div className="vote_list_vs_icon">
             {rightIconSrc ? (
-              <img
-                className={rightFlip ? "is_flipped" : undefined}
-                src={rightIconSrc}
-                alt=""
-                aria-hidden="true"
-              />
+              <img className={rightFlip ? "is_flipped" : undefined} src={rightIconSrc} alt="" aria-hidden="true" />
             ) : null}
             {item.myPickIndex === 1 ? <span className="vote_list_my_pick_badge">내 선택</span> : null}
           </div>
         </div>
       </div>
 
-      <div className="vote_list_result_bar" role="img" aria-label="투표 결과">
-        <div className="vote_list_result_left" style={{ width: `${item.options[0].percent}%` }} />
-        <div className="vote_list_result_right" style={{ width: `${item.options[1].percent}%` }} />
-        <span className="vote_list_result_percent is_left">{item.options[0].percent}%</span>
-        <span className="vote_list_result_percent is_right">{item.options[1].percent}%</span>
+      <div
+        className={`vote_list_result_bar${isRightWinner && !shouldMaskResultBar ? " is_right_winner" : ""}`}
+        role="img"
+        aria-label="투표 결과"
+      >
+        {!shouldMaskResultBar ? <div className="vote_list_result_left" style={{ width: `${leftPercent}%` }} /> : null}
+        {!shouldMaskResultBar ? <div className="vote_list_result_right" style={{ width: `${rightPercent}%` }} /> : null}
+        {!shouldMaskResultBar ? <span className="vote_list_result_percent is_left">{leftPercent}%</span> : null}
+        {!shouldMaskResultBar ? <span className="vote_list_result_percent is_right">{rightPercent}%</span> : null}
       </div>
 
       <div className="vote_list_result_labels">
-        <div className="vote_list_result_label is_left">{item.options[0].title}</div>
-        <div className="vote_list_result_label is_right">{item.options[1].title}</div>
+        <div className={`vote_list_result_label is_left${isLeftWinner && !shouldMaskResultBar ? " is_winner" : ""}`}>
+          {item.options[0].title}
+        </div>
+        <div className={`vote_list_result_label is_right${isRightWinner && !shouldMaskResultBar ? " is_winner" : ""}`}>
+          {item.options[1].title}
+        </div>
       </div>
 
       <div className="vote_list_total">총 {item.totalVotes.toLocaleString()}명 참여</div>
