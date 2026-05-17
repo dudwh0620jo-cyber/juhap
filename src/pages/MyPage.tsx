@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react"
 import ProfileEditModal from "../components/ProfileEditModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
-import RelatedContentPostCard from "../components/RelatedContentPostCard"
+import CommunityReviewCard from "../components/CommunityReviewCard"
 import TierInfoPopover from "../components/TierInfoPopover"
 import {
   MAX_MULTI_SELECTIONS,
@@ -30,9 +30,8 @@ import {
   pointMissions,
   type ExchangeItem,
 } from "../data/myPageContent"
-import { bookmarkLists } from "../data/communityFilterConfig"
 import { drinkReviews } from "../data/productReviewsMock"
-import { extractPairingTitle, feedPosts, getPairingSummaryText, type FeedPost } from "../utils/communityPosts"
+import { deriveCommunityTagBundle, extractPairingTitle, feedPosts, type FeedPost } from "../utils/communityPosts"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
 import { currentUserMock, defaultFollowedUserIdsMock, getFollowingCount, usersMockById } from "../utils/usersMock"
@@ -62,7 +61,7 @@ import { readSavedAlcoholProductIds, removeSavedAlcoholProductId, SAVED_ALCOHOL_
 import { getDrinkReviewBookmarkPostId } from "../utils/drinkReviewBookmark"
 import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
 import { USER_POSTS_UPDATED_EVENT } from "../utils/communityFeed"
-import { voteItems } from "../data/voteData"
+import { FEATURED_VOTE_ID, voteItems } from "../data/voteData"
 
 type ExchangeTab = (typeof exchangeTabs)[number]
 
@@ -316,10 +315,44 @@ function PointCoinBurst({ seed, imageSrc, onCoinTap }: { seed: number; imageSrc:
 
 const MISSION_ICON_SRC_BY_TITLE: Record<string, string> = {
   "기록 저장": myMissionRecordSave,
+  "조합 저장하기": myMissionRecordSave,
   "투표 참여": myMissionVoteJoin,
   "후기 작성": myMissionReviewWrite,
   "광고 시청": myMissionAdWatch,
 }
+
+const ISSUED_COUPON_TITLES_STORAGE_KEY = "juhap_issued_coupon_titles"
+const POINT_BALANCE_STORAGE_KEY = "juhap_point_balance"
+
+const readPointBalance = () => {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") return myPagePointsSummary.balance
+  const raw = window.localStorage.getItem(POINT_BALANCE_STORAGE_KEY)
+  if (!raw) return myPagePointsSummary.balance
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) ? parsed : myPagePointsSummary.balance
+}
+
+const writePointBalance = (balance: number) => {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") return
+  window.localStorage.setItem(POINT_BALANCE_STORAGE_KEY, String(balance))
+}
+
+const readIssuedCouponTitles = () => {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") return []
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(ISSUED_COUPON_TITLES_STORAGE_KEY) || "[]")
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : []
+  } catch {
+    return []
+  }
+}
+
+const writeIssuedCouponTitles = (titles: string[]) => {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") return
+  window.localStorage.setItem(ISSUED_COUPON_TITLES_STORAGE_KEY, JSON.stringify(Array.from(new Set(titles))))
+}
+
+const isDefaultIssuedCoupon = (item: ExchangeItem) => Boolean(item.actionDisabled) && item.statusLabel?.includes("발급")
 
 const findAuthorIdByName = (name: string) => {
   const entry = Object.entries(usersMockById).find(([, user]) => user?.name === name)
@@ -335,6 +368,8 @@ const getVoteParticipationCount = () => {
   }))
   return items.filter((item) => item.myPickIndex !== null).length
 }
+
+const hasJoinedFeaturedHomeVote = () => getStoredPicks()[String(FEATURED_VOTE_ID)] !== undefined
 
 export default function MyPage() {
   const navigate = useNavigate()
@@ -369,9 +404,10 @@ export default function MyPage() {
   const [myAlertToast, setMyAlertToast] = useState<{ tone: "success" | "warning"; message: string } | null>(null)
   const myAlertToastTimerRef = useRef<number | null>(null)
   const [livePointHistoryItems, setLivePointHistoryItems] = useState(pointHistoryItems)
-  const [exchangeBalance, setExchangeBalance] = useState(myPagePointsSummary.balance)
+  const [exchangeBalance, setExchangeBalance] = useState(() => readPointBalance())
   const [liveDiscountItems, setLiveDiscountItems] = useState(discountItems)
   const [liveExperienceItems, setLiveExperienceItems] = useState(experienceItems)
+  const [issuedCouponTitles, setIssuedCouponTitles] = useState<string[]>(() => readIssuedCouponTitles())
   const [coinTapCount, setCoinTapCount] = useState(0)
   const myAvatarSrc = resolveMyUserAvatar()
   const [selectedByGroup, setSelectedByGroup] = useState<UserTastePreferences>(() =>
@@ -383,6 +419,7 @@ export default function MyPage() {
   const [savedAlcoholIds, setSavedAlcoholIds] = useState<string[]>(() => readSavedAlcoholProductIds())
   const [pendingRemoveSavedAlcohol, setPendingRemoveSavedAlcohol] = useState<{ id: string; name: string } | null>(null)
   const [voteParticipationCount, setVoteParticipationCount] = useState(() => getVoteParticipationCount())
+  const [featuredHomeVoteJoined, setFeaturedHomeVoteJoined] = useState(() => hasJoinedFeaturedHomeVote())
   const [recordCount, setRecordCount] = useState(() => readStoredMyWrittenPosts().length)
   const [warningByGroup, setWarningByGroup] = useState<Record<string, string>>({})
   const { value: followedUserIds } = useStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, defaultFollowedUserIdsMock)
@@ -396,10 +433,6 @@ export default function MyPage() {
   const { summaryTitle, summaryDescription, situationLine } = getTasteSummary(savedTastePreferences)
   const tasteSheetGroupsRef = useRef<HTMLDivElement | null>(null)
   const [tasteSheetFade, setTasteSheetFade] = useState({ top: false, bottom: false })
-  const bookmarkListLabelById = useMemo(
-    () => Object.fromEntries(bookmarkLists.map((item) => [item.id, item.label])) as Record<string, string>,
-    [],
-  )
   const isSavedListOpen = searchParams.get("view") === "saved"
   const isExchangeViewOpen = searchParams.get("view") === "exchange"
   const exchangeQueryTab = searchParams.get("tab")
@@ -418,8 +451,8 @@ export default function MyPage() {
   }, [isExchangeViewOpen, exchangeQueryTab])
 
   const handleMissionAction = (missionTitle: string) => {
-    if (missionTitle === "기록 저장") {
-      navigate("/my/record")
+    if (missionTitle === "조합 저장하기" || missionTitle === "기록 저장") {
+      navigate("/community?filter=review")
       return
     }
     if (missionTitle === "투표 참여") {
@@ -427,10 +460,9 @@ export default function MyPage() {
       return
     }
     if (missionTitle === "후기 작성") {
-      const params = new URLSearchParams()
-      params.set("group", "사케")
-      params.set("sub", "전체")
-      navigate(`/category/list?${params.toString()}`)
+      const returnParams = new URLSearchParams(searchParams)
+      returnParams.set("view", "exchange")
+      navigate("/community/write?mode=review", { state: { returnTo: `/my?${returnParams.toString()}` } })
     }
   }
 
@@ -457,7 +489,11 @@ export default function MyPage() {
     }
 
     if (Number.isFinite(requiredPoint) && requiredPoint > 0) {
-      setExchangeBalance((prev) => Math.max(0, prev - requiredPoint))
+      setExchangeBalance((prev) => {
+        const next = Math.max(0, prev - requiredPoint)
+        writePointBalance(next)
+        return next
+      })
       setLivePointHistoryItems((prev) => [
         {
           title: item.title,
@@ -474,6 +510,11 @@ export default function MyPage() {
     setLiveExperienceItems((prev) =>
       prev.map((entry) => (entry.title === item.title ? { ...entry, actionDisabled: true, statusLabel: "발급 완료" } : entry)),
     )
+    setIssuedCouponTitles((prev) => {
+      const next = Array.from(new Set([...prev, item.title]))
+      writeIssuedCouponTitles(next)
+      return next
+    })
 
     showMyAlertToast("success", "교환이 완료됐어요!")
   }
@@ -483,8 +524,11 @@ export default function MyPage() {
       const next = prev + 1
       if (next < 4) return next
       setExchangeBalance(myPagePointsSummary.balance)
+      writePointBalance(myPagePointsSummary.balance)
       setLiveDiscountItems(discountItems)
       setLiveExperienceItems(experienceItems)
+      setIssuedCouponTitles([])
+      writeIssuedCouponTitles([])
       setLivePointHistoryItems(pointHistoryItems)
       showMyAlertToast("success", "초기 상태로 되돌렸어요.")
       return 0
@@ -703,7 +747,7 @@ export default function MyPage() {
       })
       .filter((item): item is { post: FeedPost; listId: string } => Boolean(item))
       .sort((left, right) => new Date(right.post.createdAt).getTime() - new Date(left.post.createdAt).getTime())
-  }, [bookmarkListById, userPosts, bookmarkListLabelById])
+  }, [bookmarkListById, userPosts])
 
   const savedAlcoholItems = useMemo(() => {
     if (savedAlcoholIds.length === 0) return []
@@ -745,7 +789,10 @@ export default function MyPage() {
   }
 
   useEffect(() => {
-    const syncVoteParticipationCount = () => setVoteParticipationCount(getVoteParticipationCount())
+    const syncVoteParticipationCount = () => {
+      setVoteParticipationCount(getVoteParticipationCount())
+      setFeaturedHomeVoteJoined(hasJoinedFeaturedHomeVote())
+    }
     window.addEventListener(VOTE_PICKS_UPDATED_EVENT, syncVoteParticipationCount)
     window.addEventListener("storage", syncVoteParticipationCount)
     return () => {
@@ -984,8 +1031,23 @@ export default function MyPage() {
                     <img src={item.imageSrc} alt="" />
                   </div>
                   <div className="my_saved_product_body">
-                    <strong>{item.name}</strong>
-                    <p>{`${(item.price ?? 0).toLocaleString("ko-KR")}원`}</p>
+                    <div className="my_saved_product_main">
+                      <div className="my_saved_product_text">
+                        <strong>{item.name}</strong>
+                        <p>{`${(item.price ?? 0).toLocaleString("ko-KR")}원`}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="my_saved_product_bookmark"
+                        aria-label={`${item.name} 저장 해제`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setPendingRemoveSavedAlcohol({ id: item.id, name: item.name })
+                        }}
+                      >
+                        <img src={iconBookmarkActive} alt="" aria-hidden="true" />
+                      </button>
+                    </div>
                     <div className="my_saved_product_tags">
                       {(item.tags ?? []).slice(0, 3).map((tag) => (
                         <span key={`${item.id}-${tag}`}>{`#${tag}`}</span>
@@ -994,17 +1056,6 @@ export default function MyPage() {
                     </div>
                   </div>
                   <img className="my_saved_product_arrow" src={iconCaretRight} alt="" aria-hidden="true" />
-                  <button
-                    type="button"
-                    className="my_saved_product_bookmark"
-                    aria-label={`${item.name} 저장 해제`}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      setPendingRemoveSavedAlcohol({ id: item.id, name: item.name })
-                    }}
-                  >
-                    <img src={iconBookmarkActive} alt="" aria-hidden="true" />
-                  </button>
                 </div>
               ))}
             </div>
@@ -1020,16 +1071,21 @@ export default function MyPage() {
               const profile = usersMockById[authorId]?.profile ?? post.authorProfile ?? ""
               const pairingTitle = extractPairingTitle(post.title)
               const title = post.isQna ? post.title : post.pairingSummary?.trim() || pairingTitle
-              const description = post.locationLabel?.trim() || getPairingSummaryText(post)
-              const listLabel = bookmarkListLabelById[listId] ?? listId
+              const tagBundle = deriveCommunityTagBundle({
+                pairingTitle,
+                title: post.title,
+                drinkType: post.drinkType ?? post.categories?.[0] ?? "",
+                foods: post.foods,
+                features: post.features,
+              })
 
               return (
-                <RelatedContentPostCard
+                <CommunityReviewCard
                   key={`${post.id}-${listId}`}
                   postId={post.id}
-                  isQna={Boolean(post.isQna)}
+                  authorId={authorId}
                   authorName={authorName}
-                  profile={profile}
+                  authorMeta={profile}
                   badgeClassName={getTierClassName(getPairingTierByUserId(authorId), "feed_post_badge")}
                   badgeText={getPairingTierLabelByUserId(authorId)}
                   followButtonClassName="follow_toggle_button"
@@ -1052,12 +1108,13 @@ export default function MyPage() {
                     feedFilter: post.isQna ? "free" : "review",
                   }}
                   title={title}
-                  body={`${listLabel} · ${description}`}
-                  showImages={true}
+                  pairingTitle={pairingTitle}
+                  body={post.body}
+                  liquorTag={tagBundle.liquorTag}
+                  foodTag={tagBundle.foodTag}
                   photoIds={post.photoIds}
-                  imageSrcs={post.imageSrcs}
-                  answerCount={post.answerCount}
-                  answerPreview={post.answerPreview}
+                  hashtags={post.searchTags}
+                  locationLabel={post.locationLabel?.trim() ?? ""}
                   likeActive={false}
                   likeAriaLabel="좋아요"
                   likeText="0"
@@ -1236,7 +1293,8 @@ export default function MyPage() {
                 <img className="my_exchange_missions_mascot" src={myPointMascotImage} alt="" aria-hidden="true" />
                   {pointMissions.map((mission) => {
                     const iconSrc = MISSION_ICON_SRC_BY_TITLE[mission.title]
-                    const isDisabled = mission.title === "광고 시청"
+                    const isVoteCompleted = mission.title === "투표 참여" && featuredHomeVoteJoined
+                    const isDisabled = mission.title === "광고 시청" || isVoteCompleted
 
                     return (
                       <article className="my_exchange_mission" key={mission.title}>
@@ -1298,10 +1356,9 @@ export default function MyPage() {
   }
 
   if (isCouponVaultOpen) {
-    const issuedDiscountItems = liveDiscountItems.filter((item) => Boolean(item.actionDisabled) && item.statusLabel?.includes("발급"))
-    const issuedExperienceItems = liveExperienceItems.filter(
-      (item) => Boolean(item.actionDisabled) && item.statusLabel?.includes("발급"),
-    )
+    const issuedCouponTitleSet = new Set(issuedCouponTitles)
+    const issuedDiscountItems = liveDiscountItems.filter((item) => isDefaultIssuedCoupon(item) || issuedCouponTitleSet.has(item.title))
+    const issuedExperienceItems = liveExperienceItems.filter((item) => isDefaultIssuedCoupon(item) || issuedCouponTitleSet.has(item.title))
 
     return (
       <section className="my_exchange_page" aria-label="쿠폰 보기">
@@ -1349,6 +1406,9 @@ export default function MyPage() {
       </section>
     )
   }
+
+  const pointRewardTarget = myPagePointsSummary.balance + myPagePointsSummary.remainingToNextReward
+  const remainingToNextReward = Math.max(0, pointRewardTarget - exchangeBalance)
 
   return (
     <section className="my_page" aria-label="마이페이지">
@@ -1541,7 +1601,7 @@ export default function MyPage() {
 
               <p className="my_ai_note">
                 <span>AI 분석</span>
-                "빠르게 결정하는 스타일이에요. 가성비 중시로 새로운 경험도 자주 시도해요."
+                "빠르게 결정하는 스타일이에요. 가성비를 중시하며 새로운 경험도 자주 시도해요."
               </p>
               </div>
             </motion.section>
@@ -1601,7 +1661,7 @@ export default function MyPage() {
             <div className="my_point_card_head">
               <div className="my_point_card_meta">
                 <span>보유 포인트</span>
-                <strong>{myPagePointsSummary.balance.toLocaleString("ko-KR")} P</strong>
+                <strong>{exchangeBalance.toLocaleString("ko-KR")} P</strong>
               </div>
               <div className="my_point_coin" aria-hidden="true">
                 <img src={myPointCoinImage} alt="" aria-hidden="true" />
@@ -1609,12 +1669,12 @@ export default function MyPage() {
             </div>
             <progress
               className="my_point_progress"
-              value={myPagePointsSummary.balance}
-              max={myPagePointsSummary.balance + myPagePointsSummary.remainingToNextReward}
+              value={exchangeBalance}
+              max={pointRewardTarget}
               aria-hidden="true"
             />
             <p>
-              {myPagePointsSummary.nextRewardLabel}까지 <strong>{myPagePointsSummary.remainingToNextReward}P</strong>
+              {myPagePointsSummary.nextRewardLabel}까지 <strong>{remainingToNextReward}P</strong>
             </p>
           </div>
         </section>

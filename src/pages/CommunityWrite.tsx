@@ -384,7 +384,9 @@ export default function CommunityWrite() {
   const pairingLocationInputRef = useRef<HTMLInputElement | null>(null)
   const pairingDrinkNameSnapshotRef = useRef("")
   const skipNextFoodInputFocusRef = useRef(false)
-  const editPost = ((location.state as { editPost?: FeedPost } | null)?.editPost ?? null) as FeedPost | null
+  const navigationState = (location.state as { editPost?: FeedPost; returnTo?: string } | null) ?? null
+  const editPost = (navigationState?.editPost ?? null) as FeedPost | null
+  const returnToPath = typeof navigationState?.returnTo === "string" && navigationState.returnTo.trim() ? navigationState.returnTo : null
   const isEditMode = Boolean(editPost)
 
   const [reviewTab, setReviewTab] = useState<ReviewTab>(writeKind === "drink-review" ? "drink" : "pairing")
@@ -452,11 +454,12 @@ export default function CommunityWrite() {
   const PAIRING_MOCK_REVIEW_IMAGE = reviewDassai2301Image
 
   const exitPath =
-    writeKind === "question"
+    returnToPath ??
+    (writeKind === "question"
       ? "/community?filter=free"
       : writeKind === "drink-review" && productId
         ? `/product/${productId}?tab=review`
-        : "/community?filter=review"
+        : "/community?filter=review")
 
   const canSubmit = useMemo(() => {
     if (mode === "free") return Boolean(title.trim()) && Boolean(body.trim())

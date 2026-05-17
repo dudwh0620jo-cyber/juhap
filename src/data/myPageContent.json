@@ -57,10 +57,10 @@
     }
   ],
   "pointMissions": [
-    { "title": "기록 저장", "reward": "+50P", "action": "기록 둘러보기" },
-    { "title": "투표 참여", "reward": "+20P", "action": "투표 참여하기" },
     { "title": "후기 작성", "reward": "+50P", "action": "후기 작성하기" },
-    { "title": "광고 시청", "reward": "+50P", "action": "광고 보기" }
+    { "title": "투표 참여", "reward": "+20P", "action": "투표 참여하기" },
+    { "title": "조합 저장하기", "reward": "+5P", "action": "조합 보러가기" },
+    { "title": "광고 시청", "reward": "+10P", "action": "광고 보기" }
   ],
   "pointHistoryItems": [
     { "title": "기록 저장", "dateLabel": "오늘", "pointLabel": "+50 P", "tone": "positive" },

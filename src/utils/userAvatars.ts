@@ -1,9 +1,10 @@
 import myProfileImage from "../assets/my_profile_image.png"
 import defaultUserAvatar from "../assets/user_avatar_defult.png"
-import { usersMockById } from "./usersMock"
+import { currentUserMock, usersMockById } from "./usersMock"
 
 const MY_AVATAR_STORAGE_KEY = "juhap_my_avatar_number"
 const MY_PROFILE_PHOTO_STORAGE_KEY = "juhap_my_profile_photo_data_url"
+const LEGACY_MY_USER_ID = 1014
 
 const userAvatarModules = import.meta.glob("../assets/user_avatar_*.png", {
   eager: true,
@@ -67,6 +68,7 @@ export function resolveMyUserAvatar(): string {
 
 export function resolveUserAvatar(userId: number): string | undefined {
   if (!Number.isFinite(userId)) return defaultUserAvatar
+  if (userId === currentUserMock.id || userId === LEGACY_MY_USER_ID) return resolveMyUserAvatar()
 
   const avatarNumber = usersMockById[userId]?.avatarNumber
   if (typeof avatarNumber === "number") {

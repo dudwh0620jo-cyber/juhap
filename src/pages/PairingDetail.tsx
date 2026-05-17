@@ -33,6 +33,7 @@ import {
 import { useStoredBooleanRecordFromIds, useStoredNullableStringRecord } from "../utils/storage"
 import { currentUserMock, usersMockById } from "../utils/usersMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
+import { isMyWrittenPost } from "../utils/myWrittenPosts"
 import { communityPageData } from "../data/communityPageData"
 import { getPairingDetailMock, resolvePairingDetailProduct } from "../utils/pairingDetailMock"
 import { resolveQuestionImage } from "../utils/questionImages"
@@ -89,7 +90,7 @@ export default function PairingDetail() {
 
   const authorId = typeof navState.authorId === "number" ? navState.authorId : typeof post?.authorId === "number" ? post.authorId : null
   const authorMock = authorId !== null ? usersMockById[authorId] : undefined
-  const isMyPost = authorId === currentUserMock.id
+  const isMyPost = authorId === currentUserMock.id || (post ? isMyWrittenPost(post) : false)
   const authorName = isMyPost ? myNickname : authorMock?.name || post?.authorName?.trim() || navState.authorName?.trim() || "익명"
   const profile = authorMock?.profile || navState.profile?.trim() || "20대 / 미설정"
   const locationLabel = navState.locationLabel?.trim() || post?.locationLabel?.trim() || ""

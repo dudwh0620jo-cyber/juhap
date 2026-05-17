@@ -18,6 +18,7 @@ import {
   sojuDummyRankingItems,
   spiritsDummyPodiumItems,
   spiritsDummyRankingItems,
+  traditionalDummyRankingItems,
   type RankingCategory,
   type RankingPodium,
   wineDummyRankingItems,
@@ -103,6 +104,15 @@ const WEEKLY_SAKE_VOTES_BY_ID: Record<number, number> = {
   99001: 9981,
   99002: 9874,
   1102: 9728,
+}
+
+const WEEKLY_TRADITIONAL_VOTES_BY_ID: Record<number, number> = {
+  1006: 10003,
+  91012: 9991,
+}
+
+const WEEKLY_TRADITIONAL_DELTA_BY_ID: Record<number, string> = {
+  91012: "+5",
 }
 
 export default function CommunityRanking() {
@@ -365,6 +375,10 @@ export default function CommunityRanking() {
         const weeklySakeVotes = WEEKLY_SAKE_VOTES_BY_ID[postId]
         if (typeof weeklySakeVotes === "number") return weeklySakeVotes
       }
+      if (rankingPeriod === "weekly" && rankingCategory === "traditional") {
+        const weeklyTraditionalVotes = WEEKLY_TRADITIONAL_VOTES_BY_ID[postId]
+        if (typeof weeklyTraditionalVotes === "number") return weeklyTraditionalVotes
+      }
       const votes = allRankingStatsById.get(postId)?.votes
       return typeof votes === "number" && Number.isFinite(votes) ? Math.max(0, Math.round(votes)) : getRankingLikeCount(postId)
     },
@@ -372,8 +386,14 @@ export default function CommunityRanking() {
   )
 
   const getCategoryRankingDelta = useCallback(
-    (postId: number) => allRankingStatsById.get(postId)?.delta ?? getRankingDelta(postId),
-    [allRankingStatsById],
+    (postId: number) => {
+      if (rankingPeriod === "weekly" && rankingCategory === "traditional") {
+        const weeklyTraditionalDelta = WEEKLY_TRADITIONAL_DELTA_BY_ID[postId]
+        if (weeklyTraditionalDelta) return weeklyTraditionalDelta
+      }
+      return allRankingStatsById.get(postId)?.delta ?? getRankingDelta(postId)
+    },
+    [allRankingStatsById, rankingCategory, rankingPeriod],
   )
 
   const categoryRankedPosts = useMemo(() => {
@@ -422,6 +442,18 @@ export default function CommunityRanking() {
     if (rankingPeriod === "weekly" && rankingCategory === "whisky") return whiskyDummyRankingItems
     if (rankingPeriod === "weekly" && rankingCategory === "spirits") return spiritsDummyRankingItems
     if (rankingPeriod === "weekly" && rankingCategory === "etc") return etcDummyRankingItems
+    if (rankingPeriod === "weekly" && rankingCategory === "traditional") {
+      const linkedRows = categoryRankedPosts.slice(3, 5).map((post, index) => ({
+        id: post.id,
+        rank: index + 4,
+        pair: getRankingPairLabel(post.id),
+        category: rankingCategory,
+        score: 0,
+        votes: getCategoryRankingVotes(post.id),
+        delta: getCategoryRankingDelta(post.id),
+      }))
+      return [...linkedRows, ...traditionalDummyRankingItems]
+    }
     if (rankingPeriod === "weekly" && rankingCategory === "sake") {
       const linkedRows = categoryRankedPosts.slice(3, 4).map((post, index) => ({
         id: post.id,

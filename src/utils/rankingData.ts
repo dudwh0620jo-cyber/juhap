@@ -224,6 +224,14 @@ export const sakeDummyRankingItems: Array<RankingRow & { category: "sake" }> = [
   { id: 97010, rank: 10, pair: "키쿠마사무네 + 해물나베", category: "sake", score: 0, votes: 9011, delta: "+1", disabled: true },
 ]
 
+export const traditionalDummyRankingItems: Array<RankingRow & { category: "traditional" }> = [
+  { id: 99006, rank: 6, pair: "해창막걸리 + 해물파전", category: "traditional", score: 0, votes: 9987, delta: "+2", disabled: true },
+  { id: 99007, rank: 7, pair: "설화 + 보쌈", category: "traditional", score: 0, votes: 9734, delta: "-1", disabled: true },
+  { id: 99008, rank: 8, pair: "복순도가 + 치즈 플래터", category: "traditional", score: 0, votes: 9512, delta: "—", disabled: true },
+  { id: 99009, rank: 9, pair: "서울의밤 + 육회", category: "traditional", score: 0, votes: 9286, delta: "+1", disabled: true },
+  { id: 99010, rank: 10, pair: "문배술23 + 훈제오리", category: "traditional", score: 0, votes: 9043, delta: "-2", disabled: true },
+]
+
 export const etcDummyPodiumItems: Array<RankingPodium & { category: "etc" }> = [
   {
     id: 98001,
