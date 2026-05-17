@@ -157,6 +157,7 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
     }
     const cardsByKey: Record<string, readonly MomentPickCard[]> = {
       solo: homeMomentPickCardsBySituation.solo,
+      friends: homeMomentPickCardsBySituation.friends,
       family: homeMomentPickCardsBySituation.family,
       date: homeMomentPickCardsBySituation.date,
       group: homeMomentPickCardsBySituation.group,

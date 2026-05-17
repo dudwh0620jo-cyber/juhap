@@ -140,7 +140,7 @@ const weeklyDrinkItems: WeeklyDrinkItem[] = [
     rating: 5.0,
     sweetness: "낮음",
     abv: "15~16",
-    priceLabel: "₩180,000원",
+    priceLabel: "₩98,900원",
     tags: ["은은한 단맛", "해산물", "깔끔한 피니시"],
     theme: "sake",
     thumbId: "drink_dassai_23_detail",
