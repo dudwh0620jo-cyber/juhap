@@ -3448,15 +3448,19 @@
 }
 
 .write_drink_picker_tag_row {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
 }
 
 .write_drink_picker_tag_meta_row {
-  /* width: 100%; */
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+  min-width: 0;
 }
 
 .write_drink_picker_main {

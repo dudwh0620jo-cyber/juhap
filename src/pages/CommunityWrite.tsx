@@ -2218,28 +2218,28 @@ export default function CommunityWrite() {
                         <div className="write_drink_picker_selected_tags" aria-label="선택된 주류 태그">
                           <div className="write_drink_picker_tag_meta_row" aria-label="등록할 수 있는 태그 안내">
                             <span className="write_drink_picker_tag_label">선택한 태그:</span>
-                          </div>
-                          <div className="write_chip_row write_drink_picker_tag_row" aria-label="선택한 태그 목록">
-                            {Array.from(pendingPairingDrinkTagSelection)
-                              .filter((tag) => tag !== pairingDrinkTypeLabel)
-                              .map((tag) => (
-                              <button
-                                key={tag}
-                                type="button"
-                                className="write_chip is_active write_chip_with_remove"
-                                aria-label={`${tag} 삭제`}
-                                onClick={() =>
-                                  setPendingPairingDrinkTagSelection((prev) => {
-                                    const next = new Set(prev)
-                                    next.delete(tag)
-                                    return next
-                                  })
-                                }
-                              >
-                                <span className="write_chip_text">{tag}</span>
-                                <img className="write_chip_remove_icon" src={iconX} alt="" aria-hidden="true" />
-                              </button>
-                            ))}
+                            <div className="write_chip_row write_drink_picker_tag_row" aria-label="선택한 태그 목록">
+                              {Array.from(pendingPairingDrinkTagSelection)
+                                .filter((tag) => tag !== pairingDrinkTypeLabel)
+                                .map((tag) => (
+                                  <button
+                                    key={tag}
+                                    type="button"
+                                    className="write_chip is_active write_chip_with_remove"
+                                    aria-label={`${tag} 삭제`}
+                                    onClick={() =>
+                                      setPendingPairingDrinkTagSelection((prev) => {
+                                        const next = new Set(prev)
+                                        next.delete(tag)
+                                        return next
+                                      })
+                                    }
+                                  >
+                                    <span className="write_chip_text">{tag}</span>
+                                    <img className="write_chip_remove_icon" src={iconX} alt="" aria-hidden="true" />
+                                  </button>
+                                ))}
+                            </div>
                           </div>
                         </div>
                       </div>
