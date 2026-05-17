@@ -81,8 +81,8 @@ const AI_TYPING_BUBBLE_MS = 260
 const RECOMMENDATION_MATCHING_MS = 3000
 const STEP_PANEL_APPEAR_MS = 80
 const FEATURE_PREPARING_DELAY_MS = 700
-const INITIAL_RECOMMENDATION_COUNT = 2
-const MORE_RECOMMENDATION_COUNT = 3
+const RECOMMENDATION_POOL_COUNT = 4
+const RECOMMENDATION_PAGE_SIZE = 2
 const MICROPHONE_PERMISSION_MODAL = {
   title: "\uB9C8\uC774\uD06C \uAD8C\uD55C\uC774 \uD544\uC694\uD574\uC694",
   message: "\uC74C\uC131 \uC785\uB825\uC744 \uC0AC\uC6A9\uD558\uB824\uBA74\n\uB9C8\uC774\uD06C \uAD8C\uD55C\uC744 \uD5C8\uC6A9\uD574 \uC8FC\uC138\uC694.",
@@ -739,44 +739,29 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     if (state.step !== "recommend") return []
 
     const pool = getTopRecommendations(state.session, 20)
-    if (state.session.recommendationProductIds?.length) {
-      const pinned = state.session.recommendationProductIds
-        .map((id) => pool.find((item) => item.id === id))
-        .filter((item): item is WineCandidate => Boolean(item))
-      const cursor = state.session.recommendationCursor ?? 0
-      if (cursor === 0) return pinned
-      const pinnedIds = new Set(pinned.map((item) => item.id))
-      const extraPool = pool.filter((item) => !pinnedIds.has(item.id))
-      if (!extraPool.length) return pinned
-      const extraCursor = ((cursor - 1) * MORE_RECOMMENDATION_COUNT) % extraPool.length
-      return [...extraPool.slice(extraCursor), ...extraPool.slice(0, extraCursor)].slice(0, MORE_RECOMMENDATION_COUNT)
-    }
-
-    const primaryRecommendations = primaryRecommendationIds.map((id) => pool.find((item) => item.id === id)).filter(
-      (item): item is WineCandidate => Boolean(item),
-    )
+    const primaryRecommendations = primaryRecommendationIds
+      .map((id) => pool.find((item) => item.id === id))
+      .filter((item): item is WineCandidate => Boolean(item))
     const primaryIds = new Set(primaryRecommendations.map((item) => item.id))
-    const initialRecommendations = [
-      ...primaryRecommendations,
-      ...pool.filter((item) => !primaryIds.has(item.id)),
-    ].slice(0, INITIAL_RECOMMENDATION_COUNT)
+    const recommendationPool = [...primaryRecommendations, ...pool.filter((item) => !primaryIds.has(item.id))].slice(
+      0,
+      RECOMMENDATION_POOL_COUNT,
+    )
 
-    const cursor = state.session.recommendationCursor ?? 0
-    if (cursor === 0) return initialRecommendations
-
-    const otherPool = pool.filter((item) => !primaryRecommendationIds.includes(item.id))
-    if (!otherPool.length) return initialRecommendations
-
-    const otherCursor = ((cursor - 1) * MORE_RECOMMENDATION_COUNT) % otherPool.length
-    const slice = [...otherPool.slice(otherCursor), ...otherPool.slice(0, otherCursor)].slice(0, MORE_RECOMMENDATION_COUNT)
-
-    const lastIds = state.session.lastRecommendationIds ?? []
-    if (lastIds.length && otherPool.length > MORE_RECOMMENDATION_COUNT && slice.some((item) => lastIds.includes(item.id))) {
-      const nextCursor = (otherCursor + MORE_RECOMMENDATION_COUNT) % otherPool.length
-      return [...otherPool.slice(nextCursor), ...otherPool.slice(0, nextCursor)].slice(0, MORE_RECOMMENDATION_COUNT)
+    if (recommendationPool.length <= RECOMMENDATION_PAGE_SIZE) {
+      return recommendationPool
     }
 
-    return slice
+    const pageCount = Math.ceil(recommendationPool.length / RECOMMENDATION_PAGE_SIZE)
+    const pageIndex = (state.session.recommendationCursor ?? 0) % pageCount
+    const start = pageIndex * RECOMMENDATION_PAGE_SIZE
+    const pageItems = recommendationPool.slice(start, start + RECOMMENDATION_PAGE_SIZE)
+
+    if (pageItems.length === RECOMMENDATION_PAGE_SIZE) {
+      return pageItems
+    }
+
+    return [...pageItems, ...recommendationPool].slice(0, RECOMMENDATION_PAGE_SIZE)
   })()
 
   const selectedSessionLabels = getSelectedSessionLabels(state.session)

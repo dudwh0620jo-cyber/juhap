@@ -69,13 +69,15 @@ export default function ChatRecommendPanel({
 
           return (
             <article key={candidate.id} className={isSelected ? "chat_recommend_card is_selected" : "chat_recommend_card"}>
-              <div className="chat_recommend_badge" aria-label="주아의 추천">
-                <img src={iconSparkle} alt="" aria-hidden="true" />
-                <span>주아의 추천</span>
-              </div>
               <div className="chat_recommend_card_inner">
-                <div className="chat_recommend_card_thumb" aria-hidden="true">
-                  {imageSrc ? <img src={imageSrc} alt="" /> : <span>{getFallbackLabel(candidate.id)}</span>}
+                <div className="chat_recommend_card_left">
+                  <div className="chat_recommend_badge" aria-label="주아의 추천">
+                    <img src={iconSparkle} alt="" aria-hidden="true" />
+                    <span>주아의 추천</span>
+                  </div>
+                  <div className="chat_recommend_card_thumb" aria-hidden="true">
+                    {imageSrc ? <img src={imageSrc} alt="" /> : <span>{getFallbackLabel(candidate.id)}</span>}
+                  </div>
                 </div>
                 <div className="chat_recommend_card_body">
                   <p className="chat_recommend_quote">{candidate.notes[0]}</p>
@@ -110,7 +112,11 @@ export default function ChatRecommendPanel({
         <article className="chat_recommend_card chat_recommend_more_card" aria-label="추가 추천">
           <div className="chat_recommend_more_inner">
             <h4>다른 추천도 준비했어요</h4>
-            <p>분위기에 취향에 맞는 다양한 술을 더 만나보세요!</p>
+            <p>
+              당신의 취향에 맞는
+              <br />
+              다양한 술을 더 만나보세요!
+            </p>
             <img src={imgMoreMascot} alt="" aria-hidden="true" />
             <button type="button" className="chat_action_button chat_action_button_secondary chat_action_button_more" onClick={onMore}>
               <span>{MORE_LABEL}</span>
