@@ -447,7 +447,9 @@
 .ai_scan_result_page {
   height: calc(100vh - 88px);
   background: var(--color-bg-base);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .ai_scan_result_page .ai_scan_topbar {
@@ -622,6 +624,7 @@
 .ai_scan_pairing_section {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .ai_scan_pairing_section h2 {
@@ -636,11 +639,20 @@
   margin: 0 -20px -22px;
   padding: 10px 20px 22px;
   overflow: visible;
+  touch-action: pan-x;
+  min-width: 0;
 }
 
 .ai_scan_pairing_scroller {
   display: flex;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   padding: 0 0 2px;
 }
@@ -709,14 +721,13 @@
 .ai_scan_pairing_tags span {
   border-radius: 6px;
   padding: 4px 12px;
-  font-family: var(--font-title);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.3;
 }
 
-.ai_scan_pairing_tags span::after {
-  content: "";
+.ai_scan_pairing_tags span::before {
+  content: "#";
   width: 12px;
   height: 12px;
   display: inline-block;
@@ -727,24 +738,14 @@
 }
 
 .ai_scan_pairing_tags .is_drink {
-  border: 1px solid #a1b9cb;
-  background: rgba(233, 240, 245, 0.51);
   color: #6a8ba4;
 }
 
-.ai_scan_pairing_tags .is_drink::after {
-  background-image: url("../assets/svg/arrowright_b.svg");
-}
 
 .ai_scan_pairing_tags .is_food {
-  border: 1px solid #efba85;
-  background: #fff6ed;
   color: #cc9865;
 }
 
-.ai_scan_pairing_tags .is_food::after {
-  background-image: url("../assets/svg/arrowright_p.svg");
-}
 
 .ai_scan_bad_pairings {
   display: flex;

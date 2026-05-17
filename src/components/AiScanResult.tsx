@@ -6,7 +6,6 @@ import AiScanTopBar from "./AiScanTopBar"
 type AiScanResultProps = {
   status: Extract<AiScanStatus, "success" | "failure">
   onBack: () => void
-  onClose: () => void
   onUpload: () => void
   onRetry: () => void
   onOpenDetail: () => void
@@ -30,12 +29,12 @@ const badPairingIconByType = {
   spicy: aiScanAssets.iconSpicy,
 } as const
 
-function SuccessResult({ onBack, onClose, onOpenDetail, onSave }: Pick<AiScanResultProps, "onBack" | "onClose" | "onOpenDetail" | "onSave">) {
+function SuccessResult({ onBack, onOpenDetail, onSave }: Pick<AiScanResultProps, "onBack" | "onOpenDetail" | "onSave">) {
   const { product } = aiScanResult
 
   return (
     <div className="ai_scan_result_page">
-      <AiScanTopBar tone="dark" onBack={onBack} onClose={onClose} />
+      <AiScanTopBar tone="dark" onBack={onBack} />
 
       <section className="ai_scan_result_intro" aria-label="스캔 결과 안내">
         <img className="ai_scan_result_mascot" src={aiScanAssets.scanMascotGotit} alt="" aria-hidden="true" />
@@ -119,10 +118,10 @@ function SuccessResult({ onBack, onClose, onOpenDetail, onSave }: Pick<AiScanRes
   )
 }
 
-function FailureResult({ onBack, onClose, onUpload, onRetry }: Pick<AiScanResultProps, "onBack" | "onClose" | "onUpload" | "onRetry">) {
+function FailureResult({ onBack, onUpload, onRetry }: Pick<AiScanResultProps, "onBack" | "onUpload" | "onRetry">) {
   return (
     <div className="ai_scan_result_page is_failure">
-      <AiScanTopBar tone="dark" onBack={onBack} onClose={onClose} />
+      <AiScanTopBar tone="dark" onBack={onBack} />
 
       <section className="ai_scan_failure_body" aria-label="스캔 실패 결과">
         <div className="ai_scan_speech_bubble is_failure">
@@ -150,15 +149,14 @@ function FailureResult({ onBack, onClose, onUpload, onRetry }: Pick<AiScanResult
 export default function AiScanResult({
   status,
   onBack,
-  onClose,
   onUpload,
   onRetry,
   onOpenDetail,
   onSave,
 }: AiScanResultProps) {
   if (status === "failure") {
-    return <FailureResult onBack={onBack} onClose={onClose} onUpload={onUpload} onRetry={onRetry} />
+    return <FailureResult onBack={onBack} onUpload={onUpload} onRetry={onRetry} />
   }
 
-  return <SuccessResult onBack={onBack} onClose={onClose} onOpenDetail={onOpenDetail} onSave={onSave} />
+  return <SuccessResult onBack={onBack} onOpenDetail={onOpenDetail} onSave={onSave} />
 }
