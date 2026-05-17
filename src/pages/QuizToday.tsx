@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router"
 
 import caretLeft from "../assets/svg/caretleft.svg"
-import caretdown from "../assets/svg/caretdown.png"
+import caretdown from "../assets/svg/caretdown.svg"
 import houseLine from "../assets/svg/house.svg"
 import tipsIcon from "../assets/svg/tips_p.svg"
 import quizHostMascot from "../assets/onboarding-mascot_06.png"

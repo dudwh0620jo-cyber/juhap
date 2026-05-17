@@ -22,8 +22,15 @@ export default function PurchaseConfirmModal({
   ariaLabel = "이동 확인",
 }: Props) {
   return (
-    <div className="purchase_confirm_overlay" role="dialog" aria-modal="true" aria-label={ariaLabel}>
-      <div className="purchase_confirm_modal">
+    <div
+      className="purchase_confirm_overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={ariaLabel}
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="purchase_confirm_modal" onMouseDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
         {title ? <p className="purchase_confirm_title">{title}</p> : null}
         <p className="purchase_confirm_text">{message}</p>
         {children ? <div className="purchase_confirm_content">{children}</div> : null}

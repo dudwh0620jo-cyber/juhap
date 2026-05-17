@@ -36,13 +36,14 @@ import { extractPairingTitle, feedPosts, getPairingSummaryText, type FeedPost } 
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
 import { currentUserMock, defaultFollowedUserIdsMock, getFollowingCount, usersMockById } from "../utils/usersMock"
-import { isMyWrittenPost } from "../utils/myWrittenPosts"
+import { readStoredMyWrittenPosts } from "../utils/myWrittenPosts"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
 import { resolveMyUserAvatar } from "../utils/userAvatars"
+import { getStoredPicks, VOTE_PICKS_UPDATED_EVENT } from "../utils/votePicks"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import iconDotsThreeVertical from "../assets/svg/dotsthreevertical.svg"
-import iconCaretDown from "../assets/svg/caretdown.png"
+import iconCaretDown from "../assets/svg/caretdown.svg"
 import iconGearSix from "../assets/svg/gearsix.svg"
 import iconX from "../assets/svg/x.svg"
 import iconWarning from "../assets/svg/worning_r.svg"
@@ -57,8 +58,11 @@ import "../styles/community.css"
 import "../styles/my.css"
 import { pointHistoryItems } from "../data/myPageContent"
 import { ALL_SUBCATEGORY, getCategoryListItems } from "../hooks/useCategoryListPageData"
-import { readSavedAlcoholProductIds, removeSavedAlcoholProductId } from "../utils/savedAlcohol"
+import { readSavedAlcoholProductIds, removeSavedAlcoholProductId, SAVED_ALCOHOL_UPDATED_EVENT } from "../utils/savedAlcohol"
+import { getDrinkReviewBookmarkPostId } from "../utils/drinkReviewBookmark"
 import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
+import { USER_POSTS_UPDATED_EVENT } from "../utils/communityFeed"
+import { voteItems } from "../data/voteData"
 
 type ExchangeTab = (typeof exchangeTabs)[number]
 
@@ -317,15 +321,19 @@ const MISSION_ICON_SRC_BY_TITLE: Record<string, string> = {
   "광고 시청": myMissionAdWatch,
 }
 
-const getDrinkReviewBookmarkPostId = (reviewId: string) => {
-  if (!/^\d+$/.test(reviewId)) return NaN
-  return Number(`9${reviewId}`)
-}
-
 const findAuthorIdByName = (name: string) => {
   const entry = Object.entries(usersMockById).find(([, user]) => user?.name === name)
   if (!entry) return currentUserMock.id
   return Number(entry[0])
+}
+
+const getVoteParticipationCount = () => {
+  const picks = getStoredPicks()
+  const items = voteItems.map((item) => ({
+    ...item,
+    myPickIndex: picks[String(item.id)] ?? item.myPickIndex,
+  }))
+  return items.filter((item) => item.myPickIndex !== null).length
 }
 
 export default function MyPage() {
@@ -374,12 +382,13 @@ export default function MyPage() {
   )
   const [savedAlcoholIds, setSavedAlcoholIds] = useState<string[]>(() => readSavedAlcoholProductIds())
   const [pendingRemoveSavedAlcohol, setPendingRemoveSavedAlcohol] = useState<{ id: string; name: string } | null>(null)
+  const [voteParticipationCount, setVoteParticipationCount] = useState(() => getVoteParticipationCount())
+  const [recordCount, setRecordCount] = useState(() => readStoredMyWrittenPosts().length)
   const [warningByGroup, setWarningByGroup] = useState<Record<string, string>>({})
   const { value: followedUserIds } = useStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, defaultFollowedUserIdsMock)
   const followingCount = useMemo(() => getFollowingCount(followedUserIds), [followedUserIds])
   const { value: bookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
   const [userPosts, setUserPosts] = useState<FeedPost[]>([])
-  const bookmarkSavedCount = Object.values(bookmarkListById).filter(Boolean).length
   const savedActivityLabel = activityStats[activityStats.length - 1]?.label
   const nickname = profile.personalInfo.nickname.trim() || "이름"
   const myTierLabel = getPairingTierLabelByUserId(currentUserMock.id)
@@ -711,7 +720,7 @@ export default function MyPage() {
     const byId = new Map(allItems.map((item) => [item.id, item]))
     return savedAlcoholIds.map((id) => byId.get(id)).filter((item): item is NonNullable<typeof item> => Boolean(item))
   }, [savedAlcoholIds])
-  const savedActivityCount = bookmarkSavedCount + savedAlcoholItems.length
+  const savedActivityCount = bookmarkedPosts.length + savedAlcoholItems.length
 
   const handleRemoveSavedAlcohol = (productId: string) => {
     const isRemoved = removeSavedAlcoholProductId(productId)
@@ -719,24 +728,41 @@ export default function MyPage() {
     setSavedAlcoholIds((prev) => prev.filter((id) => id !== productId))
   }
 
+  useEffect(() => {
+    const syncSavedAlcohol = () => setSavedAlcoholIds(readSavedAlcoholProductIds())
+    window.addEventListener(SAVED_ALCOHOL_UPDATED_EVENT, syncSavedAlcohol)
+    window.addEventListener("storage", syncSavedAlcohol)
+    return () => {
+      window.removeEventListener(SAVED_ALCOHOL_UPDATED_EVENT, syncSavedAlcohol)
+      window.removeEventListener("storage", syncSavedAlcohol)
+    }
+  }, [])
+
   const confirmRemoveSavedAlcohol = () => {
     if (!pendingRemoveSavedAlcohol) return
     handleRemoveSavedAlcohol(pendingRemoveSavedAlcohol.id)
     setPendingRemoveSavedAlcohol(null)
   }
 
-  const myWrittenPostCount = useMemo(() => {
-    const combinedPosts = [...userPosts, ...feedPosts]
-    const postById = new Map<number, FeedPost>()
+  useEffect(() => {
+    const syncVoteParticipationCount = () => setVoteParticipationCount(getVoteParticipationCount())
+    window.addEventListener(VOTE_PICKS_UPDATED_EVENT, syncVoteParticipationCount)
+    window.addEventListener("storage", syncVoteParticipationCount)
+    return () => {
+      window.removeEventListener(VOTE_PICKS_UPDATED_EVENT, syncVoteParticipationCount)
+      window.removeEventListener("storage", syncVoteParticipationCount)
+    }
+  }, [])
 
-    combinedPosts.forEach((post) => {
-      if (typeof post.id === "number" && Number.isFinite(post.id) && !postById.has(post.id)) {
-        postById.set(post.id, post)
-      }
-    })
-
-    return Array.from(postById.values()).filter(isMyWrittenPost).length
-  }, [userPosts])
+  useEffect(() => {
+    const syncRecordCount = () => setRecordCount(readStoredMyWrittenPosts().length)
+    window.addEventListener(USER_POSTS_UPDATED_EVENT, syncRecordCount)
+    window.addEventListener("storage", syncRecordCount)
+    return () => {
+      window.removeEventListener(USER_POSTS_UPDATED_EVENT, syncRecordCount)
+      window.removeEventListener("storage", syncRecordCount)
+    }
+  }, [])
 
   const tasteValueByKey = useMemo(() => {
     return Object.fromEntries(
@@ -1382,7 +1408,7 @@ export default function MyPage() {
                 const isSavedStat = stat.label === savedActivityLabel
                 const isRecordStat = stat.label === "기록"
                 const isVoteStat = stat.label === "투표 참여"
-                const value = isSavedStat ? savedActivityCount : isRecordStat ? myWrittenPostCount : stat.value
+                const value = isSavedStat ? savedActivityCount : isRecordStat ? recordCount : isVoteStat ? voteParticipationCount : stat.value
                 const Element: "button" | "div" = isSavedStat || isRecordStat || isVoteStat ? "button" : "div"
                 const extraProps = isSavedStat
                   ? ({ type: "button", onClick: openSavedList, "aria-label": "저장한 리스트 보기" } as const)

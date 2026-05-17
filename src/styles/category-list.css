@@ -99,6 +99,7 @@
   font-weight: 500;
   line-height: 100%;
   cursor: pointer;
+  color: var(--color-primary);
 }
 
 .category_list_sort_row {
@@ -110,7 +111,7 @@
 .category_sort_button span {
   width: 14px;
   height: 14px;
-  background: center / contain no-repeat url("../assets/svg/caretdown.png");
+  background: center / contain no-repeat url("../assets/svg/caretdown_p.svg");
 }
 
 .category_list_cards {

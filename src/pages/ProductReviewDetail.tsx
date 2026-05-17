@@ -4,20 +4,20 @@ import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerM
 import CommentSection from "../components/CommentSection"
 import ProductReviewLikeButton from "../components/ProductReviewLikeButton"
 import ScrollTopButton from "../components/ScrollTopButton"
-import iconBell from "../assets/svg/bell.svg"
 import iconBookmark from "../assets/svg/bookmarksimple_p.svg"
 import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconChatDots from "../assets/svg/chatcircledots_p.svg"
-import iconMagnifyingGlass from "../assets/svg/magnifyingglass.svg"
 import iconShare from "../assets/svg/sharenetwork_p.svg"
 import iconStar from "../assets/svg/star.svg"
+import iconCheck from "../assets/svg/check_g.svg"
 import iconWarning from "../assets/svg/worning_r.svg"
 import imgDefaultUserAvatar from "../assets/user_avatar_defult.png"
 import { communityPageData } from "../data/communityPageData"
 import { drinkReviews } from "../data/productReviewsMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, readStoredPairingCommentCount } from "../utils/communityStorage"
+import { getDrinkReviewBookmarkPostId } from "../utils/drinkReviewBookmark"
 import { isAlcoholReviewPost, readStoredMyWrittenPosts, toStoredDrinkReview } from "../utils/myWrittenPosts"
 import { getPairingTierLabelByUserId, getUserGradeBadgeClassNameByUserId } from "../utils/pairingTier"
 import { useStoredNullableStringRecord } from "../utils/storage"
@@ -27,14 +27,14 @@ import "../styles/product-review-detail.css"
 
 const normalizeHashTagValue = (tag: string) => tag.replace(/^#/, "").trim()
 const getReviewCommentTargetId = (reviewId: string) => (/^\d+$/.test(reviewId) ? reviewId : `product-review-comments-${reviewId}`)
-const getDrinkReviewBookmarkPostId = (reviewId: string) => (/^\d+$/.test(reviewId) ? Number(`9${reviewId}`) : NaN)
+const getFilledStarCount = (rating: number) => Math.max(0, Math.min(5, Math.round(rating)))
 
 export default function ProductReviewDetail() {
   const { bookmarkLists } = communityPageData
   const navigate = useNavigate()
   const location = useLocation()
   const { id, reviewId } = useParams()
-  const { nickname: myNickname } = useMyOnboardingMeta()
+  const { nickname: myNickname, metaLine: myMetaLine } = useMyOnboardingMeta()
 
   const decodedReviewId = reviewId ? decodeURIComponent(reviewId) : ""
   const review = useMemo(() => {
@@ -42,16 +42,14 @@ export default function ProductReviewDetail() {
     return [...storedReviews, ...drinkReviews].find((item) => item.id === decodedReviewId)
   }, [decodedReviewId])
 
-  const currentUser = useMemo(
-    () => ({ ...currentUserMock, name: myNickname, meta: "작성자" }),
-    [myNickname],
-  )
+  const currentUser = useMemo(() => ({ ...currentUserMock, name: myNickname, meta: myMetaLine }), [myMetaLine, myNickname])
 
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
   const [isLikeAnimating, setIsLikeAnimating] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
   const [shareToastMessage, setShareToastMessage] = useState<string | null>(null)
+  const [bookmarkToastMessage, setBookmarkToastMessage] = useState<string | null>(null)
   const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(null)
 
   const { value: bookmarkListById, setValue: setBookmarkListById } =
@@ -65,6 +63,11 @@ export default function ProductReviewDetail() {
   if (!review) {
     return <Navigate to={id ? `/product/${id}?tab=review` : "/category"} replace />
   }
+
+  const isMyReview = review.id.startsWith("user-review-") || review.author.name === myNickname
+  const displayAuthorName = isMyReview ? myNickname : review.author.name
+  const displayAuthorGrade = isMyReview ? getPairingTierLabelByUserId(currentUserMock.id) : review.author.grade
+  const displayAuthorProfile = isMyReview ? myMetaLine : review.author.preference
 
   const commentCount = commentCountOverride ?? readStoredPairingCommentCount(commentTargetId)
   const reviewBookmarkPostId = getDrinkReviewBookmarkPostId(review.id)
@@ -96,12 +99,14 @@ export default function ProductReviewDetail() {
   const confirmBookmark = () => {
     if (!bookmarkPicker) return
     setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: bookmarkPicker.selectedListId }))
+    setBookmarkToastMessage("저장한 리스트에 추가했어요.")
     setBookmarkPicker(null)
   }
 
   const removeBookmark = () => {
     if (!bookmarkPicker) return
     setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: null }))
+    setBookmarkToastMessage("저장을 취소했어요.")
     setBookmarkPicker(null)
   }
 
@@ -109,6 +114,18 @@ export default function ProductReviewDetail() {
 
   const showShareToast = () => {
     setShareToastMessage("현재 지원되지 않는 기능이에요.")
+  }
+
+  const handleBack = () => {
+    const returnInfo = (location.state as { returnToProductReview?: { productId?: string; reviewAnchorId?: string } } | null)
+      ?.returnToProductReview
+
+    if (returnInfo?.productId && returnInfo.reviewAnchorId) {
+      navigate(`/product/${returnInfo.productId}?tab=review#${returnInfo.reviewAnchorId}`)
+      return
+    }
+
+    navigate(-1)
   }
 
   useEffect(() => {
@@ -124,20 +141,18 @@ export default function ProductReviewDetail() {
     return () => window.clearTimeout(timerId)
   }, [shareToastMessage])
 
+  useEffect(() => {
+    if (!bookmarkToastMessage) return
+    const timerId = window.setTimeout(() => setBookmarkToastMessage(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [bookmarkToastMessage])
+
   return (
     <section className="product_review_detail_page page_screen" aria-label="후기 상세">
       <header className="product_review_detail_header" aria-label="상단 메뉴">
-        <button type="button" className="product_review_detail_icon_button" aria-label="뒤로가기" onClick={() => navigate(-1)}>
+        <button type="button" className="product_review_detail_icon_button" aria-label="뒤로가기" onClick={handleBack}>
           <img src={iconCaretLeft} alt="" aria-hidden="true" />
         </button>
-        <div className="product_review_detail_header_actions">
-          <button type="button" className="product_review_detail_icon_button" aria-label="검색">
-            <img src={iconMagnifyingGlass} alt="" aria-hidden="true" />
-          </button>
-          <button type="button" className="product_review_detail_icon_button" aria-label="알림">
-            <img src={iconBell} alt="" aria-hidden="true" />
-          </button>
-        </div>
       </header>
 
       <article className="product_review_detail_card">
@@ -145,14 +160,20 @@ export default function ProductReviewDetail() {
           <img className="product_review_detail_avatar" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
           <div className="product_review_detail_author_text">
             <p className="product_review_detail_nickname">
-              <strong>{review.author.name}</strong>
-              <span>{review.author.grade}</span>
-              <i aria-hidden="true">·</i>
-              <button type="button" onClick={() => setIsFollowing((prev) => !prev)}>
-                {isFollowing ? "언팔로우" : "팔로우"}
-              </button>
+              <strong>{displayAuthorName}</strong>
+              <span className="product_review_detail_grade">{displayAuthorGrade}</span>
+              {isMyReview ? (
+                <span className="author_owner_badge">작성자</span>
+              ) : (
+                <>
+                  <i aria-hidden="true">·</i>
+                  <button type="button" onClick={() => setIsFollowing((prev) => !prev)}>
+                    {isFollowing ? "언팔로우" : "팔로우"}
+                  </button>
+                </>
+              )}
             </p>
-            <p>{review.author.preference}</p>
+            <p>{displayAuthorProfile}</p>
           </div>
         </div>
 
@@ -191,7 +212,7 @@ export default function ProductReviewDetail() {
             <p className="product_review_detail_rating">
               <span aria-hidden="true">
                 {Array.from({ length: 5 }).map((_, index) => (
-                  <img key={index} src={iconStar} alt="" />
+                  <img key={index} className={index < getFilledStarCount(review.rating) ? "" : "is_inactive"} src={iconStar} alt="" />
                 ))}
               </span>
               {review.rating}
@@ -265,6 +286,15 @@ export default function ProductReviewDetail() {
             <img src={iconWarning} alt="" aria-hidden="true" />
           </span>
           <p>{shareToastMessage}</p>
+        </div>
+      ) : null}
+
+      {bookmarkToastMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_success">
+            <img src={iconCheck} alt="" aria-hidden="true" />
+          </span>
+          <p>{bookmarkToastMessage}</p>
         </div>
       ) : null}
 

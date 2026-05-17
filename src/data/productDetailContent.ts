@@ -1,6 +1,6 @@
-export const productDetailTabItems = ["술정보", "후기", "페어링추천"] as const
+﻿export const productDetailTabItems = ["상세정보", "후기", "페어링추천"] as const
 
-export const productReviewCount = "13,422"
+export const productReviewCount = "4,286"
 
 export const productPurchaseDiscounts = ["62%", "30%", "21%"]
 

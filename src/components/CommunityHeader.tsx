@@ -15,6 +15,7 @@ type Props = {
   tabsAriaLabel?: string
   openFilterAriaLabel: string
   openNotificationsAriaLabel?: string
+  hideActions?: boolean
 }
 
 export default function CommunityHeader({
@@ -27,6 +28,7 @@ export default function CommunityHeader({
   tabsAriaLabel,
   openFilterAriaLabel,
   openNotificationsAriaLabel,
+  hideActions = false,
 }: Props) {
   const tabItems = tabs ?? []
   const showTabs = tabItems.length >= 2
@@ -35,30 +37,32 @@ export default function CommunityHeader({
     <header className="community_header">
       <h3 className="community_title">{title}</h3>
 
-      <div className="community_header_actions" aria-label="ì»¤ë®¤ë‹ˆí‹° í—¤ë” ì•¡ì…˜">
-        <button
-          className="community_header_action_button"
-          type="button"
-          aria-label={openFilterAriaLabel}
-          onClick={onOpenFilter}
-        >
-          <img className="community_header_action_icon" src={iconSearch} alt="" aria-hidden="true" />
-        </button>
-
-        {onOpenNotifications ? (
+      {!hideActions ? (
+        <div className="community_header_actions" aria-label="Ä¿¹Â´ÏÆ¼ Çì´õ ¾×¼Ç">
           <button
             className="community_header_action_button"
             type="button"
-            aria-label={openNotificationsAriaLabel ?? "ì•Œë¦¼ ì—´ê¸°"}
-            onClick={onOpenNotifications}
+            aria-label={openFilterAriaLabel}
+            onClick={onOpenFilter}
           >
-            <img className="community_header_action_icon" src={iconBell} alt="" aria-hidden="true" />
+            <img className="community_header_action_icon" src={iconSearch} alt="" aria-hidden="true" />
           </button>
-        ) : null}
-      </div>
+
+          {onOpenNotifications ? (
+            <button
+              className="community_header_action_button"
+              type="button"
+              aria-label={openNotificationsAriaLabel ?? "¾Ë¸² ¿­±â"}
+              onClick={onOpenNotifications}
+            >
+              <img className="community_header_action_icon" src={iconBell} alt="" aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {showTabs ? (
-        <div className="community_tabs" aria-label={tabsAriaLabel ?? "ì»¤ë®¤ë‹ˆí‹° íƒ­"}>
+        <div className="community_tabs" aria-label={tabsAriaLabel ?? "Ä¿¹Â´ÏÆ¼ ÅÇ"}>
           {tabItems.map((tab) => (
             <button
               key={tab.key}
@@ -74,4 +78,3 @@ export default function CommunityHeader({
     </header>
   )
 }
-

@@ -1,4 +1,5 @@
 const SAVED_ALCOHOL_PRODUCT_IDS_KEY = "juhap_saved_alcohol_product_ids"
+export const SAVED_ALCOHOL_UPDATED_EVENT = "juhap:saved-alcohol-updated"
 
 const isBrowser = typeof window !== "undefined"
 
@@ -19,6 +20,7 @@ export function writeSavedAlcoholProductIds(productIds: string[]) {
   if (!isBrowser) return
   const next = Array.from(new Set(productIds.filter((value) => value.trim().length > 0)))
   window.localStorage.setItem(SAVED_ALCOHOL_PRODUCT_IDS_KEY, JSON.stringify(next))
+  window.dispatchEvent(new Event(SAVED_ALCOHOL_UPDATED_EVENT))
 }
 
 export function addSavedAlcoholProductId(productId: string) {

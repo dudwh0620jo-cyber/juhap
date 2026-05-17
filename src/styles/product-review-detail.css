@@ -84,7 +84,7 @@
   font-weight: 500;
 }
 
-.product_review_detail_nickname span {
+.product_review_detail_nickname .product_review_detail_grade {
   color: #ad7321;
   font-weight: 400;
 }
@@ -234,6 +234,10 @@
 .product_review_detail_rating img {
   width: 14px;
   height: 14px;
+}
+
+.product_review_detail_rating img.is_inactive {
+  opacity: 0.3;
 }
 
 .product_review_detail_text {

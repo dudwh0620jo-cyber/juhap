@@ -1759,6 +1759,10 @@
   height: 14px;
 }
 
+.review_item_rating img.is_inactive {
+  opacity: 0.3;
+}
+
 .review_card_photos {
   display: flex;
   gap: 8px;

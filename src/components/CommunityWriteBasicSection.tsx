@@ -1,12 +1,14 @@
-import type { RefObject } from "react"
+﻿import type { RefObject } from "react"
 
 type Props = {
   sectionTitle: string
   photoTitle: string
   photoIds: string[]
+  showPhotoSection?: boolean
   photoInputRef: RefObject<HTMLInputElement | null>
   onPhotoFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
   onOpenPhotoPicker: () => void
+  onLoadTestImage?: () => void
   onRemovePhoto: (photoId: string) => void
   titleLabel: string
   titleValue: string
@@ -23,9 +25,11 @@ export default function CommunityWriteBasicSection({
   sectionTitle,
   photoTitle,
   photoIds,
+  showPhotoSection = true,
   photoInputRef,
   onPhotoFileChange,
   onOpenPhotoPicker,
+  onLoadTestImage,
   onRemovePhoto,
   titleLabel,
   titleValue,
@@ -46,50 +50,50 @@ export default function CommunityWriteBasicSection({
     <div className="write_section">
       {sectionTitle ? <h4 className="write_section_title">{sectionTitle}</h4> : null}
 
-      <div className="write_section">
-        <h4 className="write_section_title">{photoTitle}</h4>
-        <input
-          ref={photoInputRef}
-          className="write_photo_file_input"
-          type="file"
-          accept="image/*"
-          onChange={onPhotoFileChange}
-        />
-        <button
-          type="button"
-          className="write_photo_browse"
-          disabled={photoIds.length >= 3}
-          onClick={onOpenPhotoPicker}
-        >
-          사진 불러오기
-        </button>
-        <div className="write_photo_row" aria-label="사진 추가">
-          {photoIds.slice(0, 3).map((photoId, index) => (
-            <button
-              key={photoId}
-              type="button"
-              className="write_photo_thumb"
-              aria-label={`사진 ${index + 1}`}
-              style={photoId ? { backgroundImage: `url(${photoId})` } : undefined}
-              onClick={() => onRemovePhoto(photoId)}
-            >
-              <span className="write_photo_remove" aria-hidden="true">
-                X
-              </span>
-            </button>
-          ))}
-          {photoIds.length < 3 ? (
-            <button
-              type="button"
-              className="write_photo_add"
-              aria-label="사진 추가"
-              onClick={onOpenPhotoPicker}
-            >
-              +
-            </button>
-          ) : null}
+      {showPhotoSection ? (
+        <div className="write_section">
+          <h4 className="write_section_title">{photoTitle}</h4>
+          <input
+            ref={photoInputRef}
+            className="write_photo_file_input"
+            type="file"
+            accept="image/*"
+            onChange={onPhotoFileChange}
+          />
+
+          <div className="write_photo_row" aria-label="사진 추가">
+            {photoIds.slice(0, 3).map((photoId, index) => (
+              <button
+                key={photoId}
+                type="button"
+                className="write_photo_thumb"
+                aria-label={`사진 ${index + 1}`}
+                style={photoId ? { backgroundImage: `url(${photoId})` } : undefined}
+                onClick={() => onRemovePhoto(photoId)}
+              >
+                <span className="write_photo_remove" aria-hidden="true">
+                  X
+                </span>
+              </button>
+            ))}
+
+            {photoIds.length < 3 ? (
+              <button type="button" className="write_photo_add" aria-label="사진 추가" onClick={onOpenPhotoPicker}>
+                +
+              </button>
+            ) : null}
+          </div>
+
+          <button
+            type="button"
+            className="write_photo_browse"
+            disabled={photoIds.length >= 3}
+            onClick={onLoadTestImage ?? onOpenPhotoPicker}
+          >
+            테스트용 이미지 불러오기
+          </button>
         </div>
-      </div>
+      ) : null}
 
       <label className="write_field">
         <span className="write_field_label">

@@ -1,4 +1,5 @@
 const STORAGE_KEY = "vote_picks"
+export const VOTE_PICKS_UPDATED_EVENT = "vote:picks-updated"
 
 export function getStoredPicks(): Record<string, 0 | 1> {
   try {
@@ -16,4 +17,5 @@ export function storePick(voteId: number, index: 0 | 1 | null) {
     picks[String(voteId)] = index
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(picks))
+  window.dispatchEvent(new Event(VOTE_PICKS_UPDATED_EVENT))
 }
