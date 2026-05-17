@@ -7,6 +7,7 @@ type Props = {
   confirmTone?: "neutral" | "primary"
   secondaryDisabled?: boolean
   onSecondary?: () => void
+  onDismiss?: () => void
   onConfirm: () => void
 }
 
@@ -19,6 +20,7 @@ export default function AlertModal({
   confirmTone = variant === "preparing" ? "neutral" : "primary",
   secondaryDisabled = false,
   onSecondary,
+  onDismiss,
   onConfirm,
 }: Props) {
   const dialogTitle = title?.trim() || "알림"
@@ -31,8 +33,14 @@ export default function AlertModal({
     .join(" ")
 
   return (
-    <div className="alert_modal_overlay" role="dialog" aria-modal="true" aria-label={dialogTitle}>
-      <div className={modalClassName} role="document">
+    <div
+      className="alert_modal_overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={dialogTitle}
+      onClick={() => onDismiss?.()}
+    >
+      <div className={modalClassName} role="document" onClick={(event) => event.stopPropagation()}>
         <div className="alert_modal_body">
           <p className="alert_modal_title">{dialogTitle}</p>
           {message ? <p className="alert_modal_text">{message}</p> : null}

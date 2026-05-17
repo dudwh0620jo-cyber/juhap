@@ -16,8 +16,8 @@
 }
 
 .today_pairing_back {
-  width: 36px;
-  height: 36px;
+  width: 24px;
+  height: 24px;
   border: 0;
   border-radius: 12px;
   background: transparent;
@@ -41,7 +41,7 @@
 .today_pairing_sections {
   display: flex;
   flex-direction: column;
-  gap: 44px;
+  gap: 24px;
   padding: 20px 0;
 }
 
@@ -58,14 +58,12 @@
   width: 100%;
   touch-action: pan-y;
   gap: 0;
-  /* margin-left: -24px; */
 }
 
 .today_pairing_banner_slide {
   flex: 0 0 100%;
   display: grid;
   justify-items: center;
-  padding: 0 12px;
   box-sizing: border-box;
 }
 
@@ -74,7 +72,7 @@
   border-radius: 24px;
   overflow: hidden;
   width: 100%;
-  height: clamp(180px, 24vh, 220px);
+  height: clamp(180px, 24vh, 196px);
   background: rgba(0, 0, 0, 0.82);
 }
 
@@ -186,7 +184,7 @@
   align-items: center;
 }
 .today_pairing_section:nth-child(3) .today_pairing_section_label{
-  color: #F5C34E;
+  color: rgba(245, 195, 78, 1);
 }
 .today_pairing_section_label {
   display: inline-flex;
@@ -230,13 +228,20 @@
   color: var(--color-text-primary);
   height: 77px;
   padding: 0 12px;
+  background: var(--color-bg-white);
+  border-radius: 16px;
+  padding: 20px;
+  height: fit-content;
 }
 
 .today_pairing_points {
-  width: 252px;
+  width: 100%;
   display: flex;
-  justify-content: space-between;
-  padding-top: 8px;
+  justify-content: space-around;
+  padding: 16px 89.5px;
+  background: var(--color-bg-white);
+  height: 100%;
+  border-radius: 16px;
 }
 
 .today_pairing_point {
@@ -270,8 +275,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 120%;
-  font-family: var(--font-title);
-  color: var(--color-point-06);
+  color: var(--color-text-primary);
 }
 
 .today_pairing_moments {
@@ -281,7 +285,9 @@
   gap: 18px;
   flex-wrap: nowrap;
   width: 100%;
-  padding: 0 24px;
+  padding: 20px 24px;
+  background: var(--color-bg-white);
+  border-radius: 24px;
 }
 
 .today_pairing_moment {
@@ -333,6 +339,11 @@
   cursor: pointer;
 }
 
+.today_pairing_bottom_button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .today_pairing_bottom_button.is_secondary {
   border: 1.5px solid var(--color-primary);
   color: var(--color-primary);
@@ -342,3 +353,4 @@
   background: var(--color-primary);
   color: var(--color-gray-00);
 }
+

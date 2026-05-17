@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+﻿import { useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import mascot01 from "../assets/onboarding-mascot_01.png"
 import mascot02 from "../assets/onboarding-mascot_02.png"
@@ -121,14 +121,14 @@ export default function Onboarding() {
       }}
     >
       <div className="onboarding_slider">
+        {activeIndex > 0 && activeIndex < onboardingInfoSlides.length ? (
+          <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
+            건너뛰기
+          </button>
+        ) : null}
         <div className="onboarding_viewport">
           <div className="onboarding_track" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
             <div className="onboarding_slide is_start">
-              {activeIndex < onboardingInfoSlides.length && (
-                <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
-                  건너뛰기
-                </button>
-              )}
               <div className="onboarding_copy">
                 <div className="onboarding_logo_group" aria-label={`${onboardingStartSlide.title} ${onboardingStartSlide.hanja}`}>
                   <img className="onboarding_logo_svg" src={logoSvg} alt="" aria-hidden="true" />
@@ -146,11 +146,6 @@ export default function Onboarding() {
 
             {onboardingInfoSlides.map((slide, index) => (
               <div className="onboarding_slide" key={slide.title}>
-                {activeIndex < onboardingInfoSlides.length && (
-                  <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
-                    건너뛰기
-                  </button>
-                )}
                 <div className="onboarding_copy">
                   <h1 className="onboarding_title">{renderAccentText(slide.title, infoAccents[index] ?? "")}</h1>
                   <p className="onboarding_description">{slide.description}</p>

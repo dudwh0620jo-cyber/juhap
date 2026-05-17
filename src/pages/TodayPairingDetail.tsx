@@ -99,6 +99,7 @@ export default function TodayPairingDetail() {
   const safeIndex = total > 0 ? (total <= 1 ? 0 : (positionIndex - 1 + total) % total) : 0
   const hero = recommendationItems[safeIndex]
   const detail = (hero ? todayPairingDetailByTitle[hero.title] : undefined) ?? todayPairingDetailContent[0]
+  const isHakurakuseiStory = detail.storyTitle.includes("하쿠라쿠세이")
 
   if (!hero) return null
 
@@ -234,7 +235,6 @@ export default function TodayPairingDetail() {
         <div className="today_pairing_section_label">
           <span>Pairing Story</span>
         </div>
-        <div className="today_pairing_story_title">{detail.storyTitle}</div>
         <div className="today_pairing_story_body">{detail.storyBody}</div>
       </div>
 
@@ -280,11 +280,15 @@ export default function TodayPairingDetail() {
         <button
           type="button"
           className="today_pairing_bottom_button is_secondary"
-          onClick={() => navigate("/product/sake-dassai-23")}
+          disabled={!isHakurakuseiStory}
+          onClick={() => {
+            if (!isHakurakuseiStory) return
+            navigate("/product/sake-dassai-23")
+          }}
         >
           이 술 상세보기
         </button>
-        <button type="button" className="today_pairing_bottom_button is_primary" onClick={() => setIsPreparingModalOpen(true)}>
+        <button type="button" className="today_pairing_bottom_button is_primary" disabled onClick={() => setIsPreparingModalOpen(true)}>
           비슷한 조합 둘러보기
         </button>
       </div>
