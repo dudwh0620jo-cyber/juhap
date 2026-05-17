@@ -7,7 +7,8 @@ type SetKey = "period" | "cat"
 export function useRankingQueryParams() {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const rankingPeriod = normalizeRankingPeriod(searchParams.get("period")) ?? "weekly"
+  const requestedPeriod = normalizeRankingPeriod(searchParams.get("period"))
+  const rankingPeriod = requestedPeriod === "daily" || requestedPeriod === "monthly" ? "weekly" : (requestedPeriod ?? "weekly")
   const rankingCategory = normalizeRankingCategory(searchParams.get("cat")) ?? "all"
 
   const setQueryParam = useCallback(

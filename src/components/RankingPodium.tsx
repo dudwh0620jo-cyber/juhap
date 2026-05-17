@@ -52,11 +52,25 @@ export default function RankingPodium<CategoryKey extends string>({ podiumRankOr
         if (!podium) return null
 
         const [drink, food] = podium.pair.split(" + ")
+        const isSpiritsPodium = podium.id >= 96001 && podium.id <= 96003
+        const isEtcTopDrink = podium.id === 98001 || podium.id === 98002
+        const isEtcThirdDrink = podium.id === 98003
         const likeCount = getVotes(podium)
         const drinkSrc =
           getRankingDrinkSrcForItem(podium.id, podium.rank) ??
           getRankingThumbSrcById("drink", podium.id) ??
           getRankingThumbSrc("drink", drink)
+        const drinkThumbClassName = [
+          podium.thumbVariant === "bottle" ? "podium_thumb is_bottle" : "podium_thumb is_drink",
+          podium.id === 91011 ? "is_ilpoom_jinro" : "",
+          podium.id === 1025 ? "is_heineken_pasta" : "",
+          isSpiritsPodium ? "is_spirits_podium" : "",
+          podium.id === 96002 ? "is_don_julio" : "",
+          isEtcTopDrink ? "is_etc_top_drink" : "",
+          isEtcThirdDrink ? "is_etc_third_drink" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")
         const photoSrc = getRankingPostPhotoSrc(podium.id)
         const sideImageSrc = photoSrc ?? getRankingThumbSrcById("food", podium.id) ?? getRankingThumbSrc("food", food)
         const delta = podium.delta ?? "—"
@@ -84,15 +98,19 @@ export default function RankingPodium<CategoryKey extends string>({ podiumRankOr
               <span className={`podium_delta ${getDeltaClassName(delta)}`}>{formatDelta(delta)}</span>
             </div>
             <div className="podium_thumbs" aria-hidden="true">
-              {sideImageSrc ? <img className="podium_thumb is_food" src={sideImageSrc} alt="" /> : <span className="podium_thumb is_food" />}
+              {sideImageSrc ? (
+                <img className={`podium_thumb is_food${isSpiritsPodium ? " is_spirits_podium" : ""}`} src={sideImageSrc} alt="" />
+              ) : (
+                <span className={`podium_thumb is_food${isSpiritsPodium ? " is_spirits_podium" : ""}`} />
+              )}
               {drinkSrc ? (
                 <img
-                  className={podium.thumbVariant === "bottle" ? "podium_thumb is_bottle" : "podium_thumb is_drink"}
+                  className={drinkThumbClassName}
                   src={drinkSrc}
                   alt=""
                 />
               ) : (
-                <span className={podium.thumbVariant === "bottle" ? "podium_thumb is_bottle" : "podium_thumb is_drink"} />
+                <span className={drinkThumbClassName} />
               )}
             </div>
           </>
