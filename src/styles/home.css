@@ -593,6 +593,12 @@
   isolation: isolate;
 }
 
+.weekly_drink_card.is_disabled {
+  opacity: 0.45;
+  filter: grayscale(0.55);
+  pointer-events: none;
+}
+
 .weekly_drink_clip {
   position: relative;
   width: 100%;
@@ -720,20 +726,34 @@
   pointer-events: none;
 }
 
+.weekly_drink_bottle_slot.is_dassai23_detail {
+  top: -22%;
+  width: 82px;
+  height: 252px;
+}
+
 .weekly_drink_bottle {
+  width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 9px 11px rgba(0, 0, 0, 0.25));
 }
 
+.weekly_drink_bottle.is_dassai23_detail {
+  transform: translateY(18px) scale(2.05);
+  transform-origin: center bottom;
+}
+
+
 .weekly_drink_right {
   position: absolute;
-  top: 30px;
+  top: 26px;
   right: 16px;
   display: flex;
   flex-direction: column;
-  align-items: end;
-  gap: 14px;
+  align-items: flex-end;
+  gap: 10px;
   z-index: 2;
 }
 
@@ -758,32 +778,9 @@
   backdrop-filter: blur(8px) saturate(145%);
   -webkit-backdrop-filter: blur(8px) saturate(145%);
 }
-.weekly_drink_right>.weekly_drink_stat:nth-child(1){
+.weekly_drink_right > .weekly_drink_stat {
   position: relative;
-  top: 0;
-  right: 20px;
-}
-
-.weekly_drink_right>.weekly_drink_stat:nth-child(2){
-  position: relative;
-  top: 0;
-  right: 2px;
-}
-
-.weekly_drink_right>.weekly_drink_stat:nth-child(3){
-  position: relative;
-  top: 0;
   right: 0;
-}
-
-.weekly_drink_right>.weekly_drink_stat:nth-child(4){
-  position: relative;
-  top: 0;
-  right: 10px;
-}
-
-.weekly_drink_card.is_white .weekly_drink_right>.weekly_drink_stat:nth-child(4){
-  right: -4px;
 }
 .weekly_drink_stat_icon {
   width: fit-content;
@@ -794,7 +791,7 @@
   display: grid;
   place-items: center;
 }
-.weekly_drink_card.is_red .weekly_drink_right>.weekly_drink_stat:nth-child(4){
+.weekly_drink_card.is_red .weekly_drink_right > .weekly_drink_stat:nth-child(4){
   padding: 4px;
 }
 .weekly_drink_stat_icon img {
@@ -1515,7 +1512,8 @@
 .moment_pick_row {   
   position: relative;   
   display: flex;   
-  justify-content: space-between;
+  justify-content: center;
+  gap: 28px;
   margin-right: -24px;    
   padding-right: 24px; 
   padding-bottom: 10px;  
@@ -1601,7 +1599,11 @@
 
 .moment_pick_cards {
   position: relative;
-  padding: 26px 0 2px;
+  padding: 40px 6px 2px;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
 }
 
 .moment_pick_cards::-webkit-scrollbar {
@@ -1611,6 +1613,12 @@
 .moment_pick_track {
   display: flex;
   gap: 14px;
+  width: max-content;
+  padding: 0 0 20px 0;
+}
+
+.moment_pick_card_button {
+  scroll-snap-align: start;
 }
 
 .moment_pick_card {
@@ -1710,6 +1718,7 @@
   letter-spacing:0;
   line-height: 140%;
   color: var(--color-text-primary);
+  min-height: 22px;
 }
 
 .moment_pick_card_desc {
@@ -1717,6 +1726,7 @@
   font-weight: 400;
   color: var(--moment-pick-desc);
   line-height: 140%;
+  letter-spacing: -3%;
 }
 
 .moment_pick_card_tags {
@@ -1724,19 +1734,29 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: auto;
   flex-wrap: wrap;
   width: 100%;
+  transform: translateY(-4px);
 }
 
 .moment_pick_card_tags span {
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--color-point-03);
-  border: 1px solid rgba(205, 170, 120, 0.35);
+  background: rgba(246, 228, 186, 1);
   font-size: 12px;
   font-weight: 400;
   line-height: 140%;
+  color: rgba(149, 101, 17, 1);
+}
+
+.moment_pick_card_button.is_first .moment_pick_card_tags span {
+  background: rgba(255, 228, 209, 1);
+  color: rgba(157, 62, 0, 1);
+}
+
+.moment_pick_card_button.is_second .moment_pick_card_tags span {
+  background: rgba(255, 255, 255, 0.75);
   color: var(--color-primary);
 }
 
@@ -1764,7 +1784,7 @@
   gap: 4px;
   border: 0;
   background: transparent;
-  color: #9a8f88;
+  color: rgba(255, 228, 209, 1);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;

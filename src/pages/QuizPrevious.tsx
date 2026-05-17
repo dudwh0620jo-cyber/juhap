@@ -1,5 +1,5 @@
-﻿import { useMemo } from "react"
-import { useNavigate, useParams } from "react-router"
+import { useMemo } from "react"
+import { useLocation, useNavigate, useParams } from "react-router"
 
 import QuizDetailLayout from "../components/QuizDetailLayout"
 import quizHostMascot from "../assets/quiz_host_mascot_01.png"
@@ -8,6 +8,7 @@ import "../styles/quiz.css"
 
 export default function QuizPrevious() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { quizId } = useParams()
 
   const quiz = useMemo(() => quizItems.find((item) => item.id === quizId) ?? quizItems[1], [quizId])
@@ -17,6 +18,13 @@ export default function QuizPrevious() {
     params.set("sub", "전체")
     return `/category/list?${params.toString()}`
   }, [quiz])
+  const categoryNavState = useMemo(
+    () => ({
+      fromQuiz: true,
+      quizReturnPath: location.pathname,
+    }),
+    [location.pathname],
+  )
 
   return (
     <QuizDetailLayout
@@ -24,9 +32,13 @@ export default function QuizPrevious() {
       pageAriaLabel="지난 퀴즈"
       bgClassName="quiz_previous_bg_orb ui_orb_motion"
       innerClassName="quiz_previous_inner"
-      onBack={() => navigate(-1)}
+      onBack={() => navigate("/quiz")}
       onHome={() => navigate("/home")}
-      topContent={<div className="quiz_previous_mascot" aria-hidden="true"><img src={quizHostMascot} alt="" /></div>}
+      topContent={
+        <div className="quiz_previous_mascot" aria-hidden="true">
+          <img src={quizHostMascot} alt="" />
+        </div>
+      }
       bodyContent={
         <div className="quiz_previous_body">
           <div className="quiz_previous_intro">
@@ -47,9 +59,9 @@ export default function QuizPrevious() {
           </div>
         </div>
       }
-      onPrimaryAction={() => navigate(relatedCategoryLink)}
+      onPrimaryAction={() => navigate(relatedCategoryLink, { state: categoryNavState })}
       primaryActionDisabled
-      onSecondaryAction={() => navigate("/category/list?group=위스키&sub=싱글몰트+위스키")}
+      onSecondaryAction={() => navigate(relatedCategoryLink, { state: categoryNavState })}
     />
   )
 }

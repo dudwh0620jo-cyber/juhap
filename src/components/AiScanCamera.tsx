@@ -10,7 +10,6 @@ type AiScanCameraProps = {
   imageSrc: string
   isScanning: boolean
   onBack: () => void
-  onClose: () => void
   onModeChange: (mode: ScanMode) => void
   onUpload: () => void
   onScan: () => void
@@ -21,11 +20,15 @@ export default function AiScanCamera({
   imageSrc,
   isScanning,
   onBack,
-  onClose,
   onModeChange,
   onUpload,
   onScan,
 }: AiScanCameraProps) {
+  const modeBalloonText =
+    mode === "food"
+      ? "음식을 스캔하시면 또 다른 결과 화면을 볼 수 있어요."
+      : "주류를 스캔하시면 페어링 추천 결과를 확인할 수 있어요."
+
   return (
     <div className={`ai_scan_camera_shell${isScanning ? " is_scanning" : ""}`}>
       <div className="ai_scan_stage" aria-hidden="true">
@@ -34,11 +37,11 @@ export default function AiScanCamera({
         <div className="ai_scan_stage_bottom_fade" />
       </div>
 
-      <AiScanTopBar tone="light" onBack={onBack} onClose={onClose} />
+      <AiScanTopBar tone="light" onBack={onBack} />
       <div className="ai_scan_mode_wrap">
         <AiScanModeTabs mode={mode} disabled={isScanning} onModeChange={onModeChange} />
-        {mode === "food" && !isScanning ? (
-          <p className="ai_scan_mode_balloon">음식을 스캔하시면 또 다른 결과 화면을 볼 수 있어요.</p>
+        {!isScanning ? (
+          <p className="ai_scan_mode_balloon">{modeBalloonText}</p>
         ) : null}
       </div>
 

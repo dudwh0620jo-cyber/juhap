@@ -124,7 +124,6 @@ export default function AiScan() {
         <AiScanResult
           status={status}
           onBack={returnToScanMain}
-          onClose={returnToScanMain}
           onUpload={openPicker}
           onRetry={handleRetry}
           onOpenDetail={handleOpenDetail}
@@ -136,7 +135,6 @@ export default function AiScan() {
           imageSrc={stageSrc}
           isScanning={isScanning}
           onBack={moveBack}
-          onClose={moveBack}
           onModeChange={handleModeChange}
           onUpload={openPicker}
           onScan={handleScanStart}
@@ -154,5 +152,4 @@ export default function AiScan() {
     </section>
   )
 }
-
 

@@ -27,6 +27,13 @@ export default function QuizResult() {
     params.set("sub", "전체")
     return `/category/list?${params.toString()}`
   }, [])
+  const categoryNavState = useMemo(
+    () => ({
+      fromQuiz: true,
+      quizReturnPath: "/quiz",
+    }),
+    [],
+  )
 
   const explanationTitle = useMemo(() => quizToday.explanationTitle, [])
   const explanationBody = useMemo(
@@ -128,9 +135,9 @@ export default function QuizResult() {
           {selectedChoiceId ? <span className="quiz_result_selected" aria-hidden="true" data-choice={selectedChoiceId} /> : null}
         </div>
       }
-      onPrimaryAction={() => navigate(relatedCategoryLink)}
+      onPrimaryAction={() => navigate(relatedCategoryLink, { state: categoryNavState })}
       primaryActionDisabled
-      onSecondaryAction={() => navigate("/category/list?group=위스키&sub=싱글몰트+위스키")}
+      onSecondaryAction={() => navigate(relatedCategoryLink, { state: categoryNavState })}
     />
   )
 }

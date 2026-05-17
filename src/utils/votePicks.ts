@@ -19,3 +19,9 @@ export function storePick(voteId: number, index: 0 | 1 | null) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(picks))
   window.dispatchEvent(new Event(VOTE_PICKS_UPDATED_EVENT))
 }
+
+export function getVoteTotalVotes(voteId: number, baseTotalVotes: number) {
+  const picks = getStoredPicks()
+  const hasParticipated = typeof picks[String(voteId)] === "number"
+  return baseTotalVotes + (hasParticipated ? 1 : 0)
+}

@@ -69,6 +69,8 @@ export default function CategoryList() {
         returnScrollTop?: number
         categoryFilterPayload?: CategoryFilterPayload
         resetCategorySearch?: boolean
+        fromQuiz?: boolean
+        quizReturnPath?: string
       }
     | null
 
@@ -252,6 +254,16 @@ export default function CategoryList() {
   }, [sortedItems.length, filterPayload, searchValue])
 
   const handleBack = () => {
+    if (returnState?.fromQuiz) {
+      const quizReturnPath = returnState.quizReturnPath?.trim()
+      if (quizReturnPath) {
+        navigate(quizReturnPath)
+        return
+      }
+      navigate("/quiz")
+      return
+    }
+
     setSearchValue("")
     setSearchStarted(false)
     setSearchSubmitted(false)
