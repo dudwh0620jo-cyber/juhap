@@ -206,7 +206,7 @@
   z-index: 18;
   display: flex;
   width: 100%;
-  padding: 0 36px;
+  padding: 0 20px;
   justify-content: center;
   align-items: flex-start;
   border-bottom: 0.5px solid #b0b0b0;
@@ -214,18 +214,32 @@
 }
 
 .product_tabs_inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
   flex: 1 0 0;
+}
+
+.product_tabs_glider {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  pointer-events: none;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), width 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .product_tabs_inner button {
   display: flex;
-  padding: 6px 7px;
+  width: 100%;
+  padding: 6px 0 10px;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  border: 0;
+  background: transparent;
   color: var(--color-text-primary);
   font-family: var(--font-main);
   font-size: 16px;
@@ -236,7 +250,6 @@
 
 .product_tabs_inner button.is_active {
   color: var(--color-primary);
-  border-bottom: 2px solid var(--color-primary);
 }
 
 .product_card,
@@ -1824,6 +1837,19 @@
 
 .review_actions_left > span,
 .review_toast_button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #555;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.review_actions_left > .review_comment_button {
   display: inline-flex;
   align-items: center;
   gap: 4px;

@@ -151,7 +151,7 @@ function FeedWriteRow({
       ) : (
         <button type="button" className="feed_write_button" onClick={onClickReview ?? onClickFree}>
           <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
-          <span className="feed_write_label">페어링 후기 글쓰기</span>
+          <span className="feed_write_label">{onClickFree && !onClickReview ? "질문 글쓰기" : "페어링 후기 글쓰기"}</span>
         </button>
       )}
     </div>
@@ -295,6 +295,7 @@ export default function Community() {
   const [entryToastMessage, setEntryToastMessage] = useState<string | null>(null)
   const feedSearchInputRef = useRef<HTMLInputElement | null>(null)
   const [expandedChipGroups, setExpandedChipGroups] = useState<Set<string>>(() => new Set())
+  const [collapsibleChipGroups, setCollapsibleChipGroups] = useState<Set<string>>(() => new Set())
   const chipGroupRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
   const myUserId = currentUserMock.id
   const myTierLabel = getPairingTierLabelByUserId(myUserId)
@@ -436,6 +437,26 @@ export default function Community() {
   }, [communityFeedFilters, isQuestionFeed])
 
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
+
+  useLayoutEffect(() => {
+    if (!isFeedFilterPopupOpen || isQuestionFeed) {
+      setCollapsibleChipGroups(new Set())
+      setExpandedChipGroups(new Set())
+      return
+    }
+
+    const next = new Set<string>()
+    filteredPopupChipGroups.forEach((group) => {
+      const container = chipGroupRefs.current.get(group.title)
+      if (!container) return
+      const chips = Array.from(container.querySelectorAll<HTMLElement>(".feed_filter_chip"))
+      if (chips.length === 0) return
+      const lineCount = new Set(chips.map((chip) => chip.offsetTop)).size
+      if (lineCount > 3) next.add(group.title)
+    })
+    setCollapsibleChipGroups(next)
+    setExpandedChipGroups((prev) => new Set(Array.from(prev).filter((title) => next.has(title))))
+  }, [filteredPopupChipGroups, isFeedFilterPopupOpen, isQuestionFeed])
 
   useEffect(() => {
     if (!isFeedFilterPopupOpen) {
@@ -687,7 +708,7 @@ export default function Community() {
           onClose={() => setIsFeedFilterPopupOpen(false)}
           isNoResults={isPopupSearchNoResults}
           chipGroups={isQuestionFeed ? [] : filteredPopupChipGroups}
-          collapsibleGroupTitles={new Set()}
+          collapsibleGroupTitles={collapsibleChipGroups}
           expandedGroupTitles={expandedChipGroups}
           setGroupRef={setChipGroupRef}
           onToggleGroupExpanded={toggleChipGroupExpanded}

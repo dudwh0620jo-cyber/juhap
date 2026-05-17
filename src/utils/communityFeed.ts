@@ -59,15 +59,24 @@ export const buildPopupChipGroups = ({
   const availableFeatures =
     selectedDrinkType && selectedCategories.size > 0 ? popupFeaturesByDrinkType[selectedDrinkType] ?? [] : []
 
+  const popupChipGroups: PopupChipGroup[] = [{ title: "주종", chips: Object.keys(popupCategoryByDrinkType) }]
+
+  if (selectedDrinkType) {
+    popupChipGroups.push({ title: "카테고리", chips: availableCategories })
+  }
+
+  if (selectedDrinkType && selectedCategories.size > 0) {
+    popupChipGroups.push({ title: "특징", chips: availableFeatures })
+  }
+
+  popupChipGroups.push(
+    { title: "음식", chips: [...COMMUNITY_FOOD_FILTER_CHIPS] },
+    { title: "상황", chips: [...COMMUNITY_SITUATION_FILTER_CHIPS] },
+  )
+
   return {
     availableFeatures,
-    popupChipGroups: [
-      { title: "주종", chips: Object.keys(popupCategoryByDrinkType) },
-      { title: "카테고리", chips: availableCategories },
-      { title: "특징", chips: availableFeatures },
-      { title: "음식", chips: [...COMMUNITY_FOOD_FILTER_CHIPS] },
-      { title: "상황", chips: [...COMMUNITY_SITUATION_FILTER_CHIPS] },
-    ] satisfies PopupChipGroup[],
+    popupChipGroups,
   }
 }
 
@@ -147,9 +156,9 @@ export const filterPopupChipGroups = ({
     const directMatches = group.chips.filter((chip) => includesNormalized(chip, trimmedQuery))
     const relatedMatches = Array.from(relatedByGroup.get(group.title) ?? [])
     const merged = Array.from(new Set([...directMatches, ...relatedMatches]))
-
-    if (group.title.includes(trimmedQuery)) {
-      results.push(group)
+    const isAlwaysVisibleGroup = group.title === "음식" || group.title === "상황"
+    if (isAlwaysVisibleGroup) {
+      results.push({ title: group.title, chips: merged.length > 0 ? merged : group.chips })
       continue
     }
 

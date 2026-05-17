@@ -130,8 +130,6 @@ export default function CommunityFilterPanel({
             선택 초기화
           </button>
           <button type="button" className="feed_filter_apply" onClick={onApply}>
-            선택 완료
-            <br />
             검색하기
           </button>
         </div>

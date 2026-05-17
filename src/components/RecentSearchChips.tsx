@@ -1,4 +1,4 @@
-type Props = {
+﻿type Props = {
   terms: readonly string[]
   onSelect: (term: string) => void
   onDelete: (term: string) => void
@@ -11,8 +11,8 @@ export default function RecentSearchChips({ terms, onSelect, onDelete }: Props) 
 
   return (
     <div className="feed_filter_group">
-      <h3 className="feed_filter_group_title">최근검색</h3>
-      <div className="feed_filter_group_chips">
+      <h3 className="feed_filter_group_title">최근검색어</h3>
+      <div className="feed_filter_group_chips recent_search_chips">
         {terms.map((term) => (
           <div className="recent_search_item" key={term}>
             <button type="button" className="feed_filter_chip" onClick={() => onSelect(term)}>
@@ -21,7 +21,7 @@ export default function RecentSearchChips({ terms, onSelect, onDelete }: Props) 
             <button
               type="button"
               className="recent_search_delete"
-              aria-label="최근검색 삭제"
+              aria-label="최근검색어 삭제"
               onClick={() => onDelete(term)}
             />
           </div>
@@ -30,4 +30,3 @@ export default function RecentSearchChips({ terms, onSelect, onDelete }: Props) 
     </div>
   )
 }
-

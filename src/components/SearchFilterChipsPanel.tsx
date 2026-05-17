@@ -1,5 +1,6 @@
 import type { ReactNode, RefObject } from "react"
 import CommunityFeedFilterPopupBody from "./CommunityFeedFilterPopupBody"
+import RecentSearchChips from "./RecentSearchChips"
 import SearchFilterModalHeader from "./SearchFilterModalHeader"
 
 type PopupChipGroup = {
@@ -85,6 +86,10 @@ export default function SearchFilterChipsPanel({
         onClose={onClose}
       />
 
+      <div className="feed_filter_popup_section feed_filter_recent_section">
+        <RecentSearchChips terms={recentSearchTerms} onSelect={onSelectRecentSearch} onDelete={onDeleteRecentSearch} />
+      </div>
+
       {isNoResults ? (
         <p className="feed_filter_no_results" role="status">
           검색 결과가 없어요.
@@ -104,9 +109,6 @@ export default function SearchFilterChipsPanel({
           selectedFoods={selectedFoods}
           selectedSituations={selectedSituations ?? EMPTY_SELECTED_SITUATIONS}
           onChipClick={onChipClick}
-          recentSearchTerms={recentSearchTerms}
-          onSelectRecentSearch={onSelectRecentSearch}
-          onDeleteRecentSearch={onDeleteRecentSearch}
         />
       )}
     </>

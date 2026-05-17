@@ -25,14 +25,6 @@ export default function FeedFilterGroup({
     <div className="feed_filter_group">
       <div className="feed_filter_group_header">
         <h3 className="feed_filter_group_title">{title}</h3>
-        {showToggle ? (
-          <button
-            type="button"
-            className={isExpanded ? "feed_filter_group_toggle is_expanded" : "feed_filter_group_toggle"}
-            aria-label={isExpanded ? "접기" : "펼치기"}
-            onClick={onToggleExpanded}
-          />
-        ) : null}
       </div>
       <div
         ref={setGroupRef}
@@ -40,6 +32,16 @@ export default function FeedFilterGroup({
       >
         {chips.map((chip) => renderChip(chip))}
       </div>
+      {showToggle ? (
+        <button
+          type="button"
+          className={isExpanded ? "feed_filter_group_toggle is_expanded" : "feed_filter_group_toggle"}
+          aria-label={isExpanded ? "접기" : "더보기"}
+          onClick={onToggleExpanded}
+        >
+          {isExpanded ? "접기" : "더보기"}
+        </button>
+      ) : null}
     </div>
   )
 }
