@@ -102,7 +102,11 @@ const getProductReviewCommentTargetId = (review: DrinkReview) => {
 
 const getProductReviewCommentCount = (review: DrinkReview) => readStoredPairingCommentCount(getProductReviewCommentTargetId(review))
 
-const getFilledStarCount = (rating: number) => Math.max(0, Math.min(5, Math.round(rating)))
+const getFilledStarCount = (rating: number | string) => {
+  const numericRating = typeof rating === "number" ? rating : Number.parseFloat(rating)
+  if (!Number.isFinite(numericRating)) return 0
+  return Math.max(0, Math.min(5, Math.round(numericRating)))
+}
 
 export default function ProductDetail() {
   const { mockProductById, defaultProduct } = productDetailPageData
@@ -206,7 +210,7 @@ export default function ProductDetail() {
 
     if (nextTab === "페어링추천") {
       nextParams.set("tab", "pairing")
-    } else if (nextTab === "페어링추천") {
+    } else if (nextTab === "후기") {
       nextParams.set("tab", "review")
     } else {
       nextParams.delete("tab")
@@ -1086,5 +1090,4 @@ export default function ProductDetail() {
     </section>
   )
 }
-
 

@@ -1,4 +1,4 @@
-import iconBell from "../assets/svg/bell.svg"
+ï»¿import iconBell from "../assets/svg/bell.svg"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
 
 type TopTabKey = "ranking" | "feed"
@@ -41,7 +41,7 @@ export default function CommunityHeader({
       <h3 className="community_title">{title}</h3>
 
       {canShowActions ? (
-        <div className="community_header_actions" aria-label="Ä¿¹Â´ÏÆ¼ Çì´õ ¾×¼Ç">
+        <div className="community_header_actions" aria-label="ì»¤ë®¤ë‹ˆí‹° í—¤ë” ì•¡ì…˜">
           {showFilterAction ? (
             <button
               className="community_header_action_button"
@@ -57,7 +57,7 @@ export default function CommunityHeader({
             <button
               className="community_header_action_button"
               type="button"
-              aria-label={openNotificationsAriaLabel ?? "¾Ë¸² ¿­±â"}
+              aria-label={openNotificationsAriaLabel ?? "ì•Œë¦¼ ì—´ê¸°"}
               onClick={onOpenNotifications}
             >
               <img className="community_header_action_icon" src={iconBell} alt="" aria-hidden="true" />
@@ -67,7 +67,7 @@ export default function CommunityHeader({
       ) : null}
 
       {showTabs ? (
-        <div className="community_tabs" aria-label={tabsAriaLabel ?? "Ä¿¹Â´ÏÆ¼ ÅÇ"}>
+        <div className="community_tabs" aria-label={tabsAriaLabel ?? "ì»¤ë®¤ë‹ˆí‹° íƒ­"}>
           {tabItems.map((tab) => (
             <button
               key={tab.key}

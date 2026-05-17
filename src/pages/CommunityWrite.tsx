@@ -34,7 +34,6 @@ import { productDetailPageData } from "../data/productDetailData"
 import { currentUserMock } from "../utils/usersMock"
 import communityPostsRaw from "../data/communityPosts.json"
 import { pairingWriteDrinkMocks, pairingWriteFoodMocks } from "../data/pairingWriteMocks"
-import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ThreeOptionModal from "../components/ThreeOptionModal"
 import AlertModal from "../components/AlertModal"
 import { drinkCategories, subcategoryInfoByCategoryId } from "../data/categoryData"
@@ -359,7 +358,7 @@ export default function CommunityWrite() {
   const [isPairingDrinkModalOpen, setIsPairingDrinkModalOpen] = useState(false)
   const [activeDrinkCategoryId, setActiveDrinkCategoryId] = useState(() => drinkCategories[0]?.id ?? "sake")
   const [isDrinkCategoryMenuOpen, setIsDrinkCategoryMenuOpen] = useState(false)
-  const [activeDrinkSubcategory, setActiveDrinkSubcategory] = useState<string | null>(null)
+  const [, setActiveDrinkSubcategory] = useState<string | null>(null)
   const [pairingDrinkTagSelection, setPairingDrinkTagSelection] = useState<Set<string>>(() => new Set())
   const [pendingPairingDrinkTagSelection, setPendingPairingDrinkTagSelection] = useState<Set<string>>(() => new Set())
   const [isPairingFoodModalOpen, setIsPairingFoodModalOpen] = useState(false)
@@ -825,7 +824,7 @@ export default function CommunityWrite() {
         }
 
         const foods = Array.isArray(post?.foods) ? post.foods : []
-        foods.forEach((food) => {
+        foods.forEach((food: unknown) => {
           if (typeof food !== "string") return
           const normalizedFood = food.trim()
           if (!normalizedFood) return

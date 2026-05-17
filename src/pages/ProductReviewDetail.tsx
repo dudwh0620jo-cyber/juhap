@@ -27,7 +27,11 @@ import "../styles/product-review-detail.css"
 
 const normalizeHashTagValue = (tag: string) => tag.replace(/^#/, "").trim()
 const getReviewCommentTargetId = (reviewId: string) => (/^\d+$/.test(reviewId) ? reviewId : `product-review-comments-${reviewId}`)
-const getFilledStarCount = (rating: number) => Math.max(0, Math.min(5, Math.round(rating)))
+const getFilledStarCount = (rating: number | string) => {
+  const numericRating = typeof rating === "number" ? rating : Number.parseFloat(rating)
+  if (!Number.isFinite(numericRating)) return 0
+  return Math.max(0, Math.min(5, Math.round(numericRating)))
+}
 
 export default function ProductReviewDetail() {
   const { bookmarkLists } = communityPageData
