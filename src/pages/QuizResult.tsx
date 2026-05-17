@@ -129,7 +129,8 @@ export default function QuizResult() {
         </div>
       }
       onPrimaryAction={() => navigate(relatedCategoryLink)}
-      onSecondaryAction={() => navigate("/category/list?group=사케&sub=전체")}
+      primaryActionDisabled
+      onSecondaryAction={() => navigate("/category/list?group=위스키&sub=싱글몰트+위스키")}
     />
   )
 }

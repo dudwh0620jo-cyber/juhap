@@ -29,7 +29,7 @@ export default function CommunitySearchInput({
   onClear,
   onFocusInput,
   focusOnClear = true,
-  confirmLabel = "확인",
+  confirmLabel = "적용",
   showConfirmButton = true,
 }: Props) {
   const hasValue = Boolean(value.trim())

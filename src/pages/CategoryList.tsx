@@ -17,7 +17,7 @@ import { useCategorySearchFilterState } from "../hooks/useCategorySearchFilterSt
 import { resolvePricePresetToggle } from "../utils/pricePreset"
 import { calculateRangePercent } from "../utils/range"
 import caretLeft from "../assets/svg/caretleft.svg"
-import caretRight from "../assets/svg/caretright.svg"
+import caretRight from "../assets/svg/arrowright_b.svg"
 import "../styles/category.css"
 import "../styles/category-list.css"
 
@@ -274,15 +274,19 @@ export default function CategoryList() {
   return (
     <section className="category_list_page page_screen" aria-label="카테고리 리스트">
       <header className="category_list_header">
-        <button type="button" className="category_list_back" aria-label="카테고리로 돌아가기" onClick={handleBack}>
-          <img src={caretLeft} alt="" aria-hidden="true" />
-        </button>
-        <div className="category_list_meta_row">
-          <button type="button" className="category_list_title" onClick={handleBack}>
-            <span>{group}</span>
-            <img src={caretRight} alt="" aria-hidden="true" />
-            <span>{sub}</span>
+        <div className="category_list_backcate">
+          <button type="button" className="category_list_back" aria-label="카테고리로 돌아가기" onClick={handleBack}>
+            <img src={caretLeft} alt="" aria-hidden="true" />
           </button>
+          <div className="category_list_meta_row">
+            <button type="button" className="category_list_title" onClick={handleBack}>
+              <span>{group}</span>
+              <img src={caretRight} alt="" aria-hidden="true" />
+              <span>{sub}</span>
+            </button>
+          </div>
+        </div>
+        <div className="category_list_sort_row">
           <button className="category_sort_button" type="button" onClick={() => setIsSortSheetOpen(true)}>
             {sortLabels[activeSortKey]}
             <span aria-hidden="true" />
@@ -436,5 +440,3 @@ export default function CategoryList() {
     </section>
   )
 }
-
-

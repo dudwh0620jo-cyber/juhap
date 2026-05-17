@@ -17,7 +17,7 @@ import type { WineCandidate } from "../utils/chatBotFlow"
 type ChatRecommendPanelProps = {
   recommendations: WineCandidate[]
   selectedWineId: string | null
-  onSelect: (wineId: string) => void
+  onSave: (wineId: string) => void
   onGoProductDetail: (wineId: string) => void
   onMore: () => void
 }
@@ -56,7 +56,7 @@ function getFallbackLabel(candidateId: string) {
 export default function ChatRecommendPanel({
   recommendations,
   selectedWineId,
-  onSelect,
+  onSave,
   onGoProductDetail,
   onMore,
 }: ChatRecommendPanelProps) {
@@ -69,16 +69,18 @@ export default function ChatRecommendPanel({
 
           return (
             <article key={candidate.id} className={isSelected ? "chat_recommend_card is_selected" : "chat_recommend_card"}>
-              <div className="chat_recommend_badge" aria-label="주아의 추천">
-                <img src={iconSparkle} alt="" aria-hidden="true" />
-                <span>주아의 추천</span>
-              </div>
-              <p className="chat_recommend_quote">{candidate.notes[0]}</p>
               <div className="chat_recommend_card_inner">
-                <div className="chat_recommend_card_thumb" aria-hidden="true">
-                  {imageSrc ? <img src={imageSrc} alt="" /> : <span>{getFallbackLabel(candidate.id)}</span>}
+                <div className="chat_recommend_card_left">
+                  <div className="chat_recommend_badge" aria-label="주아의 추천">
+                    <img src={iconSparkle} alt="" aria-hidden="true" />
+                    <span>주아의 추천</span>
+                  </div>
+                  <div className="chat_recommend_card_thumb" aria-hidden="true">
+                    {imageSrc ? <img src={imageSrc} alt="" /> : <span>{getFallbackLabel(candidate.id)}</span>}
+                  </div>
                 </div>
                 <div className="chat_recommend_card_body">
+                  <p className="chat_recommend_quote">{candidate.notes[0]}</p>
                   <div className="chat_recommend_card_title">{candidate.name}</div>
                   <div className="chat_recommend_card_subtitle">{candidate.subtitle}</div>
                   <p className="chat_recommend_card_desc">{candidate.notes[1] ?? candidate.tips[0]}</p>
@@ -96,7 +98,7 @@ export default function ChatRecommendPanel({
                     <button
                       type="button"
                       className="chat_action_button chat_action_button_secondary chat_action_button_save"
-                      onClick={() => onSelect(candidate.id)}
+                      onClick={() => onSave(candidate.id)}
                     >
                       {SAVE_LABEL}
                     </button>
@@ -110,7 +112,11 @@ export default function ChatRecommendPanel({
         <article className="chat_recommend_card chat_recommend_more_card" aria-label="추가 추천">
           <div className="chat_recommend_more_inner">
             <h4>다른 추천도 준비했어요</h4>
-            <p>분위기에 취향에 맞는 다양한 술을 더 만나보세요!</p>
+            <p>
+              당신의 취향에 맞는
+              <br />
+              다양한 술을 더 만나보세요!
+            </p>
             <img src={imgMoreMascot} alt="" aria-hidden="true" />
             <button type="button" className="chat_action_button chat_action_button_secondary chat_action_button_more" onClick={onMore}>
               <span>{MORE_LABEL}</span>

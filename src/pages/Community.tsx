@@ -5,6 +5,10 @@ import "../styles/community.css"
 import askQuestionBanner from "../assets/ask_question_banner.png"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
 import iconPencil from "../assets/svg/pencilsimple_p.svg"
+import iconX from "../assets/svg/x.svg"
+import iconCheck from "../assets/svg/check_g.svg"
+import iconResetWhite from "../assets/svg/arrowcounterclockwise_w.svg"
+import emptyMascotImage from "../assets/fail_mascot_01.png"
 import AlertModal from "../components/AlertModal"
 import CommunityHeader from "../components/CommunityHeader"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
@@ -47,7 +51,6 @@ import {
   filterCommunityFeedPosts,
   filterPopupChipGroups,
   getCommunityFeedPosts,
-  getCommunitySearchSuggestionTags,
   getEffectiveSelectedFeatures,
   getPairingCommentNavigationState,
   isCommunityFeedSearchActive,
@@ -149,7 +152,7 @@ function FeedWriteRow({
       ) : (
         <button type="button" className="feed_write_button" onClick={onClickReview ?? onClickFree}>
           <img className="feed_write_icon" src={iconPencil} alt="" aria-hidden="true" />
-          <span className="feed_write_label">페어링 후기 글쓰기</span>
+          <span className="feed_write_label">{onClickFree && !onClickReview ? "질문 글쓰기" : "페어링 후기 글쓰기"}</span>
         </button>
       )}
     </div>
@@ -290,8 +293,10 @@ export default function Community() {
   const [isFeedSearchConfirmed, setIsFeedSearchConfirmed] = useState(false)
   const [reviewSort, setReviewSort] = useState<ReviewSortKey>("latest")
   const [isReviewSortSheetOpen, setIsReviewSortSheetOpen] = useState(false)
+  const [entryToastMessage, setEntryToastMessage] = useState<string | null>(null)
   const feedSearchInputRef = useRef<HTMLInputElement | null>(null)
   const [expandedChipGroups, setExpandedChipGroups] = useState<Set<string>>(() => new Set())
+  const [collapsibleChipGroups, setCollapsibleChipGroups] = useState<Set<string>>(() => new Set())
   const chipGroupRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
   const myUserId = currentUserMock.id
   const myTierLabel = getPairingTierLabelByUserId(myUserId)
@@ -305,6 +310,23 @@ export default function Community() {
       window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: false } }))
     }
   }, [])
+
+  useEffect(() => {
+    const state = (location.state ?? {}) as { writeSuccessToast?: string; initialFilter?: string }
+    const toastMessage = state.writeSuccessToast?.trim()
+    if (!toastMessage) return
+
+    setEntryToastMessage(toastMessage)
+    const timer = window.setTimeout(() => setEntryToastMessage(null), 5000)
+
+    const { writeSuccessToast: _dropToast, ...restState } = state
+    navigate(`${location.pathname}${location.search}${location.hash}`, {
+      replace: true,
+      state: Object.keys(restState).length ? restState : null,
+    })
+
+    return () => window.clearTimeout(timer)
+  }, [location.hash, location.pathname, location.search, location.state, navigate])
 
   const deleteUserPost = useCallback(
     (postId: number) => {
@@ -410,12 +432,27 @@ export default function Community() {
     return filterCommunityFeedPosts({ posts, filters: communityFeedFilters })
   }, [communityFeedFilters, posts])
 
-  const searchSuggestionTags = useMemo(() => {
-    if (isQuestionFeed) return []
-    return getCommunitySearchSuggestionTags({ feedPosts, filters: communityFeedFilters })
-  }, [communityFeedFilters, isQuestionFeed])
-
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
+
+  useLayoutEffect(() => {
+    if (!isFeedFilterPopupOpen || isQuestionFeed) {
+      setCollapsibleChipGroups(new Set())
+      setExpandedChipGroups(new Set())
+      return
+    }
+
+    const next = new Set<string>()
+    filteredPopupChipGroups.forEach((group) => {
+      const container = chipGroupRefs.current.get(group.title)
+      if (!container) return
+      const chips = Array.from(container.querySelectorAll<HTMLElement>(".feed_filter_chip"))
+      if (chips.length === 0) return
+      const lineCount = new Set(chips.map((chip) => chip.offsetTop)).size
+      if (lineCount > 3) next.add(group.title)
+    })
+    setCollapsibleChipGroups(next)
+    setExpandedChipGroups((prev) => new Set(Array.from(prev).filter((title) => next.has(title))))
+  }, [filteredPopupChipGroups, isFeedFilterPopupOpen, isQuestionFeed])
 
   useEffect(() => {
     if (!isFeedFilterPopupOpen) {
@@ -481,6 +518,16 @@ export default function Community() {
     setSelectedFoods(new Set())
     setSelectedSituations(new Set())
     setIsFeedSearchConfirmed(Boolean(feedSearchValue.trim()))
+  }
+
+  const resetFeedSearchState = () => {
+    setFeedSearchValue("")
+    setSelectedDrinkType(null)
+    setSelectedCategories(new Set())
+    setSelectedFeatures(new Set())
+    setSelectedFoods(new Set())
+    setSelectedSituations(new Set())
+    setIsFeedSearchConfirmed(false)
   }
 
   const toggleCategory = (chip: string) => {
@@ -667,7 +714,7 @@ export default function Community() {
           onClose={() => setIsFeedFilterPopupOpen(false)}
           isNoResults={isPopupSearchNoResults}
           chipGroups={isQuestionFeed ? [] : filteredPopupChipGroups}
-          collapsibleGroupTitles={new Set()}
+          collapsibleGroupTitles={collapsibleChipGroups}
           expandedGroupTitles={expandedChipGroups}
           setGroupRef={setChipGroupRef}
           onToggleGroupExpanded={toggleChipGroupExpanded}
@@ -702,11 +749,20 @@ export default function Community() {
           onDeleteRecentSearch={(term) => {
             setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
           }}
+          onResetSearch={() => {
+            setFeedSearchValue("")
+            setIsFeedSearchConfirmed(false)
+            resetFilters()
+          }}
           onReset={resetFilters}
           hideFooter={isQuestionFeed}
           onApply={() => {
+            if (feedSearchValue.trim()) {
+              confirmFeedSearch(feedSearchValue)
+            } else {
+              setIsFeedSearchConfirmed(true)
+            }
             setIsFeedFilterPopupOpen(false)
-            setIsFeedSearchConfirmed(true)
           }}
         />
       </SearchFilterModal>
@@ -773,26 +829,14 @@ export default function Community() {
 
       <div className={feedFilter === "free" ? "question_list" : "feed_cards"} aria-label="커뮤니티 피드 목록">
         {isFeedNoResults ? (
-          <div className="search_no_results" role="status">
-            <p className="search_no_results_title">검색 결과가 없어요</p>
-            {searchSuggestionTags.length > 0 ? (
-              <div className="search_suggestion_row" aria-label="추천 태그">
-                {searchSuggestionTags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    className="search_suggestion_chip"
-                    onClick={() => {
-                      setFeedSearchValue(tag)
-                      setIsFeedSearchConfirmed(true)
-                    }}
-                  >
-                    #{tag}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          <section className="search_no_results" role="status" aria-label="검색 결과 없음">
+            <p className="search_no_results_title">검색 결과를 찾을 수 없어요.</p>
+            <img className="search_no_results_mascot" src={emptyMascotImage} alt="" aria-hidden="true" />
+            <button type="button" className="search_no_results_reset" onClick={resetFeedSearchState}>
+              <span>검색 초기화하기</span>
+              <img src={iconResetWhite} alt="" aria-hidden="true" />
+            </button>
+          </section>
         ) : null}
 
         {feedFilter === "free"
@@ -993,6 +1037,18 @@ export default function Community() {
             setPendingUnfollowUser(null)
           }}
         />
+      ) : null}
+
+      {entryToastMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_success">
+            <img src={iconCheck} alt="" aria-hidden="true" />
+          </span>
+          <p>{entryToastMessage}</p>
+          <button type="button" className="app_alert_toast_close" aria-label="닫기" onClick={() => setEntryToastMessage(null)}>
+            <img src={iconX} alt="" aria-hidden="true" />
+          </button>
+        </div>
       ) : null}
 
       <ScrollTopButton />

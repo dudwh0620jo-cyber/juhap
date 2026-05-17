@@ -9,14 +9,12 @@
 
 .category_list_header { 
   display: flex;
-  justify-content: space-between;
-  align-items: center; 
+  flex-direction: column;
+  align-items: center;
   gap: 12px; 
   margin-left: -12px;
   margin-right: -12px;
-  padding: 10px 18px 10px 6px;
-  border: 1px solid var(--color-point-01);
-  border-radius: 14px;
+  padding: 10px 18px 6px 6px;
 } 
 
 .category_list_back {
@@ -34,10 +32,10 @@
 
 .category_list_back::before {
   content: "";
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 24px;
   display: block;
-  background: var(--color-point-01);
+  background: var(--color-text-primary);
   mask: url("../assets/svg/caretleft.svg") center / contain no-repeat;
   -webkit-mask: url("../assets/svg/caretleft.svg") center / contain no-repeat;
 }
@@ -46,61 +44,73 @@
   display: none;
 }
 
+.category_list_backcate {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
 .category_list_meta_row {
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: center;
+  gap: 0;
   margin: 0;
 }
 
 .category_list_title {
-  flex: 1;
+  flex: 0 1 auto;
   display: flex;
-  background: transparent;
-  color: var(--color-primary);
+  color: var(--color-text-primary);
   font-family: var(--font-main);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
-  line-height: 1.4;
-  letter-spacing: -0.2px;
-  text-align: left;
+  line-height: 1.2;
+  letter-spacing: -1%;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
   align-items: center;
+  justify-content: center;
 }
 
-.category_list_title:last-child span{
-  color: var(--color-primary);
-}
 .category_list_title img{
-  width: 19px;
-  height: 19px;
-  filter: brightness(0) saturate(100%) invert(44%) sepia(22%) saturate(1197%) hue-rotate(351deg) brightness(95%) contrast(92%);
+  background: var(--color-text-primary);
+  mask: url("../assets/svg/caretright.svg") center / contain no-repeat;
+  -webkit-mask: url("../assets/svg/caretright.svg") center / contain no-repeat;
+  width: 20px;
+  height: 20px;
+  filter: none;
+  padding: 0 2px 0 0 ;
 }
 .category_sort_button {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 4px;
   flex: 0 0 auto;
   border: 0;
   padding: 0;
   background: transparent;
-  color: var(--color-point-01);
   font-family: var(--font-main);
   font-size: 14px;
   font-weight: 500;
+  line-height: 100%;
   cursor: pointer;
+}
+
+.category_list_sort_row {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .category_sort_button span {
   width: 14px;
   height: 14px;
   background: center / contain no-repeat url("../assets/svg/caretdown.png");
-  filter: brightness(0) saturate(100%) invert(44%) sepia(22%) saturate(1197%) hue-rotate(351deg) brightness(95%) contrast(92%);
 }
 
 .category_list_cards {
@@ -383,7 +393,6 @@
   }
 
   .category_list_header {
-    grid-template-columns: 38px minmax(0, 1fr);
     gap: 10px;
   }
 

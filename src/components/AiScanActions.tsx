@@ -24,7 +24,7 @@ export default function AiScanActions({
         <button type="button" className="ai_scan_action is_primary" onClick={onPrimary} disabled={disabled}>
           {primaryLabel}
         </button>
-        {foodModeHint ? <p className="ai_scan_action_hint">{foodModeHint}</p> : null}
+        {foodModeHint ? <p className="ai_scan_action_balloon">{foodModeHint}</p> : null}
       </div>
     </div>
   )

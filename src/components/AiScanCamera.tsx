@@ -37,10 +37,13 @@ export default function AiScanCamera({
       <AiScanTopBar tone="light" onBack={onBack} onClose={onClose} />
       <div className="ai_scan_mode_wrap">
         <AiScanModeTabs mode={mode} disabled={isScanning} onModeChange={onModeChange} />
+        {mode === "food" && !isScanning ? (
+          <p className="ai_scan_mode_balloon">음식을 스캔하시면 또 다른 결과 화면을 볼 수 있어요.</p>
+        ) : null}
       </div>
 
       <div className="ai_scan_frame_wrap">
-        <AiScanFrame isScanning={isScanning} onSelectPhoto={onUpload}>
+        <AiScanFrame isScanning={isScanning}>
           {isScanning ? (
             <div className="ai_scan_scanning_content" role="status" aria-live="polite">
               <strong>{aiScanCopy.scanningTitle}</strong>
@@ -59,7 +62,6 @@ export default function AiScanCamera({
         <AiScanActions
           secondaryLabel={aiScanCopy.upload}
           primaryLabel={aiScanCopy.scan}
-          foodModeHint={mode === "food" ? "실패화면 구현" : null}
           onSecondary={onUpload}
           onPrimary={onScan}
         />
@@ -67,6 +69,3 @@ export default function AiScanCamera({
     </div>
   )
 }
-
-
-

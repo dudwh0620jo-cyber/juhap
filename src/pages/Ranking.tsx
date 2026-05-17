@@ -7,13 +7,22 @@ import SearchFilterModal from "../components/SearchFilterModal"
 import CommunityFilterPanel from "../components/CommunityFilterPanel"
 import { useRankingQueryParams } from "../hooks/useRankingQueryParams"
 import {
+  beerDummyRankingItems,
+  etcDummyPodiumItems,
+  etcDummyRankingItems,
   getRankingPairLabel,
   rankingCategories,
   rankingDataByPeriod,
   rankingPeriods,
+  sakeDummyRankingItems,
   sojuDummyRankingItems,
+  spiritsDummyPodiumItems,
+  spiritsDummyRankingItems,
   type RankingCategory,
   type RankingPodium,
+  wineDummyRankingItems,
+  whiskyDummyPodiumItems,
+  whiskyDummyRankingItems,
 } from "../utils/rankingData"
 import { feedPosts, type FeedPost } from "../utils/communityPosts"
 import { includesNormalized, normalizeSearchText } from "../utils/text"
@@ -72,6 +81,29 @@ const RANKING_DELTA_BY_POST_ID: Record<number, string> = {
 }
 
 const getRankingDelta = (postId: number) => RANKING_DELTA_BY_POST_ID[postId] ?? "—"
+
+const WEEKLY_SOJU_VOTES_BY_ID: Record<number, number> = {
+  91011: 13422,
+  99003: 10018,
+}
+
+const WEEKLY_WINE_VOTES_BY_ID: Record<number, number> = {
+  1008: 9942,
+}
+
+const WEEKLY_BEER_VOTES_BY_ID: Record<number, number> = {
+  1005: 12480,
+  1025: 11142,
+  1004: 10012,
+  1007: 9984,
+  91013: 9726,
+}
+
+const WEEKLY_SAKE_VOTES_BY_ID: Record<number, number> = {
+  99001: 9981,
+  99002: 9874,
+  1102: 9728,
+}
 
 export default function CommunityRanking() {
   const { rankingPeriod, rankingCategory, setQueryParam } = useRankingQueryParams()
@@ -304,22 +336,66 @@ export default function CommunityRanking() {
   ])
 
   const rankingData = rankingDataByPeriod[rankingPeriod]
+  const allRankingStatsById = useMemo(() => {
+    const next = new Map<number, { votes?: number; delta?: string }>()
+    for (const podium of rankingData.podiumByCategory.all) {
+      next.set(podium.id, { votes: podium.votes, delta: podium.delta })
+    }
+    for (const row of rankingData.rows) {
+      next.set(row.id, { votes: row.votes, delta: row.delta })
+    }
+    return next
+  }, [rankingData])
+
+  const getCategoryRankingVotes = useCallback(
+    (postId: number) => {
+      if (rankingPeriod === "weekly" && rankingCategory === "soju") {
+        const weeklySojuVotes = WEEKLY_SOJU_VOTES_BY_ID[postId]
+        if (typeof weeklySojuVotes === "number") return weeklySojuVotes
+      }
+      if (rankingPeriod === "weekly" && rankingCategory === "wine") {
+        const weeklyWineVotes = WEEKLY_WINE_VOTES_BY_ID[postId]
+        if (typeof weeklyWineVotes === "number") return weeklyWineVotes
+      }
+      if (rankingPeriod === "weekly" && rankingCategory === "beer") {
+        const weeklyBeerVotes = WEEKLY_BEER_VOTES_BY_ID[postId]
+        if (typeof weeklyBeerVotes === "number") return weeklyBeerVotes
+      }
+      if (rankingPeriod === "weekly" && rankingCategory === "sake") {
+        const weeklySakeVotes = WEEKLY_SAKE_VOTES_BY_ID[postId]
+        if (typeof weeklySakeVotes === "number") return weeklySakeVotes
+      }
+      const votes = allRankingStatsById.get(postId)?.votes
+      return typeof votes === "number" && Number.isFinite(votes) ? Math.max(0, Math.round(votes)) : getRankingLikeCount(postId)
+    },
+    [allRankingStatsById, rankingCategory, rankingPeriod],
+  )
+
+  const getCategoryRankingDelta = useCallback(
+    (postId: number) => allRankingStatsById.get(postId)?.delta ?? getRankingDelta(postId),
+    [allRankingStatsById],
+  )
+
   const categoryRankedPosts = useMemo(() => {
     if (rankingCategory === "all") return []
     return feedPosts
       .filter((post) => getPostRankingCategory(post) === rankingCategory)
-      .sort((a, b) => getRankingLikeCount(b.id) - getRankingLikeCount(a.id))
-  }, [rankingCategory])
+      .sort((a, b) => getCategoryRankingVotes(b.id) - getCategoryRankingVotes(a.id))
+  }, [getCategoryRankingVotes, rankingCategory])
 
   const rankingPodium = useMemo(() => {
     if (rankingCategory === "all") return rankingData.podiumByCategory.all
+    if (rankingPeriod === "weekly" && rankingCategory === "whisky") return whiskyDummyPodiumItems
+    if (rankingPeriod === "weekly" && rankingCategory === "spirits") return spiritsDummyPodiumItems
+    if (rankingPeriod === "weekly" && rankingCategory === "etc") return etcDummyPodiumItems
     const dynamicPodium = categoryRankedPosts.slice(0, rankingCategory === "soju" ? 2 : 3).map((post, index) => ({
       id: post.id,
       rank: (index + 1) as 1 | 2 | 3,
       pair: getRankingPairLabel(post.id),
       category: rankingCategory,
       score: 0,
-      delta: getRankingDelta(post.id),
+      votes: getCategoryRankingVotes(post.id),
+      delta: getCategoryRankingDelta(post.id),
     }))
     if (rankingCategory !== "soju") return dynamicPodium
 
@@ -337,21 +413,49 @@ export default function CommunityRanking() {
         disabled: true,
       },
     ]
-  }, [categoryRankedPosts, rankingCategory, rankingData.podiumByCategory.all])
+  }, [categoryRankedPosts, getCategoryRankingDelta, getCategoryRankingVotes, rankingCategory, rankingData.podiumByCategory.all, rankingPeriod])
 
   const rankingRows = useMemo(() => {
     if (rankingCategory === "all") return rankingData.rows
     if (rankingCategory === "soju") return sojuDummyRankingItems.slice(1)
+    if (rankingPeriod === "weekly" && rankingCategory === "wine") return wineDummyRankingItems
+    if (rankingPeriod === "weekly" && rankingCategory === "whisky") return whiskyDummyRankingItems
+    if (rankingPeriod === "weekly" && rankingCategory === "spirits") return spiritsDummyRankingItems
+    if (rankingPeriod === "weekly" && rankingCategory === "etc") return etcDummyRankingItems
+    if (rankingPeriod === "weekly" && rankingCategory === "sake") {
+      const linkedRows = categoryRankedPosts.slice(3, 4).map((post, index) => ({
+        id: post.id,
+        rank: index + 4,
+        pair: getRankingPairLabel(post.id),
+        category: rankingCategory,
+        score: 0,
+        votes: getCategoryRankingVotes(post.id),
+        delta: getCategoryRankingDelta(post.id),
+      }))
+      return [...linkedRows, ...sakeDummyRankingItems]
+    }
+    if (rankingPeriod === "weekly" && rankingCategory === "beer") {
+      const linkedRows = categoryRankedPosts.slice(3, 5).map((post, index) => ({
+        id: post.id,
+        rank: index + 4,
+        pair: getRankingPairLabel(post.id),
+        category: rankingCategory,
+        score: 0,
+        votes: getCategoryRankingVotes(post.id),
+        delta: getCategoryRankingDelta(post.id),
+      }))
+      return [...linkedRows, ...beerDummyRankingItems]
+    }
     return categoryRankedPosts.slice(3).map((post, index) => ({
       id: post.id,
       rank: index + 4,
       pair: getRankingPairLabel(post.id),
       category: rankingCategory,
       score: 0,
-      votes: getRankingLikeCount(post.id),
-      delta: getRankingDelta(post.id),
+      votes: getCategoryRankingVotes(post.id),
+      delta: getCategoryRankingDelta(post.id),
     }))
-  }, [categoryRankedPosts, rankingCategory, rankingData.rows])
+  }, [categoryRankedPosts, getCategoryRankingDelta, getCategoryRankingVotes, rankingCategory, rankingData.rows, rankingPeriod])
 
   const filteredRankingRows = useMemo(() => {
     if (!isCommunitySearchActive) {
@@ -467,7 +571,7 @@ export default function CommunityRanking() {
       .slice(0, maxRowCount)
       .map((row, index) => ({
         ...row,
-        votes: "disabled" in row && row.disabled ? row.votes : getRankingLikeCount(row.id) || row.votes,
+        votes: row.votes || getRankingLikeCount(row.id),
         rank: rankOffset + index + 1,
       }))
   }, [filteredRankingPodium, filteredRankingRows])
@@ -620,6 +724,7 @@ export default function CommunityRanking() {
         topTab="ranking"
         openFilterAriaLabel="검색 필터 열기"
         onOpenFilter={openFeedFilterPopup}
+        showFilterAction={false}
       />
 
       <SearchFilterModal
@@ -676,6 +781,11 @@ export default function CommunityRanking() {
           onDeleteRecentSearch={(term) => {
             setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
           }}
+          onResetSearch={() => {
+            setFeedSearchValue("")
+            setIsFeedSearchConfirmed(false)
+            resetFilters()
+          }}
           priceRange={priceRange}
           priceMin={PRICE_MIN_WON}
           priceMax={PRICE_MAX_WON}
@@ -701,8 +811,12 @@ export default function CommunityRanking() {
           }}
           onReset={resetFilters}
           onApply={() => {
+            if (feedSearchValue.trim()) {
+              confirmFeedSearch(feedSearchValue)
+            } else {
+              setIsFeedSearchConfirmed(true)
+            }
             setIsFeedFilterPopupOpen(false)
-            setIsFeedSearchConfirmed(true)
           }}
         />
       </SearchFilterModal>
@@ -711,6 +825,7 @@ export default function CommunityRanking() {
         periodItems={rankingPeriods}
         activePeriod={rankingPeriod}
         onChangePeriod={(period) => setQueryParam("period", period)}
+        disabledPeriodKeys={["daily", "monthly"]}
         categoryItems={rankingCategories}
         activeCategory={rankingCategory}
         onChangeCategory={(category) => setQueryParam("cat", category)}

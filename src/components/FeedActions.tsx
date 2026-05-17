@@ -6,6 +6,8 @@ import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
 import iconChat from "../assets/svg/chatcircledots_p.svg"
 import iconBeerstein from "../assets/svg/beerstein_p.svg"
 import iconBeersteinActive from "../assets/svg/beerstein_active.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
+import iconX from "../assets/svg/x.svg"
 import bubbleLarge from "../assets/svg/boll_l.svg"
 import bubbleMedium from "../assets/svg/boll_m.svg"
 import bubbleSmall from "../assets/svg/boll_s.svg"
@@ -148,6 +150,7 @@ export default function FeedActions({
 }: Props) {
   const [isLikeAnimating, setIsLikeAnimating] = useState(false)
   const [likeBurstKey, setLikeBurstKey] = useState(0)
+  const [shareToastMessage, setShareToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isLikeAnimating) return
@@ -161,6 +164,12 @@ export default function FeedActions({
     }
   }, [isLikeAnimating])
 
+  useEffect(() => {
+    if (!shareToastMessage) return
+    const timeoutId = window.setTimeout(() => setShareToastMessage(null), 2000)
+    return () => window.clearTimeout(timeoutId)
+  }, [shareToastMessage])
+
   const handleToggleLike = () => {
     if (!likeActive) {
       setIsLikeAnimating(false)
@@ -170,6 +179,14 @@ export default function FeedActions({
       })
     }
     onToggleLike()
+  }
+
+  const handleShare = () => {
+    if (onShare) {
+      onShare()
+      return
+    }
+    setShareToastMessage("현재 지원되지 않는 기능이에요.")
   }
 
   return (
@@ -221,7 +238,7 @@ export default function FeedActions({
           <span className="feed_action_text">{commentText}</span>
         </button>
 
-        <button type="button" className="feed_action_button" aria-label={shareAriaLabel} onClick={onShare}>
+        <button type="button" className="feed_action_button" aria-label={shareAriaLabel} onClick={handleShare}>
           <img className="feed_action_icon" src={iconShare} alt="" aria-hidden="true" />
         </button>
       </div>
@@ -242,6 +259,18 @@ export default function FeedActions({
           />
         </button>
       </div>
+
+      {shareToastMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_warning">
+            <img src={iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{shareToastMessage}</p>
+          <button type="button" className="app_alert_toast_close" aria-label="닫기" onClick={() => setShareToastMessage(null)}>
+            <img src={iconX} alt="" aria-hidden="true" />
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

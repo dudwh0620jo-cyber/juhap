@@ -22,6 +22,7 @@ const TEXT = {
   verifyButton: "\uC778\uC99D\uBC88\uD638",
   phoneWarning: "\uC804\uD654\uBC88\uD638\uB97C \uB05D\uAE4C\uC9C0 \uC785\uB825\uD574 \uC8FC\uC138\uC694.",
   verifyWarning: "\uC804\uD654\uBC88\uD638 \uC778\uC99D\uC744 \uC644\uB8CC\uD574 \uC8FC\uC138\uC694.",
+  verifySuccess: "인증을 완료했어요.",
   addressLabel: "\uC8FC\uC18C",
   addressSearchLabel: "\uC8FC\uC18C \uAC80\uC0C9",
   addressPlaceholder: "\uAC74\uBB3C, \uC9C0\uBC88 \uB610\uB294 \uB3C4\uB85C\uBA85 \uAC80\uC0C9",
@@ -198,12 +199,15 @@ export default function ProfileSetup() {
                 setIsPhoneVerified(false)
               }}
             />
-            <button type="button" onClick={handleVerifyPhone}>
-              {TEXT.verifyButton}
-            </button>
+            {!isPhoneVerified ? (
+              <button type="button" onClick={handleVerifyPhone}>
+                {TEXT.verifyButton}
+              </button>
+            ) : null}
           </span>
           {showPhoneWarning ? <p className="profile_setup_hint">{TEXT.phoneWarning}</p> : null}
           {showVerifyWarning ? <p className="profile_setup_hint">{TEXT.verifyWarning}</p> : null}
+          {isPhoneVerified ? <p className="profile_setup_hint_success">{TEXT.verifySuccess}</p> : null}
         </label>
 
         <fieldset className="profile_setup_address">

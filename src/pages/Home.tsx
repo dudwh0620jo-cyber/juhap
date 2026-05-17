@@ -8,6 +8,7 @@ import timeSvg from "../assets/svg/time.svg"
 import voteSvg from "../assets/svg/vote.svg"
 import peopleSvg from "../assets/svg/people.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import type { RecommendationItem } from "../components/RecommendationCard"
 import SituationSection from "../components/SituationSection"
@@ -130,7 +131,12 @@ function VoteCard({
 }) {
   const iconSrc = resolveVoteOptionIconSrc(title)
   return (
-    <button type="button" className={`home_vote_option${isSelected ? " is_selected" : ""}`} onClick={onVote}>
+    <button
+      type="button"
+      className={`home_vote_option${isSelected ? " is_selected" : ""}`}
+      onClick={onVote}
+      disabled={voted}
+    >
       <span className="home_vote_option_left">
         <span className="home_vote_option_icon" aria-hidden="true">
           {iconSrc ? <img src={iconSrc} alt="" /> : null}
@@ -163,13 +169,19 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
   const [selectedIndex, setSelectedIndex] = useState<0 | 1 | null>(() => getStoredPicks()[String(voteId)] ?? null)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(() => formatVoteRemaining())
-
+  const [voteAlertMessage, setVoteAlertMessage] = useState<string | null>(null)
   const voted = votedIndex !== null
 
   useEffect(() => {
     const id = window.setInterval(() => setTimeRemaining(formatVoteRemaining()), 1000)
     return () => window.clearInterval(id)
   }, [])
+
+  useEffect(() => {
+    if (!voteAlertMessage) return
+    const timerId = window.setTimeout(() => setVoteAlertMessage(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [voteAlertMessage])
 
   function handleSelect(index: 0 | 1) {
     if (voted) return
@@ -201,7 +213,7 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
           </div>
 
           <div className="home_vote_mascot" aria-hidden="true">
-            <img src={homeAssets.todayVoteMascot} alt="" />
+            <img src={homeAssets.todayVoteMascot} alt="" aria-hidden="true" />
           </div>
 
           <div className="home_vote_options" role="group" aria-label="투표 선택지">
@@ -239,6 +251,10 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
               disabled={voted}
               onClick={() => {
                 if (voted) return
+                if (selectedIndex === null) {
+                  setVoteAlertMessage("선택지를 선택해주세요.")
+                  return
+                }
                 setIsConfirmOpen(true)
               }}
             >
@@ -253,8 +269,8 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
           ariaLabel="투표 참여 확인"
           message={
             <>
-              투표하고 결과보기로 이동하면 바로 참여가 완료돼요. <br />
-              진행할까요?
+              한 번 투표하면 다시는 바꿀 수 없어요. <br />
+              해당 조합에 투표하시겠어요?
             </>
           }
           cancelLabel="취소"
@@ -266,10 +282,19 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
               storePick(voteId, selectedIndex)
               setVotedIndex(selectedIndex)
             }
-            navigate("/vote")
           }}
         />
       ) : null}
+
+      {voteAlertMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_warning">
+            <img src={iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{voteAlertMessage}</p>
+        </div>
+      ) : null}
+
     </>
   )
 }
@@ -520,7 +545,11 @@ export default function Home() {
         type="button"
         className="home_quiz_card"
         aria-label="오늘의 퀴즈"
-        onClick={() => navigate("/quiz")}
+        onClick={() =>
+          navigate("/quiz", {
+            state: { fromPath: `${location.pathname}${location.search}${location.hash}` },
+          })
+        }
         style={{ backgroundImage: `url(${homeAssets.todayQuizBanner})` }}
       >
         <div className="home_quiz_left">
@@ -537,4 +566,3 @@ export default function Home() {
     </section>
   )
 }
-

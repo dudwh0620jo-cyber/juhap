@@ -116,6 +116,10 @@
 }
 
 .product_review_detail_media {
+  width: 100%;
+}
+
+.product_review_detail_media_frame {
   position: relative;
   width: 100%;
 }
@@ -144,15 +148,24 @@
   position: absolute;
   right: 12px;
   bottom: 18px;
-  min-width: 40px;
+  width: 40px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  padding: 4px 8px;
+  padding: 0;
   background: rgba(0, 0, 0, 0.5);
   color: #fdfdfd;
   font-size: 12px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1;
   text-align: center;
+  letter-spacing: 0;
+  font-kerning: none;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .product_review_detail_dots {

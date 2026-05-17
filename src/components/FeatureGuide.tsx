@@ -3,7 +3,7 @@ import type { CSSProperties } from "react"
 import { useLocation } from "react-router"
 import closeIcon from "../assets/svg/x.svg"
 import "../styles/FeatureGuide.css"
-import { FEATURE_GUIDE_STORAGE_KEY, guideItems, type FeatureGuideItem } from "./guideItems"
+import { FEATURE_GUIDE_STORAGE_KEY, guideItems, type FeatureGuideItem } from "../data/guideItems"
 
 type ActiveGuide = {
   item: FeatureGuideItem
@@ -207,5 +207,6 @@ export default function FeatureGuide() {
     </div>
   )
 }
+
 
 

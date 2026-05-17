@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+﻿import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
 
@@ -11,6 +11,7 @@ import iconQuestionActive from "../assets/svg/chatcircledots_p.svg"
 import iconHeart from "../assets/svg/heart_p.svg"
 import iconChat from "../assets/svg/chatcircledots_p.svg"
 import iconShare from "../assets/svg/sharenetwork_p.svg"
+import iconCaretLeft from "../assets/svg/caretleft.svg"
 
 import QuestionPostRow from "../components/QuestionPostRow"
 import {
@@ -93,6 +94,9 @@ export default function MyRecord() {
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = parseTab(searchParams.get("tab"))
   const [userPosts, setUserPosts] = useState<FeedPost[]>([])
+  const recordTabsRef = useRef<HTMLDivElement | null>(null)
+  const recordTabRefs = useRef<Record<RecordTab, HTMLButtonElement | null>>({ alcohol: null, pairing: null, question: null })
+  const [recordTabsGlider, setRecordTabsGlider] = useState({ x: 0, width: 0 })
 
   useEffect(() => {
     const readPosts = () => setUserPosts(readStoredCommunityUserPosts(COMMUNITY_USER_POSTS_KEY))
@@ -129,16 +133,57 @@ export default function MyRecord() {
       return next
     })
 
+  useLayoutEffect(() => {
+    function updateRecordTabsGlider() {
+      const activeTab = recordTabRefs.current[tab]
+      if (!activeTab) return
+      setRecordTabsGlider({
+        x: activeTab.offsetLeft,
+        width: activeTab.offsetWidth,
+      })
+    }
+
+    updateRecordTabsGlider()
+
+    const observer =
+      typeof ResizeObserver === "undefined" || !recordTabsRef.current
+        ? null
+        : new ResizeObserver(() => updateRecordTabsGlider())
+
+    if (recordTabsRef.current) observer?.observe(recordTabsRef.current)
+    window.addEventListener("resize", updateRecordTabsGlider)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener("resize", updateRecordTabsGlider)
+    }
+  }, [tab])
+
   return (
     <section className="my_record_page" aria-label="기록">
+      <header className="my_record_header" aria-label="기록 헤더">
+        <button type="button" className="my_record_back" aria-label="뒤로가기" onClick={() => navigate("/my")}>
+          <img src={iconCaretLeft} alt="" aria-hidden="true" />
+        </button>
+      </header>
+
       <div className="my_record_tabs_shell" aria-label="기록 탭">
-        <div className="my_record_tabs">
+        <div ref={recordTabsRef} className="my_record_tabs">
+          <motion.span
+            className="my_record_tabs_glider"
+            animate={recordTabsGlider}
+            initial={false}
+            transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
+            aria-hidden="true"
+          />
           <button
             type="button"
             className={tab === "alcohol" ? "my_record_tab is_active" : "my_record_tab"}
             onClick={() => setTab("alcohol")}
+            ref={(node) => {
+              recordTabRefs.current.alcohol = node
+            }}
           >
-            {tab === "alcohol" ? <motion.span className="my_record_tab_active_bg" layoutId="my_record_tab_bg" /> : null}
             <img src={tab === "alcohol" ? iconAlcoholActive : iconAlcohol} alt="" aria-hidden="true" />
             <span>주류 후기</span>
           </button>
@@ -147,8 +192,10 @@ export default function MyRecord() {
             type="button"
             className={tab === "pairing" ? "my_record_tab is_active" : "my_record_tab"}
             onClick={() => setTab("pairing")}
+            ref={(node) => {
+              recordTabRefs.current.pairing = node
+            }}
           >
-            {tab === "pairing" ? <motion.span className="my_record_tab_active_bg" layoutId="my_record_tab_bg" /> : null}
             <img src={tab === "pairing" ? iconPairingActive : iconPairing} alt="" aria-hidden="true" />
             <span>페어링 후기</span>
           </button>
@@ -157,8 +204,10 @@ export default function MyRecord() {
             type="button"
             className={tab === "question" ? "my_record_tab is_active" : "my_record_tab"}
             onClick={() => setTab("question")}
+            ref={(node) => {
+              recordTabRefs.current.question = node
+            }}
           >
-            {tab === "question" ? <motion.span className="my_record_tab_active_bg" layoutId="my_record_tab_bg" /> : null}
             <img src={tab === "question" ? iconQuestionActive : iconQuestion} alt="" aria-hidden="true" />
             <span>질문글</span>
           </button>
@@ -211,3 +260,9 @@ export default function MyRecord() {
     </section>
   )
 }
+
+
+
+
+
+

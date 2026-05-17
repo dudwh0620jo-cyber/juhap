@@ -1,16 +1,58 @@
 import { useLayoutEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router"
-import { motion } from "motion/react"
+import { useNavigate, useSearchParams } from "react-router"
+import { AnimatePresence, motion } from "motion/react"
+import type { Variants } from "motion/react"
 import "../styles/vote-list.css"
 import VoteListCard from "../components/VoteListCard"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import { getStoredPicks } from "../utils/votePicks"
 import { voteItems, VOTE_INITIAL_COUNT } from "../data/voteData"
 
+const listVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.03,
+    },
+  },
+}
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 220,
+      damping: 24,
+      mass: 0.95,
+    },
+  },
+}
+
+const moreItemVariants: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 210,
+      damping: 24,
+      mass: 1,
+    },
+  },
+}
+
 export default function VoteList() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const initialFilter = searchParams.get("filter") === "my" ? "my" : "all"
   const [showAll, setShowAll] = useState(false)
-  const [filter, setFilter] = useState<"all" | "my">("all")
+  const [filter, setFilter] = useState<"all" | "my">(initialFilter)
   const pillRef = useRef<HTMLDivElement | null>(null)
   const tabRefs = useRef<Record<"all" | "my", HTMLButtonElement | null>>({ all: null, my: null })
   const [glider, setGlider] = useState({ x: 6, width: 0 })
@@ -22,7 +64,8 @@ export default function VoteList() {
   }))
 
   const filteredItems = filter === "my" ? items.filter((item) => item.myPickIndex !== null) : items
-  const visibleItems = showAll ? filteredItems : filteredItems.slice(0, VOTE_INITIAL_COUNT)
+  const baseItems = filteredItems.slice(0, VOTE_INITIAL_COUNT)
+  const extraItems = showAll ? filteredItems.slice(VOTE_INITIAL_COUNT) : []
 
   useLayoutEffect(() => {
     function updateGlider() {
@@ -99,11 +142,26 @@ export default function VoteList() {
           내 참여 내역
         </button>
       </div>
-      <div className="vote_list_content">
-        {visibleItems.map((item) => (
-          <VoteListCard key={item.id} item={item} />
+      <motion.div
+        key={filter}
+        className="vote_list_content"
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+      >
+        {baseItems.map((item) => (
+          <motion.div key={item.id} variants={cardVariants}>
+            <VoteListCard item={item} />
+          </motion.div>
         ))}
-      </div>
+        <AnimatePresence initial={false}>
+          {extraItems.map((item) => (
+            <motion.div key={item.id} variants={moreItemVariants} initial="hidden" animate="show" exit="hidden">
+              <VoteListCard item={item} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
       {!showAll && filteredItems.length > VOTE_INITIAL_COUNT ? (
         <button type="button" className="vote_list_more" onClick={() => setShowAll(true)}>
           더보기

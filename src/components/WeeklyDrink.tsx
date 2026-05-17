@@ -106,7 +106,7 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
                 <div className="weekly_drink_tags">
                   {item.tags.map((tag) => (
                     <span key={tag} className="weekly_drink_tag">
-                      {tag}
+                      #{tag}
                     </span>
                   ))}
                 </div>

@@ -101,6 +101,39 @@
   padding-top: 18px;
 }
 
+.ai_scan_mode_balloon {
+  position: absolute;
+  left: 50%;
+  top: 84px;
+  transform: translateX(calc(-50% + 46px));
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(202, 128, 79, 0.24);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  box-shadow: 0 8px 20px rgba(68, 65, 63, 0.16);
+  z-index: 5;
+  max-width: 240px;
+}
+
+.ai_scan_mode_balloon::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border: inherit;
+  border-right: 0;
+  border-bottom: 0;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+
 .ai_scan_mode_pill {
   position: relative;
   width: fit-content;
@@ -200,7 +233,7 @@
   border-radius: 20px;
   background: transparent;
   overflow: hidden;
-  cursor: pointer;
+  cursor: default;
   transition:
     border-radius 0.32s ease,
     transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
@@ -756,6 +789,7 @@
   max-width: none;
   border-radius: 16px;
   text-align: center;
+  animation: ai_scan_failure_bubble_in 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .ai_scan_speech_bubble.is_failure::after {
@@ -775,6 +809,8 @@
   height: 155px;
   object-fit: contain;
   filter: saturate(0.82);
+  animation: ai_scan_failure_mascot_in 360ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both,
+    ai_scan_failure_mascot_sway 2.2s ease-in-out 520ms infinite;
 }
 
 .ai_scan_failure_tips_panel {
@@ -849,6 +885,47 @@
   45% {
     transform: scale(1.03);
     opacity: 1;
+  }
+}
+
+@keyframes ai_scan_failure_bubble_in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ai_scan_failure_mascot_in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ai_scan_failure_mascot_sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-2deg);
+  }
+  40% {
+    transform: rotate(1.5deg);
+  }
+  60% {
+    transform: rotate(-1deg);
+  }
+  80% {
+    transform: rotate(1deg);
   }
 }
 

@@ -15,7 +15,10 @@ import iconCaretRight from "../assets/svg/caretright.svg"
 import iconCaretRightWhite from "../assets/svg/caretright_w.svg"
 import iconMicrophone from "../assets/svg/microphone.svg"
 import iconSend from "../assets/svg/telegramlogo.svg"
+import iconCheck from "../assets/svg/check_g.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
 import "../styles/chat.css"
+import { addSavedAlcoholProductId } from "../utils/savedAlcohol"
 import { findGlossaryTopicMatch } from "../utils/chatGlossarySearch"
 import {
   buildGlossaryIntroMessage,
@@ -77,9 +80,8 @@ const PANEL_TRANSITION_MS = 120
 const AI_TYPING_BUBBLE_MS = 260
 const RECOMMENDATION_MATCHING_MS = 3000
 const STEP_PANEL_APPEAR_MS = 80
-const FEATURE_PREPARING_DELAY_MS = 700
-const INITIAL_RECOMMENDATION_COUNT = 2
-const MORE_RECOMMENDATION_COUNT = 3
+const RECOMMENDATION_POOL_COUNT = 4
+const RECOMMENDATION_PAGE_SIZE = 2
 const MICROPHONE_PERMISSION_MODAL = {
   title: "\uB9C8\uC774\uD06C \uAD8C\uD55C\uC774 \uD544\uC694\uD574\uC694",
   message: "\uC74C\uC131 \uC785\uB825\uC744 \uC0AC\uC6A9\uD558\uB824\uBA74\n\uB9C8\uC774\uD06C \uAD8C\uD55C\uC744 \uD5C8\uC6A9\uD574 \uC8FC\uC138\uC694.",
@@ -87,7 +89,6 @@ const MICROPHONE_PERMISSION_MODAL = {
 } as const
 const BACK_MESSAGE = "뒤로가기"
 const MORE_DRINKS_MESSAGE = "다른 술 더보기"
-const FEATURE_PREPARING_MESSAGE = "준비중인 기능이에요"
 
 function getIntroPromptIcon(item: (typeof introPromptOptions)[number]) {
   if (item === scanPromptLabel) return introScanIcon
@@ -391,6 +392,7 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
   const [isTyping, setIsTyping] = useState(false)
   const [isStepPanelVisible, setIsStepPanelVisible] = useState(true)
   const [isMicrophoneModalOpen, setIsMicrophoneModalOpen] = useState(false)
+  const [saveToast, setSaveToast] = useState<{ message: string; tone: "success" | "warning" } | null>(null)
   const actionLockRef = useRef(false)
   const messageInputRef = useRef<HTMLInputElement | null>(null)
   const messagesRef = useRef<HTMLDivElement | null>(null)
@@ -457,6 +459,12 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
   }, [])
 
   useEffect(() => {
+    if (!saveToast) return
+    const timerId = window.setTimeout(() => setSaveToast(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [saveToast])
+
+  useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ block: "end" })
   }, [state.messages.length, state.step, isTyping, isStepPanelVisible])
 
@@ -513,6 +521,15 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     setIsStepPanelVisible(true)
     actionLockRef.current = false
     dispatch({ type: "RESET_TO_INTRO", userName })
+  }
+
+  function handleSaveRecommendation(wineId: string) {
+    const isAdded = addSavedAlcoholProductId(wineId)
+    if (isAdded) {
+      setSaveToast({ message: "술이 저장되었어요.", tone: "success" })
+      return
+    }
+    setSaveToast({ message: "이미 저장되어 있어요.", tone: "warning" })
   }
 
   function dispatchAfterIntroClose(nextActions: ChatAction[]) {
@@ -721,37 +738,29 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     if (state.step !== "recommend") return []
 
     const pool = getTopRecommendations(state.session, 20)
-    if (state.session.recommendationProductIds?.length) {
-      return state.session.recommendationProductIds
-        .map((id) => pool.find((item) => item.id === id))
-        .filter((item): item is WineCandidate => Boolean(item))
-    }
-
-    const primaryRecommendations = primaryRecommendationIds.map((id) => pool.find((item) => item.id === id)).filter(
-      (item): item is WineCandidate => Boolean(item),
-    )
+    const primaryRecommendations = primaryRecommendationIds
+      .map((id) => pool.find((item) => item.id === id))
+      .filter((item): item is WineCandidate => Boolean(item))
     const primaryIds = new Set(primaryRecommendations.map((item) => item.id))
-    const initialRecommendations = [
-      ...primaryRecommendations,
-      ...pool.filter((item) => !primaryIds.has(item.id)),
-    ].slice(0, INITIAL_RECOMMENDATION_COUNT)
+    const recommendationPool = [...primaryRecommendations, ...pool.filter((item) => !primaryIds.has(item.id))].slice(
+      0,
+      RECOMMENDATION_POOL_COUNT,
+    )
 
-    const cursor = state.session.recommendationCursor ?? 0
-    if (cursor === 0) return initialRecommendations
-
-    const otherPool = pool.filter((item) => !primaryRecommendationIds.includes(item.id))
-    if (!otherPool.length) return initialRecommendations
-
-    const otherCursor = ((cursor - 1) * MORE_RECOMMENDATION_COUNT) % otherPool.length
-    const slice = [...otherPool.slice(otherCursor), ...otherPool.slice(0, otherCursor)].slice(0, MORE_RECOMMENDATION_COUNT)
-
-    const lastIds = state.session.lastRecommendationIds ?? []
-    if (lastIds.length && otherPool.length > MORE_RECOMMENDATION_COUNT && slice.some((item) => lastIds.includes(item.id))) {
-      const nextCursor = (otherCursor + MORE_RECOMMENDATION_COUNT) % otherPool.length
-      return [...otherPool.slice(nextCursor), ...otherPool.slice(0, nextCursor)].slice(0, MORE_RECOMMENDATION_COUNT)
+    if (recommendationPool.length <= RECOMMENDATION_PAGE_SIZE) {
+      return recommendationPool
     }
 
-    return slice
+    const pageCount = Math.ceil(recommendationPool.length / RECOMMENDATION_PAGE_SIZE)
+    const pageIndex = (state.session.recommendationCursor ?? 0) % pageCount
+    const start = pageIndex * RECOMMENDATION_PAGE_SIZE
+    const pageItems = recommendationPool.slice(start, start + RECOMMENDATION_PAGE_SIZE)
+
+    if (pageItems.length === RECOMMENDATION_PAGE_SIZE) {
+      return pageItems
+    }
+
+    return [...pageItems, ...recommendationPool].slice(0, RECOMMENDATION_PAGE_SIZE)
   })()
 
   const selectedSessionLabels = getSelectedSessionLabels(state.session)
@@ -904,11 +913,10 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
                     }
                     onGoBack={() =>
                       dispatchAfterSelectionEcho(BACK_MESSAGE, [
-                        { type: "APPEND_USER_MESSAGE", text: BACK_MESSAGE },
                         { type: "GO_BACK" },
                       ])
                     }
-                    onSelectRecommendation={(wineId) => dispatch({ type: "SELECT_RECOMMENDATION", wineId })}
+                    onSaveRecommendation={handleSaveRecommendation}
                     onGoProductDetail={(wineId) => {
                       navigate(`/product/${wineId}?tab=pairing`)
                     }}
@@ -923,9 +931,12 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
                         MORE_DRINKS_MESSAGE,
                         [
                           { type: "APPEND_USER_MESSAGE", text: MORE_DRINKS_MESSAGE },
-                          { type: "APPEND_AI_MESSAGE", text: FEATURE_PREPARING_MESSAGE },
+                          {
+                            type: "SHOW_MORE_RECOMMENDATIONS",
+                            currentIds: recommendations.map((item) => item.id),
+                          },
                         ],
-                        FEATURE_PREPARING_DELAY_MS,
+                        AI_TYPING_BUBBLE_MS,
                       )
                     }
                     onConfirmSelection={() =>
@@ -988,6 +999,15 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
               confirmLabel={MICROPHONE_PERMISSION_MODAL.confirmLabel}
               onConfirm={() => setIsMicrophoneModalOpen(false)}
             />
+          ) : null}
+
+          {saveToast ? (
+            <div className="app_alert_toast" role="status" aria-live="polite">
+              <span className={saveToast.tone === "success" ? "app_alert_toast_icon is_success" : "app_alert_toast_icon is_warning"}>
+                <img src={saveToast.tone === "success" ? iconCheck : iconWarning} alt="" aria-hidden="true" />
+              </span>
+              <p>{saveToast.message}</p>
+            </div>
           ) : null}
         </div>
       </div>
