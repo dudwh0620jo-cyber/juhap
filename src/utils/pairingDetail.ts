@@ -7,6 +7,7 @@ import {
   type FeedPost,
 } from "./communityPosts"
 import { readStoredPairingCommentCount } from "./communityStorage"
+import { getWeeklyAllRankingVotesById } from "./rankingData"
 import { resolveReviewImage } from "./reviewImages"
 import { usersMockById } from "./usersMock"
 
@@ -23,6 +24,7 @@ export type PairingDetailNavState = {
   features?: string[]
   source?: "feed" | "ranking" | "free"
   feedFilter?: "review" | "follow" | "free"
+  rankingVotes?: number
   hideDetailSections?: boolean
   bottomNavActive?: "category"
 }
@@ -70,6 +72,10 @@ export const deleteStoredUserPost = (postId: number, userPostsStorageKey: string
 }
 
 export const getInitialPairingLikeCount = (post: FeedPost | undefined) => {
+  if (typeof post?.id === "number") {
+    const rankingVotes = getWeeklyAllRankingVotesById(post.id)
+    if (typeof rankingVotes === "number") return rankingVotes
+  }
   const value = (post as { likeCount?: unknown } | undefined)?.likeCount
   return typeof value === "number" && Number.isFinite(value) ? value : 0
 }

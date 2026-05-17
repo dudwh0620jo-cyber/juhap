@@ -28,6 +28,7 @@ type CommentItem = {
   userGrade?: string
   text: string
   timeLabel?: string
+  createdAt?: string
   likeCount?: number
   likedByCurrentUser?: boolean
   replyTo?: { userName: string; commentId: number }
@@ -48,14 +49,34 @@ const PAGE_SIZE = 5
 type MentionUser = { id: number; name: string; meta: string }
 type MentionContext = { start: number; end: number; query: string }
 
-const COMMENT_TIME_LABELS = ["어제", "5시간전", "3시간전", "1시간전", "1시간전", "38분전", "2분전", "방금전"] as const
 const COMMENT_LIKE_COUNTS = [4, 4, 4, 8, 1, 15, 6, 3] as const
 
-const getRelativeTimeLabel = (index: number, total: number) => {
-  if (total <= 1) return "방금전"
+const LEGACY_COMMENT_TIME_LABELS = ["어제", "5시간전", "3시간전", "1시간전", "1시간전", "38분전", "2분전", "방금전"] as const
+
+const getSeedCreatedAt = (index: number, total: number) => {
+  if (total <= 1) return new Date().toISOString()
   const safeIndex = Math.max(0, Math.min(index, total - 1))
-  const labelIndex = Math.round((safeIndex / Math.max(1, total - 1)) * (COMMENT_TIME_LABELS.length - 1))
-  return COMMENT_TIME_LABELS[labelIndex]
+  const minuteOffsets = [24 * 60, 5 * 60, 3 * 60, 60, 60, 38, 2, 0]
+  const offsetIndex = Math.round((safeIndex / Math.max(1, total - 1)) * (minuteOffsets.length - 1))
+  return new Date(Date.now() - minuteOffsets[offsetIndex] * 60 * 1000).toISOString()
+}
+
+const formatRelativeTimeFromCreatedAt = (createdAt?: string, fallback = "방금전", now = Date.now()) => {
+  if (!createdAt) return fallback
+  const time = new Date(createdAt).getTime()
+  if (!Number.isFinite(time)) return fallback
+
+  const diffMs = Math.max(0, now - time)
+  const diffMinutes = Math.floor(diffMs / 60000)
+  if (diffMinutes < 1) return "방금전"
+  if (diffMinutes < 60) return `${diffMinutes}분전`
+
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return `${diffHours}시간전`
+
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays === 1) return "어제"
+  return `${diffDays}일전`
 }
 
 const resolveCommentIdentity = (item: Pick<CommentItem, "userId" | "userName" | "userMeta">) => {
@@ -79,7 +100,8 @@ const normalizeCommentItems = (items: CommentItem[]) =>
   items.map((item, index) => ({
     ...item,
     ...resolveCommentIdentity(item),
-    timeLabel: item.timeLabel?.trim() || COMMENT_TIME_LABELS[index % COMMENT_TIME_LABELS.length],
+    timeLabel: item.timeLabel?.trim() || LEGACY_COMMENT_TIME_LABELS[index % LEGACY_COMMENT_TIME_LABELS.length],
+    createdAt: item.createdAt ?? getSeedCreatedAt(index, items.length),
     likeCount: typeof item.likeCount === "number" ? item.likeCount : COMMENT_LIKE_COUNTS[index % COMMENT_LIKE_COUNTS.length],
     likedByCurrentUser: Boolean(item.likedByCurrentUser),
   }))
@@ -122,6 +144,7 @@ export default function CommentSection({
   const [pageIndex, setPageIndex] = useState(0)
   const [hiddenPagerButtonIndexes, setHiddenPagerButtonIndexes] = useState<Set<number>>(() => new Set())
   const [cursorIndex, setCursorIndex] = useState(0)
+  const [relativeTimeNow, setRelativeTimeNow] = useState(() => Date.now())
   const [isMentionOpen, setIsMentionOpen] = useState(false)
   const [expandedReplyParentIds, setExpandedReplyParentIds] = useState<Set<number>>(() => new Set())
   const [followedUserIds, setFollowedUserIds] = useState<Set<number>>(() => {
@@ -209,6 +232,11 @@ export default function CommentSection({
     }
   }, [emptyByDefault, seedComments])
 
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setRelativeTimeNow(Date.now()), 30000)
+    return () => window.clearInterval(intervalId)
+  }, [])
+
   const commentGroups = useMemo(() => {
     const byId = new Map<number, CommentItem>()
     for (const item of commentItems) byId.set(item.id, item)
@@ -216,9 +244,9 @@ export default function CommentSection({
     const topLevel = commentItems
       .filter((item) => !item.replyTo)
       .sort((a, b) => b.id - a.id)
-      .map((item, index, list) => ({
+      .map((item) => ({
         ...item,
-        timeLabel: getRelativeTimeLabel(list.length - 1 - index, list.length),
+        timeLabel: formatRelativeTimeFromCreatedAt(item.createdAt, item.timeLabel, relativeTimeNow),
       }))
     const repliesByParentId = new Map<number, CommentItem[]>()
 
@@ -233,15 +261,15 @@ export default function CommentSection({
       replies.sort((a, b) => b.id - a.id)
       repliesByParentId.set(
         parentId,
-        replies.map((item, index, list) => ({
+        replies.map((item) => ({
           ...item,
-          timeLabel: getRelativeTimeLabel(list.length - 1 - index, list.length),
+          timeLabel: formatRelativeTimeFromCreatedAt(item.createdAt, item.timeLabel, relativeTimeNow),
         })),
       )
     }
 
     return { byId, topLevel, repliesByParentId }
-  }, [commentItems])
+  }, [commentItems, relativeTimeNow])
 
   const visibleCommentCount = commentGroups.topLevel.length
 
@@ -482,6 +510,7 @@ export default function CommentSection({
         userGrade: resolveCommentGrade({ userId: currentUser.id }, getTierLabel),
         text: storedText,
         timeLabel: "방금전",
+        createdAt: new Date().toISOString(),
         likeCount: 0,
         likedByCurrentUser: false,
         replyTo: replyTo ?? undefined,

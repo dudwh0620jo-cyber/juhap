@@ -123,8 +123,12 @@ export default function PairingDetail() {
   const isBookmarked = Number.isFinite(numericId) ? Boolean(bookmarkListById[numericId] ?? bookmarkedById[numericId]) : false
 
   const initialLikeCount = useMemo(
-    () => getInitialPairingLikeCount(post),
-    [post],
+    () => {
+      const rankingVotes = navState.source === "ranking" ? navState.rankingVotes : undefined
+      if (typeof rankingVotes === "number" && Number.isFinite(rankingVotes)) return Math.max(0, Math.round(rankingVotes))
+      return getInitialPairingLikeCount(post)
+    },
+    [navState.rankingVotes, navState.source, post],
   )
 
   const [likeCountByPostId, setLikeCountByPostId] = useState<Record<number, number>>({})

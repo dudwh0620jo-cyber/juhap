@@ -55,6 +55,7 @@ import {
   getPairingCommentNavigationState,
   isCommunityFeedSearchActive,
 } from "../utils/communityFeed"
+import { getWeeklyAllRankingVotesById } from "../utils/rankingData"
 
 const feedPosts: FeedPost[] = communityFeedPosts
 const EMPTY_FILTER_SET = new Set<string>()
@@ -469,7 +470,7 @@ export default function Community() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [isFeedFilterPopupOpen])
 
-  const getLikeCount = (post: FeedPost) => post.likeCount + (likedById[post.id] ? 1 : 0)
+  const getLikeCount = (post: FeedPost) => (getWeeklyAllRankingVotesById(post.id) ?? post.likeCount) + (likedById[post.id] ? 1 : 0)
   const getCommentCount = (post: FeedPost) => commentCountByPostId[post.id] ?? post.commentCount
 
   const openBookmarkPicker = (postId: number) => {

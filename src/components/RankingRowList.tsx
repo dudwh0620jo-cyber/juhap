@@ -119,6 +119,7 @@ export default function RankingRowList({ isNoResults, suggestionTags, onSelectSu
               drinkType: row.pair.split(" + ")[0]?.trim(),
               foods: [row.pair.split(" + ")[1]?.trim()].filter(Boolean),
               source: "ranking",
+              rankingVotes: row.votes,
             }}
           >
             {content}

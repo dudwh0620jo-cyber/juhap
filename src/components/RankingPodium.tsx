@@ -134,6 +134,7 @@ export default function RankingPodium<CategoryKey extends string>({ podiumRankOr
               drinkType: drink,
               foods: [food],
               source: "ranking",
+              rankingVotes: likeCount,
             }}
           >
             {content}

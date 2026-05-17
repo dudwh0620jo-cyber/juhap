@@ -309,6 +309,7 @@ function WeeklyRankingCard({
   scoreLabel,
   isCenter,
   badgeSize,
+  drinkClassName,
 }: {
   badgeSrc: string
   drinkSrc: string
@@ -318,6 +319,7 @@ function WeeklyRankingCard({
   scoreLabel: string
   isCenter?: boolean
   badgeSize?: "sm"
+  drinkClassName?: string
 }) {
   return (
     <article className={`home_weekly_rank_card${isCenter ? " is_center" : ""}`}>
@@ -326,7 +328,7 @@ function WeeklyRankingCard({
       </div>
       <div className="home_weekly_rank_images" aria-hidden="true">
         <img className="home_weekly_rank_food" src={foodSrc} alt="" />
-        <img className="home_weekly_rank_drink" src={drinkSrc} alt="" />
+        <img className={`home_weekly_rank_drink${drinkClassName ? ` ${drinkClassName}` : ""}`} src={drinkSrc} alt="" />
       </div>
       <div className="home_weekly_rank_meta">
         <div className="home_weekly_rank_title">{title}</div>
@@ -363,11 +365,6 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
   }
 
   const virtualActiveIndex = wrapIndex(Math.round(virtualIndex))
-  const topCard =
-    homeWeeklyRankingCards.find((card) => card.id === "weekly-rank-1") ??
-    homeWeeklyRankingCards.find((card) => card.isCenter) ??
-    homeWeeklyRankingCards[0]
-
   useEffect(() => {
     if (total <= 1) return
     if (isAutoPlayPaused) return
@@ -457,6 +454,7 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
                   scoreLabel={card.scoreLabel}
                   isCenter={isActive}
                   badgeSize={card.id === "weekly-rank-4" || card.id === "weekly-rank-5" ? "sm" : undefined}
+                  drinkClassName={card.drinkClassName}
                 />
               </motion.div>
             )
@@ -471,10 +469,8 @@ function HomeWeeklyRanking({ title, subtitle, linkTo }: { title: string; subtitl
         <div className="home_weekly_rank_bubble" aria-hidden="true">
           <img className="home_weekly_rank_mascot" src={homeAssets.weeklyBestMascot} alt="" />
           <div className="home_weekly_rank_bubble_text">
-            <div className="home_weekly_rank_bubble_title">
-              이번 주 1위는 {topCard?.title} {topCard?.subtitle}!
-            </div>
-            <div className="home_weekly_rank_bubble_sub">깔끔한 한 잔이 고기의 풍미를 더 살려줘요.</div>
+            <div className="home_weekly_rank_bubble_title">이번 주 1위는 카스와 닭목살 소금구이!</div>
+            <div className="home_weekly_rank_bubble_sub">카스의 시원함이 닭목살의 풍미를 살려줘요</div>
           </div>
         </div>
       </div>

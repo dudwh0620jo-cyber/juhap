@@ -443,6 +443,31 @@ export const weeklyAllTop5 = weeklyTop5Entries.map((entry) => {
   return { ...meta, rating: entry.score, count: entry.votes ?? 0 }
 }) as [HomeRankingItem, HomeRankingItem, HomeRankingItem, HomeRankingItem, HomeRankingItem]
 
+const weeklyAllVotesById = new Map<number, number>()
+for (const item of weeklyAll.podiumByCategory.all) {
+  if (typeof item.votes === "number" && Number.isFinite(item.votes)) weeklyAllVotesById.set(item.id, item.votes)
+}
+for (const item of weeklyAll.rows) {
+  if (typeof item.votes === "number" && Number.isFinite(item.votes)) weeklyAllVotesById.set(item.id, item.votes)
+}
+
+const setWeeklyCategoryVoteIfMissing = (id: number, votes: number) => {
+  if (!weeklyAllVotesById.has(id)) weeklyAllVotesById.set(id, votes)
+}
+
+setWeeklyCategoryVoteIfMissing(91011, 13422)
+setWeeklyCategoryVoteIfMissing(99003, 10018)
+setWeeklyCategoryVoteIfMissing(1008, 9942)
+setWeeklyCategoryVoteIfMissing(1004, 10012)
+setWeeklyCategoryVoteIfMissing(1007, 9984)
+setWeeklyCategoryVoteIfMissing(91013, 9726)
+setWeeklyCategoryVoteIfMissing(91012, 9991)
+setWeeklyCategoryVoteIfMissing(99001, 9981)
+setWeeklyCategoryVoteIfMissing(99002, 9874)
+setWeeklyCategoryVoteIfMissing(1102, 9728)
+
+export const getWeeklyAllRankingVotesById = (id: number) => weeklyAllVotesById.get(id) ?? null
+
 const rankingPreviewById: Record<number, PairRankingSummary> = {
   91011: { drink: "일품진로", food: "육회", rating: 4.6, count: 13422 },
   91013: { drink: "카스", food: "닭목살 소금구이", rating: 4.0, count: 9422 },
