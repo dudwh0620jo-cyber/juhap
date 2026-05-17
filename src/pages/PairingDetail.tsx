@@ -272,7 +272,9 @@ export default function PairingDetail() {
             resolveImage={resolveQuestionImage}
             ariaLabel="질문 이미지"
           />
-          <h2>{pairingTitle}</h2>
+          <div className="detail_content_heading detail_qna_heading">
+            <h2 className="detail_qna_title">{pairingTitle}</h2>
+          </div>
           {detailBodyText ? <p className="detail_text">{detailBodyText}</p> : null}
           <div className="detail_qna_actions" aria-label="댓글 액션">
             <button
