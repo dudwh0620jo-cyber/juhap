@@ -2440,7 +2440,7 @@ export default function CommunityWrite() {
                                         label: item.label,
                                         type: item.type,
                                         subCategory: item.subCategory,
-                                        imageSrc: item.imageSrc ?? resolvePairingDrinkThumb(item.label),
+                                        imageSrc: item.imageSrc ?? resolvePairingDrinkThumb(item.label) ?? undefined,
                                       })
                                       setPendingPairingDrinkTagSelection(new Set([getDrinkTypeCategoryTag(item.type, item.subCategory)]))
                                     }}

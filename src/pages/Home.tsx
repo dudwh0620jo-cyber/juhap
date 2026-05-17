@@ -171,7 +171,7 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
   const [timeRemaining, setTimeRemaining] = useState(() => formatVoteRemaining())
   const [voteAlertMessage, setVoteAlertMessage] = useState<string | null>(null)
   const voted = votedIndex !== null
-  const displayedTotalVotes = getVoteTotalVotes(voteId, totalVotes)
+  const displayedTotalVotes = getVoteTotalVotes(voteId, totalVotes ?? 0)
 
   useEffect(() => {
     const id = window.setInterval(() => setTimeRemaining(formatVoteRemaining()), 1000)

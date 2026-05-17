@@ -147,13 +147,21 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
   void items
   const [selectedKey, setSelectedKey] = useState<string>(() => homeMomentPickItems[0]?.key ?? "")
   const visibleCards = useMemo(() => {
-    const cardsByKey: Record<string, readonly (typeof homeMomentPickCardsBySituation.solo)[number][]> = {
+    type MomentPickCard = {
+      id: string
+      title: string
+      subtitle: string
+      thumbSrc: string
+      tags: readonly string[]
+      badgeText?: string
+    }
+    const cardsByKey: Record<string, readonly MomentPickCard[]> = {
       solo: homeMomentPickCardsBySituation.solo,
       family: homeMomentPickCardsBySituation.family,
       date: homeMomentPickCardsBySituation.date,
       group: homeMomentPickCardsBySituation.group,
     }
-    return cardsByKey[selectedKey] ?? homeMomentPickCardsBySituation.solo
+    return cardsByKey[selectedKey] ?? cardsByKey.solo
   }, [selectedKey])
 
   useEffect(() => {
