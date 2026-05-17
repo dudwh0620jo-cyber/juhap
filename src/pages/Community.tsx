@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router"
+import { useLocation, useNavigate, useSearchParams } from "react-router"
 import type { KeyboardEvent as ReactKeyboardEvent } from "react"
 import "../styles/community.css"
 import askQuestionBanner from "../assets/ask_question_banner.png"
@@ -792,13 +792,13 @@ export default function Community() {
       ) : null}
 
       {feedFilter === "free" ? (
-        <Link className="question_banner_link" to="/community/write?mode=free" aria-label="질문 작성 배너">
+        <div className="question_banner_link" role="img" aria-label="질문 작성 배너">
           <img className="question_banner_image" src={askQuestionBanner} alt="" aria-hidden="true" />
           <div className="question_banner_copy" aria-hidden="true">
             <p className="question_banner_title">{QUESTION_BANNER_COPY.title}</p>
             <p className="question_banner_subtitle">{QUESTION_BANNER_COPY.subtitle}</p>
           </div>
-        </Link>
+        </div>
       ) : null}
 
       {feedFilter === "follow" ? (

@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
 import { useNavigate } from "react-router"
+import { AnimatePresence, motion } from "motion/react"
 
 import AlertModal from "./AlertModal"
 import PurchaseConfirmModal from "./PurchaseConfirmModal"
@@ -119,6 +120,7 @@ export default function CommentSection({
   const [pendingDeleteCommentId, setPendingDeleteCommentId] = useState<number | null>(null)
   const [inlineReplyCommentId, setInlineReplyCommentId] = useState<number | null>(null)
   const [pageIndex, setPageIndex] = useState(0)
+  const [hiddenPagerButtonIndexes, setHiddenPagerButtonIndexes] = useState<Set<number>>(() => new Set())
   const [cursorIndex, setCursorIndex] = useState(0)
   const [isMentionOpen, setIsMentionOpen] = useState(false)
   const [expandedReplyParentIds, setExpandedReplyParentIds] = useState<Set<number>>(() => new Set())
@@ -136,10 +138,28 @@ export default function CommentSection({
 
   const swipeStartRef = useRef<{ x: number; y: number } | null>(null)
   const mainInputRef = useRef<HTMLInputElement | null>(null)
-  const inlineInputRef = useRef<HTMLInputElement | null>(null)
+  const commentPageRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const [likeAnimatingIds, setLikeAnimatingIds] = useState<Set<number>>(() => new Set())
+  const [commentViewportHeight, setCommentViewportHeight] = useState<number | null>(null)
   const likeAnimationTimeoutByIdRef = useRef<Map<number, number>>(new Map())
-  const getActiveInput = () => (inlineReplyCommentId !== null ? inlineInputRef.current : mainInputRef.current)
+  const getActiveInput = () => mainInputRef.current
+
+  const toggleReplyGroup = (parentId: number) => {
+    setExpandedReplyParentIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(parentId)) next.delete(parentId)
+      else next.add(parentId)
+      return next
+    })
+  }
+
+  const toggleCommentMenu = (commentId: number) => {
+    if (openMenuCommentId === commentId) {
+      setOpenMenuCommentId(null)
+      return
+    }
+    setOpenMenuCommentId(commentId)
+  }
 
   const commentsStorageKey = useMemo(
     () => (pairingId ? getPairingCommentsStorageKey(pairingId) : null),
@@ -179,7 +199,14 @@ export default function CommentSection({
 
   useEffect(() => {
     if (emptyByDefault || seedComments.length === 0) return
-    setCommentItems((prev) => normalizeCommentItems(mergeStoredCommentsWithSeed(prev, seedComments)))
+    let isCancelled = false
+    window.queueMicrotask(() => {
+      if (isCancelled) return
+      setCommentItems((prev) => normalizeCommentItems(mergeStoredCommentsWithSeed(prev, seedComments)))
+    })
+    return () => {
+      isCancelled = true
+    }
   }, [emptyByDefault, seedComments])
 
   const commentGroups = useMemo(() => {
@@ -188,10 +215,10 @@ export default function CommentSection({
 
     const topLevel = commentItems
       .filter((item) => !item.replyTo)
-      .sort((a, b) => a.id - b.id)
+      .sort((a, b) => b.id - a.id)
       .map((item, index, list) => ({
         ...item,
-        timeLabel: getRelativeTimeLabel(index, list.length),
+        timeLabel: getRelativeTimeLabel(list.length - 1 - index, list.length),
       }))
     const repliesByParentId = new Map<number, CommentItem[]>()
 
@@ -203,12 +230,12 @@ export default function CommentSection({
     }
 
     for (const [parentId, replies] of repliesByParentId.entries()) {
-      replies.sort((a, b) => a.id - b.id)
+      replies.sort((a, b) => b.id - a.id)
       repliesByParentId.set(
         parentId,
         replies.map((item, index, list) => ({
           ...item,
-          timeLabel: getRelativeTimeLabel(index, list.length),
+          timeLabel: getRelativeTimeLabel(list.length - 1 - index, list.length),
         })),
       )
     }
@@ -226,23 +253,67 @@ export default function CommentSection({
     if (parentPages.length === 0) parentPages.push([])
 
     return parentPages.map((parents, index) => {
-      const items = parents.flatMap((parent) => {
-        const replies = expandedReplyParentIds.has(parent.id) ? commentGroups.repliesByParentId.get(parent.id) ?? [] : []
-        return [parent, ...replies]
-      })
       const parentIds = new Set(parents.map((parent) => parent.id))
       const orphanReplies = commentItems
         .filter((item) => item.replyTo && !commentGroups.byId.has(item.replyTo.commentId))
         .sort((a, b) => a.id - b.id)
-      if (index === parentPages.length - 1 && orphanReplies.length > 0) {
-        items.push(...orphanReplies.filter((reply) => !reply.replyTo || !parentIds.has(reply.replyTo.commentId)))
+      return {
+        index,
+        parents,
+        orphanReplies:
+          index === parentPages.length - 1
+            ? orphanReplies.filter((reply) => !reply.replyTo || !parentIds.has(reply.replyTo.commentId))
+            : [],
       }
-      return { index, items }
     })
-  }, [commentGroups.byId, commentGroups.repliesByParentId, commentGroups.topLevel, commentItems, expandedReplyParentIds])
+  }, [commentGroups.byId, commentGroups.topLevel, commentItems])
 
   const maxPageIndex = Math.max(0, pagedComments.length - 1)
   const safePageIndex = Math.min(pageIndex, maxPageIndex)
+
+  useLayoutEffect(() => {
+    const activePage = commentPageRefs.current.get(safePageIndex)
+    if (!activePage) return
+
+    const updateHeight = () => {
+      setCommentViewportHeight(Math.ceil(activePage.scrollHeight))
+    }
+
+    updateHeight()
+    const observer = new ResizeObserver(updateHeight)
+    observer.observe(activePage)
+    return () => observer.disconnect()
+  }, [safePageIndex, pagedComments, expandedReplyParentIds])
+
+  useLayoutEffect(() => {
+    const animationFrameId = window.requestAnimationFrame(() => {
+      if (openMenuCommentId === null) {
+        setHiddenPagerButtonIndexes(new Set())
+        return
+      }
+
+      const menuRect = document.querySelector(".comment_menu")?.getBoundingClientRect()
+      if (!menuRect) {
+        setHiddenPagerButtonIndexes(new Set())
+        return
+      }
+
+      const nextHiddenIndexes = new Set<number>()
+      document.querySelectorAll<HTMLButtonElement>(".comment_pager_button").forEach((button, index) => {
+        const buttonRect = button.getBoundingClientRect()
+        const isOverlapping =
+          menuRect.left < buttonRect.right &&
+          menuRect.right > buttonRect.left &&
+          menuRect.top < buttonRect.bottom &&
+          menuRect.bottom > buttonRect.top
+
+        if (isOverlapping) nextHiddenIndexes.add(index)
+      })
+      setHiddenPagerButtonIndexes(nextHiddenIndexes)
+    })
+
+    return () => window.cancelAnimationFrame(animationFrameId)
+  }, [openMenuCommentId, commentViewportHeight, safePageIndex])
 
   useEffect(() => {
     // keep in sync when other screens change follow list
@@ -419,11 +490,9 @@ export default function CommentSection({
     setCommentValue("")
     setAlertMessage(null)
     setInlineReplyCommentId(null)
-    // Go to newest page only when posting a new top-level comment.
     if (inlineReplyCommentId === null) {
-      const nextCount = visibleCommentCount + 1
-      const nextMaxPage = Math.max(0, Math.ceil(nextCount / PAGE_SIZE) - 1)
-      setPageIndex(nextMaxPage)
+      setExpandedReplyParentIds(new Set())
+      setPageIndex(0)
     } else if (replyTo) {
       setExpandedReplyParentIds((prev) => {
         const next = new Set(prev)
@@ -447,7 +516,7 @@ export default function CommentSection({
     setInlineReplyCommentId(item.id)
     setIsMentionOpen(false)
     requestAnimationFrame(() => {
-      const input = inlineInputRef.current
+      const input = mainInputRef.current
       if (!input) return
       input.focus()
       input.setSelectionRange(nextValue.length, nextValue.length)
@@ -526,6 +595,7 @@ export default function CommentSection({
     setEditingCommentId(null)
     setEditingCommentValue("")
     setInlineReplyCommentId(null)
+    setExpandedReplyParentIds(new Set())
   }
 
   const goToPrevPage = () => {
@@ -547,12 +617,166 @@ export default function CommentSection({
 
   const canGoPrev = safePageIndex > 0
   const canGoNext = safePageIndex < maxPageIndex
+
+  const renderCommentRow = (item: CommentItem) => {
+    const isMyComment = item.userId === currentUser.id
+    const authorAvatarSrc = resolveUserAvatar(item.userId)
+    const authorInitial = item.userName?.trim().slice(0, 1) || "?"
+    const replyCount = item.replyTo ? 0 : commentGroups.repliesByParentId.get(item.id)?.length ?? 0
+    const isRepliesExpanded = expandedReplyParentIds.has(item.id)
+
+    return (
+      <div
+        className={`${item.replyTo ? "comment_row is_reply" : "comment_row"}${replyCount > 0 ? " has_replies" : ""}${
+          openMenuCommentId === item.id ? " has_open_menu" : ""
+        }`}
+        key={item.id}
+      >
+        {item.replyTo ? <img className="comment_reply_corner_icon" src={iconReplyArrow} alt="" aria-hidden="true" /> : null}
+        <div className="comment_row_layout">
+          <div className="comment_profile_block">
+            <button
+              type="button"
+              className="comment_avatar_button"
+              aria-label={isMyComment ? "내 프로필 보기" : `${item.userName} 프로필`}
+              onClick={() => {
+                if (isMyComment) navigate("/my")
+              }}
+            >
+              <div className="comment_avatar" aria-hidden="true">
+                {authorAvatarSrc ? (
+                  <img className="comment_avatar_image" src={authorAvatarSrc} alt="" aria-hidden="true" />
+                ) : (
+                  <span className="comment_avatar_fallback">{authorInitial}</span>
+                )}
+              </div>
+            </button>
+          </div>
+
+          <div className="comment_body">
+            <div className="comment_header_main">
+              <button
+                type="button"
+                className="comment_author_button"
+                onClick={() => {
+                  if (isMyComment) navigate("/my")
+                }}
+              >
+                <span className="comment_author_name">{item.userName}</span>
+              </button>
+              <span className={getTierClassName(item.userId)}>{resolveCommentGrade(item, getTierLabel)}</span>
+              <span className="comment_header_dot" aria-hidden="true">·</span>
+              <span className="comment_time">{item.timeLabel}</span>
+              {isMyComment ? <span className="author_owner_badge comment_owner_badge">작성자</span> : null}
+            </div>
+
+            <div className="comment_content_block">
+              {editingCommentId === item.id ? (
+                <div className="comment_edit_shell">
+                  <input
+                    className="comment_edit_input"
+                    value={editingCommentValue}
+                    onChange={(event) => setEditingCommentValue(event.target.value)}
+                    aria-label="댓글 수정"
+                  />
+                  <div className="comment_edit_actions">
+                    <button type="button" onClick={cancelEdit}>
+                      취소
+                    </button>
+                    <button type="button" className="is_primary" onClick={confirmEdit}>
+                      저장
+                    </button>
+                  </div>
+                </div>
+              ) : item.replyTo ? (
+                <p className="comment_reply_line">
+                  <span className="comment_reply_mention">@{item.replyTo.userName} </span>
+                  <span className="comment_reply_text">{item.text}</span>
+                </p>
+              ) : (
+                <p className="comment_text">{item.text}</p>
+              )}
+
+              {!item.replyTo ? (
+                <div className="comment_footer">
+                  <button type="button" className="comment_reply_button" onClick={() => mentionFromComment(item)}>
+                    답글달기
+                  </button>
+                </div>
+              ) : null}
+
+              {!item.replyTo && replyCount > 0 ? (
+                <button
+                  type="button"
+                  className={`comment_reply_toggle${isRepliesExpanded ? " is_expanded" : ""}`}
+                  onClick={() => toggleReplyGroup(item.id)}
+                  aria-label={isRepliesExpanded ? "답글 닫기" : `답글 ${replyCount}개 펼치기`}
+                  aria-expanded={isRepliesExpanded}
+                >
+                  <span className="comment_reply_toggle_bar" aria-hidden="true" />
+                  <span>{isRepliesExpanded ? "답글 닫기" : `답글 ${replyCount}개`}</span>
+                  <img src={iconCaretLeft} alt="" aria-hidden="true" />
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="comment_side">
+            <div className="comment_actions">
+              {isMyComment ? (
+                <button
+                  type="button"
+                  className="comment_menu_toggle"
+                  aria-label="댓글 메뉴"
+                  aria-haspopup="menu"
+                  aria-expanded={openMenuCommentId === item.id}
+                  onClick={() => toggleCommentMenu(item.id)}
+                >
+                  <img src={iconDots} alt="" aria-hidden="true" />
+                </button>
+              ) : (
+                <span className="comment_menu_spacer" aria-hidden="true" />
+              )}
+
+              {openMenuCommentId === item.id ? (
+                <div
+                  className="comment_menu"
+                  role="menu"
+                  aria-label="댓글 메뉴"
+                >
+                  <button type="button" role="menuitem" onClick={() => startEdit(item)}>
+                    수정
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => requestDeleteComment(item.id)}>
+                    삭제
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            <button
+              type="button"
+              className={item.likedByCurrentUser ? "comment_like_button is_active" : "comment_like_button"}
+              aria-label={item.likedByCurrentUser ? "댓글 좋아요 취소" : "댓글 좋아요"}
+              aria-pressed={item.likedByCurrentUser}
+              onClick={() => toggleCommentLike(item.id)}
+            >
+              <img
+                className={likeAnimatingIds.has(item.id) ? "comment_like_icon is_like_animated" : "comment_like_icon"}
+                src={item.likedByCurrentUser ? iconBeersteinActive : iconBeerstein}
+                alt=""
+                aria-hidden="true"
+              />
+              <span>{item.likeCount ?? 0}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const mainCommentInputForm = (
-    <form
-      className="comment_input"
-      onSubmit={handleSubmit}
-      style={inlineReplyCommentId !== null ? { display: "none" } : undefined}
-    >
+    <form className="comment_input" onSubmit={handleSubmit}>
       {isMentionPicking && mentionCandidates.length > 0 ? (
         <div className="comment_mention_panel" role="listbox" aria-label="태그할 유저 목록">
           {mentionCandidates.map((user) => (
@@ -649,7 +873,10 @@ export default function CommentSection({
             <h3 className="comment_list_title">댓글 {countOffset + visibleCommentCount}</h3>
           </div>
           {mainCommentInputForm}
-        <div className="comment_slide_viewport">
+        <div
+          className={`comment_slide_viewport${openMenuCommentId !== null ? " has_open_menu" : ""}`}
+          style={commentViewportHeight !== null ? { height: commentViewportHeight } : undefined}
+        >
           <div
             className="comment_page_track"
             style={{
@@ -658,210 +885,44 @@ export default function CommentSection({
             }}
           >
             {pagedComments.map((page) => (
-              <div className="comment_page" key={page.index} style={{ width: `${100 / Math.max(1, pagedComments.length)}%` }}>
-                {page.items.map((item) => {
-                const isMyComment = item.userId === currentUser.id
-                const authorAvatarSrc = resolveUserAvatar(item.userId)
-                const authorInitial = item.userName?.trim().slice(0, 1) || "?"
-                const replyCount = item.replyTo ? 0 : commentGroups.repliesByParentId.get(item.id)?.length ?? 0
-                const isRepliesExpanded = expandedReplyParentIds.has(item.id)
-                return (
-                  <div className={item.replyTo ? "comment_row is_reply" : "comment_row"} key={item.id}>
-                    {item.replyTo ? <img className="comment_reply_corner_icon" src={iconReplyArrow} alt="" aria-hidden="true" /> : null}
-                    <div className="comment_row_layout">
-                      <div className="comment_profile_block">
-                        <button
-                          type="button"
-                          className="comment_avatar_button"
-                          aria-label={isMyComment ? "내 프로필 보기" : `${item.userName} 프로필`}
-                          onClick={() => {
-                            if (isMyComment) navigate("/my")
-                          }}
-                        >
-                          <div className="comment_avatar" aria-hidden="true">
-                            {authorAvatarSrc ? (
-                              <img className="comment_avatar_image" src={authorAvatarSrc} alt="" aria-hidden="true" />
-                            ) : (
-                              <span className="comment_avatar_fallback">{authorInitial}</span>
-                            )}
-                          </div>
-                        </button>
-                      </div>
+              <div
+                className={`comment_page${page.index === safePageIndex ? " is_active" : ""}`}
+                key={page.index}
+                ref={(element) => {
+                  if (element) commentPageRefs.current.set(page.index, element)
+                  else commentPageRefs.current.delete(page.index)
+                }}
+                style={{ width: `${100 / Math.max(1, pagedComments.length)}%` }}
+              >
+                {page.parents.map((parent) => {
+                  const replies = commentGroups.repliesByParentId.get(parent.id) ?? []
+                  const isRepliesExpanded = expandedReplyParentIds.has(parent.id)
+                  const hasOpenReplyMenu = replies.some((reply) => reply.id === openMenuCommentId)
+                  const hasOpenMenu = parent.id === openMenuCommentId || hasOpenReplyMenu
 
-                      <div className="comment_body">
-                        <div className="comment_header_main">
-                          <button
-                            type="button"
-                            className="comment_author_button"
-                            onClick={() => {
-                              if (isMyComment) navigate("/my")
-                            }}
+                  return (
+                    <div className={`comment_thread${hasOpenMenu ? " has_open_menu" : ""}`} key={parent.id}>
+                      {renderCommentRow(parent)}
+                      <AnimatePresence initial={false}>
+                        {isRepliesExpanded && replies.length > 0 ? (
+                          <motion.div
+                            className={`comment_reply_group${hasOpenReplyMenu ? " has_open_menu" : ""}`}
+                            key={`replies-${parent.id}`}
+                            initial={{ height: 0, opacity: 0, y: -6 }}
+                            animate={{ height: "auto", opacity: 1, y: 0 }}
+                            exit={{ height: 0, opacity: 0, y: -6 }}
+                            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
                           >
-                            <span className="comment_author_name">{item.userName}</span>
-                          </button>
-                          <span className={getTierClassName(item.userId)}>{resolveCommentGrade(item, getTierLabel)}</span>
-                          <span className="comment_header_dot" aria-hidden="true">ㆍ</span>
-                          <span className="comment_time">{item.timeLabel}</span>
-                          {isMyComment ? <span className="author_owner_badge comment_owner_badge">작성자</span> : null}
-                        </div>
-
-                        <div className="comment_content_block">
-                          {editingCommentId === item.id ? (
-                            <div className="comment_edit_shell">
-                              <input
-                                className="comment_edit_input"
-                                value={editingCommentValue}
-                                onChange={(event) => setEditingCommentValue(event.target.value)}
-                                aria-label="댓글 수정"
-                              />
-                              <div className="comment_edit_actions">
-                                <button type="button" onClick={cancelEdit}>
-                                  취소
-                                </button>
-                                <button type="button" className="is_primary" onClick={confirmEdit}>
-                                  저장
-                                </button>
-                              </div>
-                            </div>
-                          ) : item.replyTo ? (
-                            <p className="comment_reply_line">
-                              <span className="comment_reply_text">{item.text}</span>
-                            </p>
-                          ) : (
-                            <p className="comment_text">{item.text}</p>
-                          )}
-
-                          <div className="comment_footer">
-                            <button type="button" className="comment_reply_button" onClick={() => mentionFromComment(item)}>
-                              답글쓰기
-                            </button>
-                          </div>
-
-                          {!item.replyTo && replyCount > 0 && !isRepliesExpanded ? (
-                            <button
-                              type="button"
-                              className="comment_reply_toggle"
-                              onClick={() =>
-                                setExpandedReplyParentIds((prev) => {
-                                  const next = new Set(prev)
-                                  next.add(item.id)
-                                  return next
-                                })
-                              }
-                              aria-label={`답글 ${replyCount}개 펼치기`}
-                            >
-                              <span className="comment_reply_toggle_bar" aria-hidden="true" />
-                              <span>답글 {replyCount}개</span>
-                              <img src={iconCaretLeft} alt="" aria-hidden="true" />
-                            </button>
-                          ) : null}
-
-                        </div>
-                      </div>
-
-                      <div className="comment_side">
-                        <div className="comment_actions">
-                          {isMyComment ? (
-                            <button
-                              type="button"
-                              className="comment_menu_toggle"
-                              aria-label="댓글 메뉴"
-                              aria-haspopup="menu"
-                              aria-expanded={openMenuCommentId === item.id}
-                              onClick={() => setOpenMenuCommentId((prev) => (prev === item.id ? null : item.id))}
-                            >
-                              <img src={iconDots} alt="" aria-hidden="true" />
-                            </button>
-                          ) : (
-                            <span className="comment_menu_spacer" aria-hidden="true" />
-                          )}
-
-                          {openMenuCommentId === item.id ? (
-                            <div className="comment_menu" role="menu" aria-label="댓글 메뉴">
-                              <button type="button" role="menuitem" onClick={() => startEdit(item)}>
-                                수정
-                              </button>
-                              <button type="button" role="menuitem" onClick={() => requestDeleteComment(item.id)}>
-                                삭제
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
-
-                        <button
-                          type="button"
-                          className={item.likedByCurrentUser ? "comment_like_button is_active" : "comment_like_button"}
-                          aria-label={item.likedByCurrentUser ? "댓글 좋아요 취소" : "댓글 좋아요"}
-                          aria-pressed={item.likedByCurrentUser}
-                          onClick={() => toggleCommentLike(item.id)}
-                        >
-                          <img
-                            className={
-                              likeAnimatingIds.has(item.id) ? "comment_like_icon is_like_animated" : "comment_like_icon"
-                            }
-                            src={item.likedByCurrentUser ? iconBeersteinActive : iconBeerstein}
-                            alt=""
-                            aria-hidden="true"
-                          />
-                          <span>{item.likeCount ?? 0}</span>
-                        </button>
-                      </div>
-                    </div>
-                    {inlineReplyCommentId === item.id ? (
-                      <form className="comment_inline_reply" onSubmit={handleSubmit}>
-                        {isMentionPicking && mentionCandidates.length > 0 ? (
-                          <div className="comment_mention_panel" role="listbox" aria-label="태그할 유저 목록">
-                            {mentionCandidates.map((user) => (
-                              <button
-                                key={user.id}
-                                type="button"
-                                className="comment_mention_item"
-                                role="option"
-                                onMouseDown={(event) => event.preventDefault()}
-                                onClick={() => applyMention(user)}
-                              >
-                                <span className="comment_mention_name">@{user.name}</span>
-                                <span className="comment_mention_meta">{user.meta}</span>
-                              </button>
-                            ))}
-                          </div>
+                            {replies.map((reply) => renderCommentRow(reply))}
+                          </motion.div>
                         ) : null}
-
-                        <input
-                          ref={inlineInputRef}
-                          className="comment_inline_reply_field"
-                          value={commentValue}
-                          onChange={(event) => {
-                            setCommentValue(event.target.value)
-                            setAlertMessage(null)
-                            setCursorIndex(event.target.selectionStart ?? event.target.value.length)
-                            setIsMentionOpen(true)
-                          }}
-                          onFocus={() => setIsMentionOpen(true)}
-                          onBlur={() => setIsMentionOpen(false)}
-                          onKeyUp={(event) => {
-                            const target = event.currentTarget
-                            setCursorIndex(target.selectionStart ?? target.value.length)
-                            if (!isMentionOpen) setIsMentionOpen(true)
-                          }}
-                          onClick={(event) => {
-                            const target = event.currentTarget
-                            setCursorIndex(target.selectionStart ?? target.value.length)
-                          }}
-                          placeholder="댓글을 입력해보세요"
-                          aria-label="댓글 입력"
-                        />
-                        <button type="submit" aria-label="댓글 등록">
-                          등록
-                        </button>
-                      </form>
-                    ) : null}
-                  </div>
-                )
-              })}
-
-                </div>
-              ))}
+                      </AnimatePresence>
+                    </div>
+                  )
+                })}
+                {page.orphanReplies.map((reply) => renderCommentRow(reply))}
+              </div>
+            ))}
             </div>
           </div>
         </div>
@@ -869,7 +930,7 @@ export default function CommentSection({
           <div className="comment_pager_left" aria-label="처음/이전 페이지">
             <button
               type="button"
-              className="comment_pager_button"
+              className={`comment_pager_button${hiddenPagerButtonIndexes.has(0) ? " is_hidden" : ""}`}
               onClick={goToFirstPage}
               disabled={!canGoPrev}
               aria-label="처음 페이지"
@@ -878,7 +939,7 @@ export default function CommentSection({
             </button>
             <button
               type="button"
-              className="comment_pager_button"
+              className={`comment_pager_button${hiddenPagerButtonIndexes.has(1) ? " is_hidden" : ""}`}
               onClick={goToPrevPage}
               disabled={!canGoPrev}
               aria-label="이전 페이지"
@@ -894,7 +955,7 @@ export default function CommentSection({
           <div className="comment_pager_right" aria-label="다음/마지막 페이지">
             <button
               type="button"
-              className="comment_pager_button"
+              className={`comment_pager_button${hiddenPagerButtonIndexes.has(2) ? " is_hidden" : ""}`}
               onClick={goToNextPage}
               disabled={!canGoNext}
               aria-label="다음 페이지"
@@ -903,7 +964,7 @@ export default function CommentSection({
             </button>
             <button
               type="button"
-              className="comment_pager_button"
+              className={`comment_pager_button${hiddenPagerButtonIndexes.has(3) ? " is_hidden" : ""}`}
               onClick={goToLastPage}
               disabled={!canGoNext}
               aria-label="마지막 페이지"

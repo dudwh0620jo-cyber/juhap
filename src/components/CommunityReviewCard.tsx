@@ -1,4 +1,5 @@
-﻿import { useRef, useState } from "react"
+import { useRef, useState } from "react"
+import type { KeyboardEvent, PointerEvent } from "react"
 import { useNavigate } from "react-router"
 
 import iconDots from "../assets/svg/dotsthreevertical.svg"
@@ -79,8 +80,40 @@ export default function CommunityReviewCard({
   const safePhotoIds = photoIds?.slice(0, 3) ?? []
   const imageTotal = safePhotoIds.length
   const imageListRef = useRef<HTMLDivElement | null>(null)
+  const imagePointerStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const authorInitial = authorName.trim().slice(0, 1) || "?"
+
+  const navigateToDetail = () => {
+    navigate(linkTo, { state: linkState })
+  }
+
+  const handleImagePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    imagePointerStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      time: window.performance.now(),
+    }
+  }
+
+  const handleImagePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const start = imagePointerStartRef.current
+    imagePointerStartRef.current = null
+    if (!start) return
+
+    const deltaX = event.clientX - start.x
+    const deltaY = event.clientY - start.y
+    const distance = Math.hypot(deltaX, deltaY)
+    const duration = window.performance.now() - start.time
+
+    if (distance <= 8 && duration <= 300) navigateToDetail()
+  }
+
+  const handleImageKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return
+    event.preventDefault()
+    navigateToDetail()
+  }
 
   return (
     <article className="community_review_card" key={postId}>
@@ -121,7 +154,18 @@ export default function CommunityReviewCard({
       />
 
       {imageTotal > 0 ? (
-        <div className="community_review_media">
+        <div
+          className="community_review_media"
+          role="button"
+          tabIndex={0}
+          aria-label="후기 사진 상세 보기"
+          onPointerDown={handleImagePointerDown}
+          onPointerUp={handleImagePointerUp}
+          onPointerCancel={() => {
+            imagePointerStartRef.current = null
+          }}
+          onKeyDown={handleImageKeyDown}
+        >
           <div
             ref={imageListRef}
             className="community_review_images"
@@ -162,11 +206,11 @@ export default function CommunityReviewCard({
         className="community_review_content"
         role="link"
         tabIndex={0}
-        onClick={() => navigate(linkTo, { state: linkState })}
+        onClick={navigateToDetail}
         onKeyDown={(event) => {
           if (event.key !== "Enter" && event.key !== " ") return
           event.preventDefault()
-          navigate(linkTo, { state: linkState })
+          navigateToDetail()
         }}
       >
         <ReviewContentBlock
