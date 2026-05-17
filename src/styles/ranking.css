@@ -90,6 +90,13 @@
   font-weight: 700;
 }
 
+.ranking_periods button.is_disabled,
+.ranking_periods button:disabled {
+  color: #b6aca5;
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .ranking_tags {
   display: flex;
   gap: 8px;
@@ -217,7 +224,7 @@
   z-index: 3;
   display: grid;
   justify-items: center;
-  gap: 2px;
+  gap: 1px;
   width: 100%;
 }
 
@@ -266,7 +273,7 @@
 
 .podium_delta.row_delta {
   justify-self: center;
-  margin-top: 0;
+  margin-top: -3px;
   font-size: 12px;
   line-height: 16px;
 }
@@ -331,11 +338,26 @@
   bottom: 25px;
 }
 
+.podium_second .podium_thumb.is_food.is_spirits_podium {
+  left: -2px;
+  bottom: 22px;
+}
+
 .podium_first .podium_thumb.is_food {
   width: 79px;
   height: 79px;
   bottom: 35px;
   margin-right: 0;
+}
+
+.podium_first .podium_thumb.is_food.is_spirits_podium {
+  left: -4px;
+  bottom: 31px;
+}
+
+.podium_third .podium_thumb.is_food.is_spirits_podium {
+  left: -5px;
+  bottom: 21px;
 }
 
 .podium_thumb.is_drink,
@@ -354,11 +376,55 @@
   height: 113px;
 }
 
+.podium_second .podium_thumb.is_spirits_podium {
+  right: -3px;
+}
+
+.podium_second .podium_thumb.is_don_julio {
+  right: -10px;
+  bottom: 6px;
+  height: 98px;
+}
+
+.podium_second .podium_thumb.is_etc_top_drink {
+  right: -13px;
+  bottom: 16px;
+  height: 72px;
+}
+
 .podium_first .podium_thumb.is_drink,
 .podium_first .podium_thumb.is_bottle {
   right: 0;
   bottom: 0;
   height: 149px;
+}
+
+.podium_first .podium_thumb.is_spirits_podium {
+  right: -5px;
+}
+
+.podium_third .podium_thumb.is_spirits_podium {
+  right: -5px;
+}
+
+.podium_third .podium_thumb.is_etc_third_drink {
+  right: -7px;
+  bottom: 8px;
+}
+
+.podium_first .podium_thumb.is_ilpoom_jinro {
+  right: -8px;
+  height: 142px;
+}
+
+.podium_first .podium_thumb.is_etc_top_drink {
+  right: -10px;
+  bottom: 22px;
+  height: 88px;
+}
+
+.podium_second .podium_thumb.is_heineken_pasta {
+  height: 106px;
 }
 
 .ranking_list {

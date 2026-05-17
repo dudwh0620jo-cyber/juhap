@@ -10,9 +10,10 @@ type Props<T extends string> = {
   items: readonly RankingTabItem<T>[]
   activeKey: T
   onChange: (key: T) => void
+  disabledKeys?: readonly T[]
 }
 
-export default function RankingPeriodTabs<T extends string>({ items, activeKey, onChange }: Props<T>) {
+export default function RankingPeriodTabs<T extends string>({ items, activeKey, onChange, disabledKeys = [] }: Props<T>) {
   const rowRef = useRef<HTMLDivElement | null>(null)
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [glider, setGlider] = useState({ x: 0, width: 0 })
@@ -46,20 +47,26 @@ export default function RankingPeriodTabs<T extends string>({ items, activeKey, 
         transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.8 }}
         aria-hidden="true"
       />
-      {items.map((item) => (
-        <button
-          className={activeKey === item.key ? "is_active" : ""}
-          key={item.key}
-          type="button"
-          onClick={() => onChange(item.key)}
-          ref={(node) => {
-            tabRefs.current[item.key] = node
-          }}
-        >
-          {item.label}
-        </button>
-      ))}
+      {items.map((item) => {
+        const isDisabled = disabledKeys.includes(item.key)
+        return (
+          <button
+            className={[activeKey === item.key ? "is_active" : "", isDisabled ? "is_disabled" : ""].filter(Boolean).join(" ")}
+            key={item.key}
+            type="button"
+            disabled={isDisabled}
+            aria-disabled={isDisabled}
+            onClick={() => {
+              if (!isDisabled) onChange(item.key)
+            }}
+            ref={(node) => {
+              tabRefs.current[item.key] = node
+            }}
+          >
+            {item.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
-

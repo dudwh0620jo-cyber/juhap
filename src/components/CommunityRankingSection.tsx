@@ -35,6 +35,7 @@ type Props<PeriodKey extends string, CategoryKey extends string> = {
   periodItems: readonly RankingPeriodItem<PeriodKey>[]
   activePeriod: PeriodKey
   onChangePeriod: (period: PeriodKey) => void
+  disabledPeriodKeys?: readonly PeriodKey[]
 
   categoryItems: readonly RankingCategoryItem<CategoryKey>[]
   activeCategory: CategoryKey
@@ -54,6 +55,7 @@ export default function CommunityRankingSection<PeriodKey extends string, Catego
   periodItems,
   activePeriod,
   onChangePeriod,
+  disabledPeriodKeys,
   categoryItems,
   activeCategory,
   onChangeCategory,
@@ -67,7 +69,7 @@ export default function CommunityRankingSection<PeriodKey extends string, Catego
 }: Props<PeriodKey, CategoryKey>) {
   return (
     <section className="ranking_content" aria-label="랭킹 목록">
-      <RankingPeriodTabs items={periodItems} activeKey={activePeriod} onChange={onChangePeriod} />
+      <RankingPeriodTabs items={periodItems} activeKey={activePeriod} onChange={onChangePeriod} disabledKeys={disabledPeriodKeys} />
       <RankingCategoryTabs items={categoryItems} activeKey={activeCategory} onChange={onChangeCategory} />
       <RankingPodium podiumRankOrder={podiumRankOrder} items={podiumItems} getVotes={getPodiumVotes} />
       <RankingRowList
