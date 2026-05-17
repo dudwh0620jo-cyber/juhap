@@ -2,6 +2,7 @@ import type { ReactNode, RefObject } from "react"
 import CommunityFeedFilterPopupBody from "./CommunityFeedFilterPopupBody"
 import RecentSearchChips from "./RecentSearchChips"
 import SearchFilterModalHeader from "./SearchFilterModalHeader"
+import mascotImage from "../assets/onboarding-mascot_06.png"
 
 type PopupChipGroup = {
   title: string
@@ -41,6 +42,7 @@ type Props = {
   recentSearchTerms: string[]
   onSelectRecentSearch: (term: string) => void
   onDeleteRecentSearch: (term: string) => void
+  onResetSearch: () => void
 }
 
 export default function SearchFilterChipsPanel({
@@ -70,6 +72,7 @@ export default function SearchFilterChipsPanel({
   recentSearchTerms,
   onSelectRecentSearch,
   onDeleteRecentSearch,
+  onResetSearch,
 }: Props) {
   return (
     <>
@@ -91,9 +94,13 @@ export default function SearchFilterChipsPanel({
       </div>
 
       {isNoResults ? (
-        <p className="feed_filter_no_results" role="status">
-          검색 결과가 없어요.
-        </p>
+        <section className="feed_filter_no_results_card" role="status" aria-label="검색 결과 없음">
+          <p className="feed_filter_no_results_message">검색 결과를 찾을 수 없어요.</p>
+          <img className="feed_filter_no_results_mascot" src={mascotImage} alt="" aria-hidden="true" />
+          <button type="button" className="feed_filter_no_results_reset" onClick={onResetSearch}>
+            검색 초기화하기
+          </button>
+        </section>
       ) : null}
 
       {bodyContent ?? (

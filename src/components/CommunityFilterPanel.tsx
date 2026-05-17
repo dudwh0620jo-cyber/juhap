@@ -58,6 +58,7 @@ type Props = {
   onChangeAbvMax?: (nextMax: number) => void
 
   hideFooter?: boolean
+  onResetSearch: () => void
   onReset: () => void
   onApply: () => void
 }
@@ -90,6 +91,7 @@ export default function CommunityFilterPanel({
   onSelectRecentSearch,
   onDeleteRecentSearch,
   hideFooter = false,
+  onResetSearch,
   onReset,
   onApply,
 }: Props) {
@@ -122,6 +124,7 @@ export default function CommunityFilterPanel({
         recentSearchTerms={recentSearchTerms}
         onSelectRecentSearch={onSelectRecentSearch}
         onDeleteRecentSearch={onDeleteRecentSearch}
+        onResetSearch={onResetSearch}
       />
 
       {hideFooter ? null : (

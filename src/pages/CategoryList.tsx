@@ -17,7 +17,7 @@ import { useCategorySearchFilterState } from "../hooks/useCategorySearchFilterSt
 import { resolvePricePresetToggle } from "../utils/pricePreset"
 import { calculateRangePercent } from "../utils/range"
 import caretLeft from "../assets/svg/caretleft.svg"
-import caretRight from "../assets/svg/caretright.svg"
+import caretRight from "../assets/svg/arrowright_b.svg"
 import "../styles/category.css"
 import "../styles/category-list.css"
 
@@ -440,4 +440,3 @@ export default function CategoryList() {
     </section>
   )
 }
-

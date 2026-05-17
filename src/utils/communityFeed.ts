@@ -1,5 +1,15 @@
 import type { FeedFilter, ReviewSortKey } from "../data/communityFilterConfig"
 import type { PopupChipGroup } from "../data/communityPageData"
+import { drinkCategories } from "../data/categoryData"
+import { FEATURE_CHIPS } from "../data/categoryFilterConfig"
+import { sakeProductsMock } from "../data/sakeProductsMock"
+import { sojuProductsMock } from "../data/sojuProductsMock"
+import { wineProductsMock } from "../data/wineProductsMock"
+import { beerProductsMock } from "../data/beerProductsMock"
+import { whiskeyProductsMock } from "../data/whiskeyProductsMock"
+import { spiritsProductsMock } from "../data/spiritsProductsMock"
+import { traditionalProductsMock } from "../data/traditionalProductsMock"
+import { etcProductsMock } from "../data/etcProductsMock"
 import { type FeedPost, extractPairingTitle } from "./communityPosts"
 import { includesNormalized, normalizeSearchText } from "./text"
 import { usersMockById } from "./usersMock"
@@ -18,6 +28,74 @@ export type CommunityFeedFilters = {
 
 export const COMMUNITY_FOOD_FILTER_CHIPS = ["한식", "양식", "일식", "중식", "스낵", "기타"] as const
 export const COMMUNITY_SITUATION_FILTER_CHIPS = ["혼술", "가족", "데이트", "친구/파티", "모임/단체"] as const
+
+type ProductSearchItem = {
+  drinkTypeLabel: string
+  subcategory: string
+  name: string
+  tags: string[]
+  keywords: string[]
+}
+
+const normalizeSubcategoryKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[()]/g, "")
+    .replace(/\//g, "")
+    .replace(/데킬라/g, "테킬라")
+    .replace(/sober/g, "")
+    .replace(/소주$/g, "")
+    .replace(/soju$/g, "")
+    .trim()
+
+const categoryLabelById = new Map(drinkCategories.map((category) => [category.id, category.label]))
+const canonicalSubcategoryByLabel = new Map(
+  drinkCategories.flatMap((category) =>
+    category.subcategories.map((subcategory) => [normalizeSubcategoryKey(subcategory), subcategory] as const),
+  ),
+)
+
+const toProductSearchItems = <
+  T extends { categoryId: string; subcategory: string; name: string; tags: string[]; keywords: string[] }
+>(
+  items: T[],
+): ProductSearchItem[] =>
+  items.map((item) => ({
+    drinkTypeLabel: categoryLabelById.get(item.categoryId) ?? item.categoryId,
+    subcategory: canonicalSubcategoryByLabel.get(normalizeSubcategoryKey(item.subcategory)) ?? item.subcategory,
+    name: item.name,
+    tags: item.tags,
+    keywords: item.keywords,
+  }))
+
+const productSearchItems: ProductSearchItem[] = [
+  ...toProductSearchItems(sakeProductsMock),
+  ...toProductSearchItems(sojuProductsMock),
+  ...toProductSearchItems(wineProductsMock),
+  ...toProductSearchItems(beerProductsMock),
+  ...toProductSearchItems(whiskeyProductsMock),
+  ...toProductSearchItems(spiritsProductsMock),
+  ...toProductSearchItems(traditionalProductsMock),
+  ...toProductSearchItems(etcProductsMock),
+]
+
+const inferFeatureChips = (tokens: string[]) => {
+  const joined = tokens.join(" ").toLowerCase()
+  const features: string[] = []
+  if (joined.includes("과일") || joined.includes("fruity")) features.push("과일향")
+  if (joined.includes("상큼") || joined.includes("산뜻") || joined.includes("fresh") || joined.includes("citrus")) features.push("상큼한")
+  if (joined.includes("은은") || joined.includes("섬세") || joined.includes("delicate")) features.push("은은함")
+  if (joined.includes("부드") || joined.includes("스무") || joined.includes("smooth")) features.push("부드러운")
+  if (joined.includes("가벼") || joined.includes("라이트") || joined.includes("light")) features.push("가벼운")
+  if (joined.includes("진한") || joined.includes("묵직") || joined.includes("무거") || joined.includes("heavy")) features.push("무거운")
+  if (joined.includes("탄산") || joined.includes("sparkling") || joined.includes("톡쏘")) features.push("톡쏘는")
+  if (joined.includes("오크") || joined.includes("oak")) features.push("오크향")
+  FEATURE_CHIPS.forEach((feature) => {
+    if (joined.includes(feature.toLowerCase())) features.push(feature)
+  })
+  return Array.from(new Set(features)).filter((feature) => FEATURE_CHIPS.includes(feature as (typeof FEATURE_CHIPS)[number]))
+}
 
 export const readStoredCommunityUserPosts = (storageKey: string): FeedPost[] => {
   try {
@@ -65,7 +143,7 @@ export const buildPopupChipGroups = ({
     popupChipGroups.push({ title: "카테고리", chips: availableCategories })
   }
 
-  if (selectedDrinkType && selectedCategories.size > 0) {
+  if (selectedDrinkType && selectedCategories.size > 0 && availableFeatures.length > 0) {
     popupChipGroups.push({ title: "특징", chips: availableFeatures })
   }
 
@@ -149,6 +227,15 @@ export const filterPopupChipGroups = ({
     addRelated("특징", post.features ?? [])
     addRelated("음식", getFoodFilterValues(post))
     addRelated("상황", getSituationFilterValues(post))
+  }
+
+  for (const product of productSearchItems) {
+    const targets = [product.name, product.subcategory, ...product.tags, ...product.keywords]
+    if (!includesNormalized(targets.join(" "), trimmedQuery)) continue
+
+    addRelated("주종", [product.drinkTypeLabel])
+    addRelated("카테고리", [product.subcategory])
+    addRelated("특징", inferFeatureChips([...product.tags, ...product.keywords]))
   }
 
   const results: PopupChipGroup[] = []

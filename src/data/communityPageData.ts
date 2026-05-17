@@ -78,7 +78,7 @@ const popupFeaturesByDrinkType: Record<string, string[]> = Object.fromEntries(
     })
 
     const ordered = FEATURE_CHIPS.filter((feature) => inferred.has(feature))
-    return [category.label, ordered.length > 0 ? ordered : [...FEATURE_CHIPS]]
+    return [category.label, ordered]
   }),
 )
 

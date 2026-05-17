@@ -7,6 +7,8 @@ import iconDots from "../assets/svg/dotsthreevertical.svg"
 import iconPencil from "../assets/svg/pencilsimple_p.svg"
 import iconX from "../assets/svg/x.svg"
 import iconCheck from "../assets/svg/check_g.svg"
+import iconResetWhite from "../assets/svg/arrowcounterclockwise_w.svg"
+import emptyMascotImage from "../assets/fail_mascot_01.png"
 import AlertModal from "../components/AlertModal"
 import CommunityHeader from "../components/CommunityHeader"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
@@ -49,7 +51,6 @@ import {
   filterCommunityFeedPosts,
   filterPopupChipGroups,
   getCommunityFeedPosts,
-  getCommunitySearchSuggestionTags,
   getEffectiveSelectedFeatures,
   getPairingCommentNavigationState,
   isCommunityFeedSearchActive,
@@ -431,11 +432,6 @@ export default function Community() {
     return filterCommunityFeedPosts({ posts, filters: communityFeedFilters })
   }, [communityFeedFilters, posts])
 
-  const searchSuggestionTags = useMemo(() => {
-    if (isQuestionFeed) return []
-    return getCommunitySearchSuggestionTags({ feedPosts, filters: communityFeedFilters })
-  }, [communityFeedFilters, isQuestionFeed])
-
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
 
   useLayoutEffect(() => {
@@ -522,6 +518,16 @@ export default function Community() {
     setSelectedFoods(new Set())
     setSelectedSituations(new Set())
     setIsFeedSearchConfirmed(Boolean(feedSearchValue.trim()))
+  }
+
+  const resetFeedSearchState = () => {
+    setFeedSearchValue("")
+    setSelectedDrinkType(null)
+    setSelectedCategories(new Set())
+    setSelectedFeatures(new Set())
+    setSelectedFoods(new Set())
+    setSelectedSituations(new Set())
+    setIsFeedSearchConfirmed(false)
   }
 
   const toggleCategory = (chip: string) => {
@@ -743,11 +749,20 @@ export default function Community() {
           onDeleteRecentSearch={(term) => {
             setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
           }}
+          onResetSearch={() => {
+            setFeedSearchValue("")
+            setIsFeedSearchConfirmed(false)
+            resetFilters()
+          }}
           onReset={resetFilters}
           hideFooter={isQuestionFeed}
           onApply={() => {
+            if (feedSearchValue.trim()) {
+              confirmFeedSearch(feedSearchValue)
+            } else {
+              setIsFeedSearchConfirmed(true)
+            }
             setIsFeedFilterPopupOpen(false)
-            setIsFeedSearchConfirmed(true)
           }}
         />
       </SearchFilterModal>
@@ -814,26 +829,14 @@ export default function Community() {
 
       <div className={feedFilter === "free" ? "question_list" : "feed_cards"} aria-label="커뮤니티 피드 목록">
         {isFeedNoResults ? (
-          <div className="search_no_results" role="status">
-            <p className="search_no_results_title">검색 결과가 없어요</p>
-            {searchSuggestionTags.length > 0 ? (
-              <div className="search_suggestion_row" aria-label="추천 태그">
-                {searchSuggestionTags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    className="search_suggestion_chip"
-                    onClick={() => {
-                      setFeedSearchValue(tag)
-                      setIsFeedSearchConfirmed(true)
-                    }}
-                  >
-                    #{tag}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          <section className="search_no_results" role="status" aria-label="검색 결과 없음">
+            <p className="search_no_results_title">검색 결과를 찾을 수 없어요.</p>
+            <img className="search_no_results_mascot" src={emptyMascotImage} alt="" aria-hidden="true" />
+            <button type="button" className="search_no_results_reset" onClick={resetFeedSearchState}>
+              <span>검색 초기화하기</span>
+              <img src={iconResetWhite} alt="" aria-hidden="true" />
+            </button>
+          </section>
         ) : null}
 
         {feedFilter === "free"
