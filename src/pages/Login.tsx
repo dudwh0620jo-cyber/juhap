@@ -89,6 +89,10 @@ export default function Login() {
     navigate("/profile-setup", { replace: true, state: redirectTo ? { redirectTo } : undefined })
   }
 
+  function handleOtherLoginClick() {
+    setSocialToastMessage("준비중인 기능이에요")
+  }
+
   return (
     <section className="login_page" aria-label={TEXT.pageLabel}>
       <div className="login_brand_row">
@@ -182,7 +186,8 @@ export default function Login() {
           message={TEXT.signupModalMessage}
           confirmLabel={TEXT.signup}
           secondaryLabel={TEXT.otherLogin}
-          secondaryDisabled
+          onDismiss={() => setIsSignupRequiredModalOpen(false)}
+          onSecondary={handleOtherLoginClick}
           variant="signup"
           confirmTone="primary"
           onConfirm={goSignup}

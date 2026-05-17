@@ -30,16 +30,16 @@
 }
 
 .onboarding_skip_button {
-  position: absolute;
-  top: 28px;
+  position: fixed;
+  top: max(64px, env(safe-area-inset-top));
   right: 24px;
-  z-index: 2;
+  z-index: 100;
   border: 0;
   padding: 8px 0;
   background: transparent;
-  color: var(--color-primary);
+  color: #d48652;
   font-family: var(--font-main);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -147,7 +147,7 @@
 }
 
 .onboarding_mascot {
-  width: 162x;
+  width: 162px;
   height: 109px;
   object-fit: cover;
   cursor: pointer;

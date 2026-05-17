@@ -1,4 +1,5 @@
 ﻿import type { RefObject } from "react"
+import { resolveReviewImage } from "../utils/reviewImages"
 
 type Props = {
   sectionTitle: string
@@ -62,20 +63,23 @@ export default function CommunityWriteBasicSection({
           />
 
           <div className="write_photo_row" aria-label="사진 추가">
-            {photoIds.slice(0, 3).map((photoId, index) => (
-              <button
-                key={photoId}
-                type="button"
-                className="write_photo_thumb"
-                aria-label={`사진 ${index + 1}`}
-                style={photoId ? { backgroundImage: `url(${photoId})` } : undefined}
-                onClick={() => onRemovePhoto(photoId)}
-              >
-                <span className="write_photo_remove" aria-hidden="true">
-                  X
-                </span>
-              </button>
-            ))}
+            {photoIds.slice(0, 3).map((photoId, index) => {
+              const resolvedPhotoSrc = resolveReviewImage(photoId) ?? photoId
+              return (
+                <button
+                  key={photoId}
+                  type="button"
+                  className="write_photo_thumb"
+                  aria-label={`사진 ${index + 1}`}
+                  style={resolvedPhotoSrc ? { backgroundImage: `url(${resolvedPhotoSrc})` } : undefined}
+                  onClick={() => onRemovePhoto(photoId)}
+                >
+                  <span className="write_photo_remove" aria-hidden="true">
+                    X
+                  </span>
+                </button>
+              )
+            })}
 
             {photoIds.length < 3 ? (
               <button type="button" className="write_photo_add" aria-label="사진 추가" onClick={onOpenPhotoPicker}>

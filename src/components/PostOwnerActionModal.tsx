@@ -1,4 +1,4 @@
-type Props = {
+﻿type Props = {
   title?: string
   onEdit: () => void
   onDelete: () => void
@@ -6,7 +6,7 @@ type Props = {
 }
 
 export default function PostOwnerActionModal({
-  title = "내 글 설정",
+  title = "게시글 설정",
   onEdit,
   onDelete,
   onCancel,
