@@ -9,7 +9,6 @@ import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import iconSearch from "../assets/svg/magnifyingglass.svg"
 import iconX from "../assets/svg/x.svg"
-import iconBell from "../assets/svg/bell.svg"
 import iconPlus from "../assets/svg/plus.svg"
 import iconStar from "../assets/svg/star.svg"
 import mockPostPic01Image from "../assets/mock_post_pic_01.png"
@@ -288,7 +287,7 @@ function StarRating({ value, onChange }: { value: number; onChange: (next: numbe
       >
         {stars}
       </div>
-      <span className="write_rating_value">{normalized.toFixed(normalized % 1 === 0 ? 0 : 1)}점(0.5단위)</span>
+      <span className="write_rating_value">{normalized.toFixed(normalized % 1 === 0 ? 0 : 1)}점</span>
     </div>
   )
 }
@@ -346,7 +345,7 @@ export default function CommunityWrite() {
 
   // 술만 후기 쓰기(또는 질문 글쓰기 공용)
   const [drinkName, setDrinkName] = useState("")
-  const [drinkRating, setDrinkRating] = useState(0)
+  const [drinkRating, setDrinkRating] = useState(2.5)
   const [drinkTasteTags, setDrinkTasteTags] = useState<Set<string>>(() => new Set())
   const [photoIds, setPhotoIds] = useState<string[]>([])
   const [title, setTitle] = useState("")
@@ -396,7 +395,6 @@ export default function CommunityWrite() {
   }, [body, mode, pairingBody, pairingDrinkName, pairingSummary, pairingTasteTags, reviewTab, selectedFoodCategory, selectedSituation, title])
 
   const drinkTypeItems = useMemo(() => Object.keys(popupCategoryByDrinkType), [popupCategoryByDrinkType])
-  const sakeItems = useMemo(() => popupCategoryByDrinkType[SAKE_LABEL] ?? [], [popupCategoryByDrinkType])
 
   const availableFeatureChips = useMemo(() => {
     if (!selectedDrinkType) return []
@@ -438,14 +436,6 @@ export default function CommunityWrite() {
       setReviewTab("pairing")
     }
   }, [drinkName, productDetail?.name, writeKind])
-
-  // 술만 후기: 술 선택은 세부 카테고리(사케)만 허용 → 주종 자동 선택
-  function handleDrinkNameChange(nextDrinkName: string) {
-    setDrinkName(nextDrinkName)
-    if (mode !== "review" || reviewTab !== "drink") return
-    if (!sakeItems.includes(nextDrinkName.trim())) return
-    if (selectedDrinkType !== SAKE_LABEL) setSelectedDrinkType(SAKE_LABEL)
-  }
 
   async function handleUploadPhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"))
@@ -684,6 +674,11 @@ export default function CommunityWrite() {
       label.toLowerCase().includes(query) || subCategory.toLowerCase().includes(query)
     )
   }, [drinkName, allDrinkSuggestions])
+
+  const drinkSelectedSubCategory = useMemo(() => {
+    const found = allDrinkSuggestions.find(({ label }) => label === drinkName)
+    return found?.subCategory ?? null
+  }, [allDrinkSuggestions, drinkName])
 
   function handleDrinkSuggestionSelect(label: string, type: string) {
     setDrinkName(label)
@@ -930,7 +925,7 @@ export default function CommunityWrite() {
         return new Set([deriveFoodParentCategory(parsed.selectedFoodCategory)])
       })
       setDrinkName(parsed.drinkName ?? "")
-      setDrinkRating(typeof parsed.drinkRating === "number" ? parsed.drinkRating : 0)
+      setDrinkRating(typeof parsed.drinkRating === "number" ? parsed.drinkRating : 2.5)
       setDrinkTasteTags(new Set(Array.isArray(parsed.drinkTasteTags) ? parsed.drinkTasteTags : []))
       setPhotoIds(Array.isArray(parsed.photoIds) ? parsed.photoIds : [])
       setTitle(parsed.title ?? "")
@@ -1239,14 +1234,6 @@ export default function CommunityWrite() {
         <button type="button" className="write_compose_back" aria-label="뒤로가기" onClick={() => navigate(exitPath)}>
           <img src={iconCaretLeft} alt="" aria-hidden="true" />
         </button>
-        <div className="community_header_actions" aria-label="커뮤니티 헤더 액션">
-          <button className="community_header_action_button" type="button" aria-label="검색 열기" onClick={() => {}}>
-            <img className="community_header_action_icon" src={iconSearch} alt="" aria-hidden="true" />
-          </button>
-          <button className="community_header_action_button" type="button" aria-label="알림 열기" onClick={() => {}}>
-            <img className="community_header_action_icon" src={iconBell} alt="" aria-hidden="true" />
-          </button>
-        </div>
       </header>
 
       <div className={reviewTab === "pairing" ? "write_sheet is_pairing_review" : "write_sheet"} aria-label="글쓰기 폼">
@@ -1255,23 +1242,16 @@ export default function CommunityWrite() {
             <>
               <div className="write_section">
                 <div className="write_field">
-                  <span className="write_field_label">술 선택 (필수)</span>
+                  <span className="write_field_subtext">
+                    {(selectedDrinkType ?? SAKE_LABEL).trim()} &gt; {((drinkSelectedSubCategory ?? drinkName.trim()) || "-").trim()}
+                  </span>
                   <div className="write_drink_input_wrap">
                     <input
-                      className="write_input"
+                      className="write_input is_locked"
                       value={drinkName}
-                      placeholder="술 이름을 검색하거나 태그를 선택하세요"
-                      onChange={(e) => handleDrinkNameChange(e.target.value)}
-                      onFocus={() => setDrinkSuggestionsOpen(true)}
-                      onBlur={() =>
-                        window.setTimeout(() => {
-                          setDrinkSuggestionsOpen(false)
-                          const q = drinkName.trim().toLowerCase()
-                          const matchesLabel = allDrinkSuggestions.some(({ label }) => label.toLowerCase().includes(q))
-                          const matchesCategoryOnly = !matchesLabel && allDrinkSuggestions.some(({ subCategory }) => subCategory.toLowerCase().includes(q))
-                          if (matchesCategoryOnly) setDrinkName("")
-                        }, 150)
-                      }
+                      placeholder="술이 자동 선택되어 있어요"
+                      readOnly
+                      aria-readonly="true"
                     />
                     {drinkSuggestionsOpen && filteredDrinkSuggestions.length > 0 && (
                       <ul className="write_drink_autocomplete" role="listbox" aria-label="술 이름 추천">
@@ -1291,59 +1271,22 @@ export default function CommunityWrite() {
                     )}
                   </div>
                 </div>
-
-                <div className="write_chip_row" aria-label="술 태그 선택">
-                  {sakeItems.slice(0, 12).map((chip) => (
-                      <button
-                        key={chip}
-                        type="button"
-                        className={drinkName === chip ? "write_chip is_active" : "write_chip"}
-                        onClick={() => handleDrinkNameChange(chip)}
-                      >
-                        {chip}
-                      </button>
-                    ))}
-                </div>
               </div>
 
               <div className="write_section">
-                <h4 className="write_section_title">주종 선택 (필수, 단일선택)</h4>
-                <div className="write_chip_row" aria-label="주종 선택">
-                  {drinkTypeItems.map((drinkType) => (
-                    <button
-                      key={drinkType}
-                      type="button"
-                      disabled={drinkType !== SAKE_LABEL}
-                      className={
-                        drinkType !== SAKE_LABEL
-                          ? "write_chip is_disabled"
-                          : selectedDrinkType === drinkType
-                            ? "write_chip is_active"
-                            : "write_chip"
-                      }
-                      onClick={() => {
-                          setSelectedDrinkType(drinkType)
-                          setDrinkTasteTags((prev) => {
-                          if (prev.size === 0) return prev
-                          const valid = new Set(popupFeaturesByDrinkType[drinkType] ?? [])
-                          const next = new Set(Array.from(prev).filter((item) => valid.has(item)))
-                          return next
-                        })
-                      }}
-                    >
-                      {drinkType}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="write_section">
-                <h4 className="write_section_title">별점 (필수)</h4>
+                <h4 className="write_section_title">
+                  별점 <span className="write_required_mark">*</span>
+                </h4>
                 <StarRating value={drinkRating} onChange={setDrinkRating} />
               </div>
 
               <div className="write_section">
-                <h4 className="write_section_title">맛 태그 (중복선택가능)</h4>
+                <div className="write_field_header">
+                  <h4 className="write_section_title">
+                    맛 태그 <span className="write_required_mark">*</span>
+                  </h4>
+                  <span className="write_field_hint">{drinkTasteTags.size}/2</span>
+                </div>
                 {selectedDrinkType ? (
                   <div className="write_chip_row" aria-label="맛 태그 선택">
                     {availableFeatureChips.map((chip) => {

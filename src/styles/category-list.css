@@ -8,9 +8,8 @@
 }
 
 .category_list_header { 
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  grid-template-rows: auto auto;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px; 
   margin-left: -12px;
@@ -33,10 +32,10 @@
 
 .category_list_back::before {
   content: "";
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 24px;
   display: block;
-  background: var(--color-point-01);
+  background: var(--color-text-primary);
   mask: url("../assets/svg/caretleft.svg") center / contain no-repeat;
   -webkit-mask: url("../assets/svg/caretleft.svg") center / contain no-repeat;
 }
@@ -45,9 +44,13 @@
   display: none;
 }
 
+.category_list_backcate {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
 .category_list_meta_row {
-  grid-column: 2 / 3;
-  grid-row: 1 / 2;
   flex: 1;
   display: flex;
   align-items: center;
@@ -59,13 +62,12 @@
 .category_list_title {
   flex: 0 1 auto;
   display: flex;
-  background: transparent;
-  color: var(--color-primary);
+  color: var(--color-text-primary);
   font-family: var(--font-main);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
-  line-height: 1.4;
-  letter-spacing: -0.2px;
+  line-height: 1.2;
+  letter-spacing: -1%;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -74,33 +76,33 @@
   justify-content: center;
 }
 
-.category_list_title:last-child span{
-  color: var(--color-primary);
-}
 .category_list_title img{
-  width: 19px;
-  height: 19px;
-  filter: brightness(0) saturate(100%) invert(44%) sepia(22%) saturate(1197%) hue-rotate(351deg) brightness(95%) contrast(92%);
+  background: var(--color-text-primary);
+  mask: url("../assets/svg/caretright.svg") center / contain no-repeat;
+  -webkit-mask: url("../assets/svg/caretright.svg") center / contain no-repeat;
+  width: 20px;
+  height: 20px;
+  filter: none;
+  padding: 0 2px 0 0 ;
 }
 .category_sort_button {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 4px;
   flex: 0 0 auto;
   border: 0;
   padding: 0;
   background: transparent;
-  color: var(--color-point-01);
   font-family: var(--font-main);
   font-size: 14px;
   font-weight: 500;
+  line-height: 100%;
   cursor: pointer;
 }
 
 .category_list_sort_row {
-  grid-column: 2 / 3;
-  grid-row: 2 / 3;
+  width: 100%;
   display: flex;
   justify-content: flex-end;
 }
@@ -109,7 +111,6 @@
   width: 14px;
   height: 14px;
   background: center / contain no-repeat url("../assets/svg/caretdown.png");
-  filter: brightness(0) saturate(100%) invert(44%) sepia(22%) saturate(1197%) hue-rotate(351deg) brightness(95%) contrast(92%);
 }
 
 .category_list_cards {
@@ -392,7 +393,6 @@
   }
 
   .category_list_header {
-    grid-template-columns: 38px minmax(0, 1fr);
     gap: 10px;
   }
 

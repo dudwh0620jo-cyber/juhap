@@ -139,6 +139,14 @@
   line-height: 1.3;
 }
 
+.profile_setup_hint_success {
+  margin: -2px 2px 0;
+  color: #3ea76a;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
 .profile_setup_counter {
   position: absolute;
   top: 50%;

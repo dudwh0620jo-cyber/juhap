@@ -508,12 +508,17 @@
 }
 
 .my_saved_empty {
+  min-height: 360px;
   padding: 18px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-gray-01);
   border-radius: 18px;
+  background: var(--color-bg-white);
   color: var(--color-gray-06);
   font-size: 14px;
   font-weight: 400;
+  display: grid;
+  place-items: center;
+  text-align: center;
 }
 
 .my_activity_panel {
@@ -1572,6 +1577,12 @@
   gap: 12px;
 }
 
+.my_saved_content {
+  min-height: calc(100vh - 220px);
+  display: grid;
+  align-content: start;
+}
+
 .my_saved_tabs {
   position: relative;
   width: 100%;
@@ -1582,6 +1593,102 @@
   border: 1px solid var(--color-point-02);
   border-radius: 999px;
   background: var(--color-bg-base);
+}
+
+.my_saved_product_list {
+  display: grid;
+  gap: 14px;
+}
+
+.my_saved_product_card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--color-gray-01);
+  border-radius: 18px;
+  background: var(--color-bg-base);
+  padding: 14px 16px;
+  text-align: left;
+  position: relative;
+}
+
+.my_saved_product_thumb {
+  width: 88px;
+  height: 88px;
+  border-radius: 14px;
+  background: var(--color-gray-00);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.my_saved_product_thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.my_saved_product_body {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding-right: 28px;
+}
+
+.my_saved_product_body strong {
+  font-size: 20px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.my_saved_product_body p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-gray-06);
+}
+
+.my_saved_product_tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.my_saved_product_tags span {
+  font-size: 12px;
+  font-weight: 400;
+  color: #8ea5c8;
+  line-height: 1.2;
+}
+
+.my_saved_product_arrow {
+  width: 24px;
+  height: 24px;
+  opacity: 0.5;
+}
+
+.my_saved_product_bookmark {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.my_saved_product_bookmark img {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .my_saved_tabs_glider {

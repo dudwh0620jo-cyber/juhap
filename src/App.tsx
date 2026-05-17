@@ -161,6 +161,7 @@ export default function App() {
   }, [])
 
   const isAuthPage =
+    pathname === "/" ||
     pathname === "/onboarding" ||
     pathname === "/login" ||
     pathname === "/profile-setup" ||
@@ -223,7 +224,7 @@ export default function App() {
           />
         ) : (
           <Routes>
-            <Route path="/" element={<Navigate to={isUserOnboardingComplete() ? "/home" : "/onboarding"} replace />} />
+            <Route path="/" element={<Navigate to="/onboarding" replace />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />

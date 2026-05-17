@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import AlertModal from "../components/AlertModal"
 import mascotImage from "../assets/onboarding-mascot_01.png"
@@ -9,6 +9,7 @@ import logoSubSvg from "../assets/svg/logo_sub.svg"
 import googleLogo from "../assets/svg/logo_google.svg"
 import kakaoLogo from "../assets/svg/logo_kakako.svg"
 import naverLogo from "../assets/svg/logo_naver.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
 import { updateUserAccount } from "../data/userProfile"
 import "../styles/login.css"
 
@@ -51,9 +52,20 @@ export default function Login() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [isSignupRequiredModalOpen, setIsSignupRequiredModalOpen] = useState(false)
+  const [socialToastMessage, setSocialToastMessage] = useState<string | null>(null)
 
   const trimmedEmail = email.trim()
   const isEmailFormatInvalid = trimmedEmail.length > 0 && !EMAIL_PATTERN.test(trimmedEmail)
+
+  function handleSocialLoginClick() {
+    setSocialToastMessage("준비중인 기능이에요")
+  }
+
+  useEffect(() => {
+    if (!socialToastMessage) return
+    const timerId = window.setTimeout(() => setSocialToastMessage(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [socialToastMessage])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -151,13 +163,13 @@ export default function Login() {
       </button>
 
       <div className="login_socials" aria-label={TEXT.socialLabel}>
-        <button className="login_social_button is_google" type="button" aria-label={TEXT.googleLabel}>
+        <button className="login_social_button is_google" type="button" aria-label={TEXT.googleLabel} onClick={handleSocialLoginClick}>
           <img className="login_social_logo" src={googleLogo} alt="" aria-hidden="true" />
         </button>
-        <button className="login_social_button is_kakao" type="button" aria-label={TEXT.kakaoLabel}>
+        <button className="login_social_button is_kakao" type="button" aria-label={TEXT.kakaoLabel} onClick={handleSocialLoginClick}>
           <img className="login_social_logo" src={kakaoLogo} alt="" aria-hidden="true" />
         </button>
-        <button className="login_social_button is_naver" type="button" aria-label={TEXT.naverLabel}>
+        <button className="login_social_button is_naver" type="button" aria-label={TEXT.naverLabel} onClick={handleSocialLoginClick}>
           <img className="login_social_logo" src={naverLogo} alt="" aria-hidden="true" />
         </button>
       </div>
@@ -175,6 +187,15 @@ export default function Login() {
           confirmTone="primary"
           onConfirm={goSignup}
         />
+      ) : null}
+
+      {socialToastMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_warning">
+            <img src={iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{socialToastMessage}</p>
+        </div>
       ) : null}
     </section>
   )

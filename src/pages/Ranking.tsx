@@ -676,6 +676,11 @@ export default function CommunityRanking() {
           onDeleteRecentSearch={(term) => {
             setRecentSearchTerms((prev) => prev.filter((item) => item !== term))
           }}
+          onResetSearch={() => {
+            setFeedSearchValue("")
+            setIsFeedSearchConfirmed(false)
+            resetFilters()
+          }}
           priceRange={priceRange}
           priceMin={PRICE_MIN_WON}
           priceMax={PRICE_MAX_WON}
@@ -701,8 +706,12 @@ export default function CommunityRanking() {
           }}
           onReset={resetFilters}
           onApply={() => {
+            if (feedSearchValue.trim()) {
+              confirmFeedSearch(feedSearchValue)
+            } else {
+              setIsFeedSearchConfirmed(true)
+            }
             setIsFeedFilterPopupOpen(false)
-            setIsFeedSearchConfirmed(true)
           }}
         />
       </SearchFilterModal>

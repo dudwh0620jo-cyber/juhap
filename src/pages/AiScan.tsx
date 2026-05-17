@@ -1,10 +1,12 @@
 ﻿import { useEffect, useRef, useState } from "react"
 import type { ChangeEvent } from "react"
 import { useNavigate, useSearchParams } from "react-router"
-import AlertModal from "../components/AlertModal"
+import iconCheck from "../assets/svg/check_g.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
 import AiScanCamera from "../components/AiScanCamera"
 import AiScanResult from "../components/AiScanResult"
 import { aiScanAssets, aiScanCopy, aiScanResult, type AiScanStatus, type ScanMode } from "../data/aiScanContent"
+import { addSavedAlcoholProductId } from "../utils/savedAlcohol"
 import "../styles/ai-scan.css"
 
 export default function AiScan() {
@@ -13,7 +15,7 @@ export default function AiScan() {
   const [mode, setMode] = useState<ScanMode>("drink")
   const [status, setStatus] = useState<AiScanStatus>("ready")
   const [previewSrc, setPreviewSrc] = useState<string | null>(null)
-  const [alertMessage, setAlertMessage] = useState<string | null>(null)
+  const [saveToast, setSaveToast] = useState<{ message: string; tone: "success" | "warning" } | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const scanTimerRef = useRef<number | null>(null)
 
@@ -41,6 +43,13 @@ export default function AiScan() {
       if (previewSrc?.startsWith("blob:")) URL.revokeObjectURL(previewSrc)
     }
   }, [previewSrc])
+
+
+  useEffect(() => {
+    if (!saveToast) return
+    const timerId = window.setTimeout(() => setSaveToast(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [saveToast])
 
   function moveBack() {
     if (isFromChat) {
@@ -93,7 +102,12 @@ export default function AiScan() {
   }
 
   function handleSave() {
-    setAlertMessage(`${aiScanResult.product.name} 저장 기능은 준비 중입니다.`)
+    const isAdded = addSavedAlcoholProductId(aiScanResult.product.id)
+    if (isAdded) {
+      setSaveToast({ message: "술이 저장되었어요.", tone: "success" })
+      return
+    }
+    setSaveToast({ message: "이미 저장되어 있어요.", tone: "warning" })
   }
 
   return (
@@ -129,8 +143,16 @@ export default function AiScan() {
         />
       )}
 
-      {alertMessage ? <AlertModal message={alertMessage} onConfirm={() => setAlertMessage(null)} /> : null}
+      {saveToast ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className={saveToast.tone === "success" ? "app_alert_toast_icon is_success" : "app_alert_toast_icon is_warning"}>
+            <img src={saveToast.tone === "success" ? iconCheck : iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{saveToast.message}</p>
+        </div>
+      ) : null}
     </section>
   )
 }
+
 

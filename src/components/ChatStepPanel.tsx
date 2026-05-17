@@ -25,7 +25,7 @@ type ChatStepPanelProps = {
   onSelectFood: (value: string) => void
   onSelectWineStyle: (value: string) => void
   onGoBack: () => void
-  onSelectRecommendation: (wineId: string) => void
+  onSaveRecommendation: (wineId: string) => void
   onGoProductDetail: (wineId: string) => void
   onBackToRecommend: () => void
   onMoreRecommendations: () => void
@@ -46,7 +46,7 @@ export default function ChatStepPanel({
   onSelectFood,
   onSelectWineStyle,
   onGoBack,
-  onSelectRecommendation,
+  onSaveRecommendation,
   onGoProductDetail,
   onBackToRecommend,
   onMoreRecommendations,
@@ -118,7 +118,7 @@ export default function ChatStepPanel({
         <ChatRecommendPanel
           recommendations={recommendations}
           selectedWineId={selectedWine?.id ?? null}
-          onSelect={(wineId) => onSelectRecommendation(wineId)}
+          onSave={(wineId) => onSaveRecommendation(wineId)}
           onGoProductDetail={(wineId) => onGoProductDetail(wineId)}
           onMore={onMoreRecommendations}
         />

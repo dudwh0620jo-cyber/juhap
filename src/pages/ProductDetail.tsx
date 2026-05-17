@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
@@ -27,6 +27,7 @@ import iconChatDots from "../assets/svg/chatcircledots_p.svg"
 import iconPencil from "../assets/svg/pencilsimple_p.svg"
 import iconShare from "../assets/svg/sharenetwork.svg"
 import iconSharePoint from "../assets/svg/sharenetwork_p.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
 import iconTasteAroma from "../assets/svg/fd_product_taste_rows_aroma.svg"
 import iconTasteFinish from "../assets/svg/fd_product_taste_rows_finish.svg"
 import iconTasteTaste from "../assets/svg/fd_product_taste_rows_taste.svg"
@@ -44,6 +45,7 @@ import { drinkReviews, productPairingReviews } from "../data/productReviewsMock"
 import { useProductReviewInteractions } from "../hooks/useProductReviewInteractions"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, readStoredPairingCommentCount } from "../utils/communityStorage"
 import { USER_POSTS_UPDATED_EVENT } from "../utils/communityFeed"
+import { addSavedAlcoholProductId, hasSavedAlcoholProductId, removeSavedAlcoholProductId } from "../utils/savedAlcohol"
 import {
   isAlcoholReviewPost,
   isPairingReviewPost,
@@ -71,7 +73,7 @@ type ReviewSortKey = (typeof reviewSortItems)[number]["key"]
 const reviewScoreRows = productReviewScoreRows
 const REVIEW_PAGE_SIZE = 5
 type ProductBookmarkPicker =
-  | { kind: "review"; reviewId: string }
+  | { kind: "review"; reviewId: string; postId: number; selectedListId: string }
   | { kind: "pairing"; reviewId: string; postId: number; selectedListId: string }
 
 const tasteIconByLabel: Record<string, string> = {
@@ -95,6 +97,10 @@ const getProductReviewCommentTargetId = (review: DrinkReview) => {
 }
 
 const getProductReviewCommentCount = (review: DrinkReview) => readStoredPairingCommentCount(getProductReviewCommentTargetId(review))
+const getDrinkReviewBookmarkPostId = (review: DrinkReview) => {
+  if (!/^\d+$/.test(review.id)) return NaN
+  return Number(`9${review.id}`)
+}
 
 export default function ProductDetail() {
   const { mockProductById, defaultProduct } = productDetailPageData
@@ -115,7 +121,11 @@ export default function ProductDetail() {
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE)
   const [pairingVisibleCount, setPairingVisibleCount] = useState(REVIEW_PAGE_SIZE)
   const [bookmarkPicker, setBookmarkPicker] = useState<ProductBookmarkPicker | null>(null)
-  const [bookmarkedProductReviewIds, setBookmarkedProductReviewIds] = useState<Record<string, boolean>>({})
+  const [isProductSaved, setIsProductSaved] = useState(false)
+  const productTabsRef = useRef<HTMLDivElement | null>(null)
+  const productTabButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const [productTabsGlider, setProductTabsGlider] = useState({ x: 0, width: 0 })
+  const [shareToastMessage, setShareToastMessage] = useState<string | null>(null)
   const [storedMyPosts, setStoredMyPosts] = useState(() => readStoredMyWrittenPosts())
   const { value: bookmarkListById, setValue: setBookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
   const {
@@ -133,6 +143,10 @@ export default function ProductDetail() {
     if (id && mockProductById[id]) return mockProductById[id]
     return defaultProduct
   }, [defaultProduct, id, mockProductById])
+
+  useEffect(() => {
+    setIsProductSaved(hasSavedAlcoholProductId(product.id))
+  }, [product.id])
 
   const pairingReviews = useMemo(
     () => productPairingReviews.filter((review) => review.alcoholTag === product.name),
@@ -183,12 +197,38 @@ export default function ProductDetail() {
     setSearchParams(nextParams, { replace: true })
   }
 
+  useLayoutEffect(() => {
+    const updateGlider = () => {
+      const container = productTabsRef.current
+      if (!container) return
+      const containerRect = container.getBoundingClientRect()
+      const tabCount = tabItems.length
+      const activeIndex = Math.max(0, tabItems.indexOf(activeTab))
+      const segmentWidth = containerRect.width / tabCount
+
+      setProductTabsGlider({
+        x: segmentWidth * activeIndex,
+        width: segmentWidth,
+      })
+    }
+
+    updateGlider()
+    window.addEventListener("resize", updateGlider)
+    return () => window.removeEventListener("resize", updateGlider)
+  }, [activeTab])
+
   useEffect(() => {
     const readPosts = () => setStoredMyPosts(readStoredMyWrittenPosts())
 
     window.addEventListener(USER_POSTS_UPDATED_EVENT, readPosts)
     return () => window.removeEventListener(USER_POSTS_UPDATED_EVENT, readPosts)
   }, [])
+
+  useEffect(() => {
+    if (!shareToastMessage) return
+    const timerId = window.setTimeout(() => setShareToastMessage(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [shareToastMessage])
 
   const openPairingReviewDetail = (review: DrinkReview) => {
     const postId = getPairingReviewPostId(review)
@@ -213,10 +253,18 @@ export default function ProductDetail() {
     navigate(`/product/${product.id}/review/${encodeURIComponent(review.id)}`, { state: { bottomNavActive: "category" } })
   }
 
+  const openProductReviewComments = (review: DrinkReview) => {
+    navigate(`/product/${product.id}/review/${encodeURIComponent(review.id)}#comments`, {
+      state: { bottomNavActive: "category" },
+    })
+  }
+
   const isReviewBookmarked = (review: DrinkReview) => {
     const postId = getPairingReviewPostId(review)
     if (Number.isFinite(postId)) return Boolean(bookmarkListById[postId])
-    return Boolean(bookmarkedProductReviewIds[review.id])
+    const reviewPostId = getDrinkReviewBookmarkPostId(review)
+    if (!Number.isFinite(reviewPostId)) return false
+    return Boolean(bookmarkListById[reviewPostId])
   }
 
   const openReviewBookmarkPicker = (review: DrinkReview) => {
@@ -232,13 +280,18 @@ export default function ProductDetail() {
       return
     }
 
-    setBookmarkPicker({ kind: "review", reviewId: review.id })
+    const reviewPostId = getDrinkReviewBookmarkPostId(review)
+    if (!Number.isFinite(reviewPostId)) return
+    setBookmarkPicker({
+      kind: "review",
+      reviewId: review.id,
+      postId: reviewPostId,
+      selectedListId: bookmarkListById[reviewPostId] ?? bookmarkLists[0]?.id ?? "default",
+    })
   }
 
   const isBookmarkPickerActive = bookmarkPicker
-    ? bookmarkPicker.kind === "pairing"
-      ? Boolean(bookmarkListById[bookmarkPicker.postId])
-      : Boolean(bookmarkedProductReviewIds[bookmarkPicker.reviewId])
+    ? Boolean(bookmarkListById[bookmarkPicker.postId])
     : false
 
   const confirmBookmark = () => {
@@ -247,7 +300,7 @@ export default function ProductDetail() {
     if (bookmarkPicker.kind === "pairing") {
       setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: bookmarkPicker.selectedListId }))
     } else {
-      setBookmarkedProductReviewIds((prev) => ({ ...prev, [bookmarkPicker.reviewId]: true }))
+      setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: bookmarkPicker.selectedListId }))
     }
 
     setBookmarkPicker(null)
@@ -259,13 +312,27 @@ export default function ProductDetail() {
     if (bookmarkPicker.kind === "pairing") {
       setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: null }))
     } else {
-      setBookmarkedProductReviewIds((prev) => ({ ...prev, [bookmarkPicker.reviewId]: false }))
+      setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: null }))
     }
 
     setBookmarkPicker(null)
   }
 
   const cancelBookmark = () => setBookmarkPicker(null)
+
+  const toggleProductSave = () => {
+    if (isProductSaved) {
+      removeSavedAlcoholProductId(product.id)
+      setIsProductSaved(false)
+      return
+    }
+    addSavedAlcoholProductId(product.id)
+    setIsProductSaved(true)
+  }
+
+  const showShareToast = () => {
+    setShareToastMessage("현재 지원되지 않는 기능이에요.")
+  }
 
   return (
     <section className="product_detail_page page_screen" aria-label="상품 상세">
@@ -312,8 +379,14 @@ export default function ProductDetail() {
               </span>
             </div>
           </div>
-          <button type="button" className="product_bookmark_button" aria-label="상품 저장">
-            <img src={iconBookmark} alt="" aria-hidden="true" />
+          <button
+            type="button"
+            className="product_bookmark_button"
+            aria-label={isProductSaved ? "상품 저장 취소" : "상품 저장"}
+            aria-pressed={isProductSaved}
+            onClick={toggleProductSave}
+          >
+            <img src={isProductSaved ? iconBookmarkActive : iconBookmark} alt="" aria-hidden="true" />
           </button>
         </div>
         <p className="product_price_row">
@@ -323,9 +396,22 @@ export default function ProductDetail() {
       </section>
 
       <nav className="product_tabs" aria-label="상세 탭" data-guide-id="product-detail-tabs">
-        <div className="product_tabs_inner">
+        <div className="product_tabs_inner" ref={productTabsRef}>
+          <span
+            className="product_tabs_glider"
+            aria-hidden="true"
+            style={{ transform: `translateX(${productTabsGlider.x}px)`, width: `${productTabsGlider.width}px` }}
+          />
           {tabItems.map((item) => (
-            <button key={item} type="button" className={activeTab === item ? "is_active" : ""} onClick={() => changeActiveTab(item)}>
+            <button
+              key={item}
+              ref={(node) => {
+                productTabButtonRefs.current[item] = node
+              }}
+              type="button"
+              className={activeTab === item ? "is_active" : ""}
+              onClick={() => changeActiveTab(item)}
+            >
               {item}
             </button>
           ))}
@@ -567,11 +653,16 @@ export default function ProductDetail() {
                     isAnimating={animatingReviewId === review.id}
                     onToggle={() => toggleReviewLike(review.id)}
                   />
-                  <span>
+                  <button
+                    type="button"
+                    className="review_comment_button"
+                    aria-label="댓글 보기"
+                    onClick={() => openProductReviewComments(review)}
+                  >
                     <img src={iconChatDots} alt="" aria-hidden="true" />
                     {getProductReviewCommentCount(review)}
-                  </span>
-                  <button type="button" aria-label="공유">
+                  </button>
+                  <button type="button" aria-label="공유" onClick={showShareToast}>
                     <img src={iconSharePoint} alt="" aria-hidden="true" />
                   </button>
                   </div>
@@ -745,7 +836,7 @@ export default function ProductDetail() {
                         <img src={iconChatDots} alt="" aria-hidden="true" />
                         {getProductReviewCommentCount(review)}
                       </span>
-                      <button type="button" aria-label="공유">
+                      <button type="button" aria-label="공유" onClick={showShareToast}>
                         <img src={iconSharePoint} alt="" aria-hidden="true" />
                       </button>
                     </div>
@@ -865,6 +956,15 @@ export default function ProductDetail() {
               })}
             </div>
           </section>
+        </div>
+      ) : null}
+
+      {shareToastMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_warning">
+            <img src={iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{shareToastMessage}</p>
         </div>
       ) : null}
 

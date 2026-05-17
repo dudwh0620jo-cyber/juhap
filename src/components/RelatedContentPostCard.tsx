@@ -24,6 +24,7 @@ type Props = {
   body: string
   showImages?: boolean
   photoIds?: string[]
+  imageSrcs?: string[]
   imageCount?: number
   answerCount?: number
   answerPreview?: string
@@ -58,6 +59,7 @@ export default function RelatedContentPostCard({
   body,
   showImages = true,
   photoIds,
+  imageSrcs,
   imageCount = 2,
   answerCount,
   answerPreview,
@@ -75,7 +77,10 @@ export default function RelatedContentPostCard({
     .map((value) => (typeof value === "string" ? value.trim() : String(value)))
     .filter(Boolean)
     .slice(0, 3)
-
+  const safeImageSrcs = (imageSrcs ?? [])
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 3)
   const safeFallbackImageCount = Math.max(0, Math.min(3, imageCount))
 
   return (
@@ -112,8 +117,8 @@ export default function RelatedContentPostCard({
         </Link>
       ) : (
         <Link className="feed_text_link" to={linkTo} state={linkState}>
-          {showImages && (safePhotoIds.length > 0 || safeFallbackImageCount > 0) ? (
-            <div className="feed_images" aria-label={`사진 ${safePhotoIds.length || safeFallbackImageCount}장`}>
+          {showImages && (safePhotoIds.length > 0 || safeImageSrcs.length > 0 || safeFallbackImageCount > 0) ? (
+            <div className="feed_images" aria-label={`사진 ${safePhotoIds.length || safeImageSrcs.length || safeFallbackImageCount}장`}>
               {safePhotoIds.length > 0
                 ? safePhotoIds.map((photoId, index) => {
                     const imageSrc = resolveReviewImage(photoId)
@@ -126,9 +131,18 @@ export default function RelatedContentPostCard({
                       />
                     )
                   })
-                : Array.from({ length: safeFallbackImageCount }).map((_, index) => (
-                    <div className="feed_image" key={index} aria-hidden="true" />
-                  ))}
+                : safeImageSrcs.length > 0
+                  ? safeImageSrcs.map((imageSrc, index) => (
+                      <div
+                        className="feed_image"
+                        key={`${imageSrc}-${index}`}
+                        style={{ backgroundImage: `url(${imageSrc})` }}
+                        aria-hidden="true"
+                      />
+                    ))
+                  : Array.from({ length: safeFallbackImageCount }).map((_, index) => (
+                      <div className="feed_image" key={index} aria-hidden="true" />
+                    ))}
             </div>
           ) : null}
           <strong className="review_pair_title">{title}</strong>
@@ -151,4 +165,3 @@ export default function RelatedContentPostCard({
     </article>
   )
 }
-

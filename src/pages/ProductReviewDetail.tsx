@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react"
-import { Navigate, useNavigate, useParams } from "react-router"
+﻿import { useEffect, useMemo, useState } from "react"
+import { Navigate, useLocation, useNavigate, useParams } from "react-router"
+import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import CommentSection from "../components/CommentSection"
 import ProductReviewLikeButton from "../components/ProductReviewLikeButton"
 import ScrollTopButton from "../components/ScrollTopButton"
@@ -11,35 +12,51 @@ import iconChatDots from "../assets/svg/chatcircledots_p.svg"
 import iconMagnifyingGlass from "../assets/svg/magnifyingglass.svg"
 import iconShare from "../assets/svg/sharenetwork_p.svg"
 import iconStar from "../assets/svg/star.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
 import imgDefaultUserAvatar from "../assets/user_avatar_defult.png"
+import { communityPageData } from "../data/communityPageData"
 import { drinkReviews } from "../data/productReviewsMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
-import { getPairingTierLabelByUserId, getUserGradeBadgeClassNameByUserId } from "../utils/pairingTier"
+import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, readStoredPairingCommentCount } from "../utils/communityStorage"
 import { isAlcoholReviewPost, readStoredMyWrittenPosts, toStoredDrinkReview } from "../utils/myWrittenPosts"
-import { readStoredPairingCommentCount } from "../utils/communityStorage"
+import { getPairingTierLabelByUserId, getUserGradeBadgeClassNameByUserId } from "../utils/pairingTier"
+import { useStoredNullableStringRecord } from "../utils/storage"
 import { currentUserMock } from "../utils/usersMock"
 import "../styles/pairing-detail.css"
 import "../styles/product-review-detail.css"
 
 const normalizeHashTagValue = (tag: string) => tag.replace(/^#/, "").trim()
-
 const getReviewCommentTargetId = (reviewId: string) => (/^\d+$/.test(reviewId) ? reviewId : `product-review-comments-${reviewId}`)
+const getDrinkReviewBookmarkPostId = (reviewId: string) => (/^\d+$/.test(reviewId) ? Number(`9${reviewId}`) : NaN)
 
 export default function ProductReviewDetail() {
+  const { bookmarkLists } = communityPageData
   const navigate = useNavigate()
+  const location = useLocation()
   const { id, reviewId } = useParams()
   const { nickname: myNickname } = useMyOnboardingMeta()
+
   const decodedReviewId = reviewId ? decodeURIComponent(reviewId) : ""
   const review = useMemo(() => {
     const storedReviews = readStoredMyWrittenPosts().filter(isAlcoholReviewPost).map(toStoredDrinkReview)
     return [...storedReviews, ...drinkReviews].find((item) => item.id === decodedReviewId)
   }, [decodedReviewId])
-  const currentUser = useMemo(() => ({ ...currentUserMock, name: myNickname, meta: "작성자" }), [myNickname])
+
+  const currentUser = useMemo(
+    () => ({ ...currentUserMock, name: myNickname, meta: "작성자" }),
+    [myNickname],
+  )
+
   const [activeImageIndex, setActiveImageIndex] = useState(0)
-  const [isBookmarked, setIsBookmarked] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const [isLikeAnimating, setIsLikeAnimating] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
+  const [shareToastMessage, setShareToastMessage] = useState<string | null>(null)
+  const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(null)
+
+  const { value: bookmarkListById, setValue: setBookmarkListById } =
+    useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
+
   const commentTargetId = review ? getReviewCommentTargetId(review.id) : ""
   const [commentCountOverride, setCommentCountOverride] = useState<number | null>(() =>
     commentTargetId ? readStoredPairingCommentCount(commentTargetId) : null,
@@ -50,6 +67,10 @@ export default function ProductReviewDetail() {
   }
 
   const commentCount = commentCountOverride ?? readStoredPairingCommentCount(commentTargetId)
+  const reviewBookmarkPostId = getDrinkReviewBookmarkPostId(review.id)
+  const isBookmarked = Number.isFinite(reviewBookmarkPostId)
+    ? Boolean(bookmarkListById[reviewBookmarkPostId])
+    : false
 
   const toggleLike = () => {
     if (!isLiked) {
@@ -57,13 +78,51 @@ export default function ProductReviewDetail() {
       requestAnimationFrame(() => setIsLikeAnimating(true))
       window.setTimeout(() => setIsLikeAnimating(false), 900)
     }
-
     setIsLiked((prev) => !prev)
   }
 
   const scrollToComments = () => {
     document.getElementById("product-review-comments")?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
+
+  const openBookmarkPicker = () => {
+    if (!Number.isFinite(reviewBookmarkPostId)) return
+    setBookmarkPicker({
+      postId: reviewBookmarkPostId,
+      selectedListId: bookmarkListById[reviewBookmarkPostId] ?? bookmarkLists[0]?.id ?? "default",
+    })
+  }
+
+  const confirmBookmark = () => {
+    if (!bookmarkPicker) return
+    setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: bookmarkPicker.selectedListId }))
+    setBookmarkPicker(null)
+  }
+
+  const removeBookmark = () => {
+    if (!bookmarkPicker) return
+    setBookmarkListById((prev) => ({ ...prev, [bookmarkPicker.postId]: null }))
+    setBookmarkPicker(null)
+  }
+
+  const cancelBookmark = () => setBookmarkPicker(null)
+
+  const showShareToast = () => {
+    setShareToastMessage("현재 지원되지 않는 기능이에요.")
+  }
+
+  useEffect(() => {
+    if (location.hash !== "#comments") return
+    window.setTimeout(() => {
+      document.getElementById("product-review-comments")?.scrollIntoView({ behavior: "auto", block: "start" })
+    }, 0)
+  }, [location.hash])
+
+  useEffect(() => {
+    if (!shareToastMessage) return
+    const timerId = window.setTimeout(() => setShareToastMessage(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [shareToastMessage])
 
   return (
     <section className="product_review_detail_page page_screen" aria-label="후기 상세">
@@ -88,7 +147,7 @@ export default function ProductReviewDetail() {
             <p className="product_review_detail_nickname">
               <strong>{review.author.name}</strong>
               <span>{review.author.grade}</span>
-              <i aria-hidden="true">ㆍ</i>
+              <i aria-hidden="true">·</i>
               <button type="button" onClick={() => setIsFollowing((prev) => !prev)}>
                 {isFollowing ? "언팔로우" : "팔로우"}
               </button>
@@ -99,21 +158,23 @@ export default function ProductReviewDetail() {
 
         {review.images.length > 0 ? (
           <div className="product_review_detail_media" aria-label="후기 이미지">
-            <div
-              className="product_review_detail_images"
-              onScroll={(event) => {
-                const target = event.currentTarget
-                const nextIndex = Math.round(target.scrollLeft / Math.max(1, target.clientWidth))
-                setActiveImageIndex(Math.min(review.images.length - 1, Math.max(0, nextIndex)))
-              }}
-            >
-              {review.images.map((image) => (
-                <img key={image} src={image} alt="" aria-hidden="true" />
-              ))}
+            <div className="product_review_detail_media_frame">
+              <div
+                className="product_review_detail_images"
+                onScroll={(event) => {
+                  const target = event.currentTarget
+                  const nextIndex = Math.round(target.scrollLeft / Math.max(1, target.clientWidth))
+                  setActiveImageIndex(Math.min(review.images.length - 1, Math.max(0, nextIndex)))
+                }}
+              >
+                {review.images.map((image) => (
+                  <img key={image} src={image} alt="" aria-hidden="true" />
+                ))}
+              </div>
+              <span className="product_review_detail_image_count">
+                {activeImageIndex + 1}/{review.images.length}
+              </span>
             </div>
-            <span className="product_review_detail_image_count">
-              {activeImageIndex + 1}/{review.images.length}
-            </span>
             {review.images.length > 1 ? (
               <div className="product_review_detail_dots" aria-label={`이미지 ${review.images.length}장`}>
                 {review.images.map((image, index) => (
@@ -156,7 +217,7 @@ export default function ProductReviewDetail() {
               <img src={iconChatDots} alt="" aria-hidden="true" />
               <span>{commentCount}</span>
             </button>
-            <button type="button" aria-label="공유">
+            <button type="button" aria-label="공유" onClick={showShareToast}>
               <img src={iconShare} alt="" aria-hidden="true" />
             </button>
           </div>
@@ -164,7 +225,7 @@ export default function ProductReviewDetail() {
             type="button"
             aria-label={isBookmarked ? "저장 취소" : "저장"}
             aria-pressed={isBookmarked}
-            onClick={() => setIsBookmarked((prev) => !prev)}
+            onClick={openBookmarkPicker}
           >
             <img src={isBookmarked ? iconBookmarkActive : iconBookmark} alt="" aria-hidden="true" />
           </button>
@@ -180,6 +241,32 @@ export default function ProductReviewDetail() {
           onCountChange={setCommentCountOverride}
         />
       </div>
+
+      {bookmarkPicker ? (
+        <CommunityBookmarkPickerModal
+          ariaLabel="북마크 리스트 선택"
+          titleText={isBookmarked ? "저장한 게시글을 취소할까요?" : "게시글을 저장할까요?"}
+          helperText={
+            isBookmarked
+              ? <>취소하면 내 정보 &gt; 저장한 리스트에서<br />이 게시글이 사라져요.</>
+              : <>저장한 게시글은 내 정보 &gt; 저장한 리스트에서<br />확인할 수 있어요.</>
+          }
+          secondaryLabel="취소"
+          primaryLabel={isBookmarked ? "저장 취소하기" : "저장하기"}
+          onDismiss={cancelBookmark}
+          onSecondary={cancelBookmark}
+          onPrimary={isBookmarked ? removeBookmark : confirmBookmark}
+        />
+      ) : null}
+
+      {shareToastMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_warning">
+            <img src={iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{shareToastMessage}</p>
+        </div>
+      ) : null}
 
       <ScrollTopButton />
     </section>

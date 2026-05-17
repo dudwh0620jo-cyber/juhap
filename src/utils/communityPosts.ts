@@ -8,11 +8,13 @@ export type FeedPost = {
   id: number
   authorId: number
   authorName?: string
+  authorProfile?: string
   title: string
   body: string
   pairingSummary?: string
   photoIds?: string[]
   imageSrc?: string
+  imageSrcs?: string[]
   similarPostIds?: number[]
   createdAt: string
   likeCount: number

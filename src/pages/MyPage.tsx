@@ -3,6 +3,7 @@ import { useLayoutEffect } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
 import ProfileEditModal from "../components/ProfileEditModal"
+import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import PreferenceGroupSection from "../components/PreferenceGroupSection"
 import RelatedContentPostCard from "../components/RelatedContentPostCard"
 import TierInfoPopover from "../components/TierInfoPopover"
@@ -30,6 +31,7 @@ import {
   type ExchangeItem,
 } from "../data/myPageContent"
 import { bookmarkLists } from "../data/communityFilterConfig"
+import { drinkReviews } from "../data/productReviewsMock"
 import { extractPairingTitle, feedPosts, getPairingSummaryText, type FeedPost } from "../utils/communityPosts"
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
@@ -54,6 +56,9 @@ import myMissionAdWatch from "../assets/my_ad_watch_01.png"
 import "../styles/community.css"
 import "../styles/my.css"
 import { pointHistoryItems } from "../data/myPageContent"
+import { ALL_SUBCATEGORY, getCategoryListItems } from "../hooks/useCategoryListPageData"
+import { readSavedAlcoholProductIds, removeSavedAlcoholProductId } from "../utils/savedAlcohol"
+import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
 
 type ExchangeTab = (typeof exchangeTabs)[number]
 
@@ -312,6 +317,17 @@ const MISSION_ICON_SRC_BY_TITLE: Record<string, string> = {
   "광고 시청": myMissionAdWatch,
 }
 
+const getDrinkReviewBookmarkPostId = (reviewId: string) => {
+  if (!/^\d+$/.test(reviewId)) return NaN
+  return Number(`9${reviewId}`)
+}
+
+const findAuthorIdByName = (name: string) => {
+  const entry = Object.entries(usersMockById).find(([, user]) => user?.name === name)
+  if (!entry) return currentUserMock.id
+  return Number(entry[0])
+}
+
 export default function MyPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -356,6 +372,8 @@ export default function MyPage() {
   const [savedTastePreferences, setSavedTastePreferences] = useState<UserTastePreferences>(() =>
     normalizeTastePreferences(profile.tastePreferences),
   )
+  const [savedAlcoholIds, setSavedAlcoholIds] = useState<string[]>(() => readSavedAlcoholProductIds())
+  const [pendingRemoveSavedAlcohol, setPendingRemoveSavedAlcohol] = useState<{ id: string; name: string } | null>(null)
   const [warningByGroup, setWarningByGroup] = useState<Record<string, string>>({})
   const { value: followedUserIds } = useStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, defaultFollowedUserIdsMock)
   const followingCount = useMemo(() => getFollowingCount(followedUserIds), [followedUserIds])
@@ -640,6 +658,33 @@ export default function MyPage() {
       }
     })
 
+    drinkReviews.forEach((review) => {
+      const reviewPostId = getDrinkReviewBookmarkPostId(review.id)
+      if (!Number.isFinite(reviewPostId) || postById.has(reviewPostId)) return
+      const authorId = findAuthorIdByName(review.author.name)
+      postById.set(reviewPostId, {
+        id: reviewPostId,
+        authorId,
+        authorName: review.author.name,
+        authorProfile: review.author.preference,
+        title: review.title,
+        pairingSummary: review.title,
+        body: review.body,
+        imageSrc: review.images[0] ?? "",
+        imageSrcs: review.images,
+        createdAt: review.createdAt,
+        likeCount: review.likes,
+        commentCount: review.comments,
+        popularityScore: review.recommendScore,
+        rating: Number.parseFloat(review.rating) || undefined,
+        locationLabel: review.location ?? "",
+        searchTags: review.tags.map((tag) => tag.replace(/^#/, "")),
+        drinkType: review.alcoholTag ?? "주류",
+        drinkName: review.alcoholTag ?? "",
+        sourceType: "drink-review",
+      })
+    })
+
     return Object.entries(bookmarkListById)
       .map(([postId, listId]) => {
         if (!listId) return null
@@ -650,6 +695,35 @@ export default function MyPage() {
       .filter((item): item is { post: FeedPost; listId: string } => Boolean(item))
       .sort((left, right) => new Date(right.post.createdAt).getTime() - new Date(left.post.createdAt).getTime())
   }, [bookmarkListById, userPosts, bookmarkListLabelById])
+
+  const savedAlcoholItems = useMemo(() => {
+    if (savedAlcoholIds.length === 0) return []
+    const allItems = [
+      ...getCategoryListItems("사케", ALL_SUBCATEGORY),
+      ...getCategoryListItems("소주", ALL_SUBCATEGORY),
+      ...getCategoryListItems("와인", ALL_SUBCATEGORY),
+      ...getCategoryListItems("맥주", ALL_SUBCATEGORY),
+      ...getCategoryListItems("위스키", ALL_SUBCATEGORY),
+      ...getCategoryListItems("증류주", ALL_SUBCATEGORY),
+      ...getCategoryListItems("전통주", ALL_SUBCATEGORY),
+      ...getCategoryListItems("기타", ALL_SUBCATEGORY),
+    ]
+    const byId = new Map(allItems.map((item) => [item.id, item]))
+    return savedAlcoholIds.map((id) => byId.get(id)).filter((item): item is NonNullable<typeof item> => Boolean(item))
+  }, [savedAlcoholIds])
+  const savedActivityCount = bookmarkSavedCount + savedAlcoholItems.length
+
+  const handleRemoveSavedAlcohol = (productId: string) => {
+    const isRemoved = removeSavedAlcoholProductId(productId)
+    if (!isRemoved) return
+    setSavedAlcoholIds((prev) => prev.filter((id) => id !== productId))
+  }
+
+  const confirmRemoveSavedAlcohol = () => {
+    if (!pendingRemoveSavedAlcohol) return
+    handleRemoveSavedAlcohol(pendingRemoveSavedAlcohol.id)
+    setPendingRemoveSavedAlcohol(null)
+  }
 
   const myWrittenPostCount = useMemo(() => {
     const combinedPosts = [...userPosts, ...feedPosts]
@@ -863,16 +937,61 @@ export default function MyPage() {
           </button>
         </div>
 
-        {showSavedAlcohol ? (
-          <div className="my_saved_empty" role="status">
-            저장한 주류 상품이 아직 없어요.
-          </div>
-        ) : bookmarkedPosts.length > 0 ? (
-          <div className="feed_cards my_saved_list" aria-label="저장한 게시글 목록">
+        <div className="my_saved_content">
+          {showSavedAlcohol ? savedAlcoholItems.length > 0 ? (
+            <div className="my_saved_product_list" aria-label="저장한 주류 상품 목록">
+              {savedAlcoholItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="my_saved_product_card"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/product/${item.id}`)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" && event.key !== " ") return
+                    event.preventDefault()
+                    navigate(`/product/${item.id}`)
+                  }}
+                  aria-label={`${item.name} 상세 보기`}
+                >
+                  <div className="my_saved_product_thumb" aria-hidden="true">
+                    <img src={item.imageSrc} alt="" />
+                  </div>
+                  <div className="my_saved_product_body">
+                    <strong>{item.name}</strong>
+                    <p>{`${(item.price ?? 0).toLocaleString("ko-KR")}원`}</p>
+                    <div className="my_saved_product_tags">
+                      {(item.tags ?? []).slice(0, 3).map((tag) => (
+                        <span key={`${item.id}-${tag}`}>{`#${tag}`}</span>
+                      ))}
+                      {typeof item.abv === "number" ? <span>{`#${item.abv}도`}</span> : null}
+                    </div>
+                  </div>
+                  <img className="my_saved_product_arrow" src={iconCaretRight} alt="" aria-hidden="true" />
+                  <button
+                    type="button"
+                    className="my_saved_product_bookmark"
+                    aria-label={`${item.name} 저장 해제`}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setPendingRemoveSavedAlcohol({ id: item.id, name: item.name })
+                    }}
+                  >
+                    <img src={iconBookmarkActive} alt="" aria-hidden="true" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="my_saved_empty" role="status">
+              저장한 주류 상품이 아직 없어요.
+            </div>
+          ) : bookmarkedPosts.length > 0 ? (
+            <div className="feed_cards my_saved_list" aria-label="저장한 게시글 목록">
             {bookmarkedPosts.map(({ post, listId }) => {
               const authorId = typeof post.authorId === "number" ? post.authorId : currentUserMock.id
               const authorName = post.authorName?.trim() || usersMockById[authorId]?.name || "익명"
-              const profile = usersMockById[authorId]?.profile ?? ""
+              const profile = usersMockById[authorId]?.profile ?? post.authorProfile ?? ""
               const pairingTitle = extractPairingTitle(post.title)
               const title = post.isQna ? post.title : post.pairingSummary?.trim() || pairingTitle
               const description = post.locationLabel?.trim() || getPairingSummaryText(post)
@@ -910,6 +1029,7 @@ export default function MyPage() {
                   body={`${listLabel} · ${description}`}
                   showImages={true}
                   photoIds={post.photoIds}
+                  imageSrcs={post.imageSrcs}
                   answerCount={post.answerCount}
                   answerPreview={post.answerPreview}
                   likeActive={false}
@@ -941,12 +1061,23 @@ export default function MyPage() {
                 />
               )
             })}
-          </div>
-        ) : (
-          <div className="my_saved_empty" role="status">
-            저장한 게시글이 아직 없어요.
-          </div>
-        )}
+            </div>
+          ) : (
+            <div className="my_saved_empty" role="status">
+              저장한 게시글이 아직 없어요.
+            </div>
+          )}
+        </div>
+        {pendingRemoveSavedAlcohol ? (
+          <PurchaseConfirmModal
+            ariaLabel="저장 해제 확인"
+            message={`${pendingRemoveSavedAlcohol.name}을(를)\n저장한 리스트에서 삭제할까요?`}
+            cancelLabel="취소"
+            confirmLabel="삭제"
+            onCancel={() => setPendingRemoveSavedAlcohol(null)}
+            onConfirm={confirmRemoveSavedAlcohol}
+          />
+        ) : null}
       </section>
     )
   }
@@ -1251,7 +1382,7 @@ export default function MyPage() {
                 const isSavedStat = stat.label === savedActivityLabel
                 const isRecordStat = stat.label === "기록"
                 const isVoteStat = stat.label === "투표 참여"
-                const value = isSavedStat ? bookmarkSavedCount : isRecordStat ? myWrittenPostCount : stat.value
+                const value = isSavedStat ? savedActivityCount : isRecordStat ? myWrittenPostCount : stat.value
                 const Element: "button" | "div" = isSavedStat || isRecordStat || isVoteStat ? "button" : "div"
                 const extraProps = isSavedStat
                   ? ({ type: "button", onClick: openSavedList, "aria-label": "저장한 리스트 보기" } as const)

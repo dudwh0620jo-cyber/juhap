@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router"
 import { motion } from "motion/react"
+import AlertModal from "../components/AlertModal"
 import TodayHeroCopy from "../components/TodayHeroCopy"
 import { todayPairingDetailByTitle, todayPairingDetailContent } from "../data/todayPairingDetail"
 import { useHomePageData } from "../hooks/useHomePageData"
@@ -76,6 +77,7 @@ export default function TodayPairingDetail() {
   const [isTransitionEnabled, setIsTransitionEnabled] = useState(true)
   const [pendingJumpTo, setPendingJumpTo] = useState<number | null>(null)
   const [pendingNavigateId, setPendingNavigateId] = useState<number | null>(null)
+  const [isPreparingModalOpen, setIsPreparingModalOpen] = useState(false)
 
   useEffect(() => {
     if (ignoreNextRouteSyncRef.current) {
@@ -282,10 +284,18 @@ export default function TodayPairingDetail() {
         >
           이 술 상세보기
         </button>
-        <button type="button" className="today_pairing_bottom_button is_primary" disabled>
+        <button type="button" className="today_pairing_bottom_button is_primary" onClick={() => setIsPreparingModalOpen(true)}>
           비슷한 조합 둘러보기
         </button>
       </div>
+
+      {isPreparingModalOpen ? (
+        <AlertModal
+          message="아직 준비중인 기능이에요."
+          confirmLabel="확인"
+          onConfirm={() => setIsPreparingModalOpen(false)}
+        />
+      ) : null}
     </section>
   )
 }

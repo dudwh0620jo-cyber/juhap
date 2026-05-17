@@ -19,7 +19,7 @@ export const glossaryOptions = [
 ]
 
 export const glossaryUserBubbleTextByTopic: Record<string, string> = {
-  "정미율이 뭔지 궁금해요": "정미율이 뭔지 궁금해요",
+  "정미율이 궁금해요": "정미율이 궁금해요",
 }
 
 export type GlossaryRecommendationConfig = {
@@ -34,18 +34,13 @@ export const glossaryRecommendationByTopic: Record<string, GlossaryRecommendatio
     productIds: ["sake-dassai-23"],
     showFoundMessage: false,
   },
-  "정미율이 뭔지 궁금해요": {
-    wineStyle: CLEAN_SAKE_RECOMMEND_LABEL,
-    productIds: ["sake-dassai-23"],
-    showFoundMessage: false,
-  },
 }
 
 export const glossaryRelatedOptions = [
   CLEAN_SAKE_RECOMMEND_LABEL,
   "사케 종류 차이",
   "바디감",
-  "정미율이 뭔지 궁금해요",
+  "정미율이 궁금해요",
   DIRECT_GLOSSARY_INPUT_LABEL,
 ]
 
@@ -73,7 +68,7 @@ export const glossaryDefinitionByTopic: Record<string, string> = {
     "코에서 먼저 느껴지는 향을 말해요. 과일, 꽃, 허브 같은 향의 첫인상을 설명할 때 많이 써요.",
   피니시:
     "술을 삼킨 뒤 입안에 남는 여운이에요. 짧고 깔끔한 피니시도 있고, 향과 맛이 오래 이어지는 피니시도 있어요.",
-  "정미율이 뭔지 궁금해요":
+  "정미율이 궁금해요":
     "정미율은 쌀의 겉부분을 얼마나 깎았는지를 뜻해요. 보통 더 깔끔하고 섬세한 맛을 기대할 때 참고해요.",
   "사케 종류 차이":
     "사케는 정미율과 제조 방식에 따라 다이긴죠, 긴죠, 준마이 같은 이름으로 나뉘어요.",
@@ -93,5 +88,8 @@ export const glossarySearchTerms = [
   { topic: "아로마", aliases: ["아로마", "향", "aroma"] },
   { topic: "피니시", aliases: ["피니시", "여운", "finish"] },
   { topic: "사케 종류 차이", aliases: ["사케종류", "사케 차이", "준마이", "긴죠", "다이긴죠"] },
-  { topic: "정미율이 뭔지 궁금해요", aliases: ["정미율 궁금", "정미율 뭐야", "정미율 뜻"] },
+  {
+    topic: "정미율이 궁금해요",
+    aliases: ["정미율 궁금", "정미율 뭐야", "정미율 뜻", "정미율이궁금해요", "정미율이 뭔지 궁금해요"],
+  },
 ]
