@@ -162,6 +162,7 @@ export function resolveVoteOptionIconSrc(title: string): string | undefined {
 
 export const homeMomentPickItems = [
   { key: "solo", label: "혼술", iconSrc: homeAssets.momentPickSolo },
+  { key: "friends", label: "친구/파티", iconSrc: homeAssets.momentPickFriends },
   { key: "family", label: "가족", iconSrc: homeAssets.momentPickFamily },
   { key: "date", label: "데이트", iconSrc: homeAssets.momentPickDate },
   { key: "group", label: "모임/단체", iconSrc: homeAssets.momentPickGroup },
@@ -183,6 +184,24 @@ export const homeMomentPickCardsBySituation = {
       subtitle: "사케의 은은한 향과 연어의 부드러운 감칠맛",
       thumbSrc: homeAssets.momentSoloSake01,
       tags: ["부드러움", "깔끔함"],
+      badgeText: undefined,
+    },
+  ],
+  friends: [
+    {
+      id: "moment-pick-friends-1",
+      title: "레드와인 × 치즈 플래터",
+      subtitle: "깊고 진한 풍미, 고소함의 조화",
+      thumbSrc: homeAssets.pairingRedWineCheesePlatter,
+      tags: ["부드러운맛", "고소함"],
+      badgeText: "BEST",
+    },
+    {
+      id: "moment-pick-friends-2",
+      title: "화이트와인 × 토마토",
+      subtitle: "상큼함이 톡 터지는 순간",
+      thumbSrc: homeAssets.pairingWhiteWineTomato,
+      tags: ["상큼함", "깔끔함"],
       badgeText: undefined,
     },
   ],
