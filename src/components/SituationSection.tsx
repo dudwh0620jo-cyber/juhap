@@ -1,6 +1,6 @@
-import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { homeMomentPickCards, homeMomentPickItems } from "../data/homeContent"
+import { homeMomentPickCardsBySituation, homeMomentPickItems } from "../data/homeContent"
 
 export type SituationItem = {
   id: number
@@ -146,13 +146,20 @@ function MomentPickCard({
 export default function SituationSection({ items }: { items: SituationItem[] }) {
   void items
   const [selectedKey, setSelectedKey] = useState<string>(() => homeMomentPickItems[0]?.key ?? "")
-  const [activeCardIndex, setActiveCardIndex] = useState(0)
+  const visibleCards = useMemo(() => {
+    const cardsByKey: Record<string, readonly (typeof homeMomentPickCardsBySituation.solo)[number][]> = {
+      solo: homeMomentPickCardsBySituation.solo,
+      family: homeMomentPickCardsBySituation.family,
+      date: homeMomentPickCardsBySituation.date,
+      group: homeMomentPickCardsBySituation.group,
+    }
+    return cardsByKey[selectedKey] ?? homeMomentPickCardsBySituation.solo
+  }, [selectedKey])
 
-  const cardWidth = 230
-  const cardGap = 14
-  const maxIndex = homeMomentPickCards.length - 1
-  const maxDrag = useMemo(() => Math.max(0, maxIndex * (cardWidth + cardGap)), [maxIndex])
-  const x = useMemo(() => -activeCardIndex * (cardWidth + cardGap), [activeCardIndex])
+  useEffect(() => {
+    const cards = document.querySelector(".moment_pick_cards")
+    if (cards instanceof HTMLElement) cards.scrollTo({ left: 0, behavior: "auto" })
+  }, [selectedKey])
 
   return (
     <section className="home_block home_moment_pick" aria-label="Moment Pick">
@@ -164,29 +171,13 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
       <SituationScroll selectedKey={selectedKey} onSelect={(key) => setSelectedKey(key)} />
       </div>
       <div className="moment_pick_cards" aria-label="Moment Pick 추천 목록">
-        <motion.div
-          className="moment_pick_track"
-          drag="x"
-          dragConstraints={{ left: -maxDrag, right: 0 }}
-          dragElastic={0.08}
-          animate={{ x }}
-          transition={{ type: "spring", stiffness: 520, damping: 42, mass: 0.7 }}
-          onDragEnd={(_, info) => {
-            const swipePower = info.offset.x + info.velocity.x * 10
-            if (swipePower < -60) setActiveCardIndex((prev) => Math.min(maxIndex, prev + 1))
-            else if (swipePower > 60) setActiveCardIndex((prev) => Math.max(0, prev - 1))
-          }}
-        >
-          {homeMomentPickCards.map((card, index) => (
+        <div className="moment_pick_track">
+          {visibleCards.map((card, index) => (
             <button
               key={card.id}
               tabIndex={0}
-              onClick={() => setActiveCardIndex(index)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") setActiveCardIndex(index)
-              }}
               type="button"
-              className="moment_pick_card_button"
+              className={`moment_pick_card_button${index === 0 ? " is_first" : " is_second"}`}
             >
               <MomentPickCard
                 title={card.title}
@@ -198,7 +189,7 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
               />
             </button>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )

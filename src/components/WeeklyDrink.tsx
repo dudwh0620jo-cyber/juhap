@@ -21,6 +21,7 @@ export type WeeklyDrinkItem = {
   tags: string[]
   theme?: "sake" | "white" | "red"
   thumbId?: string
+  disabled?: boolean
 }
 
 type WeeklyDrinkProps = {
@@ -54,17 +55,14 @@ function DrinkStat({ iconSrc, label, value }: { iconSrc: string; label: string; 
 
 export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
   const backgrounds = [weeklyDrinkBg01, weeklyDrinkBg02, weeklyDrinkBg03] as const
-  const formatPriceLabel = (value: string) => {
-    const numeric = value.replace(/[^\d,]/g, "")
-    return `₩${numeric}`
-  }
+  const formatPriceLabel = (value: string) => value
 
   return (
     <section className="home_block home_weekly_drink" aria-label="금주의 주류 소개">
       <div className="home_block_header">
         <div className="home_block_header_copy">
           <h3>{title}</h3>
-          <p className="home_block_subtitle">이번 주 주목할만한 술을 소개해요.</p>
+          <p className="home_block_subtitle">이번 주 주목할 만한 술을 소개해요.</p>
         </div>
       </div>
 
@@ -73,8 +71,14 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
           <Link
             key={item.id}
             to={`/product/${item.id}`}
-            className={`weekly_drink_card${item.theme ? ` is_${item.theme}` : ""}`}
+            className={`weekly_drink_card${item.theme ? ` is_${item.theme}` : ""}${item.disabled ? " is_disabled" : ""}`}
             aria-label={`${item.name} 상세 보기`}
+            aria-disabled={item.disabled ? "true" : undefined}
+            tabIndex={item.disabled ? -1 : undefined}
+            onClick={(event) => {
+              if (!item.disabled) return
+              event.preventDefault()
+            }}
           >
             <div className="weekly_drink_clip" aria-hidden="true">
               <div className="weekly_drink_bg">
@@ -114,8 +118,15 @@ export default function WeeklyDrink({ title, items }: WeeklyDrinkProps) {
             </div>
 
             {item.thumbId ? (
-              <div className="weekly_drink_bottle_slot" aria-hidden="true">
-                <img className="weekly_drink_bottle" src={resolveReviewImage(item.thumbId)} alt="" />
+              <div
+                className={item.thumbId === "drink_dassai_23_detail" ? "weekly_drink_bottle_slot is_dassai23_detail" : "weekly_drink_bottle_slot"}
+                aria-hidden="true"
+              >
+                <img
+                  className={item.thumbId === "drink_dassai_23_detail" ? "weekly_drink_bottle is_dassai23_detail" : "weekly_drink_bottle"}
+                  src={resolveReviewImage(item.thumbId)}
+                  alt=""
+                />
               </div>
             ) : null}
           </Link>

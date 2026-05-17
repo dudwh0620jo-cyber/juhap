@@ -1,11 +1,11 @@
-import { useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
 import type { Variants } from "motion/react"
 import "../styles/vote-list.css"
 import VoteListCard from "../components/VoteListCard"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
-import { getStoredPicks } from "../utils/votePicks"
+import { getStoredPicks, getVoteTotalVotes, VOTE_PICKS_UPDATED_EVENT } from "../utils/votePicks"
 import { voteItems, VOTE_INITIAL_COUNT } from "../data/voteData"
 
 const listVariants: Variants = {
@@ -53,15 +53,22 @@ export default function VoteList() {
   const initialFilter = searchParams.get("filter") === "my" ? "my" : "all"
   const [showAll, setShowAll] = useState(false)
   const [filter, setFilter] = useState<"all" | "my">(initialFilter)
+  const [picks, setPicks] = useState<Record<string, 0 | 1>>(() => getStoredPicks())
   const pillRef = useRef<HTMLDivElement | null>(null)
   const tabRefs = useRef<Record<"all" | "my", HTMLButtonElement | null>>({ all: null, my: null })
   const [glider, setGlider] = useState({ x: 6, width: 0 })
 
-  const picks = getStoredPicks()
   const items = voteItems.map((item) => ({
     ...item,
     myPickIndex: picks[String(item.id)] ?? item.myPickIndex,
+    totalVotes: getVoteTotalVotes(item.id, item.totalVotes),
   }))
+
+  useEffect(() => {
+    const syncPicks = () => setPicks(getStoredPicks())
+    window.addEventListener(VOTE_PICKS_UPDATED_EVENT, syncPicks)
+    return () => window.removeEventListener(VOTE_PICKS_UPDATED_EVENT, syncPicks)
+  }, [])
 
   const filteredItems = filter === "my" ? items.filter((item) => item.myPickIndex !== null) : items
   const baseItems = filteredItems.slice(0, VOTE_INITIAL_COUNT)

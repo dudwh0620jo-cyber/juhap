@@ -24,6 +24,14 @@ import momentPickFriends from "../assets/situation_friends.png"
 import momentPickFamily from "../assets/situation_family.png"
 import momentPickDate from "../assets/situation_date.png"
 import momentPickGroup from "../assets/situation_group.png"
+import momentSoloSake01 from "../assets/moment_solo_sake_01.png"
+import momentSoloHighball01 from "../assets/moment_solo_highball_01.png"
+import momentGroupSoju01 from "../assets/moment_group_soju_01.png"
+import momentGroupBeer01 from "../assets/moment_group_beer_01.png"
+import momentFamilySoju01 from "../assets/moment_family_soju_01.png"
+import momentFamilyBeer01 from "../assets/moment_family_beer_01.png"
+import momentDateRedWine01 from "../assets/moment_date_red_wine_01.png"
+import momentDateChampagne01 from "../assets/moment_date_champagne_01.png"
 import pairingRedWineCheesePlatter from "../assets/pairing_red_wine_cheese_platter_01.png"
 import pairingWhiteWineTomato from "../assets/pairing_white_wine_tomato_01.png"
 import weeklyRankingBadge01 from "../assets/weekly_ranking_badge_01.png"
@@ -70,6 +78,14 @@ export const homeAssets = {
   momentPickFamily,
   momentPickDate,
   momentPickGroup,
+  momentSoloSake01,
+  momentSoloHighball01,
+  momentGroupSoju01,
+  momentGroupBeer01,
+  momentFamilySoju01,
+  momentFamilyBeer01,
+  momentDateRedWine01,
+  momentDateChampagne01,
   pairingRedWineCheesePlatter,
   pairingWhiteWineTomato,
   weeklyRankingBadge01,
@@ -146,30 +162,85 @@ export function resolveVoteOptionIconSrc(title: string): string | undefined {
 
 export const homeMomentPickItems = [
   { key: "solo", label: "혼술", iconSrc: homeAssets.momentPickSolo },
-  { key: "friends", label: "친구/파티", iconSrc: homeAssets.momentPickFriends },
   { key: "family", label: "가족", iconSrc: homeAssets.momentPickFamily },
   { key: "date", label: "데이트", iconSrc: homeAssets.momentPickDate },
   { key: "group", label: "모임/단체", iconSrc: homeAssets.momentPickGroup },
 ] as const
 
-export const homeMomentPickCards = [
-  {
-    id: "moment-pick-1",
-    title: "레드와인 × 치즈 플래터",
-    subtitle: "깊고 진한 풍미, 고소함의 조화",
-    thumbSrc: homeAssets.pairingRedWineCheesePlatter,
-    tags: ["부드러운맛", "고소함"],
-    badgeText: "BEST",
-  },
-  {
-    id: "moment-pick-2",
-    title: "화이트와인 × 토마토",
-    subtitle: "상큼함이 톡 터지는 순간",
-    thumbSrc: homeAssets.pairingWhiteWineTomato,
-    tags: ["상큼함", "깔끔함"],
-    badgeText: undefined,
-  },
-] as const
+export const homeMomentPickCardsBySituation = {
+  solo: [
+    {
+      id: "moment-pick-solo-1",
+      title: "하이볼 × 감자전",
+      subtitle: "탄산의 산뜻함과 감자전의 고소한 조화",
+      thumbSrc: homeAssets.momentSoloHighball01,
+      tags: ["산뜻함", "고소함"],
+      badgeText: "BEST",
+    },
+    {
+      id: "moment-pick-solo-2",
+      title: "사케 × 연어사시미",
+      subtitle: "사케의 은은한 향과 연어의 부드러운 감칠맛",
+      thumbSrc: homeAssets.momentSoloSake01,
+      tags: ["부드러움", "깔끔함"],
+      badgeText: undefined,
+    },
+  ],
+  family: [
+    {
+      id: "moment-pick-family-1",
+      title: "소주 × 삼겹살",
+      subtitle: "소주의 깔끔함과 삼겹살의 기름진 풍미",
+      thumbSrc: homeAssets.momentFamilySoju01,
+      tags: ["고소함", "깔끔함"],
+      badgeText: "BEST",
+    },
+    {
+      id: "moment-pick-family-2",
+      title: "맥주 × 닭갈비",
+      subtitle: "맥주의 청량감과 닭갈비의 매콤달콤 조화",
+      thumbSrc: homeAssets.momentFamilyBeer01,
+      tags: ["매콤함", "청량함"],
+      badgeText: undefined,
+    },
+  ],
+  date: [
+    {
+      id: "moment-pick-date-1",
+      title: "레드와인 × 스테이크",
+      subtitle: "깊은 풍미의 스테이크와 육향의 어울림",
+      thumbSrc: homeAssets.momentDateRedWine01,
+      tags: ["풍부함", "고소함"],
+      badgeText: "BEST",
+    },
+    {
+      id: "moment-pick-date-2",
+      title: "샴페인 × 딸기치즈케이크",
+      subtitle: "샴페인의 산미와 치즈케이크의 달콤한 조화",
+      thumbSrc: homeAssets.momentDateChampagne01,
+      tags: ["달콤함", "산뜻함"],
+      badgeText: undefined,
+    },
+  ],
+  group: [
+    {
+      id: "moment-pick-group-1",
+      title: "맥주 × 치킨",
+      subtitle: "시원한 탄산과 치킨의 바삭한 짭짤한 맛",
+      thumbSrc: homeAssets.momentGroupBeer01,
+      tags: ["바삭함", "청량함"],
+      badgeText: "BEST",
+    },
+    {
+      id: "moment-pick-group-2",
+      title: "소주 × 보쌈",
+      subtitle: "소주의 깔끔한 맛과 보쌈의 담백한 조합",
+      thumbSrc: homeAssets.momentGroupSoju01,
+      tags: ["담백함", "깔끔함"],
+      badgeText: undefined,
+    },
+  ],
+} as const
 
 export const homeWeeklyRankingCards = [
   {

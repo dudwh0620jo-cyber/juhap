@@ -14,7 +14,7 @@ import type { RecommendationItem } from "../components/RecommendationCard"
 import SituationSection from "../components/SituationSection"
 import TodayHeroCopy from "../components/TodayHeroCopy"
 import WeeklyDrink from "../components/WeeklyDrink"
-import { getStoredPicks, storePick } from "../utils/votePicks"
+import { getStoredPicks, getVoteTotalVotes, storePick } from "../utils/votePicks"
 import { homeAssets, homeWeeklyRankingCards, resolveVoteOptionIconSrc } from "../data/homeContent"
 import { FEATURED_VOTE_ID, voteItems } from "../data/voteData"
 import { useHomePageData } from "../hooks/useHomePageData"
@@ -171,6 +171,7 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
   const [timeRemaining, setTimeRemaining] = useState(() => formatVoteRemaining())
   const [voteAlertMessage, setVoteAlertMessage] = useState<string | null>(null)
   const voted = votedIndex !== null
+  const displayedTotalVotes = getVoteTotalVotes(voteId, totalVotes)
 
   useEffect(() => {
     const id = window.setInterval(() => setTimeRemaining(formatVoteRemaining()), 1000)
@@ -241,7 +242,7 @@ function VoteSection({ voteId, question, options, totalVotes }: VoteSectionProps
               {typeof totalVotes === "number" ? (
                 <>
                   <img className="home_vote_total_icon" src={peopleSvg} alt="" aria-hidden="true" />
-                  <span>{`현재 ${totalVotes.toLocaleString()}명이 투표에 참여했어요!`}</span>
+                  <span>{`현재 ${displayedTotalVotes.toLocaleString()}명이 투표에 참여했어요!`}</span>
                 </>
               ) : null}
             </div>

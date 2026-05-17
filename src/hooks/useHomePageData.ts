@@ -132,18 +132,18 @@ const situationItemsSource: SituationSourceItem[] = [
 ]
 const weeklyDrinkItems: WeeklyDrinkItem[] = [
   {
-    id: "weekly-dassai-23",
-    name: "닷사이 45\n준마이 다이긴죠",
+    id: "sake-dassai-23",
+    name: "닷사이 23\n준마이 다이긴죠",
     type: "사케",
     origin: "일본",
     variety: "쌀",
-    rating: 4.2,
+    rating: 5.0,
     sweetness: "낮음",
     abv: "15~16",
-    priceLabel: "₩48,000원",
-    tags: ["깔끔한 맛", "해산물", "가벼운 식사"],
+    priceLabel: "₩180,000원",
+    tags: ["은은한 단맛", "해산물", "깔끔한 피니시"],
     theme: "sake",
-    thumbId: "drink_dassai_45",
+    thumbId: "drink_dassai_23_detail",
   },
   {
     id: "weekly-kendall-jackson",
@@ -158,6 +158,7 @@ const weeklyDrinkItems: WeeklyDrinkItem[] = [
     tags: ["가족식사", "치즈", "가벼운 디너"],
     theme: "white",
     thumbId: "drink_kendall_jackson",
+    disabled: true,
   },
   {
     id: "weekly-caymus-2023",
@@ -172,6 +173,7 @@ const weeklyDrinkItems: WeeklyDrinkItem[] = [
     tags: ["가족식사", "행사와 기념일", "비지니스 다이닝"],
     theme: "red",
     thumbId: "drink_caymus_napa_valley",
+    disabled: true,
   },
 ]
 function normalizeKeyword(value: string) {
@@ -266,4 +268,3 @@ export function useHomePageData() {
     [orderedSituationItems, recommendationItems],
   )
 }
-
