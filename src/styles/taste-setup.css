@@ -1,6 +1,6 @@
 .taste_setup_page {
   min-height: 100vh;
-  padding: 118px 20px 60px;
+  padding: 108px 20px calc(48px + env(safe-area-inset-bottom));
   background: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-main);
@@ -10,8 +10,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 24px;
-  margin-bottom: 30px;
+  padding-bottom: 20px;
+  margin-bottom: 26px;
   border-bottom: 2px dotted var(--color-gray-02);
 }
 
@@ -63,7 +63,7 @@
 
 .taste_setup_groups {
   display: grid;
-  gap: 35px;
+  gap: 32px;
 }
 
 .taste_setup_group h2 {
@@ -114,7 +114,7 @@
   color: var(--color-gray-05);
   font-family: var(--font-main);
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 150%;
   letter-spacing: -2%;
   cursor: pointer;
@@ -145,7 +145,7 @@
 .taste_setup_submit {
   width: 100%;
   height: 60px;
-  margin-top: 60px;
+  margin-top: 52px;
   border-radius: 14px;
   background: var(--color-primary);
   color: var(--color-gray-00);

@@ -72,6 +72,10 @@ export const aiScanCopy = {
     drink: "주류 라벨을 프레임 안에 맞춰주세요",
     food: "음식 사진을 프레임 안에 맞춰주세요",
   },
+  modeBalloon: {
+    drink: "주류를 스캔하시면 페어링 추천 결과를 확인할 수 있어요.",
+    food: "음식을 스캔하시면 또 다른 결과 화면을 볼 수 있어요.",
+  },
   uploadHint: "갤러리에서 사진을 선택해 주세요",
   upload: "사진 업로드하기",
   scan: "스캔하기",
