@@ -22,6 +22,9 @@ import fishIcon from "../assets/svg/fish.svg"
 import martiniIcon from "../assets/svg/martini.svg"
 import houseLineIcon from "../assets/svg/houseline.svg"
 import umbrellaIcon from "../assets/svg/umbrella.svg"
+import baseballIcon from "../assets/svg/baseball.svg"
+import monitorPlayIcon from "../assets/svg/monitorplay.svg"
+import popcornIcon from "../assets/svg/popcorn.svg"
 import "../styles/today-pairing-detail.css"
 
 function resolvePairingPointIconSrc(label: string) {
@@ -36,10 +39,14 @@ function resolvePairingPointIconSrc(label: string) {
 }
 
 function resolveMomentIconSrc(tag: string) {
+  if (tag === "#스포츠") return baseballIcon
+  if (tag === "#OTT") return monitorPlayIcon
+  if (tag === "#디저트") return popcornIcon
   if (tag === "#특별한 날") return cheersIcon
+  if (tag === "#파티") return confettiIcon
   if (tag === "#브런치") return forkKnifeIcon
   if (tag === "#피크닉") return treeEvergreenIcon
-  if (tag === "#홈파티") return confettiIcon
+  if (tag === "#홈파티") return houseLineIcon
   if (tag === "#데이트") return calendarHeartIcon
   if (tag === "#일식") return fishIcon
   if (tag === "#식전/중주") return martiniIcon
@@ -99,7 +106,6 @@ export default function TodayPairingDetail() {
   const safeIndex = total > 0 ? (total <= 1 ? 0 : (positionIndex - 1 + total) % total) : 0
   const hero = recommendationItems[safeIndex]
   const detail = (hero ? todayPairingDetailByTitle[hero.title] : undefined) ?? todayPairingDetailContent[0]
-  const isHakurakuseiStory = detail.storyTitle.includes("하쿠라쿠세이")
 
   if (!hero) return null
 
@@ -280,15 +286,11 @@ export default function TodayPairingDetail() {
         <button
           type="button"
           className="today_pairing_bottom_button is_secondary"
-          disabled={!isHakurakuseiStory}
-          onClick={() => {
-            if (!isHakurakuseiStory) return
-            navigate("/product/sake-dassai-23")
-          }}
+          disabled
         >
           이 술 상세보기
         </button>
-        <button type="button" className="today_pairing_bottom_button is_primary" disabled onClick={() => setIsPreparingModalOpen(true)}>
+        <button type="button" className="today_pairing_bottom_button is_primary" disabled>
           비슷한 조합 둘러보기
         </button>
       </div>

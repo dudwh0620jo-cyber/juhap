@@ -22,7 +22,7 @@ export const todayPairingDetailContent: TodayPairingDetailContent[] = [
       "스낵류의 풍미를 부담 없이 즐기게 해주는 " +
       "실패 없는 미식 공식이에요.",
     points: [{ label: "맛의균형" }, { label: "캐주얼" }, { label: "향의조화" }],
-    moments: [{ tag: "#브런치" }, { tag: "#피크닉" }, { tag: "#특별한 날" }, { tag: "#홈파티" }],
+    moments: [{ tag: "#스포츠" }, { tag: "#OTT" }, { tag: "#디저트" }, { tag: "#홈파티" }],
   },
   {
     storyTitle: "복숭아브리치즈 × 소비뇽블랑",
