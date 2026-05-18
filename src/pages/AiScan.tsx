@@ -147,7 +147,7 @@ export default function AiScan() {
           mode={mode}
           imageSrc={stageSrc}
           isScanning={isScanning}
-          modeBalloonText={isFromChat ? aiScanCopy.modeBalloon.food : undefined}
+          modeBalloonText={aiScanCopy.modeBalloon.food}
           showModeBalloon={isModeBalloonOpen}
           onCloseModeBalloon={closeModeBalloon}
           onBack={moveBack}
