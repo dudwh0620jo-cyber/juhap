@@ -79,6 +79,11 @@ const rightNavItems = [
   { label: "MY", path: "/my", icon: iconUser, activeIcon: iconUserActive },
 ] satisfies BottomNavItem[]
 
+function isPhoneDevice() {
+  if (typeof navigator === "undefined") return false
+  return /Android.+Mobile|iPhone|iPod|Windows Phone|Mobi/i.test(navigator.userAgent)
+}
+
 function getTime() {
   const now = new Date()
   return `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
@@ -158,6 +163,11 @@ export default function App() {
     const handleOpenChat = () => setIsChatOpen(true)
     window.addEventListener("ui:open-chat", handleOpenChat)
     return () => window.removeEventListener("ui:open-chat", handleOpenChat)
+  }, [])
+
+  useEffect(() => {
+    document.body.classList.toggle("is_phone_device", isPhoneDevice())
+    return () => document.body.classList.remove("is_phone_device")
   }, [])
 
   const isAuthPage =

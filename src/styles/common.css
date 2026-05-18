@@ -397,13 +397,9 @@ body {
   gap: 7px;
 }
 
-@media (max-width: 430px) {
-  .status_bar {
-    display: none;
-  }
+.is_phone_device .status_bar {
+  display: none;
 }
-
-
 
 .bottom_nav {
   position: fixed;
