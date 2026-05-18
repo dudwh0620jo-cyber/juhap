@@ -2273,7 +2273,8 @@
   text-align: center;
   letter-spacing: 0;
   line-height: 16px;
-
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
 .home_weekly_rank_subtitle {
@@ -2282,8 +2283,8 @@
   color: var(--color-gray-04);
   text-align: center;
   line-height: 16px;
-
-
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
 .home_weekly_rank_score {

@@ -34,7 +34,6 @@ import {
   glossaryUserBubbleTextByTopic,
   introPromptOptions,
   partyMoodOptions,
-  primaryRecommendationIds,
   wineStyleOptions,
   wineCandidatesMock,
   type ChatMessage,
@@ -82,6 +81,12 @@ const RECOMMENDATION_MATCHING_MS = 3000
 const STEP_PANEL_APPEAR_MS = 80
 const RECOMMENDATION_POOL_COUNT = 4
 const RECOMMENDATION_PAGE_SIZE = 2
+const FIXED_RECOMMENDATION_ORDER = [
+  "sake-kamoshibito-kuheiji",
+  "sake-hakkaisan-daiginjo",
+  "sake-dassai-23",
+  "sake-kubota-manju",
+] as const
 const MICROPHONE_PERMISSION_MODAL = {
   title: "\uB9C8\uC774\uD06C \uAD8C\uD55C\uC774 \uD544\uC694\uD574\uC694",
   message: "\uC74C\uC131 \uC785\uB825\uC744 \uC0AC\uC6A9\uD558\uB824\uBA74\n\uB9C8\uC774\uD06C \uAD8C\uD55C\uC744 \uD5C8\uC6A9\uD574 \uC8FC\uC138\uC694.",
@@ -734,11 +739,14 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     setMessageValue("")
   }
 
-  const recommendations: WineCandidate[] = (() => {
+  const recommendationState = (() => {
     if (state.step !== "recommend") return []
 
     const pool = getTopRecommendations(state.session, 20)
-    const primaryRecommendations = primaryRecommendationIds
+    const orderedRecommendationIds = state.session.recommendationProductIds?.length
+      ? state.session.recommendationProductIds
+      : FIXED_RECOMMENDATION_ORDER
+    const primaryRecommendations = orderedRecommendationIds
       .map((id) => pool.find((item) => item.id === id))
       .filter((item): item is WineCandidate => Boolean(item))
     const primaryIds = new Set(primaryRecommendations.map((item) => item.id))
@@ -748,20 +756,27 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
     )
 
     if (recommendationPool.length <= RECOMMENDATION_PAGE_SIZE) {
-      return recommendationPool
+      return {
+        items: recommendationPool,
+        hasMore: false,
+      }
     }
 
     const pageCount = Math.ceil(recommendationPool.length / RECOMMENDATION_PAGE_SIZE)
     const pageIndex = (state.session.recommendationCursor ?? 0) % pageCount
     const start = pageIndex * RECOMMENDATION_PAGE_SIZE
     const pageItems = recommendationPool.slice(start, start + RECOMMENDATION_PAGE_SIZE)
+    const items =
+      pageItems.length === RECOMMENDATION_PAGE_SIZE ? pageItems : [...pageItems, ...recommendationPool].slice(0, RECOMMENDATION_PAGE_SIZE)
 
-    if (pageItems.length === RECOMMENDATION_PAGE_SIZE) {
-      return pageItems
+    return {
+      items,
+      hasMore: pageIndex < pageCount - 1,
     }
-
-    return [...pageItems, ...recommendationPool].slice(0, RECOMMENDATION_PAGE_SIZE)
   })()
+
+  const recommendations: WineCandidate[] = Array.isArray(recommendationState) ? recommendationState : recommendationState.items
+  const showMoreRecommendations = !Array.isArray(recommendationState) && recommendationState.hasMore
 
   const selectedSessionLabels = getSelectedSessionLabels(state.session)
   const matchingSessionLabels = matchingLabels.length ? matchingLabels : selectedSessionLabels
@@ -885,6 +900,7 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
                     activeGlossaryOption={isGlossaryTyping ? DIRECT_GLOSSARY_INPUT_LABEL : null}
                     selectedWine={state.selectedWine}
                     recommendations={recommendations}
+                    showMoreRecommendations={showMoreRecommendations}
                     onSelectGlossaryTopic={(value) =>
                       value === DIRECT_GLOSSARY_INPUT_LABEL
                         ? messageInputRef.current?.focus()
