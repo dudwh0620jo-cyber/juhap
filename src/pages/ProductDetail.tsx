@@ -2,6 +2,7 @@
 import { Link, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from "react-router"
 import AlertModal from "../components/AlertModal"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
+import PostOwnerActionModal from "../components/PostOwnerActionModal"
 import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ProductReviewLikeButton from "../components/ProductReviewLikeButton"
 import ScrollTopButton from "../components/ScrollTopButton"
@@ -24,6 +25,7 @@ import iconCaretDown from "../assets/svg/caretdown.svg"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import iconChatDots from "../assets/svg/chatcircledots_p.svg"
+import iconDots from "../assets/svg/dotsthreevertical.svg"
 import iconPencil from "../assets/svg/pencilsimple_p.svg"
 import iconShare from "../assets/svg/sharenetwork.svg"
 import iconSharePoint from "../assets/svg/sharenetwork_p.svg"
@@ -44,9 +46,10 @@ import { communityPageData } from "../data/communityPageData"
 import { productDetailPageData } from "../data/productDetailData"
 import { drinkReviews, productPairingReviews } from "../data/productReviewsMock"
 import { useProductReviewInteractions } from "../hooks/useProductReviewInteractions"
-import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, readStoredPairingCommentCount } from "../utils/communityStorage"
+import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_USER_POSTS_KEY, readStoredPairingCommentCount } from "../utils/communityStorage"
 import { getDrinkReviewBookmarkPostId } from "../utils/drinkReviewBookmark"
 import { USER_POSTS_UPDATED_EVENT } from "../utils/communityFeed"
+import type { FeedPost } from "../utils/communityPosts"
 import { addSavedAlcoholProductId, hasSavedAlcoholProductId, removeSavedAlcoholProductId } from "../utils/savedAlcohol"
 import {
   isAlcoholReviewPost,
@@ -56,8 +59,8 @@ import {
   toStoredDrinkReview,
   toStoredPairingReview,
 } from "../utils/myWrittenPosts"
-import type { PairingDetailNavState } from "../utils/pairingDetail"
-import { getVisibleProductReviews } from "../utils/productReviews"
+import { deleteStoredUserPost, type PairingDetailNavState } from "../utils/pairingDetail"
+import { getDrinkReviewDisplayTags, getVisibleProductReviews } from "../utils/productReviews"
 import type { DrinkReview } from "../utils/productReviews"
 import { useStoredNullableStringRecord } from "../utils/storage"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
@@ -140,6 +143,8 @@ export default function ProductDetail() {
   const [shareToastMessage, setShareToastMessage] = useState<string | null>(null)
   const [bookmarkToastMessage, setBookmarkToastMessage] = useState<string | null>(null)
   const [storedMyPosts, setStoredMyPosts] = useState(() => readStoredMyWrittenPosts())
+  const [ownerPostAction, setOwnerPostAction] = useState<FeedPost | null>(null)
+  const [pendingOwnerDeletePost, setPendingOwnerDeletePost] = useState<FeedPost | null>(null)
   const { value: bookmarkListById, setValue: setBookmarkListById } = useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
   const {
     animatingReviewId,
@@ -203,6 +208,17 @@ export default function ProductDetail() {
   }, [storedDrinkReviews])
 
   const isMyReviewAuthor = (authorName: string, reviewId: string) => reviewId.startsWith("user-review-") || authorName === myNickname
+
+  const getOwnedReviewPost = (review: DrinkReview) => {
+    const pairingPostId = getPairingReviewPostId(review)
+    if (Number.isFinite(pairingPostId)) {
+      return storedMyPosts.find((post) => post.id === pairingPostId && isPairingReviewPost(post)) ?? null
+    }
+
+    const drinkReviewPostId = Number(review.id.match(/^user-review-(\d+)$/)?.[1] ?? NaN)
+    if (!Number.isFinite(drinkReviewPostId)) return null
+    return storedMyPosts.find((post) => post.id === drinkReviewPostId && isAlcoholReviewPost(post)) ?? null
+  }
 
   const changeActiveTab = (nextTab: (typeof tabItems)[number]) => {
     setActiveTab(nextTab)
@@ -270,6 +286,18 @@ export default function ProductDetail() {
     }, 0)
     return () => window.clearTimeout(timerId)
   }, [activeTab, location.hash, navigationType, reviewVisibleCount])
+
+  useLayoutEffect(() => {
+    const restoreScrollTop = (location.state as { restoreScrollTop?: unknown } | null)?.restoreScrollTop
+    if (typeof restoreScrollTop !== "number" || !Number.isFinite(restoreScrollTop)) return
+
+    const timerId = window.setTimeout(() => {
+      window.scrollTo({ top: Math.max(0, restoreScrollTop), behavior: "auto" })
+      navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null })
+    }, 0)
+
+    return () => window.clearTimeout(timerId)
+  }, [location.hash, location.pathname, location.search, location.state, navigate])
 
   const openPairingReviewDetail = (review: DrinkReview) => {
     const postId = getPairingReviewPostId(review)
@@ -395,6 +423,26 @@ export default function ProductDetail() {
 
   const showShareToast = () => {
     setShareToastMessage("현재 지원되지 않는 기능이에요.")
+  }
+
+  const openOwnerPostEditor = (post: FeedPost) => {
+    const isDrinkReviewPost = isAlcoholReviewPost(post)
+    const editPath = isDrinkReviewPost ? `/product/${post.productId ?? product.id}/write` : `/community/write?mode=review&editId=${post.id}`
+
+    navigate(editPath, {
+      state: {
+        editPost: post,
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+        returnScrollTop: window.scrollY,
+      },
+    })
+  }
+
+  const confirmOwnerPostDelete = () => {
+    if (!pendingOwnerDeletePost) return
+    deleteStoredUserPost(pendingOwnerDeletePost.id, COMMUNITY_USER_POSTS_KEY)
+    setStoredMyPosts((prev) => prev.filter((post) => post.id !== pendingOwnerDeletePost.id))
+    setPendingOwnerDeletePost(null)
   }
 
   return (
@@ -641,7 +689,9 @@ export default function ProductDetail() {
           </div>
 
           <div className="review_list">
-            {visibleReviews.slice(0, reviewVisibleCount).map((review) => (
+            {visibleReviews.slice(0, reviewVisibleCount).map((review) => {
+              const ownedPost = getOwnedReviewPost(review)
+              return (
               <article
                 id={`review-card-${encodeURIComponent(review.id)}`}
                 className="review_card"
@@ -688,6 +738,19 @@ export default function ProductDetail() {
                       {review.rating}
                     </p>
                   </div>
+                  {ownedPost ? (
+                    <button
+                      type="button"
+                      className="review_owner_menu_button"
+                      aria-label="게시글 설정"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        setOwnerPostAction(ownedPost)
+                      }}
+                    >
+                      <img src={iconDots} alt="" aria-hidden="true" />
+                    </button>
+                  ) : null}
                 </div>
 
                 {review.images.length > 0 ? (
@@ -702,8 +765,8 @@ export default function ProductDetail() {
                   <h2>{review.title}</h2>
                   <p>{review.body}</p>
                   <div className="review_tags">
-                    {review.tags.map((tag) => (
-                      <span key={tag}>#{normalizeHashTagValue(tag)}</span>
+                    {getDrinkReviewDisplayTags(review).map((tag) => (
+                      <span key={tag}>#{tag}</span>
                     ))}
                   </div>
                 </div>
@@ -739,7 +802,8 @@ export default function ProductDetail() {
                   </button>
                 </div>
               </article>
-            ))}
+              )
+            })}
           </div>
           {reviewVisibleCount < visibleReviews.length ? (
             <button
@@ -800,7 +864,9 @@ export default function ProductDetail() {
               </button>
             </div>
             <div className="product_related_list">
-              {visiblePairingReviews.slice(0, pairingVisibleCount).map((review) => (
+              {visiblePairingReviews.slice(0, pairingVisibleCount).map((review) => {
+                const ownedPost = getOwnedReviewPost(review)
+                return (
                 <article
                   className="pairing_review_card"
                   key={review.id}
@@ -838,6 +904,19 @@ export default function ProductDetail() {
                       </p>
                       <p className="review_user_desc">{review.author.preference}</p>
                     </div>
+                    {ownedPost ? (
+                      <button
+                        type="button"
+                        className="review_owner_menu_button"
+                        aria-label="게시글 설정"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setOwnerPostAction(ownedPost)
+                        }}
+                      >
+                        <img src={iconDots} alt="" aria-hidden="true" />
+                      </button>
+                    ) : null}
                   </div>
 
                   {review.images.length > 0 ? (
@@ -915,7 +994,8 @@ export default function ProductDetail() {
                     </button>
                   </div>
                 </article>
-              ))}
+                )
+              })}
             </div>
           </div>
 
@@ -946,6 +1026,34 @@ export default function ProductDetail() {
           onDismiss={cancelBookmark}
           onSecondary={cancelBookmark}
           onPrimary={isBookmarkPickerActive ? removeBookmark : confirmBookmark}
+        />
+      ) : null}
+
+      {ownerPostAction ? (
+        <PostOwnerActionModal
+          title="게시글 설정"
+          onCancel={() => setOwnerPostAction(null)}
+          onEdit={() => {
+            const post = ownerPostAction
+            setOwnerPostAction(null)
+            openOwnerPostEditor(post)
+          }}
+          onDelete={() => {
+            const post = ownerPostAction
+            setOwnerPostAction(null)
+            setPendingOwnerDeletePost(post)
+          }}
+        />
+      ) : null}
+
+      {pendingOwnerDeletePost ? (
+        <PurchaseConfirmModal
+          ariaLabel="게시글 삭제 확인"
+          message="이 글을 삭제할까요?"
+          cancelLabel="취소"
+          confirmLabel="삭제"
+          onCancel={() => setPendingOwnerDeletePost(null)}
+          onConfirm={confirmOwnerPostDelete}
         />
       ) : null}
 
@@ -1090,4 +1198,3 @@ export default function ProductDetail() {
     </section>
   )
 }
-

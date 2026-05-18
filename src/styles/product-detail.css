@@ -229,7 +229,9 @@
   border-radius: 999px;
   background: var(--color-primary);
   pointer-events: none;
-  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .product_tabs_inner button {
@@ -1482,7 +1484,6 @@
 
 .pairing_filter_bar {
   padding-top: 20px;
-  padding-bottom: 28px;
 }
 
 .review_photo_filter {
@@ -1656,6 +1657,24 @@
   gap: 16px;
   align-items: flex-start;
   padding: 0 20px;
+}
+
+.review_owner_menu_button {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.review_owner_menu_button img {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .review_profile {

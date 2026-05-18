@@ -2,31 +2,33 @@
 import { Navigate, useLocation, useNavigate, useParams } from "react-router"
 import CommunityBookmarkPickerModal from "../components/CommunityBookmarkPickerModal"
 import CommentSection from "../components/CommentSection"
+import PairingDetailHeader from "../components/PairingDetailHeader"
+import PostOwnerActionModal from "../components/PostOwnerActionModal"
 import ProductReviewLikeButton from "../components/ProductReviewLikeButton"
+import PurchaseConfirmModal from "../components/PurchaseConfirmModal"
 import ScrollTopButton from "../components/ScrollTopButton"
 import iconBookmark from "../assets/svg/bookmarksimple_p.svg"
 import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
-import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconChatDots from "../assets/svg/chatcircledots_p.svg"
 import iconShare from "../assets/svg/sharenetwork_p.svg"
 import iconStar from "../assets/svg/star.svg"
 import iconCheck from "../assets/svg/check_g.svg"
 import iconWarning from "../assets/svg/worning_r.svg"
-import imgDefaultUserAvatar from "../assets/user_avatar_defult.png"
 import { communityPageData } from "../data/communityPageData"
 import { drinkReviews } from "../data/productReviewsMock"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
-import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, readStoredPairingCommentCount } from "../utils/communityStorage"
+import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_USER_POSTS_KEY, readStoredPairingCommentCount } from "../utils/communityStorage"
 import { getDrinkReviewBookmarkPostId } from "../utils/drinkReviewBookmark"
 import { isAlcoholReviewPost, readStoredMyWrittenPosts, toStoredDrinkReview } from "../utils/myWrittenPosts"
 import { getPairingTierLabelByUserId, getUserGradeBadgeClassNameByUserId } from "../utils/pairingTier"
+import { deleteStoredUserPost } from "../utils/pairingDetail"
+import { getDrinkReviewDisplayTags } from "../utils/productReviews"
 import { useStoredNullableStringRecord } from "../utils/storage"
-import { resolveMyUserAvatar } from "../utils/userAvatars"
-import { currentUserMock } from "../utils/usersMock"
+import { currentUserMock, usersMock } from "../utils/usersMock"
+import type { FeedPost } from "../utils/communityPosts"
 import "../styles/pairing-detail.css"
 import "../styles/product-review-detail.css"
 
-const normalizeHashTagValue = (tag: string) => tag.replace(/^#/, "").trim()
 const getReviewCommentTargetId = (reviewId: string) => (/^\d+$/.test(reviewId) ? reviewId : `product-review-comments-${reviewId}`)
 const getFilledStarCount = (rating: number | string) => {
   const numericRating = typeof rating === "number" ? rating : Number.parseFloat(rating)
@@ -40,12 +42,22 @@ export default function ProductReviewDetail() {
   const location = useLocation()
   const { id, reviewId } = useParams()
   const { nickname: myNickname, metaLine: myMetaLine } = useMyOnboardingMeta()
+  const [storedMyPosts, setStoredMyPosts] = useState<FeedPost[]>(() => readStoredMyWrittenPosts())
 
   const decodedReviewId = reviewId ? decodeURIComponent(reviewId) : ""
   const review = useMemo(() => {
-    const storedReviews = readStoredMyWrittenPosts().filter(isAlcoholReviewPost).map(toStoredDrinkReview)
+    const storedReviews = storedMyPosts.filter(isAlcoholReviewPost).map(toStoredDrinkReview)
     return [...storedReviews, ...drinkReviews].find((item) => item.id === decodedReviewId)
-  }, [decodedReviewId])
+  }, [decodedReviewId, storedMyPosts])
+
+  const ownedPost = useMemo(() => {
+    const matchedId = decodedReviewId.match(/^user-review-(\d+)$/)?.[1]
+    if (matchedId) {
+      const numericId = Number(matchedId)
+      return storedMyPosts.find((post) => post.id === numericId && isAlcoholReviewPost(post)) ?? null
+    }
+    return null
+  }, [decodedReviewId, storedMyPosts])
 
   const currentUser = useMemo(() => ({ ...currentUserMock, name: myNickname, meta: myMetaLine }), [myMetaLine, myNickname])
 
@@ -56,6 +68,8 @@ export default function ProductReviewDetail() {
   const [shareToastMessage, setShareToastMessage] = useState<string | null>(null)
   const [bookmarkToastMessage, setBookmarkToastMessage] = useState<string | null>(null)
   const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(null)
+  const [ownerPostAction, setOwnerPostAction] = useState<FeedPost | null>(null)
+  const [pendingOwnerDeletePost, setPendingOwnerDeletePost] = useState<FeedPost | null>(null)
 
   const { value: bookmarkListById, setValue: setBookmarkListById } =
     useStoredNullableStringRecord(COMMUNITY_BOOKMARK_LIST_BY_POST_KEY)
@@ -73,7 +87,9 @@ export default function ProductReviewDetail() {
   const displayAuthorName = isMyReview ? myNickname : review.author.name
   const displayAuthorGrade = isMyReview ? getPairingTierLabelByUserId(currentUserMock.id) : review.author.grade
   const displayAuthorProfile = isMyReview ? myMetaLine : review.author.preference
-  const displayAuthorAvatar = isMyReview ? resolveMyUserAvatar() : review.author.avatar || imgDefaultUserAvatar
+  const displayAuthorId = isMyReview
+    ? currentUserMock.id
+    : ownedPost?.authorId ?? usersMock.find((user) => user.name === review.author.name)?.id ?? null
 
   const commentCount = commentCountOverride ?? readStoredPairingCommentCount(commentTargetId)
   const reviewBookmarkPostId = getDrinkReviewBookmarkPostId(review.id)
@@ -122,6 +138,23 @@ export default function ProductReviewDetail() {
     setShareToastMessage("현재 지원되지 않는 기능이에요.")
   }
 
+  const openOwnerPostEditor = (post: FeedPost) => {
+    navigate(`/product/${post.productId ?? id ?? ""}/write`, {
+      state: {
+        editPost: post,
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+      },
+    })
+  }
+
+  const confirmOwnerPostDelete = () => {
+    if (!pendingOwnerDeletePost) return
+    deleteStoredUserPost(pendingOwnerDeletePost.id, COMMUNITY_USER_POSTS_KEY)
+    setStoredMyPosts((prev) => prev.filter((post) => post.id !== pendingOwnerDeletePost.id))
+    setPendingOwnerDeletePost(null)
+    navigate(id ? `/product/${id}?tab=review` : "/category", { replace: true })
+  }
+
   const handleBack = () => {
     const returnInfo = (location.state as { returnToProductReview?: { productId?: string; reviewAnchorId?: string } } | null)
       ?.returnToProductReview
@@ -155,34 +188,23 @@ export default function ProductReviewDetail() {
 
   return (
     <section className="product_review_detail_page page_screen" aria-label="후기 상세">
-      <header className="product_review_detail_header" aria-label="상단 메뉴">
-        <button type="button" className="product_review_detail_icon_button" aria-label="뒤로가기" onClick={handleBack}>
-          <img src={iconCaretLeft} alt="" aria-hidden="true" />
-        </button>
-      </header>
+      <PairingDetailHeader
+        authorId={displayAuthorId}
+        authorName={displayAuthorName}
+        profile={displayAuthorProfile}
+        tierClassName={getUserGradeBadgeClassNameByUserId(displayAuthorId ?? currentUserMock.id)}
+        tierLabel={displayAuthorGrade}
+        showTier={Boolean(displayAuthorGrade)}
+        isFollowing={isFollowing}
+        followDisabled={isMyReview}
+        isAuthor={isMyReview}
+        menuAriaLabel={isMyReview ? "게시글 설정" : undefined}
+        onOpenMenu={isMyReview ? (ownedPost ? () => setOwnerPostAction(ownedPost) : showShareToast) : undefined}
+        onBack={handleBack}
+        onToggleFollow={() => setIsFollowing((prev) => !prev)}
+      />
 
       <article className="product_review_detail_card">
-        <div className="product_review_detail_author">
-          <img className="product_review_detail_avatar" src={displayAuthorAvatar} alt="" aria-hidden="true" />
-          <div className="product_review_detail_author_text">
-            <p className="product_review_detail_nickname">
-              <strong>{displayAuthorName}</strong>
-              <span className="product_review_detail_grade">{displayAuthorGrade}</span>
-              {isMyReview ? (
-                <span className="author_owner_badge">작성자</span>
-              ) : (
-                <>
-                  <i aria-hidden="true">·</i>
-                  <button type="button" onClick={() => setIsFollowing((prev) => !prev)}>
-                    {isFollowing ? "언팔로우" : "팔로우"}
-                  </button>
-                </>
-              )}
-            </p>
-            <p>{displayAuthorProfile}</p>
-          </div>
-        </div>
-
         {review.images.length > 0 ? (
           <div className="product_review_detail_media" aria-label="후기 이미지">
             <div className="product_review_detail_media_frame">
@@ -226,8 +248,8 @@ export default function ProductReviewDetail() {
           </div>
           <p className="product_review_detail_text">{review.body}</p>
           <div className="product_review_detail_tags">
-            {review.tags.map((tag) => (
-              <span key={tag}>#{normalizeHashTagValue(tag)}</span>
+            {getDrinkReviewDisplayTags(review).map((tag) => (
+              <span key={tag}>#{tag}</span>
             ))}
           </div>
         </div>
@@ -283,6 +305,34 @@ export default function ProductReviewDetail() {
           onDismiss={cancelBookmark}
           onSecondary={cancelBookmark}
           onPrimary={isBookmarked ? removeBookmark : confirmBookmark}
+        />
+      ) : null}
+
+      {ownerPostAction ? (
+        <PostOwnerActionModal
+          title="게시글 설정"
+          onCancel={() => setOwnerPostAction(null)}
+          onEdit={() => {
+            const post = ownerPostAction
+            setOwnerPostAction(null)
+            openOwnerPostEditor(post)
+          }}
+          onDelete={() => {
+            const post = ownerPostAction
+            setOwnerPostAction(null)
+            setPendingOwnerDeletePost(post)
+          }}
+        />
+      ) : null}
+
+      {pendingOwnerDeletePost ? (
+        <PurchaseConfirmModal
+          ariaLabel="게시글 삭제 확인"
+          message="이 글을 삭제할까요?"
+          cancelLabel="취소"
+          confirmLabel="삭제"
+          onCancel={() => setPendingOwnerDeletePost(null)}
+          onConfirm={confirmOwnerPostDelete}
         />
       ) : null}
 

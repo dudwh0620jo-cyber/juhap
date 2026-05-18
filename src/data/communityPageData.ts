@@ -53,7 +53,7 @@ const inferFeatureChips = (tokens: string[]) => {
 
   if (joined.includes("과일") || joined.includes("fruity")) features.push("과일향")
   if (joined.includes("상큼") || joined.includes("산뜻") || joined.includes("fresh") || joined.includes("citrus")) features.push("상큼한")
-  if (joined.includes("은은") || joined.includes("섬세") || joined.includes("delicate")) features.push("은은함")
+  if (joined.includes("은은") || joined.includes("섬세") || joined.includes("delicate")) features.push("은은한")
   if (joined.includes("부드") || joined.includes("스무") || joined.includes("smooth")) features.push("부드러운")
   if (joined.includes("가벼") || joined.includes("라이트") || joined.includes("light")) features.push("가벼운")
   if (joined.includes("진한") || joined.includes("묵직") || joined.includes("무거") || joined.includes("heavy")) features.push("무거운")
