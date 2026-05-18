@@ -456,6 +456,11 @@ export default function CommunityWrite() {
     "특히 차갑게 마셨을 때 향이 더 또렷하게 느껴졌는데, 무겁거나 알코올 치는 느낌 없이 부드럽게 넘어가는 게 진짜 좋았습니다. 왜 사케 입문으로 많이 추천하는지 바로 이해됐어요.",
     "회나 가벼운 일식 안주랑 같이 먹으면 향이 더 살아나는 느낌이라 조합도 꽤 만족스러웠습니다 ✨",
   ].join("\n")
+  const testPairingReviewSummary = "은은한 향에 짭짤한 닭꼬치 조합은 최고야"
+  const testPairingReviewBody = [
+    "처음에는 닭꼬치처럼 간이 있는 안주랑 잘 어울릴까 싶었는데, 같이 먹어보니까 의외로 밸런스가 되게 좋았어요. 닭꼬치의 짭짤하고 불향 나는 맛 뒤로 은은하게 올라오는 사케 향이 깔끔하게 이어져서 느끼함 없이 계속 들어가는 느낌이었습니다.",
+    "특히 닭껍질 꼬치처럼 기름진 부위 먹고 한잔 마시면 입안이 한번 정리되면서 다음 꼬치가 더 맛있게 느껴졌어요. 과하게 무겁거나 자극적인 조합이 아니라 부드럽게 이어지는 느낌이라 편하게 즐기기 좋았습니다.",
+  ].join("\n")
 
   // 페어링 후기 쓰기
   const [pairingDrinkName, setPairingDrinkName] = useState("")
@@ -724,6 +729,11 @@ export default function CommunityWrite() {
   function handleLoadTestReviewText() {
     setTitle("생각보다 훨씬 편안했던 술")
     setBody(testDrinkReviewBody)
+  }
+
+  function handleLoadTestPairingReviewText() {
+    setPairingSummary(testPairingReviewSummary)
+    setPairingBody(testPairingReviewBody)
   }
 
   useEffect(() => {
@@ -1933,7 +1943,7 @@ export default function CommunityWrite() {
                   disabled={pairingPhotoIds.length >= MAX_PAIRING_PHOTOS}
                   onClick={handleLoadMockPhoto}
                 >
-                  사진 불러오기
+                  테스트용 이미지 불러오기
                 </button>
               </div>
 
@@ -2851,6 +2861,10 @@ export default function CommunityWrite() {
                   </div>
                 </div>
               </div>
+
+              <button type="button" className="write_photo_browse write_test_text_load" onClick={handleLoadTestPairingReviewText}>
+                테스트용 텍스트 불러오기
+              </button>
 
               <div className="write_section">
                 <label className="write_field">
