@@ -327,7 +327,26 @@
 
 /* Chatbot redesign overrides */
 .chat_page {
+  position: fixed;
+  isolation: isolate;
+}
+
+.chat_page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  transition: opacity 240ms ease-out;
+}
+
+.chat_page.is_open::before {
+  opacity: 1;
+}
+
+.chat_overlay {
+  position: relative;
+  z-index: 1;
 }
 
 .chat_sheet {

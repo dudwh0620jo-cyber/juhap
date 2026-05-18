@@ -553,6 +553,54 @@ export default function CommunityWrite() {
     }
   }, [drinkName, productDetail?.name, selectedDrinkType, writeKind])
 
+  const startPairingScanDemo = useCallback(() => {
+    setIsPairingDrinkScanning(true)
+    setIsPairingFoodScanning(true)
+    setIsPairingDrinkScanDone(false)
+    setIsPairingFoodScanDone(false)
+    setIsPairingDrinkRevealed(false)
+    setIsPairingFoodRevealed(false)
+    setPairingDrinkThumbSrc(null)
+    setPairingFoodThumbSrc(null)
+    setPairingDrinkName("")
+    setSelectedFoodCategory(null)
+    setSelectedFoodParentCategory(null)
+    setSelectedFoodCategoryTags(new Set())
+    setPairingTasteTags(new Set())
+    setSelectedSituation(null)
+
+    const drinkMock = pairingWriteDrinkMocks[0] ?? null
+    const foodMock = pairingWriteFoodMocks[0] ?? null
+
+    window.setTimeout(() => {
+      if (drinkMock) {
+        setPairingDrinkName(drinkMock.name)
+        setSelectedDrinkType(drinkMock.parentCategory)
+      } else {
+        setPairingDrinkName("추천 주류")
+        if (!selectedDrinkType) setSelectedDrinkType(SAKE_LABEL)
+      }
+      if (drinkMock) setPairingDrinkThumbSrc(drinkMock.imageSrc)
+      setIsPairingDrinkScanning(false)
+      setIsPairingDrinkScanDone(true)
+      window.setTimeout(() => setIsPairingDrinkRevealed(true), PAIRING_SCAN_MS)
+
+      if (foodMock) {
+        setSelectedFoodCategory(foodMock.name)
+        setSelectedFoodParentCategory(foodMock.parentCategory as FoodParentCategory)
+        setSelectedFoodCategoryTags(new Set([foodMock.parentCategory as FoodParentCategory]))
+      } else {
+        setSelectedFoodCategory("추천 음식")
+        setSelectedFoodParentCategory("양식")
+        setSelectedFoodCategoryTags(new Set(["양식"]))
+      }
+      if (foodMock) setPairingFoodThumbSrc(foodMock.imageSrc)
+      setIsPairingFoodScanning(false)
+      setIsPairingFoodScanDone(true)
+      window.setTimeout(() => setIsPairingFoodRevealed(true), PAIRING_SCAN_MS)
+    }, PAIRING_SCAN_MS)
+  }, [selectedDrinkType, setSelectedDrinkType])
+
   async function handleUploadPhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"))
     if (files.length === 0) return
@@ -563,7 +611,15 @@ export default function CommunityWrite() {
       if (isBasicWrite) {
         setPhotoIds((prev) => [...prev, ...nextImages].slice(0, MAX_BASIC_PHOTOS))
       } else {
-        setPairingPhotoIds((prev) => [...prev, ...nextImages].slice(0, MAX_PAIRING_PHOTOS))
+        setPairingPhotoIds((prev) => {
+          const next = [...prev, ...nextImages].slice(0, MAX_PAIRING_PHOTOS)
+          const isFirstPhotoAdded = prev.length === 0 && next.length > 0
+          if (isFirstPhotoAdded) {
+            const hasSelectionAlready = pairingDrinkName.trim().length > 0 || Boolean(selectedFoodCategory?.trim())
+            if (!hasSelectionAlready) startPairingScanDemo()
+          }
+          return next
+        })
       }
     } catch {
       setAlertMessage("이미지를 불러오지 못했습니다. 다시 시도해 주세요.")
@@ -608,7 +664,16 @@ export default function CommunityWrite() {
     if (isBasicWrite) {
       setPhotoIds((prev) => (prev.length >= MAX_BASIC_PHOTOS ? prev : [...prev, `photo-${Date.now()}`]))
     } else {
-      setPairingPhotoIds((prev) => (prev.length >= MAX_PAIRING_PHOTOS ? prev : [...prev, `photo-${Date.now()}`]))
+      setPairingPhotoIds((prev) => {
+        if (prev.length >= MAX_PAIRING_PHOTOS) return prev
+        const next = [...prev, `photo-${Date.now()}`]
+        const isFirstPhotoAdded = prev.length === 0 && next.length > 0
+        if (isFirstPhotoAdded) {
+          const hasSelectionAlready = pairingDrinkName.trim().length > 0 || Boolean(selectedFoodCategory?.trim())
+          if (!hasSelectionAlready) startPairingScanDemo()
+        }
+        return next
+      })
     }
     closeCameraPreview()
   }
@@ -630,58 +695,9 @@ export default function CommunityWrite() {
         })
       }
 
-      const startMockScan = () => {
-        // review_dassai_23_01 → 자동 추천(연출)
-        setIsPairingDrinkScanning(true)
-        setIsPairingFoodScanning(true)
-        setIsPairingDrinkScanDone(false)
-        setIsPairingFoodScanDone(false)
-        setIsPairingDrinkRevealed(false)
-        setIsPairingFoodRevealed(false)
-        setPairingDrinkThumbSrc(null)
-        setPairingFoodThumbSrc(null)
-        setPairingDrinkName("")
-        setSelectedFoodCategory(null)
-        setSelectedFoodParentCategory(null)
-        setSelectedFoodCategoryTags(new Set())
-        setPairingTasteTags(new Set())
-        setSelectedSituation(null)
-
-        const drinkMock = pairingWriteDrinkMocks[0] ?? null
-        const foodMock = pairingWriteFoodMocks[0] ?? null
-
-        window.setTimeout(() => {
-          if (drinkMock) {
-            setPairingDrinkName(drinkMock.name)
-            setSelectedDrinkType(drinkMock.parentCategory)
-          } else {
-            setPairingDrinkName("추천 주류")
-            if (!selectedDrinkType) setSelectedDrinkType(SAKE_LABEL)
-          }
-          if (drinkMock) setPairingDrinkThumbSrc(drinkMock.imageSrc)
-          setIsPairingDrinkScanning(false)
-          setIsPairingDrinkScanDone(true)
-          window.setTimeout(() => setIsPairingDrinkRevealed(true), PAIRING_SCAN_MS)
-
-          if (foodMock) {
-            setSelectedFoodCategory(foodMock.name)
-            setSelectedFoodParentCategory(foodMock.parentCategory as FoodParentCategory)
-            setSelectedFoodCategoryTags(new Set([foodMock.parentCategory as FoodParentCategory]))
-          } else {
-            setSelectedFoodCategory("추천 음식")
-            setSelectedFoodParentCategory("양식")
-            setSelectedFoodCategoryTags(new Set(["양식"]))
-          }
-          if (foodMock) setPairingFoodThumbSrc(foodMock.imageSrc)
-          setIsPairingFoodScanning(false)
-          setIsPairingFoodScanDone(true)
-          window.setTimeout(() => setIsPairingFoodRevealed(true), PAIRING_SCAN_MS)
-        }, PAIRING_SCAN_MS)
-      }
-
       addMockPhoto()
       if (!hasMockAlready) {
-        startMockScan()
+        startPairingScanDemo()
       }
     }
     setIsPhotoActionSheetOpen(false)
@@ -701,6 +717,16 @@ export default function CommunityWrite() {
       stopCameraStream(cameraStream)
     }
   }, [cameraStream, stopCameraStream])
+
+  useEffect(() => {
+    if (pairingPhotoIds.length > 0) return
+    setIsPairingDrinkScanning(false)
+    setIsPairingDrinkScanDone(false)
+    setIsPairingDrinkRevealed(false)
+    setIsPairingFoodScanning(false)
+    setIsPairingFoodScanDone(false)
+    setIsPairingFoodRevealed(false)
+  }, [pairingPhotoIds.length])
 
   const allDrinkSuggestions = useMemo(
     () =>
@@ -1518,7 +1544,7 @@ export default function CommunityWrite() {
           onTitleChange={setTitle}
           onBodyChange={setBody}
           onPhotoFileChange={handleUploadPhotoChange}
-          onOpenPhotoPicker={handleLoadMockPhoto}
+          onOpenPhotoPicker={() => setIsPhotoActionSheetOpen(true)}
           onLoadTestImage={handleLoadMockPhoto}
           onRemovePhoto={removeBasicPhotoOnce}
           onSubmit={handleShare}
@@ -1787,7 +1813,7 @@ export default function CommunityWrite() {
 
                 <div className="write_pairing_photo_slots" aria-label="사진 추가">
                   {pairingPhotoIds.slice(0, MAX_PAIRING_PHOTOS).map((photoId, index) => {
-                    const isScanTargetPhoto = index === 0 && photoId === PAIRING_MOCK_REVIEW_IMAGE
+                    const isScanTargetPhoto = index === 0
                     const pairingPhotoSrc = resolveReviewImage(photoId) ?? photoId
 
                     return (
@@ -2182,39 +2208,38 @@ export default function CommunityWrite() {
                 </button>
               </div>
 
-              {isPairingDrinkModalOpen ? (
-                <div
-                  className="write_modal_backdrop"
-                  role="presentation"
-                  onMouseDown={(event) => {
-                    event.stopPropagation()
-                    setIsPairingDrinkModalOpen(false)
-                    setIsDrinkCategoryMenuOpen(false)
-                  }}
-                >
-                  <div
-                    className="write_modal_panel write_drink_picker_modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="주류"
-                    onMouseDown={(event) => event.stopPropagation()}
+              <AnimatePresence>
+                {isPairingDrinkModalOpen ? (
+                  <motion.div
+                    className="write_modal_backdrop"
+                    role="presentation"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    onMouseDown={(event) => {
+                      event.stopPropagation()
+                      setIsPairingDrinkModalOpen(false)
+                      setIsDrinkCategoryMenuOpen(false)
+                    }}
                   >
-                    <div className="write_modal_header">
-                      <h4 className="write_modal_title">주류</h4>
-                      <button
-                        type="button"
-                        className="write_modal_close"
-                        aria-label="닫기"
-                        onClick={() => {
-                          setIsPairingDrinkModalOpen(false)
-                          setIsDrinkCategoryMenuOpen(false)
-                        }}
-                      >
-                        <img src={iconX} alt="" aria-hidden="true" />
-                      </button>
-                    </div>
+                    <motion.div
+                      className="write_modal_panel write_drink_picker_modal is_bottom_sheet"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="주류"
+                      initial={{ y: 28, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 28, opacity: 0 }}
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                      onMouseDown={(event) => event.stopPropagation()}
+                    >
+                      <div className="write_modal_header is_sheet">
+                        <span className="write_modal_handle" aria-hidden="true" />
+                        <h4 className="write_modal_title">주류</h4>
+                      </div>
 
-                    <div className="write_modal_body write_drink_picker_body" aria-label="주류 선택 내용">
+                      <div className="write_modal_body write_drink_picker_body" aria-label="주류 선택 내용">
                       <div className="write_drink_picker_input_block" aria-label="주류 검색">
                         <div className="write_drink_picker_search_group" aria-label="주류 검색 및 추천">
                           <div className="write_drink_picker_input_row">
@@ -2510,43 +2535,43 @@ export default function CommunityWrite() {
                         </button>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ) : null}
+                  </motion.div>
+                </motion.div>
+                ) : null}
+              </AnimatePresence>
 
-              {isPairingFoodModalOpen ? (
-                <div
-                  className="write_modal_backdrop"
-                  role="presentation"
-                  onMouseDown={(event) => {
-                    event.stopPropagation()
-                    setIsPairingFoodModalOpen(false)
-                    setIsPairingFoodSuggestionsOpen(false)
-                  }}
-                >
-                  <div
-                    className="write_modal_panel write_food_picker_modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="음식"
-                    onMouseDown={(event) => event.stopPropagation()}
+              <AnimatePresence>
+                {isPairingFoodModalOpen ? (
+                  <motion.div
+                    className="write_modal_backdrop"
+                    role="presentation"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    onMouseDown={(event) => {
+                      event.stopPropagation()
+                      setIsPairingFoodModalOpen(false)
+                      setIsPairingFoodSuggestionsOpen(false)
+                    }}
                   >
-                    <div className="write_modal_header">
-                      <h4 className="write_modal_title">음식</h4>
-                      <button
-                        type="button"
-                        className="write_modal_close"
-                        aria-label="닫기"
-                        onClick={() => {
-                          setIsPairingFoodModalOpen(false)
-                          setIsPairingFoodSuggestionsOpen(false)
-                        }}
-                      >
-                        <img src={iconX} alt="" aria-hidden="true" />
-                      </button>
-                    </div>
+                    <motion.div
+                      className="write_modal_panel write_food_picker_modal is_bottom_sheet"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="음식"
+                      initial={{ y: 28, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 28, opacity: 0 }}
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                      onMouseDown={(event) => event.stopPropagation()}
+                    >
+                      <div className="write_modal_header is_sheet">
+                        <span className="write_modal_handle" aria-hidden="true" />
+                        <h4 className="write_modal_title">음식</h4>
+                      </div>
 
-                    <div className="write_modal_body write_food_picker_body" aria-label="음식 선택 내용">
+                      <div className="write_modal_body write_food_picker_body" aria-label="음식 선택 내용">
                       <div className="write_food_picker_search_group" aria-label="음식 검색 및 추천">
                         <div className="write_food_picker_input_row" aria-label="음식 검색">
                           <input
@@ -2707,9 +2732,10 @@ export default function CommunityWrite() {
                         </button>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ) : null}
+                  </motion.div>
+                </motion.div>
+                ) : null}
+              </AnimatePresence>
 
               <div className="write_pairing_taste_panel" aria-label="상황 및 취향 선택">
                 <h4 className="write_section_title">

@@ -790,7 +790,18 @@ export default function Chat({ onClose, userName: userNameProp, isHidden = false
   }
 
   return (
-    <section className={isHidden ? "chat_page is_hidden" : "chat_page"} aria-label="AI 채팅" aria-hidden={isHidden} onClick={closeModal}>
+    <section
+      className={[
+        "chat_page",
+        isHidden ? "is_hidden" : "",
+        isVisible ? "is_open" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-label="AI 채팅"
+      aria-hidden={isHidden}
+      onClick={closeModal}
+    >
       <div className="chat_overlay">
         <div
           className={`${isVisible ? "chat_sheet is_open" : "chat_sheet"} ${state.step === "done" ? "is_done" : ""}`}

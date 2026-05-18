@@ -1,6 +1,6 @@
 .feature_guide {
   position: fixed;
-  z-index: 1600;
+  z-index: 10000;
   width: min(260px, calc(100vw - 24px));
   padding: 14px 14px 12px;
   border: 1px solid rgba(202, 128, 79, 0.2);
