@@ -20,6 +20,7 @@ type ChatStepPanelProps = {
   activeGlossaryOption?: string | null
   selectedWine: WineCandidate | null
   recommendations: WineCandidate[]
+  showMoreRecommendations: boolean
   onSelectGlossaryTopic: (value: string) => void
   onSelectPartyMood: (value: string) => void
   onSelectFood: (value: string) => void
@@ -41,6 +42,7 @@ export default function ChatStepPanel({
   activeGlossaryOption,
   selectedWine,
   recommendations,
+  showMoreRecommendations,
   onSelectGlossaryTopic,
   onSelectPartyMood,
   onSelectFood,
@@ -121,6 +123,7 @@ export default function ChatStepPanel({
           onSave={(wineId) => onSaveRecommendation(wineId)}
           onGoProductDetail={(wineId) => onGoProductDetail(wineId)}
           onMore={onMoreRecommendations}
+          showMore={showMoreRecommendations}
         />
       ) : null}
 

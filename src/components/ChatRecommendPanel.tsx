@@ -20,6 +20,7 @@ type ChatRecommendPanelProps = {
   onSave: (wineId: string) => void
   onGoProductDetail: (wineId: string) => void
   onMore: () => void
+  showMore: boolean
 }
 
 const featuredImageById: Record<string, string> = {
@@ -44,6 +45,7 @@ const TAG_LABEL = "태그"
 const DETAILS_LABEL = "자세히 보기"
 const SAVE_LABEL = "추천 저장하기"
 const MORE_LABEL = "다른 술 더보기"
+const disabledDetailCandidateIds = new Set(["sake-kamoshibito-kuheiji", "sake-hakkaisan-daiginjo", "sake-kubota-manju"])
 
 function getCandidateImage(candidateId: string) {
   return featuredImageById[candidateId] ?? categoryListImageById[candidateId]
@@ -59,6 +61,7 @@ export default function ChatRecommendPanel({
   onSave,
   onGoProductDetail,
   onMore,
+  showMore,
 }: ChatRecommendPanelProps) {
   return (
     <div className="chat_recommend_panel" aria-label={RESULT_LABEL}>
@@ -66,6 +69,7 @@ export default function ChatRecommendPanel({
         {recommendations.map((candidate) => {
           const isSelected = candidate.id === selectedWineId
           const imageSrc = getCandidateImage(candidate.id)
+          const isDetailDisabled = disabledDetailCandidateIds.has(candidate.id)
 
           return (
             <article key={candidate.id} className={isSelected ? "chat_recommend_card is_selected" : "chat_recommend_card"}>
@@ -92,7 +96,13 @@ export default function ChatRecommendPanel({
                     ))}
                   </div>
                   <div className="chat_recommend_card_actions">
-                    <button type="button" className="chat_action_button" onClick={() => onGoProductDetail(candidate.id)}>
+                    <button
+                      type="button"
+                      className="chat_action_button"
+                      onClick={() => onGoProductDetail(candidate.id)}
+                      disabled={isDetailDisabled}
+                      aria-disabled={isDetailDisabled}
+                    >
                       {DETAILS_LABEL}
                     </button>
                     <button
@@ -109,21 +119,23 @@ export default function ChatRecommendPanel({
           )
         })}
 
-        <article className="chat_recommend_card chat_recommend_more_card" aria-label="추가 추천">
-          <div className="chat_recommend_more_inner">
-            <h4>다른 추천도 준비했어요</h4>
-            <p>
-              당신의 취향에 맞는
-              <br />
-              다양한 술을 더 만나보세요!
-            </p>
-            <img src={imgMoreMascot} alt="" aria-hidden="true" />
-            <button type="button" className="chat_action_button chat_action_button_secondary chat_action_button_more" onClick={onMore}>
-              <span>{MORE_LABEL}</span>
-              <img src={iconCaretRight} alt="" aria-hidden="true" />
-            </button>
-          </div>
-        </article>
+        {showMore ? (
+          <article className="chat_recommend_card chat_recommend_more_card" aria-label="추가 추천">
+            <div className="chat_recommend_more_inner">
+              <h4>다른 추천도 준비했어요</h4>
+              <p>
+                당신의 취향에 맞는
+                <br />
+                다양한 술을 더 만나보세요!
+              </p>
+              <img src={imgMoreMascot} alt="" aria-hidden="true" />
+              <button type="button" className="chat_action_button chat_action_button_secondary chat_action_button_more" onClick={onMore}>
+                <span>{MORE_LABEL}</span>
+                <img src={iconCaretRight} alt="" aria-hidden="true" />
+              </button>
+            </div>
+          </article>
+        ) : null}
       </div>
     </div>
   )
