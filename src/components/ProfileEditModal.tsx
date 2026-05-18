@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 
+import AlertModal from "./AlertModal"
 import { NICKNAME_MAX_LENGTH, readUserProfile, sanitizeNickname, writeUserProfile } from "../data/userProfile"
 import { readMyProfilePhotoDataUrl, writeMyProfilePhotoDataUrl } from "../utils/userAvatars"
 import xIcon from "../assets/svg/x.svg"
@@ -20,9 +21,48 @@ function readImageFileAsDataUrl(file: File) {
   })
 }
 
+async function compressImageDataUrl(inputDataUrl: string, { maxDimension }: { maxDimension: number }) {
+  const img = new Image()
+  img.decoding = "async"
+  img.src = inputDataUrl
+
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve()
+    img.onerror = () => reject(new Error("failed to load image"))
+  })
+
+  const sourceWidth = img.naturalWidth || img.width
+  const sourceHeight = img.naturalHeight || img.height
+  if (!sourceWidth || !sourceHeight) return inputDataUrl
+
+  const maxSide = Math.max(sourceWidth, sourceHeight)
+  const scale = maxSide > maxDimension ? maxDimension / maxSide : 1
+  const targetWidth = Math.max(1, Math.round(sourceWidth * scale))
+  const targetHeight = Math.max(1, Math.round(sourceHeight * scale))
+
+  const canvas = document.createElement("canvas")
+  canvas.width = targetWidth
+  canvas.height = targetHeight
+  const ctx = canvas.getContext("2d")
+  if (!ctx) return inputDataUrl
+
+  ctx.drawImage(img, 0, 0, targetWidth, targetHeight)
+
+  const mimeType = "image/jpeg"
+  let quality = 0.82
+  let output = canvas.toDataURL(mimeType, quality)
+  while (output.length > 1_500_000 && quality > 0.5) {
+    quality = Math.max(0.5, quality - 0.08)
+    output = canvas.toDataURL(mimeType, quality)
+  }
+
+  return output
+}
+
 export default function ProfileEditModal({ isOpen, initialNickname, onClose, onSaved }: Props) {
   const [nickname, setNickname] = useState(initialNickname)
   const [profilePhotoDataUrl, setProfilePhotoDataUrl] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const photoUploadInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -55,9 +95,18 @@ export default function ProfileEditModal({ isOpen, initialNickname, onClose, onS
         nickname: normalizedNickname,
       },
     })
-    writeMyProfilePhotoDataUrl(profilePhotoDataUrl)
-    onSaved?.()
-    onClose()
+    try {
+      writeMyProfilePhotoDataUrl(profilePhotoDataUrl)
+      onSaved?.()
+      onClose()
+    } catch (error) {
+      const name = error instanceof DOMException ? error.name : ""
+      if (name === "QuotaExceededError") {
+        setSaveError("사진 용량이 너무 커서 저장할 수 없어요. 더 작은 사진을 선택해 주세요.")
+        return
+      }
+      setSaveError("프로필 저장에 실패했어요. 다시 시도해 주세요.")
+    }
   }
 
   async function handleUploadPhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -66,7 +115,9 @@ export default function ProfileEditModal({ isOpen, initialNickname, onClose, onS
     if (!file) return
 
     try {
-      const nextDataUrl = await readImageFileAsDataUrl(file)
+      const rawDataUrl = await readImageFileAsDataUrl(file)
+      if (!rawDataUrl) return
+      const nextDataUrl = await compressImageDataUrl(rawDataUrl, { maxDimension: 512 })
       if (!nextDataUrl) return
       setProfilePhotoDataUrl(nextDataUrl)
     } catch {
@@ -84,7 +135,7 @@ export default function ProfileEditModal({ isOpen, initialNickname, onClose, onS
         className="alert_modal my_profile_edit_modal"
         role="dialog"
         aria-modal="true"
-        aria-label="내 정보 수정"
+        aria-label="프로필 편집하기"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="my_profile_edit_header">
@@ -155,6 +206,16 @@ export default function ProfileEditModal({ isOpen, initialNickname, onClose, onS
           </button>
         </div>
       </div>
+
+      {saveError ? (
+        <AlertModal
+          title="저장 실패"
+          message={saveError}
+          confirmLabel="확인"
+          onConfirm={() => setSaveError(null)}
+          onDismiss={() => setSaveError(null)}
+        />
+      ) : null}
     </div>
   )
 }

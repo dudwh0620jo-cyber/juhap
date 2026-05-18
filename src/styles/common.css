@@ -7,6 +7,10 @@
   --font-title: "Chiron Sung HK", "Noto Serif KR", serif;
   --font-main: "Pretendard Variable", sans-serif;
 
+  /* layout */
+  --app-statusbar-height: 50px;
+  --app-page-top-padding: calc(var(--app-statusbar-height) + 18px);
+
   /* brand */
   --color-primary: #CA804F;
   --color-grade: #AD7321;
@@ -35,6 +39,9 @@
   --color-point-04: #F1D39F;
   --color-point-05: #E9F0F5;
   --color-point-06: #477396;
+
+  /* profile */
+  --color-profile-avatar-bg: #F1D9C5;
 
   /* modal typography */
   --modal-title-size: 16px;
@@ -369,7 +376,7 @@ body {
 
 .page_screen {
   min-height: 100vh;
-  padding: 68px 20px 132px;
+  padding: var(--app-page-top-padding) 20px 132px;
 }
 
 .status_bar {
@@ -406,6 +413,10 @@ body {
 
 .is_phone_device .status_bar {
   display: none;
+}
+
+.is_phone_device {
+  --app-statusbar-height: 0px;
 }
 
 .bottom_nav {

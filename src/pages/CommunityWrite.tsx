@@ -1417,7 +1417,22 @@ export default function CommunityWrite() {
     }
 
     if (mode === "free") {
-      if (!canSubmit) return
+      if (!canSubmit) {
+        if (!title.trim() && !body.trim()) {
+          setAlertMessage("제목과 본문을 입력해 주세요.")
+          return
+        }
+        if (!title.trim()) {
+          setAlertMessage("제목을 입력해 주세요.")
+          return
+        }
+        if (!body.trim()) {
+          setAlertMessage("본문을 입력해 주세요.")
+          return
+        }
+        setAlertMessage("필수 항목을 모두 입력해 주세요.")
+        return
+      }
 
       const nextPost = {
         id: editingPostId ?? Date.now(),
