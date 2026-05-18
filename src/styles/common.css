@@ -145,6 +145,13 @@
   color: var(--color-point-01);
 }
 
+.alert_modal_button.is_secondary:disabled {
+  border-color: var(--color-gray-02);
+  background: var(--color-gray-01);
+  color: var(--color-gray-04);
+  opacity: 0.75;
+}
+
 .alert_modal_button:disabled {
   cursor: not-allowed;
 }

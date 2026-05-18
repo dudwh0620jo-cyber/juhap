@@ -13,6 +13,7 @@ let daumPostcodeScriptPromise: Promise<void> | null = null
 
 const TEXT = {
   pageLabel: "\uD504\uB85C\uD544 \uC815\uBCF4 \uC785\uB825",
+  autoFill: "\uC790\uB3D9\uC785\uB825\uD558\uAE30",
   nicknameLabel: "\uB2C9\uB124\uC784",
   requiredLabel: "\uD544\uC218",
   nicknamePlaceholder: "\uB2C9\uB124\uC784\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694",
@@ -101,6 +102,15 @@ export default function ProfileSetup() {
   const showPhoneWarning = isPhoneIncomplete || (hasTriedSubmit && phoneDigits.length !== 11)
   const showVerifyWarning = hasTriedSubmit && phoneDigits.length === 11 && !isPhoneVerified
 
+  function autofillProfile() {
+    setNickname("주아")
+    setPhone("010-1234-5678")
+    setIsPhoneVerified(false)
+    setAddress("서울특별시 강남구 테헤란로 123")
+    setDetailAddress("주합빌딩 10층")
+    setHasTriedSubmit(false)
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setHasTriedSubmit(true)
@@ -156,6 +166,9 @@ export default function ProfileSetup() {
         <div>
           <h1>{profileSetupCopy.title}</h1>
           <p>{profileSetupCopy.subtitle}</p>
+          <button type="button" className="profile_setup_autofill_button" onClick={autofillProfile}>
+            {TEXT.autoFill}
+          </button>
         </div>
         <img src={mascotImage} alt="" />
       </header>

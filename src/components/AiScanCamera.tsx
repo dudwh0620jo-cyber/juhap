@@ -9,6 +9,9 @@ type AiScanCameraProps = {
   mode: ScanMode
   imageSrc: string
   isScanning: boolean
+  modeBalloonText?: string
+  showModeBalloon?: boolean
+  onCloseModeBalloon?: () => void
   onBack: () => void
   onModeChange: (mode: ScanMode) => void
   onUpload: () => void
@@ -19,15 +22,15 @@ export default function AiScanCamera({
   mode,
   imageSrc,
   isScanning,
+  modeBalloonText,
+  showModeBalloon = true,
+  onCloseModeBalloon,
   onBack,
   onModeChange,
   onUpload,
   onScan,
 }: AiScanCameraProps) {
-  const modeBalloonText =
-    mode === "food"
-      ? "음식을 스캔하시면 또 다른 결과 화면을 볼 수 있어요."
-      : "주류를 스캔하시면 페어링 추천 결과를 확인할 수 있어요."
+  const resolvedModeBalloonText = modeBalloonText ?? aiScanCopy.modeBalloon[mode]
 
   return (
     <div className={`ai_scan_camera_shell${isScanning ? " is_scanning" : ""}`}>
@@ -40,8 +43,20 @@ export default function AiScanCamera({
       <AiScanTopBar tone="light" onBack={onBack} />
       <div className="ai_scan_mode_wrap">
         <AiScanModeTabs mode={mode} disabled={isScanning} onModeChange={onModeChange} />
-        {!isScanning ? (
-          <p className="ai_scan_mode_balloon">{modeBalloonText}</p>
+        {!isScanning && showModeBalloon ? (
+          <div className="ai_scan_mode_balloon" role="note">
+            <span className="ai_scan_mode_balloon_text">{resolvedModeBalloonText}</span>
+            {onCloseModeBalloon ? (
+              <button
+                type="button"
+                className="ai_scan_mode_balloon_close"
+                aria-label="말풍선 닫기"
+                onClick={onCloseModeBalloon}
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
 

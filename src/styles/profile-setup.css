@@ -30,6 +30,20 @@
   line-height: 1.45;
 }
 
+.profile_setup_autofill_button {
+  width: fit-content;
+  margin-top: 10px;
+  border: 1px solid var(--color-gray-02);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--color-gray-05);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .profile_setup_header img {
   width: 118px;
   height: 118px;

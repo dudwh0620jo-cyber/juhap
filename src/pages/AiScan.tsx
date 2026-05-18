@@ -23,6 +23,19 @@ export default function AiScan() {
   const isScanning = status === "scanning"
   const isResult = status === "success" || status === "failure"
   const isFromChat = searchParams.get("from") === "chat"
+  const [isModeBalloonOpen, setIsModeBalloonOpen] = useState(() => {
+    if (typeof window === "undefined" || typeof window.sessionStorage === "undefined") return true
+    return window.sessionStorage.getItem("juhap_ai_scan_mode_balloon_dismissed") !== "1"
+  })
+
+  const closeModeBalloon = () => {
+    setIsModeBalloonOpen(false)
+    try {
+      window.sessionStorage.setItem("juhap_ai_scan_mode_balloon_dismissed", "1")
+    } catch {
+      // ignore
+    }
+  }
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: true } }))
@@ -134,6 +147,9 @@ export default function AiScan() {
           mode={mode}
           imageSrc={stageSrc}
           isScanning={isScanning}
+          modeBalloonText={isFromChat ? aiScanCopy.modeBalloon.food : undefined}
+          showModeBalloon={isModeBalloonOpen}
+          onCloseModeBalloon={closeModeBalloon}
           onBack={moveBack}
           onModeChange={handleModeChange}
           onUpload={openPicker}
@@ -152,4 +168,3 @@ export default function AiScan() {
     </section>
   )
 }
-
