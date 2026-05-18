@@ -385,9 +385,13 @@ export default function CommunityWrite() {
   const pairingLocationInputRef = useRef<HTMLInputElement | null>(null)
   const pairingDrinkNameSnapshotRef = useRef("")
   const skipNextFoodInputFocusRef = useRef(false)
-  const navigationState = (location.state as { editPost?: FeedPost; returnTo?: string } | null) ?? null
+  const navigationState = (location.state as { editPost?: FeedPost; returnTo?: string; returnScrollTop?: number } | null) ?? null
   const editPost = (navigationState?.editPost ?? null) as FeedPost | null
   const returnToPath = typeof navigationState?.returnTo === "string" && navigationState.returnTo.trim() ? navigationState.returnTo : null
+  const returnScrollTop =
+    typeof navigationState?.returnScrollTop === "number" && Number.isFinite(navigationState.returnScrollTop)
+      ? navigationState.returnScrollTop
+      : null
   const isEditMode = Boolean(editPost)
 
   const [reviewTab, setReviewTab] = useState<ReviewTab>(writeKind === "drink-review" ? "drink" : "pairing")
@@ -438,6 +442,11 @@ export default function CommunityWrite() {
   const [photoIds, setPhotoIds] = useState<string[]>([])
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
+  const testDrinkReviewBody = [
+    "처음 마셨을 때는 사케인데도 향이 엄청 부드럽고 깨끗해서 놀랐어요. 은은하게 올라오는 과일향이랑 살짝 달콤한 느낌이 입안에서 되게 편안하게 퍼지는 느낌이었고, 끝맛은 생각보다 엄청 깔끔하게 떨어져서 계속 손이 가더라고요.",
+    "특히 차갑게 마셨을 때 향이 더 또렷하게 느껴졌는데, 무겁거나 알코올 치는 느낌 없이 부드럽게 넘어가는 게 진짜 좋았습니다. 왜 사케 입문으로 많이 추천하는지 바로 이해됐어요.",
+    "회나 가벼운 일식 안주랑 같이 먹으면 향이 더 살아나는 느낌이라 조합도 꽤 만족스러웠습니다 ✨",
+  ].join("\n")
 
   // 페어링 후기 쓰기
   const [pairingDrinkName, setPairingDrinkName] = useState("")
@@ -685,6 +694,11 @@ export default function CommunityWrite() {
       }
     }
     setIsPhotoActionSheetOpen(false)
+  }
+
+  function handleLoadTestReviewText() {
+    setTitle("생각보다 훨씬 편안했던 술")
+    setBody(testDrinkReviewBody)
   }
 
   useEffect(() => {
@@ -1614,7 +1628,16 @@ export default function CommunityWrite() {
       }}
     >
       <header className="write_compose_header" aria-label="글쓰기 헤더">
-        <button type="button" className="write_compose_back" aria-label="뒤로가기" onClick={() => navigate(exitPath)}>
+        <button
+          type="button"
+          className="write_compose_back"
+          aria-label="뒤로가기"
+          onClick={() =>
+            navigate(exitPath, {
+              state: returnScrollTop !== null ? { restoreScrollTop: returnScrollTop } : undefined,
+            })
+          }
+        >
           <img src={iconCaretLeft} alt="" aria-hidden="true" />
         </button>
         <h4 className="write_section_title">후기 작성</h4>
@@ -1746,6 +1769,10 @@ export default function CommunityWrite() {
                   <div className="write_empty_slot" aria-label="주종 선택 후 태그 표시" />
                 )}
               </div>
+
+              <button type="button" className="write_photo_browse write_test_text_load" onClick={handleLoadTestReviewText}>
+                테스트용 텍스트 불러오기
+              </button>
 
               <CommunityWriteBasicSection
                 sectionTitle=""

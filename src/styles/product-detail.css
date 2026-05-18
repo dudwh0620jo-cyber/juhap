@@ -1658,6 +1658,24 @@
   padding: 0 20px;
 }
 
+.review_owner_menu_button {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.review_owner_menu_button img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
 .review_profile {
   width: 46px;
   height: 46px;

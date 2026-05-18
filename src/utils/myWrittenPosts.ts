@@ -36,8 +36,8 @@ const getMyMetaLine = () => {
   const traitA = (traits[0] ?? "").trim()
   const traitB = (traits[1] ?? "").trim()
 
-  const parts = [drinkType, traitA, traitB].filter(Boolean)
-  return parts.length > 0 ? `${parts.join(" / ")} 선호` : "취향 미설정"
+  const parts = ["20대", "여", "사케", drinkType, traitA, traitB].filter(Boolean)
+  return `${parts.join(" / ")} 선호`
 }
 
 const toStoredAuthor = (post: FeedPost) => ({

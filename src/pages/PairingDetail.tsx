@@ -232,7 +232,12 @@ export default function PairingDetail() {
 
   const openEditPost = () => {
     if (!post || !Number.isFinite(numericId)) return
-    navigate(`/community/write?mode=${isQnaDetail ? "free" : "review"}&editId=${numericId}`, { state: { editPost: post } })
+    navigate(`/community/write?mode=${isQnaDetail ? "free" : "review"}&editId=${numericId}`, {
+      state: {
+        editPost: post,
+        returnTo: `${location.pathname}${location.search}${location.hash}`,
+      },
+    })
   }
 
   const handleDeleteCurrentPost = useCallback(() => {
