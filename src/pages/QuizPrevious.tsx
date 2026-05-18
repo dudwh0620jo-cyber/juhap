@@ -18,6 +18,12 @@ export default function QuizPrevious() {
     params.set("sub", "전체")
     return `/category/list?${params.toString()}`
   }, [quiz])
+  const ipaCategoryLink = useMemo(() => {
+    const params = new URLSearchParams()
+    params.set("group", "맥주")
+    params.set("sub", "에일 / IPA")
+    return `/category/list?${params.toString()}`
+  }, [])
   const categoryNavState = useMemo(
     () => ({
       fromQuiz: true,
@@ -61,7 +67,7 @@ export default function QuizPrevious() {
       }
       onPrimaryAction={() => navigate(relatedCategoryLink, { state: categoryNavState })}
       primaryActionDisabled
-      onSecondaryAction={() => navigate(relatedCategoryLink, { state: categoryNavState })}
+      onSecondaryAction={() => navigate(ipaCategoryLink, { state: categoryNavState })}
     />
   )
 }

@@ -17,6 +17,7 @@ import imgPurchaseThumb1 from "../assets/fd_purchase_thumb1.png"
 import imgPurchaseThumb2 from "../assets/fd_purchase_thumb2.png"
 import imgPurchaseThumb3 from "../assets/fd_purchase_thumb3.png"
 import imgDefaultUserAvatar from "../assets/user_avatar_defult.png"
+import { resolveMyUserAvatar } from "../utils/userAvatars"
 import iconBookmark from "../assets/svg/bookmarksimple.svg"
 import iconBookmarkActive from "../assets/svg/bookmarksimple_active.svg"
 import iconBookmarkPoint from "../assets/svg/bookmarksimple_p.svg"
@@ -706,7 +707,12 @@ export default function ProductDetail() {
                 }}
               >
                 <div className="review_author_row">
-                  <img className="review_profile" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
+                  <img
+                    className="review_profile"
+                    src={isMyReviewAuthor(review.author.name, review.id) ? resolveMyUserAvatar() : review.author.avatar || imgDefaultUserAvatar}
+                    alt=""
+                    aria-hidden="true"
+                  />
                   <div className="review_author_meta">
                     <p className="review_nickname">
                       <span className="review_author_name_grade">
@@ -880,7 +886,12 @@ export default function ProductDetail() {
                   }}
                 >
                   <div className="review_author_row">
-                    <img className="review_profile" src={review.author.avatar || imgDefaultUserAvatar} alt="" aria-hidden="true" />
+                    <img
+                      className="review_profile"
+                      src={isMyReviewAuthor(review.author.name, review.id) ? resolveMyUserAvatar() : review.author.avatar || imgDefaultUserAvatar}
+                      alt=""
+                      aria-hidden="true"
+                    />
                     <div className="review_author_meta">
                       <p className="review_nickname">
                         <span className="review_author_name_grade">

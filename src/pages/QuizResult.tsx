@@ -27,6 +27,12 @@ export default function QuizResult() {
     params.set("sub", "전체")
     return `/category/list?${params.toString()}`
   }, [])
+  const singleMaltCategoryLink = useMemo(() => {
+    const params = new URLSearchParams()
+    params.set("group", "위스키")
+    params.set("sub", "싱글몰트 위스키")
+    return `/category/list?${params.toString()}`
+  }, [])
   const categoryNavState = useMemo(
     () => ({
       fromQuiz: true,
@@ -137,7 +143,7 @@ export default function QuizResult() {
       }
       onPrimaryAction={() => navigate(relatedCategoryLink, { state: categoryNavState })}
       primaryActionDisabled
-      onSecondaryAction={() => navigate(relatedCategoryLink, { state: categoryNavState })}
+      onSecondaryAction={() => navigate(singleMaltCategoryLink, { state: categoryNavState })}
     />
   )
 }

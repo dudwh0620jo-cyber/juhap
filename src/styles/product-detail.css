@@ -1,7 +1,7 @@
 .product_detail_page.page_screen {
   display: flex;
   flex-direction: column;
-  padding: 50px 0 36px;
+  padding: var(--app-statusbar-height) 0 36px;
   background: var(--color-bg-base);
   color: #2f2d2c;
   font-family: var(--font-main);
@@ -14,7 +14,7 @@
 
 .product_detail_header {
   position: sticky;
-  top: 50px;
+  top: var(--app-statusbar-height);
   z-index: 19;
   display: flex;
   align-items: center;
@@ -1683,7 +1683,7 @@
   flex: 0 0 auto;
   border-radius: 999px;
   object-fit: cover;
-  background: var(--color-gray-00);
+  background: var(--color-profile-avatar-bg);
 }
 
 .review_author_meta {
