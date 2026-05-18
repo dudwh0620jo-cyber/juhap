@@ -397,6 +397,12 @@ body {
   gap: 7px;
 }
 
+@media (max-width: 430px) {
+  .status_bar {
+    display: none;
+  }
+}
+
 
 
 .bottom_nav {
