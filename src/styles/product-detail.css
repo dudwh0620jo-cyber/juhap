@@ -202,7 +202,7 @@
 
 .product_tabs {
   position: sticky;
-  top: 114px;
+  top: calc(var(--app-statusbar-height) + 64px);
   z-index: 18;
   display: flex;
   width: 100%;

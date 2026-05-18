@@ -46,6 +46,7 @@ const DETAILS_LABEL = "자세히 보기"
 const SAVE_LABEL = "추천 저장하기"
 const MORE_LABEL = "다른 술 더보기"
 const disabledDetailCandidateIds = new Set(["sake-kamoshibito-kuheiji", "sake-hakkaisan-daiginjo", "sake-kubota-manju"])
+const largeThumbCandidateIds = new Set(["sake-kamoshibito-kuheiji", "sake-hakkaisan-daiginjo"])
 
 function getCandidateImage(candidateId: string) {
   return featuredImageById[candidateId] ?? categoryListImageById[candidateId]
@@ -70,9 +71,19 @@ export default function ChatRecommendPanel({
           const isSelected = candidate.id === selectedWineId
           const imageSrc = getCandidateImage(candidate.id)
           const isDetailDisabled = disabledDetailCandidateIds.has(candidate.id)
+          const isLargeThumb = largeThumbCandidateIds.has(candidate.id)
 
           return (
-            <article key={candidate.id} className={isSelected ? "chat_recommend_card is_selected" : "chat_recommend_card"}>
+            <article
+              key={candidate.id}
+              className={[
+                "chat_recommend_card",
+                isSelected ? "is_selected" : "",
+                isLargeThumb ? "is_large_thumb" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
               <div className="chat_recommend_card_inner">
                 <div className="chat_recommend_card_left">
                   <div className="chat_recommend_badge" aria-label="주아의 추천">

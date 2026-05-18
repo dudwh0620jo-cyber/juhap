@@ -1264,6 +1264,13 @@
   gap: 5px;
 }
 
+.chat_recommend_card.is_large_thumb .chat_recommend_card_left {
+  flex-basis: 84px;
+  width: 84px;
+  align-items: center;
+  justify-content: center;
+}
+
 .chat_recommend_card_thumb {
   width: 52px;
   height: 146px;
@@ -1272,6 +1279,17 @@
   justify-content: center;
   overflow: hidden;
   filter: drop-shadow(0 11px 12px rgba(79, 79, 79, 0.25));
+}
+
+.chat_recommend_card.is_large_thumb{
+  width: 330px;
+  padding: 14px 0;
+}
+
+.chat_recommend_card.is_large_thumb .chat_recommend_card_thumb {
+  width: 125px;
+  position: relative;
+
 }
 
 .chat_recommend_card_thumb img {

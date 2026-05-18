@@ -2068,10 +2068,11 @@
   border-radius: 12px;
   background: var(--color-primary);
   color: var(--color-bg-white);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--home-vote-cta-font-size, 14px);
+  font-weight: var(--home-vote-cta-font-weight, 600);
   cursor: pointer;
-  line-height: 140%;
+  line-height: var(--home-vote-cta-line-height, 140%);
+  letter-spacing: var(--home-vote-cta-letter-spacing, 0);
 }
 
 .home_vote_cta:disabled {

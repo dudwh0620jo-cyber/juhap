@@ -35,7 +35,7 @@ import { deriveCommunityTagBundle, extractPairingTitle, feedPosts, type FeedPost
 import { COMMUNITY_BOOKMARK_LIST_BY_POST_KEY, COMMUNITY_FOLLOWED_USERS_KEY } from "../utils/communityStorage"
 import { useStoredNullableStringRecord, useStoredNumberSet } from "../utils/storage"
 import { currentUserMock, defaultFollowedUserIdsMock, getFollowingCount, usersMockById } from "../utils/usersMock"
-import { readStoredMyWrittenPosts } from "../utils/myWrittenPosts"
+import { readAllMyWrittenPosts } from "../utils/myWrittenPosts"
 import { getPairingTierByUserId, getPairingTierLabelByUserId } from "../utils/pairingTier"
 import { getTierClassName } from "../utils/tier"
 import { resolveMyUserAvatar } from "../utils/userAvatars"
@@ -420,7 +420,7 @@ export default function MyPage() {
   const [pendingRemoveSavedAlcohol, setPendingRemoveSavedAlcohol] = useState<{ id: string; name: string } | null>(null)
   const [voteParticipationCount, setVoteParticipationCount] = useState(() => getVoteParticipationCount())
   const [featuredHomeVoteJoined, setFeaturedHomeVoteJoined] = useState(() => hasJoinedFeaturedHomeVote())
-  const [recordCount, setRecordCount] = useState(() => readStoredMyWrittenPosts().length)
+  const [recordCount, setRecordCount] = useState(() => readAllMyWrittenPosts().length)
   const [warningByGroup, setWarningByGroup] = useState<Record<string, string>>({})
   const { value: followedUserIds } = useStoredNumberSet(COMMUNITY_FOLLOWED_USERS_KEY, defaultFollowedUserIdsMock)
   const followingCount = useMemo(() => getFollowingCount(followedUserIds), [followedUserIds])
@@ -878,7 +878,7 @@ export default function MyPage() {
   }, [])
 
   useEffect(() => {
-    const syncRecordCount = () => setRecordCount(readStoredMyWrittenPosts().length)
+    const syncRecordCount = () => setRecordCount(readAllMyWrittenPosts().length)
     window.addEventListener(USER_POSTS_UPDATED_EVENT, syncRecordCount)
     window.addEventListener("storage", syncRecordCount)
     return () => {

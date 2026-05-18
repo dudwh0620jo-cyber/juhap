@@ -1,5 +1,5 @@
 ﻿import type { DrinkReview } from "./productReviews"
-import { extractPairingTitle, type FeedPost } from "./communityPosts"
+import { extractPairingTitle, feedPosts, type FeedPost } from "./communityPosts"
 import { COMMUNITY_USER_POSTS_KEY } from "./communityStorage"
 import { readStoredCommunityUserPosts } from "./communityFeed"
 import { readUserProfile } from "../data/userProfile"
@@ -28,6 +28,18 @@ export const isAlcoholReviewPost = (post: FeedPost) =>
   !post.isQna && (post.sourceType === "drink-review" || !isPairingReviewPost(post))
 
 export const readStoredMyWrittenPosts = () => readStoredCommunityUserPosts(COMMUNITY_USER_POSTS_KEY).filter(isMyWrittenPost)
+
+export const readAllMyWrittenPosts = () => {
+  const combined = [...readStoredCommunityUserPosts(COMMUNITY_USER_POSTS_KEY), ...feedPosts]
+  const byId = new Map<number, FeedPost>()
+  combined.forEach((post) => {
+    if (typeof post?.id === "number" && Number.isFinite(post.id) && !byId.has(post.id)) {
+      byId.set(post.id, post)
+    }
+  })
+
+  return Array.from(byId.values()).filter(isMyWrittenPost)
+}
 
 const getMyMetaLine = () => {
   const profile = readUserProfile()

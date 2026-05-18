@@ -107,7 +107,7 @@ function getGuideCoordinates(item: FeatureGuideItem, element: Element) {
 function hasBlockingOverlay() {
   return Boolean(
     document.querySelector(
-      '[role="dialog"], .alert_modal_overlay, .purchase_confirm_overlay, .category_search_overlay, .feed_filter_overlay, .community_review_sort_overlay, .product_review_sort_overlay, .post_owner_action_overlay, .bookmark_modal_backdrop',
+      '[role="dialog"], .alert_modal_overlay, .purchase_confirm_overlay, .category_search_overlay, .feed_filter_overlay, .community_review_sort_overlay, .product_review_sort_overlay, .post_owner_action_overlay, .bookmark_modal_backdrop, .chat_page.is_open',
     ),
   )
 }
@@ -165,9 +165,22 @@ export default function FeatureGuide() {
 
     window.addEventListener("resize", scheduleUpdate)
     window.addEventListener("scroll", scheduleUpdate, true)
+    const observer =
+      typeof MutationObserver === "undefined"
+        ? null
+        : new MutationObserver(() => {
+            scheduleUpdate()
+          })
+    observer?.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "style", "aria-hidden"],
+    })
     return () => {
       window.removeEventListener("resize", scheduleUpdate)
       window.removeEventListener("scroll", scheduleUpdate, true)
+      observer?.disconnect()
       if (frameId) window.cancelAnimationFrame(frameId)
     }
   }, [updateActiveGuide])
@@ -207,6 +220,5 @@ export default function FeatureGuide() {
     </div>
   )
 }
-
 
 
