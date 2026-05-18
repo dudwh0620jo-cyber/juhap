@@ -107,7 +107,7 @@
   top: 84px;
   transform: translateX(calc(-50% + 46px));
   margin: 0;
-  padding: 8px 12px;
+  padding: 8px 30px 8px 12px;
   border: 1px solid rgba(202, 128, 79, 0.24);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.98);
@@ -118,6 +118,27 @@
   box-shadow: 0 8px 20px rgba(68, 65, 63, 0.16);
   z-index: 5;
   max-width: 240px;
+}
+
+.ai_scan_mode_balloon_text {
+  display: block;
+}
+
+.ai_scan_mode_balloon_close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-gray-06);
+  font-size: 16px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
 }
 
 .ai_scan_mode_balloon::before {

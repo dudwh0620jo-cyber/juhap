@@ -437,6 +437,82 @@ export default function MyPage() {
   const isExchangeViewOpen = searchParams.get("view") === "exchange"
   const exchangeQueryTab = searchParams.get("tab")
 
+  const tasteValueByKey = useMemo(() => {
+    const base = Object.fromEntries(
+      tasteBars.map((item) => [item.className, Math.max(0, Math.min(100, item.value))]),
+    ) as Record<string, number>
+
+    const clamp = (value: number) => Math.max(0, Math.min(100, value))
+
+    const hash32 = (input: number) => {
+      let value = input | 0
+      value ^= value << 13
+      value ^= value >>> 17
+      value ^= value << 5
+      return value >>> 0
+    }
+
+    const delta = (seed: number, maxAbs: number) => {
+      const value01 = (hash32(seed) % 1000) / 999
+      return (value01 * 2 - 1) * maxAbs
+    }
+
+    const indexOfSelected = (groupKey: string) => {
+      const group = preferenceGroups.find((entry) => entry.key === groupKey)
+      if (!group) return -1
+      const selected = savedTastePreferences[groupKey]?.[0]
+      if (!selected) return -1
+      return group.options.indexOf(selected)
+    }
+
+    const indicesOfSelected = (groupKey: string) => {
+      const group = preferenceGroups.find((entry) => entry.key === groupKey)
+      if (!group) return []
+      const selected = savedTastePreferences[groupKey] ?? []
+      return selected.map((value) => group.options.indexOf(value)).filter((value) => value >= 0)
+    }
+
+    const drinkTypeIndex = indexOfSelected("drinkType")
+    const situationIndex = indexOfSelected("situation")
+    const purchaseIndex = indexOfSelected("purchase")
+    const avoidIndex = indexOfSelected("avoid")
+    const traitIndices = indicesOfSelected("trait")
+
+    const seed =
+      (drinkTypeIndex + 1) * 31 +
+      (situationIndex + 1) * 17 +
+      (purchaseIndex + 1) * 13 +
+      (avoidIndex + 1) * 7 +
+      traitIndices.reduce((acc, value) => acc + (value + 1) * 101, 0)
+
+    const applySeed = (nextSeed: number, strength: number) => {
+      base.body = clamp(base.body + delta(nextSeed + 11, strength))
+      base.bitter = clamp(base.bitter + delta(nextSeed + 23, strength))
+      base.sweet = clamp(base.sweet + delta(nextSeed + 37, strength))
+      base.sparkle = clamp(base.sparkle + delta(nextSeed + 41, strength))
+    }
+
+    applySeed(seed, 22)
+    traitIndices.forEach((value, index) => applySeed(seed + value * 29 + index * 97, 12))
+
+    const traits = savedTastePreferences.trait ?? []
+    if (traits.includes("과일향")) {
+      base.sweet = clamp(base.sweet + 22)
+      base.bitter = clamp(base.bitter - 10)
+    }
+    if (traits.includes("톡쏘는")) {
+      base.sparkle = clamp(base.sparkle + 18)
+    }
+    if (traits.includes("가벼운")) {
+      base.body = clamp(base.body - 14)
+    }
+    if (traits.includes("무거운")) {
+      base.body = clamp(base.body + 14)
+    }
+
+    return base
+  }, [savedTastePreferences])
+
   const openPointExchange = () => {
     setPointExchangeTopTab("exchange")
     setActiveExchangeTab("전체")
@@ -809,12 +885,6 @@ export default function MyPage() {
       window.removeEventListener(USER_POSTS_UPDATED_EVENT, syncRecordCount)
       window.removeEventListener("storage", syncRecordCount)
     }
-  }, [])
-
-  const tasteValueByKey = useMemo(() => {
-    return Object.fromEntries(
-      tasteBars.map((item) => [item.className, Math.max(0, Math.min(100, item.value))]),
-    ) as Record<string, number>
   }, [])
 
   const buildArcMetric = (radius: number, value: number) => {

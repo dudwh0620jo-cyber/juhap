@@ -50,7 +50,7 @@ export default function Onboarding() {
   const infoAccents = ["페어링", "경험", "추천"]
 
   function skipOnboarding() {
-    setActiveIndex(onboardingInfoSlides.length)
+    finishOnboarding()
   }
 
   function finishOnboarding() {

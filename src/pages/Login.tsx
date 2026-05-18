@@ -186,6 +186,7 @@ export default function Login() {
           message={TEXT.signupModalMessage}
           confirmLabel={TEXT.signup}
           secondaryLabel={TEXT.otherLogin}
+          secondaryDisabled
           onDismiss={() => setIsSignupRequiredModalOpen(false)}
           onSecondary={handleOtherLoginClick}
           variant="signup"
