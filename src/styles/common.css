@@ -430,7 +430,7 @@ body {
   width: min(100%, 430px);
   height: 88px;
   padding: 10px 16px 18px;
-  background: #ffffff;
+  background: var(--color-bg-white);
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   transform: translateX(-50%);
 }
@@ -441,12 +441,14 @@ body {
   place-items: center;
   gap: 6px;
   min-height: 56px;
-  color: #1f1f1f;
+  color: var(--color-text-primary);
   text-decoration: none;
   background: transparent;
   border: 0;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: 1%;
 }
 
 .bottom_nav_item.is_active {
@@ -455,16 +457,11 @@ body {
 
 .bottom_nav_icon {
   display: block;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
-  opacity: 0.74;
-}
-
-.bottom_nav_item.is_active .bottom_nav_icon {
-  opacity: 1;
 }
 
 .bottom_nav_label {

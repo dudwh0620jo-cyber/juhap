@@ -42,8 +42,6 @@ export default function Onboarding() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [shouldSlideInFooter, setShouldSlideInFooter] = useState(false)
   const pointerStartX = useRef<number | null>(null)
-  const mascotTapCountRef = useRef(0)
-  const mascotTapResetTimerRef = useRef<number | null>(null)
   const isStart = activeIndex === 0
 
   const infoMascots = [mascot02, mascot03, mascot04]
@@ -89,23 +87,7 @@ export default function Onboarding() {
 
   function handleStartMascotTap() {
     if (!isStart) return
-
-    if (mascotTapResetTimerRef.current) {
-      window.clearTimeout(mascotTapResetTimerRef.current)
-      mascotTapResetTimerRef.current = null
-    }
-
-    mascotTapCountRef.current += 1
-    if (mascotTapCountRef.current >= 3) {
-      mascotTapCountRef.current = 0
-      navigate("/home", { replace: true, state: { skipOnboardingGate: true } })
-      return
-    }
-
-    mascotTapResetTimerRef.current = window.setTimeout(() => {
-      mascotTapCountRef.current = 0
-      mascotTapResetTimerRef.current = null
-    }, 1200)
+    // no-op: prevent hidden multi-tap navigation
   }
 
   return (

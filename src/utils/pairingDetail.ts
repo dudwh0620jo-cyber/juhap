@@ -11,6 +11,19 @@ import { getWeeklyAllRankingVotesById } from "./rankingData"
 import { resolveReviewImage } from "./reviewImages"
 import { usersMockById } from "./usersMock"
 
+const resolveFeedPostThumbSrc = (post: FeedPost): string | undefined => {
+  if (post.imageSrc?.trim()) return post.imageSrc
+
+  const imageSrcs = (post as { imageSrcs?: string[] }).imageSrcs
+  const firstImageSrc = Array.isArray(imageSrcs) ? (imageSrcs[0] ?? "").trim() : ""
+  if (firstImageSrc) return firstImageSrc
+
+  const firstPhotoId = (post.photoIds?.[0] ?? "").trim()
+  if (!firstPhotoId) return undefined
+  if (firstPhotoId.startsWith("data:") || firstPhotoId.startsWith("blob:")) return firstPhotoId
+  return resolveReviewImage(firstPhotoId) ?? firstPhotoId
+}
+
 export type PairingDetailNavState = {
   pairingTitle?: string
   pairingSummary?: string
@@ -117,7 +130,7 @@ export const resolveSimilarPairingItems = (
         locationLabel: matchedPost.locationLabel ?? "",
         drinkType: tagBundle.liquorTag || "기타",
         foodTag: tagBundle.foodTag,
-        imageSrc: matchedPost.imageSrc ?? (matchedPost.photoIds?.[0] ? resolveReviewImage(matchedPost.photoIds[0]) : undefined),
+        imageSrc: resolveFeedPostThumbSrc(matchedPost),
         title: matchedPost.title,
         rating: matchedPost.rating,
         reviewCount: matchedPost.reviewCount,
@@ -145,6 +158,7 @@ export const resolveSimilarPairingItems = (
         locationLabel: item.locationLabel ?? "",
         drinkType: liquorTag || "기타",
         foodTag,
+        imageSrc: resolveFeedPostThumbSrc(item),
       }
     })
 }

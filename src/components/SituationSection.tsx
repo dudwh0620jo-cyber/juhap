@@ -146,6 +146,8 @@ function MomentPickCard({
 export default function SituationSection({ items }: { items: SituationItem[] }) {
   void items
   const [selectedKey, setSelectedKey] = useState<string>(() => homeMomentPickItems[0]?.key ?? "")
+  const cardsRef = useRef<HTMLDivElement | null>(null)
+  const [edgeFades, setEdgeFades] = useState({ left: false, right: false })
   const visibleCards = useMemo(() => {
     type MomentPickCard = {
       id: string
@@ -166,9 +168,31 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
   }, [selectedKey])
 
   useEffect(() => {
-    const cards = document.querySelector(".moment_pick_cards")
-    if (cards instanceof HTMLElement) cards.scrollTo({ left: 0, behavior: "auto" })
+    const cards = cardsRef.current
+    if (!cards) return
+    cards.scrollTo({ left: 0, behavior: "auto" })
+    setEdgeFades({ left: false, right: cards.scrollWidth > cards.clientWidth + 1 })
   }, [selectedKey])
+
+  useEffect(() => {
+    const cards = cardsRef.current
+    if (!cards) return
+
+    const update = () => {
+      const maxScrollLeft = Math.max(0, cards.scrollWidth - cards.clientWidth)
+      const left = cards.scrollLeft > 1
+      const right = cards.scrollLeft < maxScrollLeft - 1
+      setEdgeFades((prev) => (prev.left === left && prev.right === right ? prev : { left, right }))
+    }
+
+    update()
+    cards.addEventListener("scroll", update, { passive: true })
+    window.addEventListener("resize", update)
+    return () => {
+      cards.removeEventListener("scroll", update)
+      window.removeEventListener("resize", update)
+    }
+  }, [])
 
   return (
     <section className="home_block home_moment_pick" aria-label="Moment Pick">
@@ -179,25 +203,35 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
 
       <SituationScroll selectedKey={selectedKey} onSelect={(key) => setSelectedKey(key)} />
       </div>
-      <div className="moment_pick_cards" aria-label="Moment Pick 추천 목록">
-        <div className="moment_pick_track">
-          {visibleCards.map((card, index) => (
-            <button
-              key={card.id}
-              tabIndex={0}
-              type="button"
-              className={`moment_pick_card_button${index === 0 ? " is_first" : " is_second"}`}
-            >
-              <MomentPickCard
-                title={card.title}
-                subtitle={card.subtitle}
-                thumbSrc={card.thumbSrc}
-                tags={card.tags}
-                badgeText={card.badgeText}
-                variant={index === 1 ? "secondary" : "primary"}
-              />
-            </button>
-          ))}
+      <div
+        className={[
+          "moment_pick_cards_shell",
+          edgeFades.left ? "has_left_fade" : "",
+          edgeFades.right ? "has_right_fade" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <div ref={cardsRef} className="moment_pick_cards" aria-label="Moment Pick 추천 목록">
+          <div className="moment_pick_track">
+            {visibleCards.map((card, index) => (
+              <button
+                key={card.id}
+                tabIndex={0}
+                type="button"
+                className={`moment_pick_card_button${index === 0 ? " is_first" : " is_second"}`}
+              >
+                <MomentPickCard
+                  title={card.title}
+                  subtitle={card.subtitle}
+                  thumbSrc={card.thumbSrc}
+                  tags={card.tags}
+                  badgeText={card.badgeText}
+                  variant={index === 1 ? "secondary" : "primary"}
+                />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </section>

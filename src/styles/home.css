@@ -727,9 +727,9 @@
 }
 
 .weekly_drink_bottle_slot.is_dassai23_detail {
-  top: 0%;
-  /* width: 76px; */
+  top: 5%;
   height: 160px;
+  left: 54%;
 }
 
 .weekly_drink_bottle {
@@ -1211,7 +1211,7 @@
   /* full-bleed background inside .page_screen padding */
   margin: -20px 0 0;
   margin-left: -24px;
-  padding: 28px 24px 48px;
+  padding: 28px 24px 32px;
   background: var(--color-point-03);
 }
 
@@ -1573,7 +1573,7 @@
 
 .moment_pick_chip.is_active .moment_pick_icon{
   box-shadow: 0 3.6px 6.48px rgba(224, 214, 196, 0.8), 0 0 0 1px var(--color-point-01);
-  background: rgba(232, 202, 183, 0.55);
+  background: #FDF6F1;
 }
 
 .moment_pick_chip.is_active .moment_pick_label {
@@ -1599,15 +1599,32 @@
   color: var(--color-text-primary);
 }
 
+.moment_pick_cards_shell {
+  position: relative;
+}
+
+.moment_pick_cards_shell::before,
+.moment_pick_cards_shell::after {
+  content: "";
+  position: absolute;
+  top: 40px;
+  bottom: 0;
+  width: 28px;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  height: 500px;
+}
+
 .moment_pick_cards {
   position: relative;
-  padding: 40px 6px 2px;
+  padding: 40px 0 0;
   overflow-x: auto;
   overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
 }
-
 .moment_pick_cards::-webkit-scrollbar {
   display: none;
 }
@@ -2039,8 +2056,8 @@
 }
 
 .home_vote_total_icon {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
   display: block;
 }
@@ -2049,10 +2066,10 @@
   height: 46px;
   border: 0;
   border-radius: 12px;
-  background: var(--color-point-01);
+  background: var(--color-primary);
   color: var(--color-bg-white);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   line-height: 140%;
 }
@@ -2330,7 +2347,7 @@
 .home_weekly_rank_bubble {
   position: relative;
   bottom: -40px;
-  padding: 0 0 0 3%;
+  padding: 0 0 0 24px;
   display: flex;
   align-items: center;
 }
@@ -2343,7 +2360,7 @@
 
 .home_weekly_rank_bubble_text {
   width: fit-content;
-  padding: 10px 56.5px 9px 25.5px;
+  padding: 14px 25px 15px 25px;
   border-radius: 16px 16px 16px 0;
   background: rgba(254, 246, 239, 30%);
   border: 1px solid var(--font-title);
@@ -2467,6 +2484,7 @@ button.home_vote_mascot {
   min-width: 0;
   display: grid;
   gap: 6px;
+  padding: 0 30px 0;
 }
 
 .home_quiz_text_group {
@@ -2476,7 +2494,7 @@ button.home_vote_mascot {
 
 .home_quiz_badge { 
   justify-self: start; 
-  padding: 4px 8px; 
+  padding: 2px 8px; 
   border-radius: 999px; 
   background: rgba(239, 180, 90, 1); 
   color: var(--color-bg-white); 
@@ -2484,7 +2502,6 @@ button.home_vote_mascot {
   font-weight: 300; 
   letter-spacing: -1%; 
   line-height: 140%; 
-  box-shadow: 0 0 5px var(--color-point-01); 
 } 
  
 .home_quiz_title { 
