@@ -1,4 +1,4 @@
-﻿import { useCallback, useLayoutEffect, useMemo, useState } from "react"
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import CommentSection from "../components/CommentSection"
 import ScrollTopButton from "../components/ScrollTopButton"
@@ -55,6 +55,7 @@ export default function PairingDetail() {
   const { pairingId } = useParams()
   const { bookmarkLists } = communityPageData
   const navState = (location.state ?? {}) as PairingDetailNavState
+  const hasHandledInitialScrollRef = useRef(false)
 
   const numericId = typeof pairingId === "string" ? Number(pairingId) : NaN
   const post = useMemo<FeedPost | undefined>(() => {
@@ -171,8 +172,29 @@ export default function PairingDetail() {
   const bottomNavActive = navState.bottomNavActive
 
   useLayoutEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
+    const restoreScrollTop = (location.state as { restoreScrollTop?: unknown } | null)?.restoreScrollTop
+
+    if (typeof restoreScrollTop !== "number" || !Number.isFinite(restoreScrollTop)) {
+      if (hasHandledInitialScrollRef.current) return
+      hasHandledInitialScrollRef.current = true
+      window.scrollTo(0, 0)
+      return
+    }
+
+    hasHandledInitialScrollRef.current = true
+    const timerId = window.setTimeout(() => {
+      window.scrollTo({ top: Math.max(0, restoreScrollTop), behavior: "auto" })
+
+      const { restoreScrollTop: _restoreScrollTop, writeSuccessToast: _writeSuccessToast, ...nextState } =
+        (location.state as Record<string, unknown> | null) ?? {}
+      navigate(`${location.pathname}${location.search}${location.hash}`, {
+        replace: true,
+        state: Object.keys(nextState).length > 0 ? nextState : null,
+      })
+    }, 0)
+
+    return () => window.clearTimeout(timerId)
+  }, [location.hash, location.pathname, location.search, location.state, navigate])
 
   useLayoutEffect(() => {
     if (location.hash !== "#comments") return
@@ -236,6 +258,7 @@ export default function PairingDetail() {
       state: {
         editPost: post,
         returnTo: `${location.pathname}${location.search}${location.hash}`,
+        returnScrollTop: window.scrollY,
       },
     })
   }

@@ -1,7 +1,5 @@
-import iconBell from "../assets/svg/bell.svg"
-import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconDots from "../assets/svg/dotsthreevertical.svg"
-import iconSearch from "../assets/svg/magnifyingglass.svg"
+import DetailHeaderTop from "./DetailHeaderTop"
 import UserIdentityRow from "./UserIdentityRow"
 
 type Props = {
@@ -37,19 +35,7 @@ export default function PairingDetailHeader({
 }: Props) {
   return (
     <header className="detail_header">
-      <div className="detail_header_top">
-        <button type="button" className="detail_back_button" aria-label="이전 페이지로 이동" onClick={onBack}>
-          <img src={iconCaretLeft} alt="" aria-hidden="true" />
-        </button>
-        <div className="detail_header_quick_actions" aria-label="상세 페이지 상단 액션">
-          <button type="button" className="detail_header_action_button" aria-label="검색">
-            <img src={iconSearch} alt="" aria-hidden="true" />
-          </button>
-          <button type="button" className="detail_header_action_button" aria-label="알림">
-            <img src={iconBell} alt="" aria-hidden="true" />
-          </button>
-        </div>
-      </div>
+      <DetailHeaderTop onBack={onBack} />
 
       <UserIdentityRow
         userId={authorId}

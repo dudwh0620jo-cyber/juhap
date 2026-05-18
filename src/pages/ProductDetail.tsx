@@ -60,7 +60,7 @@ import {
   toStoredPairingReview,
 } from "../utils/myWrittenPosts"
 import { deleteStoredUserPost, type PairingDetailNavState } from "../utils/pairingDetail"
-import { getVisibleProductReviews } from "../utils/productReviews"
+import { getDrinkReviewDisplayTags, getVisibleProductReviews } from "../utils/productReviews"
 import type { DrinkReview } from "../utils/productReviews"
 import { useStoredNullableStringRecord } from "../utils/storage"
 import { useMyOnboardingMeta } from "../hooks/useMyOnboardingMeta"
@@ -765,8 +765,8 @@ export default function ProductDetail() {
                   <h2>{review.title}</h2>
                   <p>{review.body}</p>
                   <div className="review_tags">
-                    {review.tags.map((tag) => (
-                      <span key={tag}>#{normalizeHashTagValue(tag)}</span>
+                    {getDrinkReviewDisplayTags(review).map((tag) => (
+                      <span key={tag}>#{tag}</span>
                     ))}
                   </div>
                 </div>

@@ -150,6 +150,15 @@ const COMMUNITY_WRITE_DRAFT_KEY_BY_KIND: Record<WriteKind, string> = {
 }
 const LEGACY_REVIEW_DRAFT_KEY = "community_write_draft_v1_review"
 
+const normalizeTasteChip = (value: string) => (value === "은은함" ? "은은한" : value)
+
+const normalizeTasteChips = (values: unknown) =>
+  Array.isArray(values)
+    ? values
+        .filter((value): value is string => typeof value === "string")
+        .map(normalizeTasteChip)
+    : []
+
 const toPersistedPhotoIds = (ids: string[], limit: number) =>
   ids
     .slice(0, limit)
@@ -1188,13 +1197,13 @@ export default function CommunityWrite() {
       selectedFoodCategory,
       drinkName,
       drinkRating,
-      drinkTasteTags: Array.from(drinkTasteTags),
+      drinkTasteTags: Array.from(drinkTasteTags).map(normalizeTasteChip),
       photoIds,
       title,
       body,
       pairingLocationSearch,
       pairingLocationTags,
-      pairingTasteTags: Array.from(pairingTasteTags),
+      pairingTasteTags: Array.from(pairingTasteTags).map(normalizeTasteChip),
       pairingPrice,
       pairingSummary,
       pairingBody,
@@ -1212,9 +1221,15 @@ export default function CommunityWrite() {
 
   const navigateWithSuccessToast = useCallback(
     (message: string, to: string) => {
-      navigate(to, { state: { writeSuccessToast: message } })
+      navigate(to, {
+        replace: isEditMode,
+        state: {
+          writeSuccessToast: message,
+          ...(isEditMode && returnScrollTop !== null ? { restoreScrollTop: returnScrollTop } : {}),
+        },
+      })
     },
-    [navigate],
+    [isEditMode, navigate, returnScrollTop],
   )
 
   function handleTempSave() {
@@ -1244,14 +1259,14 @@ export default function CommunityWrite() {
       })
       setDrinkName(parsed.drinkName ?? "")
       setDrinkRating(typeof parsed.drinkRating === "number" ? parsed.drinkRating : 2.5)
-      setDrinkTasteTags(new Set(Array.isArray(parsed.drinkTasteTags) ? parsed.drinkTasteTags : []))
+      setDrinkTasteTags(new Set(normalizeTasteChips(parsed.drinkTasteTags)))
       setPhotoIds(Array.isArray(parsed.photoIds) ? parsed.photoIds : [])
       setTitle(parsed.title ?? "")
       setBody(parsed.body ?? "")
       setPairingLocationSearch(parsed.pairingLocationSearch ?? "")
       setPairingLocationTags(Array.isArray(parsed.pairingLocationTags) ? parsed.pairingLocationTags : [])
       setIsPairingLocationConfirmed(Array.isArray(parsed.pairingLocationTags) && parsed.pairingLocationTags.length > 0)
-      setPairingTasteTags(new Set(Array.isArray(parsed.pairingTasteTags) ? parsed.pairingTasteTags : []))
+      setPairingTasteTags(new Set(normalizeTasteChips(parsed.pairingTasteTags)))
       setPairingDrinkThumbSrc(null)
       setIsPairingDrinkScanning(false)
       setIsPairingDrinkScanDone(false)
@@ -1295,7 +1310,7 @@ export default function CommunityWrite() {
       setDrinkName((editPost.drinkName ?? "").trim())
       setSelectedDrinkType((editPost.drinkType ?? "").trim() || null)
       setDrinkRating(typeof editPost.rating === "number" && Number.isFinite(editPost.rating) ? editPost.rating : 2.5)
-      setDrinkTasteTags(new Set(Array.isArray(editPost.features) ? editPost.features : []))
+      setDrinkTasteTags(new Set(normalizeTasteChips(editPost.features)))
       setTitle(editPost.title?.trim() ?? "")
       setBody(editPost.body?.trim() ?? "")
       setPhotoIds(Array.isArray(editPost.photoIds) ? editPost.photoIds.slice(0, MAX_BASIC_PHOTOS) : [])
@@ -1319,7 +1334,7 @@ export default function CommunityWrite() {
       setPairingLocationSearch(locationLabel)
       setPairingLocationTags(locationLabel ? [locationLabel] : [])
       setIsPairingLocationConfirmed(Boolean(locationLabel))
-      setPairingTasteTags(new Set(Array.isArray(editPost.features) ? editPost.features : []))
+      setPairingTasteTags(new Set(normalizeTasteChips(editPost.features)))
       setSelectedSituation((editPost.situation ?? "").trim() || null)
       setPairingSummary((editPost.pairingSummary ?? editPost.title ?? "").trim())
       setPairingBody(editPost.body?.trim() ?? "")
@@ -1440,8 +1455,8 @@ export default function CommunityWrite() {
         popularityScore: 0,
         drinkType: selectedDrinkType ?? undefined,
         categories: selectedDrinkType ? [selectedDrinkType] : undefined,
-        features: normalizeCommunityFeatures(Array.from(drinkTasteTags), 2),
-        searchTags: [...Array.from(drinkTasteTags)].filter((v): v is string => Boolean(v)),
+        features: normalizeCommunityFeatures(Array.from(drinkTasteTags).map(normalizeTasteChip), 2),
+        searchTags: Array.from(drinkTasteTags).map(normalizeTasteChip).filter((v): v is string => Boolean(v)),
         rating: drinkRating,
         drinkName: normalizedDrinkName,
         productId: writeKind === "drink-review" ? productId : undefined,
@@ -1496,14 +1511,14 @@ export default function CommunityWrite() {
       drinkName: pairingDrinkName.trim() || undefined,
       categories: selectedDrinkType ? [selectedDrinkType] : undefined,
       detailCategories: pairingDrinkSubCategory ? [pairingDrinkSubCategory] : undefined,
-      features: normalizeCommunityFeatures(Array.from(pairingTasteTags), 2),
+      features: normalizeCommunityFeatures(Array.from(pairingTasteTags).map(normalizeTasteChip), 2),
       foods: selectedFoodCategory ? [selectedFoodCategory] : undefined,
       foodParentCategory: selectedFoodParentCategory ?? undefined,
       situation: selectedSituation ?? undefined,
       searchTags: [
         selectedDrinkType,
         pairingDrinkSubCategory,
-        ...Array.from(pairingTasteTags),
+        ...Array.from(pairingTasteTags).map(normalizeTasteChip),
         selectedFoodCategory,
         selectedFoodParentCategory,
         selectedSituation,

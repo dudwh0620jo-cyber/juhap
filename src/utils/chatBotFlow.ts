@@ -72,7 +72,7 @@ const fallbackChatById: Record<string, Pick<WineCandidate, "notes" | "tastingNot
 
 const fallbackChat = {
   notes: ["부담 없이 즐기기 좋은 균형 잡힌 스타일이에요."],
-  tastingNotes: ["깔끔함", "부드러움", "은은함"],
+  tastingNotes: ["깔끔함", "부드러움", "은은한"],
   pairingFoods: ["해산물", "가벼운 안주", "치즈"],
   tips: ["차갑게 준비하면 더 산뜻하게 즐길 수 있어요."],
 }
