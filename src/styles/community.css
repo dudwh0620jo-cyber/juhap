@@ -2421,7 +2421,7 @@
   padding: 0 12px;
   background: #FFFFFF;
   color: #111111;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .write_sheet.is_pairing_review .write_input::placeholder,
@@ -2612,6 +2612,16 @@
   padding-right: 58px;
 }
 
+.write_sheet.is_pairing_review .write_input_wrap .write_input {
+  padding-right: 76px;
+}
+
+.write_sheet.is_pairing_review .write_input_wrap .write_field_hint {
+  min-width: 38px;
+  background: #FFFFFF;
+  text-align: right;
+}
+
 .write_textarea_wrap {
   position: relative;
   display: block;
@@ -2626,6 +2636,17 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--color-gray-05);
+}
+
+.write_sheet.is_pairing_review .write_textarea_wrap .write_field_counter {
+  position: static;
+  display: block;
+  margin-top: 6px;
+  text-align: right;
+}
+
+.write_sheet.is_pairing_review .write_textarea {
+  padding-bottom: 15px;
 }
 
 .write_sheet.is_pairing_review .write_pairing_location_pick {
