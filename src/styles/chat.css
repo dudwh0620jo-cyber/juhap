@@ -19,26 +19,20 @@
   overscroll-behavior: contain;
 }
 
-
 .chat_sheet.is_open {
   transform: translateY(0);
-  transition: transform .4s ease-out;
+  transition: transform 0.4s ease-out;
 }
-
-
-
 
 .chat_header button svg {
   display: block;
 }
-
 
 .chat_intro.is_closing {
   opacity: 0;
   transform: translateY(-6px) scale(0.985);
   pointer-events: none;
 }
-
 
 .chat_panel {
   position: absolute;
@@ -47,7 +41,9 @@
   opacity: 0;
   transform: translateY(10px) scale(0.995);
   pointer-events: none;
-  transition: opacity .3s ease, transform .4s ease-out;
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s ease-out;
   will-change: opacity, transform;
 }
 
@@ -56,11 +52,6 @@
   transform: translateY(0) scale(1);
   pointer-events: auto;
 }
-
-
-
-
-
 
 .chat_chip_static {
   pointer-events: none;
@@ -81,15 +72,10 @@
   color: var(--color-bg-white);
 }
 
-
 .chat_action_row {
   display: flex;
   gap: 8px;
 }
-
-
-
-
 
 .chat_detail_panel,
 .chat_pairing_panel,
@@ -321,7 +307,6 @@
   animation-delay: 0.28s;
 }
 
-
 /* Render options inline with the chat flow (near the latest AI bubble). */
 .chat_step_panel {
   display: grid;
@@ -339,16 +324,6 @@
   width: 0;
   height: 0;
 }
-
-
-
-
-
-
-
-
-
-
 
 /* Chatbot redesign overrides */
 .chat_page {
@@ -526,11 +501,17 @@
   display: none;
 }
 
-.chat_intro .chat_suggestion_list button:active .chat_suggestion_arrow_img.is_default {
+.chat_intro
+  .chat_suggestion_list
+  button:active
+  .chat_suggestion_arrow_img.is_default {
   display: none;
 }
 
-.chat_intro .chat_suggestion_list button:active .chat_suggestion_arrow_img.is_active {
+.chat_intro
+  .chat_suggestion_list
+  button:active
+  .chat_suggestion_arrow_img.is_active {
   display: block;
 }
 
@@ -549,7 +530,11 @@
 
 .chat_intro .chat_suggestion_list button {
   width: 100%;
-  transition: background-color .18s ease, border-color .18s ease, transform .12s ease, box-shadow .18s ease;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.12s ease,
+    box-shadow 0.18s ease;
 }
 
 .chat_intro .chat_suggestion_list button:active {
@@ -575,11 +560,21 @@
   animation: chat_message_item_enter 220ms ease-out both;
 }
 
-.chat_messages > *:nth-child(2) { animation-delay: 30ms; }
-.chat_messages > *:nth-child(3) { animation-delay: 60ms; }
-.chat_messages > *:nth-child(4) { animation-delay: 90ms; }
-.chat_messages > *:nth-child(5) { animation-delay: 120ms; }
-.chat_messages > *:nth-child(6) { animation-delay: 150ms; }
+.chat_messages > *:nth-child(2) {
+  animation-delay: 30ms;
+}
+.chat_messages > *:nth-child(3) {
+  animation-delay: 60ms;
+}
+.chat_messages > *:nth-child(4) {
+  animation-delay: 90ms;
+}
+.chat_messages > *:nth-child(5) {
+  animation-delay: 120ms;
+}
+.chat_messages > *:nth-child(6) {
+  animation-delay: 150ms;
+}
 
 .chat_messages {
   display: flex;
@@ -614,7 +609,7 @@
   line-height: 22.75px;
   white-space: pre-line;
   letter-spacing: 0;
-  box-shadow: 2px 2px 5px rgba(233, 212, 198, 1) ;
+  box-shadow: 2px 2px 5px rgba(233, 212, 198, 1);
 }
 
 .user_bubble_row {
@@ -625,7 +620,7 @@
 .user_bubble_row p,
 .chat_choice_echo p {
   max-width: 260px;
-  background: #EAB490;
+  background: #eab490;
   color: var(--color-text-primary);
   border-radius: 16px 0 16px 16px;
 }
@@ -634,7 +629,6 @@
   display: grid;
   width: 100%;
   gap: 12px;
-
 }
 
 .chat_choice_echo {
@@ -747,7 +741,6 @@
   content: none;
 }
 
-
 .chat_input_shell {
   position: relative;
   z-index: 3;
@@ -853,7 +846,9 @@
 }
 
 @keyframes chat_typing_dot {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: translateY(0);
     opacity: 0.45;
   }
@@ -981,7 +976,8 @@
 }
 
 @keyframes chat_intro_deco_float {
-  0%, 100% {
+  0%,
+  100% {
     transform: var(--chat-deco-base-transform) translateY(0) rotate(0deg);
   }
   25% {
@@ -1065,7 +1061,7 @@
   pointer-events: none;
   z-index: 3;
   opacity: 0;
-  transition: opacity .18s ease;
+  transition: opacity 0.18s ease;
 }
 
 .chat_messages_fade_top {
@@ -1162,14 +1158,15 @@
   position: static;
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
-  padding: 6px 8px;
+  padding: 4px 8px;
   border-radius: 10px;
   background:
     linear-gradient(#f6f2eb, #f6f2eb) padding-box,
     linear-gradient(120deg, #d46b89, #6899e9, #d46b89) border-box;
   border: 1px solid transparent;
-  background-size: 100% 100%, 260% 260%;
+  background-size:
+    100% 100%,
+    260% 260%;
   animation: chat_badge_gradient_flow 3.8s ease-in-out infinite alternate;
   will-change: background-position;
 }
@@ -1180,9 +1177,10 @@
 }
 
 .chat_recommend_badge span {
-  font-size: 12px;
+  font-size: 9px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.5;
+  letter-spacing: -0.2px;
   background: linear-gradient(120deg, #d46b89, #6899e9, #d46b89);
   background-size: 260% 260%;
   background-clip: text;
@@ -1220,137 +1218,158 @@
 }
 
 .chat_recommend_card {
-  flex: 0 0 320px;
-  width: 320px;
-  min-width: 320px;
+  flex: 0 0 350px;
+  width: 350px;
+  min-width: 350px;
   height: 217px;
-  padding: 14px 14px 12px;
-  border-radius: 22px;
-  border: 1px solid #efcbb1;
+  padding: 10px;
+  border-radius: 20px;
+  border: 2px solid #ffeedb;
   background: rgba(251, 244, 235, 1);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-
-.chat_recommend_badge span {
-  font-size: 11px;
-  font-weight: 600;
+  box-shadow: 0 6px 11.6px rgba(174, 174, 174, 0.25);
 }
 
 .chat_recommend_card_inner {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  height: 100%;
 }
 
 .chat_recommend_card_left {
-  flex: 0 0 88px;
-  width: 88px;
+  flex: 0 0 72px;
+  width: 72px;
   display: grid;
   justify-items: center;
-  gap: 8px;
+  align-content: center;
+  gap: 5px;
 }
 
 .chat_recommend_card_thumb {
-  width: 88px;
+  width: 52px;
   height: 146px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  filter: drop-shadow(0 11px 12px rgba(79, 79, 79, 0.25));
 }
 
 .chat_recommend_card_thumb img {
   height: 100%;
-  max-width: none;
-  object-fit: cover;
+  max-width: 100%;
+  object-fit: contain;
   object-position: center;
 }
 
 .chat_recommend_card_title {
   font-family: var(--font-title);
-  font-size: 20px;
-  line-height: 16px;
+  font-size: 24px;
+  line-height: 1.05;
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--color-text-primary);
-  padding: 2px 0 0 0;
+  letter-spacing: 0;
+  color: #44413f;
+  padding: 0;
 }
 
 .chat_recommend_card_subtitle {
-  margin-top: 2px;
-  font-size: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #ffd99e;
+  font-size: 12px;
   line-height: 16px;
   font-weight: 400;
   letter-spacing: 0;
-  color: var(--color-text-primary);
+  color: #44413f;
 }
 
 .chat_recommend_card_desc {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 2px dotted var(--color-point-04);
-  font-size: 10px;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+  font-size: 12px;
   line-height: 16px;
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: #44413f;
   letter-spacing: -3%;
 }
 
 .chat_recommend_card_tags {
   display: flex;
   margin-top: 10px;
-  gap: 6px;
+  gap: 4px;
 }
 
 .chat_recommend_tag {
-  height: 24px;
-  padding: 0 10px;
+  height: 20px;
+  padding: 2px 8px;
   border-radius: 999px;
   background: rgba(253, 218, 189, 1);
-  color: var(--color-text-primary);
+  color: #44413f;
   font-size: 10px;
   font-weight: 400;
   line-height: 140%;
+  letter-spacing: 0.1px;
 }
 
 .chat_recommend_card_actions {
   display: flex;
   margin-top: 10px;
-  gap: 8px;
+  gap: 10px;
 }
 
-.chat_recommend_card_body{
+.chat_recommend_card_body {
   display: flex;
   flex-direction: column;
-  padding: 12px 0 0 0;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
 }
 
 .chat_recommend_card_body .chat_action_button {
-  border-radius: 8px;
+  width: 90px;
+  height: 35px;
+  border-radius: 10px;
   border: 1px solid var(--color-primary);
   background: var(--color-bg-base);
   color: var(--color-primary);
-  font-size: 10px;
-  font-weight: 00;
-  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 8px;
   line-height: 140%;
+  letter-spacing: 0.13px;
+}
+
+.chat_recommend_card_body .chat_action_button:disabled {
+  border-color: #b8b8b8;
+  background: #f2f2f2;
+  color: #8a8a8a;
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 1;
 }
 
 .chat_recommend_card_body .chat_action_button.chat_action_button_secondary {
-  width: fit-content;
+  width: 100px;
   display: flex;
   align-items: center;
+  justify-content: center;
   background: var(--color-primary);
   color: var(--color-bg-white);
 }
-.chat_recommend_card_body .chat_action_button.chat_action_button_secondary span{
+.chat_recommend_card_body
+  .chat_action_button.chat_action_button_secondary
+  span {
   width: fit-content;
 }
-.chat_recommend_card_body .chat_action_button.chat_action_button_secondary img{
+.chat_recommend_card_body .chat_action_button.chat_action_button_secondary img {
   width: 10px;
   height: 10px;
 }
 .chat_recommend_more_card {
+  flex: 0 0 138px;
   min-width: 138px;
   max-width: 138px;
   height: 217px;
@@ -1431,12 +1450,13 @@
 .chat_recommend_card_inner .chat_recommend_quote {
   display: block;
   text-align: left;
-  font-size: 10px;
-  line-height: 1.4;
-  font-weight: 400;
-  color: var(--color-text-primary);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: #44413f;
   letter-spacing: 0;
-  padding:0 0 6px 2px; 
+  margin: 0 0 14px;
+  padding: 0;
 }
 
 /* Final lock: recommendation more card description size */
@@ -1451,14 +1471,14 @@
 /* Final lock: secondary button horizontal padding */
 .chat_recommend_card_body .chat_action_button.chat_action_button_secondary,
 .chat_recommend_more_inner .chat_action_button.chat_action_button_secondary {
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: 8px;
+  padding-right: 8px;
   gap: 4px;
 }
 
 /* Dedicated action button styles to avoid shared-rule collisions */
 .chat_recommend_card_body .chat_action_button.chat_action_button_save {
-  min-width: 82px;
+  min-width: 100px;
   justify-content: center;
 }
 
