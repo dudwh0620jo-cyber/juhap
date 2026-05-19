@@ -171,6 +171,10 @@ export default function App() {
     return () => document.body.classList.remove("is_phone_device")
   }, [])
 
+  useEffect(() => {
+    window.dispatchEvent(new Event("app:mounted"))
+  }, [])
+
   const isAuthPage =
     pathname === "/" ||
     pathname === "/onboarding" ||
