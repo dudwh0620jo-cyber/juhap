@@ -103,11 +103,6 @@ export default function Onboarding() {
       }}
     >
       <div className="onboarding_slider">
-        {activeIndex > 0 && activeIndex < onboardingInfoSlides.length ? (
-          <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
-            건너뛰기
-          </button>
-        ) : null}
         <div className="onboarding_viewport">
           <div className="onboarding_track" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
             <div className="onboarding_slide is_start">
@@ -128,43 +123,49 @@ export default function Onboarding() {
 
             {onboardingInfoSlides.map((slide, index) => (
               <div className="onboarding_slide" key={slide.title}>
+                {index + 1 < onboardingInfoSlides.length ? (
+                  <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
+                    건너뛰기
+                  </button>
+                ) : (
+                  <span className="onboarding_skip_spacer" aria-hidden="true" />
+                )}
+
                 <div className="onboarding_copy">
                   <h1 className="onboarding_title">{renderAccentText(slide.title, infoAccents[index] ?? "")}</h1>
                   <p className="onboarding_description">{slide.description}</p>
                 </div>
 
                 <img className="onboarding_mascot" src={infoMascots[index] ?? mascot01} alt="" />
+
+                <div className={shouldSlideInFooter && activeIndex === index + 1 ? "onboarding_footer is_first_enter" : "onboarding_footer"}>
+                  <div className="onboarding_dots" aria-label="온보딩 페이지">
+                    {onboardingInfoSlides.map((_, dotIndex) => (
+                      <button
+                        key={dotIndex}
+                        className={activeIndex === dotIndex + 1 ? "onboarding_dot is_active" : "onboarding_dot"}
+                        type="button"
+                        aria-label={`${dotIndex + 1}번째 온보딩 보기`}
+                        aria-current={activeIndex === dotIndex + 1 ? "step" : undefined}
+                        onClick={() => setActiveIndex(dotIndex + 1)}
+                      />
+                    ))}
+                  </div>
+
+                  {index + 1 < onboardingInfoSlides.length ? (
+                    <button className="onboarding_start_button" type="button" onClick={goNextSlide}>
+                      다음으로
+                    </button>
+                  ) : (
+                    <button className="onboarding_start_button" type="button" onClick={finishOnboarding}>
+                      시작하기
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </div>
-
-        {!isStart && (
-          <div className={shouldSlideInFooter ? "onboarding_footer is_first_enter" : "onboarding_footer"}>
-            <div className="onboarding_dots" aria-label="온보딩 페이지">
-              {onboardingInfoSlides.map((_, index) => (
-                <button
-                  key={index}
-                  className={activeIndex === index + 1 ? "onboarding_dot is_active" : "onboarding_dot"}
-                  type="button"
-                  aria-label={`${index + 1}번째 온보딩 보기`}
-                  aria-current={activeIndex === index + 1 ? "step" : undefined}
-                  onClick={() => setActiveIndex(index + 1)}
-                />
-              ))}
-            </div>
-
-            {activeIndex < onboardingInfoSlides.length ? (
-              <button className="onboarding_start_button" type="button" onClick={goNextSlide}>
-                다음으로
-              </button>
-            ) : (
-              <button className="onboarding_start_button" type="button" onClick={finishOnboarding}>
-                시작하기
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </section>
   )

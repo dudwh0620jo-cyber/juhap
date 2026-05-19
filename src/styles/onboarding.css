@@ -11,16 +11,19 @@
   position: relative;
   flex: 0 0 100%;
   display: grid;
+  align-content: start;
   justify-items: center;
-  padding: 150px 20px 120px;
+  gap: 52px;
+  padding: 64px 20px 72px;
 }
 
 .onboarding_slide.is_start {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 150px 20px 120px;
+  justify-content: flex-start;
+  gap: 54px;
+  padding: 150px 20px 170px;
 }
 
 .onboarding_slider {
@@ -30,10 +33,7 @@
 }
 
 .onboarding_skip_button {
-  position: fixed;
-  top: max(64px, env(safe-area-inset-top));
-  right: 24px;
-  z-index: 100;
+  justify-self: end;
   border: 0;
   padding: 8px 0;
   background: transparent;
@@ -42,6 +42,10 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.onboarding_skip_spacer {
+  min-height: 35px;
 }
 
 .onboarding_viewport {
@@ -169,14 +173,11 @@
 }
 
 .onboarding_footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 120px;
   display: grid;
   justify-items: center;
   gap: 28px;
-  padding: 0 22px;
+  width: 100%;
+  padding: 0 2px;
 }
 
 .onboarding_footer.is_first_enter {
@@ -231,12 +232,13 @@
 
 @media (max-width: 360px) {
   .onboarding_slide {
-    padding-top: 72px;
-    padding-bottom: 86px;
+    gap: 42px;
+    padding-top: 42px;
+    padding-bottom: 56px;
   }
 
   .onboarding_footer {
-    bottom: 86px;
+    gap: 24px;
   }
 
   .onboarding_logo {
@@ -245,10 +247,6 @@
 
   .onboarding_title {
     font-size: 23px;
-  }
-
-  .onboarding_footer {
-    bottom: 48px;
   }
 
   .onboarding_mascot {
