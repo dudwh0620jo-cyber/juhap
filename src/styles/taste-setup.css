@@ -1,6 +1,6 @@
 .taste_setup_page {
   min-height: 100vh;
-  padding: 108px 20px calc(48px + env(safe-area-inset-bottom));
+  padding: 50px 20px calc(48px + env(safe-area-inset-bottom));
   background: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-main);
@@ -75,7 +75,7 @@
 }
 
 /* "좋아하는 술의 특징은 어떤 건가요?" 섹션(3번째)만 조금 더 컴팩트하게 */
-.taste_setup_groups .taste_setup_group:nth-child(3) .taste_chip_grid{
+.taste_setup_groups .taste_setup_group:nth-child(3) .taste_chip_grid {
   width: 320px;
 }
 
@@ -121,7 +121,7 @@
   padding: 6px 12px;
   color: var(--color-gray-04);
   font-family: var(--font-main);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 150%;
   letter-spacing: -2%;
@@ -167,7 +167,6 @@
   .taste_setup_page {
     padding-top: 84px;
   }
-
 
   .taste_setup_submit {
     margin-top: 72px;
