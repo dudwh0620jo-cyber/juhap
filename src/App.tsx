@@ -175,6 +175,15 @@ export default function App() {
     window.dispatchEvent(new Event("app:mounted"))
   }, [])
 
+  useEffect(() => {
+    document.body.classList.toggle("is_onboarding_page", pathname === "/onboarding")
+    document.body.classList.toggle("is_login_page", pathname === "/login")
+    return () => {
+      document.body.classList.remove("is_onboarding_page")
+      document.body.classList.remove("is_login_page")
+    }
+  }, [pathname])
+
   const isAuthPage =
     pathname === "/" ||
     pathname === "/onboarding" ||
@@ -402,4 +411,3 @@ export default function App() {
     </main>
   )
 }
-

@@ -11,6 +11,7 @@ type Props = {
   tabs?: CommunityHeaderTab[]
   onOpenFilter: () => void
   onOpenNotifications?: () => void
+  notificationsDisabled?: boolean
   onSelectTab?: (tab: TopTabKey) => void
   tabsAriaLabel?: string
   openFilterAriaLabel: string
@@ -25,6 +26,7 @@ export default function CommunityHeader({
   tabs,
   onOpenFilter,
   onOpenNotifications,
+  notificationsDisabled = false,
   onSelectTab,
   tabsAriaLabel,
   openFilterAriaLabel,
@@ -34,7 +36,7 @@ export default function CommunityHeader({
 }: Props) {
   const tabItems = tabs ?? []
   const showTabs = tabItems.length >= 2
-  const canShowActions = !hideActions && (showFilterAction || Boolean(onOpenNotifications))
+  const canShowActions = !hideActions && (showFilterAction || Boolean(onOpenNotifications) || notificationsDisabled)
 
   return (
     <header className="community_header">
@@ -53,12 +55,13 @@ export default function CommunityHeader({
             </button>
           ) : null}
 
-          {onOpenNotifications ? (
+          {onOpenNotifications || notificationsDisabled ? (
             <button
-              className="community_header_action_button"
+              className={notificationsDisabled ? "community_header_action_button is_disabled" : "community_header_action_button"}
               type="button"
               aria-label={openNotificationsAriaLabel ?? "알림 열기"}
-              onClick={onOpenNotifications}
+              onClick={notificationsDisabled ? undefined : onOpenNotifications}
+              disabled={notificationsDisabled}
             >
               <img className="community_header_action_icon" src={iconBell} alt="" aria-hidden="true" />
             </button>

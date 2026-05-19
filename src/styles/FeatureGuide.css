@@ -64,7 +64,7 @@
   height: 28px;
   border: 0;
   border-radius: 999px;
-  background: var(--color-point-03);
+  background: var(--color-bg-white);
   display: grid;
   place-items: center;
   padding: 0;

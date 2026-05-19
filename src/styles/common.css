@@ -9,7 +9,7 @@
 
   /* layout */
   --app-statusbar-height: 50px;
-  --app-page-top-padding: calc(var(--app-statusbar-height) + 18px);
+  --app-page-top-padding: calc(var(--app-statusbar-height) - 20px);
 
   /* brand */
   --color-primary: #CA804F;
@@ -289,6 +289,18 @@
   overflow: hidden;
 }
 
+.app_alert_toast.is_center {
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+
+.app_alert_toast.is_compact {
+  width: fit-content;
+  max-width: min(calc(100% - 24px), 280px);
+  padding: 12px 16px;
+}
+
 .app_alert_toast p {
   margin: 0;
   flex: 1;
@@ -436,8 +448,9 @@ body.is_category_overlay_open {
   display: none;
 }
 
-.is_phone_device {
+body.is_phone_device:not(.is_onboarding_page):not(.is_login_page) {
   --app-statusbar-height: 0px;
+  --app-page-top-padding: 20px;
 }
 
 .bottom_nav {

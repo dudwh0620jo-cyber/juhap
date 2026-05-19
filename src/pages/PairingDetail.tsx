@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import CommentSection from "../components/CommentSection"
 import ScrollTopButton from "../components/ScrollTopButton"
@@ -107,6 +107,7 @@ export default function PairingDetail() {
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [isUnfollowConfirmOpen, setIsUnfollowConfirmOpen] = useState(false)
+  const [unfollowToastMessage, setUnfollowToastMessage] = useState<string | null>(null)
   const [isOwnerActionOpen, setIsOwnerActionOpen] = useState(false)
   const [bookmarkPicker, setBookmarkPicker] = useState<{ postId: number; selectedListId: string } | null>(null)
 
@@ -220,6 +221,12 @@ export default function PairingDetail() {
       return next
     })
   }
+
+  useEffect(() => {
+    if (!unfollowToastMessage) return
+    const timer = window.setTimeout(() => setUnfollowToastMessage(null), 1500)
+    return () => window.clearTimeout(timer)
+  }, [unfollowToastMessage])
 
   const toggleLike = () => {
     if (!Number.isFinite(numericId)) return
@@ -466,9 +473,16 @@ export default function PairingDetail() {
                 return next
               })
             }
+            setUnfollowToastMessage("취소완료")
             setIsUnfollowConfirmOpen(false)
           }}
         />
+      ) : null}
+
+      {unfollowToastMessage ? (
+        <div className="app_alert_toast is_center is_compact" role="status" aria-live="polite">
+          <p>{unfollowToastMessage}</p>
+        </div>
       ) : null}
 
       {bookmarkPicker ? (

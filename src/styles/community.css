@@ -3,12 +3,15 @@
   background: var(--color-bg-base);
 }
 
+.is_phone_device .community_page.page_screen {
+  padding-top: var(--app-page-top-padding);
+}
+
 .community_header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
+  padding-bottom: 18px;
 }
 
 .community_title {
@@ -81,6 +84,11 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
+}
+
+.community_header_action_button.is_disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .community_header_action_icon {
@@ -778,6 +786,24 @@
   justify-content: space-between;
   gap: 16px;
   margin: 2px 0 12px;
+}
+
+.community_feed_controls_shell {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  background: var(--color-bg-base);
+  margin-left: -20px;
+  margin-right: -20px;
+  padding: 8px 20px 0 20px;
+  transition: opacity 160ms ease, transform 180ms ease;
+  will-change: transform, opacity;
+}
+
+.community_feed_controls_shell.is_hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-18px);
 }
 
 .community_review_sort_button {
