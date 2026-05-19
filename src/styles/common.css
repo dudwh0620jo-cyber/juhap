@@ -372,6 +372,12 @@ body {
   scrollbar-gutter: stable;
 }
 
+html:has(body.is_onboarding_page),
+html:has(body.is_login_page) {
+  overscroll-behavior: none;
+  overflow: hidden;
+}
+
 body.is_category_overlay_open {
   overflow: hidden;
 }
@@ -382,7 +388,11 @@ body.is_category_overlay_open {
 
 body.is_onboarding_page,
 body.is_login_page {
+  height: 100svh;
+  height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 body.is_onboarding_page .app_root,
