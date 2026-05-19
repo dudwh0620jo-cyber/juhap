@@ -31,13 +31,12 @@ const TEXT = {
   nicknamePlaceholder: "\uB2C9\uB124\uC784\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694",
   nicknameWarning: "\uB2C9\uB124\uC784\uC744 \uC785\uB825\uD574 \uC8FC\uC138\uC694.",
   phoneLabel: "\uD734\uB300\uD3F0 \uBC88\uD638",
+  phoneAgeNotice: "청소년 보호법에 따라 19세 이상부터 이용할 수 있어요.",
   phonePlaceholder: "000-0000-0000",
   verifyButton: "\uC778\uC99D\uBC88\uD638",
   phoneWarning: "\uC804\uD654\uBC88\uD638\uB97C \uB05D\uAE4C\uC9C0 \uC785\uB825\uD574 \uC8FC\uC138\uC694.",
   verifyWarning: "\uC804\uD654\uBC88\uD638 \uC778\uC99D\uC744 \uC644\uB8CC\uD574 \uC8FC\uC138\uC694.",
   verifySuccess: "성인인증을 완료했어요.",
-  genderLabel: "성별",
-  ageRangeLabel: "연령대",
   addressLabel: "\uC8FC\uC18C",
   addressSearchLabel: "\uC8FC\uC18C \uAC80\uC0C9",
   addressPlaceholder: "\uAC74\uBB3C, \uC9C0\uBC88 \uB610\uB294 \uB3C4\uB85C\uBA85 \uAC80\uC0C9",
@@ -47,9 +46,6 @@ const TEXT = {
   confirm: "\uD655\uC778",
   postcodeError: "\uC8FC\uC18C \uAC80\uC0C9\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.",
 }
-
-const GENDER_OPTIONS = ["여성", "남성", "선택 안 함"]
-const AGE_RANGE_OPTIONS = ["20대", "30대", "40대", "50대", "60대", "70대 이상"]
 
 function formatPhoneNumber(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 11)
@@ -105,8 +101,6 @@ export default function ProfileSetup() {
   const [password, setPassword] = useState(savedProfile.account.password)
   const [nickname, setNickname] = useState(savedProfile.personalInfo.nickname.slice(0, NICKNAME_MAX_LENGTH))
   const [phone, setPhone] = useState(savedProfile.personalInfo.phone)
-  const [gender, setGender] = useState(savedProfile.personalInfo.gender)
-  const [ageRange, setAgeRange] = useState(savedProfile.personalInfo.ageRange)
   const [address, setAddress] = useState(savedProfile.personalInfo.address)
   const [detailAddress, setDetailAddress] = useState(savedProfile.personalInfo.detailAddress)
   const [isVerifyCompleteOpen, setIsVerifyCompleteOpen] = useState(false)
@@ -131,8 +125,6 @@ export default function ProfileSetup() {
     setNickname("주아")
     setPhone("010-1234-5678")
     setIsPhoneVerified(false)
-    setGender("여성")
-    setAgeRange("20대")
     setAddress("서울특별시 강남구 테헤란로 123")
     setDetailAddress("주합빌딩 10층")
     setHasTriedSubmit(false)
@@ -150,8 +142,6 @@ export default function ProfileSetup() {
     updateUserPersonalInfo({
       nickname: sanitizeNickname(nickname),
       phone,
-      gender,
-      ageRange,
       address,
       detailAddress,
       isPhoneVerified,
@@ -242,6 +232,7 @@ export default function ProfileSetup() {
           <span>
             {TEXT.phoneLabel}<em aria-label={TEXT.requiredLabel}>*</em>
           </span>
+          <p className="profile_setup_age_notice">{TEXT.phoneAgeNotice}</p>
           <span className="profile_phone_input">
             <input
               type="tel"
@@ -286,38 +277,6 @@ export default function ProfileSetup() {
           </span>
           {showNicknameWarning ? <p className="profile_setup_hint">{TEXT.nicknameWarning}</p> : null}
         </label>
-
-        <div className="profile_setup_choice_group" aria-label={TEXT.genderLabel}>
-          <span className="profile_setup_choice_title">{TEXT.genderLabel}</span>
-          <div className="profile_setup_choice_row">
-            {GENDER_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={gender === option ? "profile_setup_choice is_selected" : "profile_setup_choice"}
-                onClick={() => setGender((prev) => (prev === option ? "" : option))}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="profile_setup_choice_group" aria-label={TEXT.ageRangeLabel}>
-          <span className="profile_setup_choice_title">{TEXT.ageRangeLabel}</span>
-          <div className="profile_setup_choice_row">
-            {AGE_RANGE_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={ageRange === option ? "profile_setup_choice is_selected" : "profile_setup_choice"}
-                onClick={() => setAgeRange((prev) => (prev === option ? "" : option))}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
 
         <fieldset className="profile_setup_address">
           <legend>{TEXT.addressLabel}</legend>
