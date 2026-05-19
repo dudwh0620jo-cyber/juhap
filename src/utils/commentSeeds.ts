@@ -210,4 +210,4 @@ export const getTopLevelCommentItemIdCount = (comments: SeedCommentItem[]) =>
   new Set(comments.filter((comment) => !comment.replyTo).map((comment) => comment.id).filter((id) => Number.isFinite(id))).size
 
 export const getSeedCommentCount = (targetId: string | undefined) =>
-  getTopLevelCommentItemIdCount(getSeedCommentsByTargetId(targetId))
+  getCommentItemIdCount(getSeedCommentsByTargetId(targetId))

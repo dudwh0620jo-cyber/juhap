@@ -245,8 +245,8 @@
 }
 
 .vote_list_result_bar {
-  --vote-left: rgba(255, 204, 85, 1);
-  --vote-right: rgba(240, 153, 95, 1);
+  --vote-win: #CB8252;
+  --vote-lose: #BFBFBF;
   position: relative;
   height: 28px;
   border-radius: 999px;
@@ -258,7 +258,7 @@
   position: absolute;
   left: 0;
   height: 100%;
-  background: var(--vote-left);
+  background: var(--vote-win);
   border-radius: 999px;
   overflow: visible;
   pointer-events: none;
@@ -268,25 +268,31 @@
 .vote_list_result_left::after {
   content: "";
   position: absolute;
-  right: -18px;
+  right: -12px;
   top: 0;
-  width: 44px;
+  width: 32px;
   height: 100%;
-  background: var(--vote-left);
+  background: var(--vote-win);
   border-radius:  0 999px 999px 0 ;
 }
 
 .vote_list_result_bar.is_right_winner .vote_list_result_left::after {
-  right: -18px;
-  background: var(--vote-right);
+  right: -10px;
+  background: var(--vote-win);
   border-radius: 999px 0 0 999px;
+}
+.vote_list_result_bar.is_right_winner .vote_list_result_left{
+  background: var(--vote-lose);
+}
+.vote_list_result_bar.is_right_winner .vote_list_result_right{
+  background: var(--vote-win);
 }
 
 .vote_list_result_right {
   position: absolute;
   right: 0;
   height: 100%;
-  background: var(--vote-right);
+  background: var(--vote-lose);
   border-radius: 0 999px 999px 0;
   pointer-events: none;
   z-index: 1;
@@ -300,8 +306,16 @@
   font-weight: 500;
   color: var(--color-gray-00);
   z-index: 2;
+  line-height: 130%;
 }
 
+.vote_list_result_bar:not(.is_right_winner) .vote_list_result_percent.is_right {
+  color: var(--color-text-primary);
+}
+
+.vote_list_result_bar.is_right_winner .vote_list_result_percent.is_left {
+  color: var(--color-text-primary);
+}
 .vote_list_result_percent.is_left {
   left: 18px;
 }

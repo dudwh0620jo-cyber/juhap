@@ -1,4 +1,4 @@
-import { type FormEvent, useRef, useState } from "react"
+﻿import { type FormEvent, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import mascotImage from "../assets/onboarding-mascot_05.png"
 import mapPinIcon from "../assets/svg/mappin.svg"
@@ -103,14 +103,16 @@ export default function ProfileSetup() {
   const showVerifyWarning = hasTriedSubmit && phoneDigits.length === 11 && !isPhoneVerified
 
   function autofillProfile() {
+    const nextPhone = "010-1234-5678"
+    const nextPhoneDigits = nextPhone.replace(/\D/g, "")
+
     setNickname("주아")
-    setPhone("010-1234-5678")
-    setIsPhoneVerified(false)
+    setPhone(nextPhone)
+    setIsPhoneVerified((prev) => prev && phoneDigits === nextPhoneDigits)
     setAddress("서울특별시 강남구 테헤란로 123")
     setDetailAddress("주합빌딩 10층")
     setHasTriedSubmit(false)
   }
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setHasTriedSubmit(true)
@@ -273,3 +275,4 @@ export default function ProfileSetup() {
     </section>
   )
 }
+

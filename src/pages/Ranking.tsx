@@ -33,6 +33,15 @@ import { communityPageData } from "../data/communityPageData"
 import { COMMUNITY_SEARCH_RECENT_KEY } from "../utils/communityStorage"
 import { usersMockById } from "../utils/usersMock"
 import { calculateRangePercent, isWithinRange } from "../utils/range"
+import { usePreloadImages } from "../hooks/usePreloadImages"
+import {
+  getRankingBestCharacterSrc,
+  getRankingDrinkSrcForItem,
+  getRankingPostPhotoSrc,
+  getRankingRankBadgeSrc,
+  getRankingThumbSrc,
+  getRankingThumbSrcById,
+} from "../utils/rankingThumbAssets"
 
 type PopupChipGroup = {
   title: string
@@ -607,6 +616,36 @@ export default function CommunityRanking() {
         rank: rankOffset + index + 1,
       }))
   }, [filteredRankingPodium, filteredRankingRows])
+
+  const preloadUrls = useMemo(() => {
+    const urls: Array<string | null | undefined> = []
+
+    urls.push(
+      getRankingBestCharacterSrc(),
+      getRankingRankBadgeSrc(1),
+      getRankingRankBadgeSrc(2),
+      getRankingRankBadgeSrc(3),
+    )
+
+    const collectPairImages = (id: number, rank: number, pair: string) => {
+      const [drink, food] = pair.split(" + ")
+      const drinkSrc =
+        getRankingDrinkSrcForItem(id, rank as 1 | 2 | 3) ??
+        getRankingThumbSrcById("drink", id) ??
+        getRankingThumbSrc("drink", drink ?? "")
+      const photoSrc = getRankingPostPhotoSrc(id)
+      const sideImageSrc = photoSrc ?? getRankingThumbSrcById("food", id) ?? getRankingThumbSrc("food", food ?? "")
+
+      urls.push(sideImageSrc, drinkSrc)
+    }
+
+    filteredRankingPodium.forEach((podium) => collectPairImages(podium.id, podium.rank, podium.pair))
+    visibleRankingRows.forEach((row) => collectPairImages(row.id, row.rank, row.pair))
+
+    return Array.from(new Set(urls.filter((value): value is string => Boolean(value))))
+  }, [filteredRankingPodium, visibleRankingRows])
+
+  usePreloadImages(preloadUrls, { decode: true })
 
   const isRankingNoResults =
     isCommunitySearchActive && visibleRankingRows.length === 0 && filteredRankingPodium.length === 0

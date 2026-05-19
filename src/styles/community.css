@@ -46,8 +46,9 @@
 
 .tag_list_title {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-primary);
 }
 
 .tag_list_empty {

@@ -272,6 +272,7 @@ export default function CommentSection({
   }, [commentItems, relativeTimeNow])
 
   const visibleCommentCount = commentGroups.topLevel.length
+  const totalCommentCount = commentGroups.byId.size
 
   const pagedComments = useMemo(() => {
     const parentPages: CommentItem[][] = []
@@ -368,15 +369,15 @@ export default function CommentSection({
       if (pairingId) {
         window.dispatchEvent(
           new CustomEvent(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, {
-            detail: { pairingId, count: visibleCommentCount },
+            detail: { pairingId, count: totalCommentCount },
           }),
         )
       }
     } catch {
       // ignore storage errors
     }
-    onCountChange(visibleCommentCount)
-  }, [commentItems, commentsStorageKey, onCountChange, pairingId, visibleCommentCount])
+    onCountChange(totalCommentCount)
+  }, [commentItems, commentsStorageKey, onCountChange, pairingId, totalCommentCount, visibleCommentCount])
 
   useEffect(() => {
     if (openMenuCommentId === null) return
@@ -899,7 +900,7 @@ export default function CommentSection({
           }}
         >
           <div className="comment_list_header">
-            <h3 className="comment_list_title">댓글 {countOffset + visibleCommentCount}</h3>
+            <h3 className="comment_list_title">댓글 {countOffset + totalCommentCount}</h3>
           </div>
           {mainCommentInputForm}
         <div
@@ -978,7 +979,7 @@ export default function CommentSection({
           </div>
 
           <span className="comment_pager_label" aria-label="현재 페이지">
-            {visibleCommentCount === 0 ? "0/0" : `${safePageIndex + 1}/${maxPageIndex + 1}`}
+            {totalCommentCount === 0 ? "0/0" : `${safePageIndex + 1}/${maxPageIndex + 1}`}
           </span>
 
           <div className="comment_pager_right" aria-label="다음/마지막 페이지">

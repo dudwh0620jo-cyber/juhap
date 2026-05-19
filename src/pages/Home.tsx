@@ -15,9 +15,11 @@ import SituationSection from "../components/SituationSection"
 import TodayHeroCopy from "../components/TodayHeroCopy"
 import WeeklyDrink from "../components/WeeklyDrink"
 import { getStoredPicks, getVoteTotalVotes, storePick } from "../utils/votePicks"
-import { homeAssets, homeWeeklyRankingCards, resolveVoteOptionIconSrc } from "../data/homeContent"
+import { homeAssets, homeMomentPickCardsBySituation, homeMomentPickItems, homeWeeklyRankingCards, resolveVoteOptionIconSrc } from "../data/homeContent"
 import { FEATURED_VOTE_ID, voteItems } from "../data/voteData"
 import { useHomePageData } from "../hooks/useHomePageData"
+import { usePreloadImages } from "../hooks/usePreloadImages"
+import { resolveReviewImage } from "../utils/reviewImages"
 
 type AiCardProps = {
   title: string
@@ -484,6 +486,45 @@ export default function Home() {
   const navigate = useNavigate()
   const location = useLocation()
   const voteSectionRef = useRef<HTMLDivElement | null>(null)
+
+  const preloadUrls = useMemo(() => {
+    const urls: Array<string | undefined> = []
+
+    urls.push(
+      homeAssets.mainScanButton,
+      homeAssets.scanIcon,
+      homeAssets.todayPairingMascot,
+      homeAssets.todayVoteMascot,
+      homeAssets.weeklyBestMascot,
+      homeAssets.todayQuizBanner,
+    )
+
+    recommendationItems.forEach((item) => {
+      if (item.imageSrc) urls.push(item.imageSrc)
+    })
+
+    homeWeeklyRankingCards.forEach((card) => {
+      urls.push(card.badgeSrc, card.drinkSrc, card.foodSrc)
+    })
+
+    homeMomentPickItems.forEach((item) => {
+      urls.push(item.iconSrc)
+    })
+    homeMomentPickCardsBySituation.solo.forEach((card) => urls.push(card.thumbSrc))
+
+    weeklyDrinkItems.forEach((item) => {
+      if (!item.thumbId) return
+      urls.push(resolveReviewImage(item.thumbId))
+    })
+
+    featuredVote?.options?.forEach((option) => {
+      urls.push(resolveVoteOptionIconSrc(option.title))
+    })
+
+    return Array.from(new Set(urls.filter((value): value is string => Boolean(value))))
+  }, [featuredVote?.options, recommendationItems, weeklyDrinkItems])
+
+  usePreloadImages(preloadUrls, { decode: true })
 
   useEffect(() => {
     const shouldScroll = Boolean((location.state as { scrollToHomeVote?: boolean } | null)?.scrollToHomeVote)

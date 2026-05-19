@@ -5,6 +5,7 @@ import AlertModal from "../components/AlertModal"
 import TodayHeroCopy from "../components/TodayHeroCopy"
 import { todayPairingDetailByTitle, todayPairingDetailContent } from "../data/todayPairingDetail"
 import { useHomePageData } from "../hooks/useHomePageData"
+import { usePreloadImages } from "../hooks/usePreloadImages"
 import caretLeft from "../assets/svg/caretleft.svg"
 import caretRightWhite from "../assets/svg/caretright_w.svg"
 import featherIcon from "../assets/svg/feather.svg"
@@ -108,6 +109,19 @@ export default function TodayPairingDetail() {
   const detail = (hero ? todayPairingDetailByTitle[hero.title] : undefined) ?? todayPairingDetailContent[0]
 
   if (!hero) return null
+
+  const preloadTargets = useMemo(() => {
+    if (recommendationItems.length === 0) return []
+    if (total <= 1) return recommendationItems.map((item) => item.imageSrc ?? "").filter((v) => v.trim())
+    const current = recommendationItems[safeIndex]?.imageSrc ? [recommendationItems[safeIndex].imageSrc] : []
+    const prevIndex = (safeIndex - 1 + total) % total
+    const nextIndex = (safeIndex + 1) % total
+    const prev = recommendationItems[prevIndex]?.imageSrc ? [recommendationItems[prevIndex].imageSrc] : []
+    const next = recommendationItems[nextIndex]?.imageSrc ? [recommendationItems[nextIndex].imageSrc] : []
+    return [...current, ...prev, ...next].filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+  }, [recommendationItems, safeIndex, total])
+
+  usePreloadImages(preloadTargets, { decode: true })
 
   const dots = useMemo(() => Array.from({ length: total }, (_, i) => i), [total])
   const extendedItems = useMemo(() => {

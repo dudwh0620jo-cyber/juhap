@@ -45,6 +45,9 @@ import { resolveMyUserAvatar } from "../utils/userAvatars"
 import { currentUserMock } from "../utils/usersMock"
 import { useLayoutEffect } from "react"
 import { motion } from "motion/react"
+import { usePreloadImages } from "../hooks/usePreloadImages"
+import { resolveReviewImage } from "../utils/reviewImages"
+import { resolveQuestionImage } from "../utils/questionImages"
 import {
   buildPopupChipGroups,
   buildSearchAllChipGroups,
@@ -432,6 +435,28 @@ export default function Community() {
   const filteredPosts = useMemo(() => {
     return filterCommunityFeedPosts({ posts, filters: communityFeedFilters })
   }, [communityFeedFilters, posts])
+
+  const preloadUrls = useMemo(() => {
+    const urls: Array<string | undefined> = [askQuestionBanner, emptyMascotImage, myAvatarSrc]
+    const visiblePosts = filteredPosts.slice(0, 12)
+
+    visiblePosts.forEach((post) => {
+      const firstPhotoId = post.photoIds?.[0]?.trim() ?? ""
+      if (!firstPhotoId) return
+
+      if (feedFilter === "free") {
+        if (firstPhotoId.startsWith("data:") || firstPhotoId.startsWith("blob:")) return
+        urls.push(resolveQuestionImage(firstPhotoId))
+        return
+      }
+
+      urls.push(resolveReviewImage(firstPhotoId) ?? firstPhotoId)
+    })
+
+    return Array.from(new Set(urls.filter((value): value is string => Boolean(value))))
+  }, [feedFilter, filteredPosts, myAvatarSrc])
+
+  usePreloadImages(preloadUrls, { decode: true })
 
   const isFeedNoResults = isCommunitySearchActive && filteredPosts.length === 0
 
