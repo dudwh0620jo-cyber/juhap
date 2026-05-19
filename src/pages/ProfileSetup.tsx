@@ -240,29 +240,6 @@ export default function ProfileSetup() {
 
         <label className="profile_setup_field">
           <span>
-            {TEXT.nicknameLabel}<em aria-label={TEXT.requiredLabel}>*</em>
-          </span>
-          <span className="profile_setup_input_wrap">
-            <input
-              type="text"
-              placeholder={TEXT.nicknamePlaceholder}
-              autoComplete="nickname"
-              maxLength={NICKNAME_MAX_LENGTH}
-              value={nickname}
-              onChange={(event) => setNickname(event.target.value.slice(0, NICKNAME_MAX_LENGTH))}
-            />
-            <span
-              className={isNicknameAtLimit ? "profile_setup_counter is_limit" : "profile_setup_counter"}
-              aria-live="polite"
-            >
-              {`${nicknameLength}/${NICKNAME_MAX_LENGTH}`}
-            </span>
-          </span>
-          {showNicknameWarning ? <p className="profile_setup_hint">{TEXT.nicknameWarning}</p> : null}
-        </label>
-
-        <label className="profile_setup_field">
-          <span>
             {TEXT.phoneLabel}<em aria-label={TEXT.requiredLabel}>*</em>
           </span>
           <span className="profile_phone_input">
@@ -285,6 +262,29 @@ export default function ProfileSetup() {
           {showPhoneWarning ? <p className="profile_setup_hint">{TEXT.phoneWarning}</p> : null}
           {showVerifyWarning ? <p className="profile_setup_hint">{TEXT.verifyWarning}</p> : null}
           {isPhoneVerified ? <p className="profile_setup_hint_success">{TEXT.verifySuccess}</p> : null}
+        </label>
+
+        <label className="profile_setup_field">
+          <span>
+            {TEXT.nicknameLabel}<em aria-label={TEXT.requiredLabel}>*</em>
+          </span>
+          <span className="profile_setup_input_wrap">
+            <input
+              type="text"
+              placeholder={TEXT.nicknamePlaceholder}
+              autoComplete="nickname"
+              maxLength={NICKNAME_MAX_LENGTH}
+              value={nickname}
+              onChange={(event) => setNickname(event.target.value.slice(0, NICKNAME_MAX_LENGTH))}
+            />
+            <span
+              className={isNicknameAtLimit ? "profile_setup_counter is_limit" : "profile_setup_counter"}
+              aria-live="polite"
+            >
+              {`${nicknameLength}/${NICKNAME_MAX_LENGTH}`}
+            </span>
+          </span>
+          {showNicknameWarning ? <p className="profile_setup_hint">{TEXT.nicknameWarning}</p> : null}
         </label>
 
         <div className="profile_setup_choice_group" aria-label={TEXT.genderLabel}>
@@ -369,4 +369,3 @@ export default function ProfileSetup() {
     </section>
   )
 }
-
