@@ -1,9 +1,8 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+﻿import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { FormEvent } from "react"
 import { useNavigate } from "react-router"
 import { AnimatePresence, motion } from "motion/react"
 
-import AlertModal from "./AlertModal"
 import PurchaseConfirmModal from "./PurchaseConfirmModal"
 import iconCaretLeft from "../assets/svg/caretleft.svg"
 import iconCaretDoubleRight from "../assets/svg/caretdoubleright.svg"
@@ -11,6 +10,7 @@ import iconDots from "../assets/svg/dotsthreevertical.svg"
 import iconBeerstein from "../assets/svg/beerstein_p.svg"
 import iconBeersteinActive from "../assets/svg/beerstein_active.svg"
 import iconReplyArrow from "../assets/svg/corner-down-right.svg"
+import iconWarning from "../assets/svg/worning_r.svg"
 import {
   COMMUNITY_FOLLOWED_USERS_KEY,
   COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT,
@@ -36,6 +36,7 @@ type CommentItem = {
 
 type Props = {
   pairingId: string | undefined
+  postAuthorId?: number | null
   currentUser: { id: number; name: string; meta: string }
   getTierClassName: (userId: number) => string
   getTierLabel: (userId: number) => string
@@ -46,7 +47,7 @@ type Props = {
 
 const PAGE_SIZE = 5
 
-type MentionUser = { id: number; name: string; meta: string }
+type MentionUser = { id: number; name: string; meta: string; avatarSrc: string }
 type MentionContext = { start: number; end: number; query: string }
 
 const COMMENT_LIKE_COUNTS = [4, 4, 4, 8, 1, 15, 6, 3] as const
@@ -126,6 +127,7 @@ const mergeStoredCommentsWithSeed = (storedComments: CommentItem[], seedComments
 
 export default function CommentSection({
   pairingId,
+  postAuthorId,
   currentUser,
   getTierClassName,
   getTierLabel,
@@ -135,7 +137,7 @@ export default function CommentSection({
 }: Props) {
   const navigate = useNavigate()
   const [commentValue, setCommentValue] = useState("")
-  const [alertMessage, setAlertMessage] = useState<string | null>(null)
+  const [inputToastMessage, setInputToastMessage] = useState<string | null>(null)
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editingCommentValue, setEditingCommentValue] = useState("")
   const [openMenuCommentId, setOpenMenuCommentId] = useState<number | null>(null)
@@ -161,11 +163,18 @@ export default function CommentSection({
 
   const swipeStartRef = useRef<{ x: number; y: number } | null>(null)
   const mainInputRef = useRef<HTMLInputElement | null>(null)
+  const mentionPanelRef = useRef<HTMLDivElement | null>(null)
   const commentPageRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const [likeAnimatingIds, setLikeAnimatingIds] = useState<Set<number>>(() => new Set())
   const [commentViewportHeight, setCommentViewportHeight] = useState<number | null>(null)
   const likeAnimationTimeoutByIdRef = useRef<Map<number, number>>(new Map())
   const getActiveInput = () => mainInputRef.current
+
+  useEffect(() => {
+    if (!inputToastMessage) return
+    const timerId = window.setTimeout(() => setInputToastMessage(null), 1800)
+    return () => window.clearTimeout(timerId)
+  }, [inputToastMessage])
 
   const toggleReplyGroup = (parentId: number) => {
     setExpandedReplyParentIds((prev) => {
@@ -272,6 +281,7 @@ export default function CommentSection({
   }, [commentItems, relativeTimeNow])
 
   const visibleCommentCount = commentGroups.topLevel.length
+  const totalCommentCount = commentGroups.byId.size
 
   const pagedComments = useMemo(() => {
     const parentPages: CommentItem[][] = []
@@ -368,15 +378,15 @@ export default function CommentSection({
       if (pairingId) {
         window.dispatchEvent(
           new CustomEvent(COMMUNITY_PAIRING_COMMENTS_UPDATED_EVENT, {
-            detail: { pairingId, count: visibleCommentCount },
+            detail: { pairingId, count: totalCommentCount },
           }),
         )
       }
     } catch {
       // ignore storage errors
     }
-    onCountChange(visibleCommentCount)
-  }, [commentItems, commentsStorageKey, onCountChange, pairingId, visibleCommentCount])
+    onCountChange(totalCommentCount)
+  }, [commentItems, commentsStorageKey, onCountChange, pairingId, totalCommentCount, visibleCommentCount])
 
   useEffect(() => {
     if (openMenuCommentId === null) return
@@ -422,35 +432,57 @@ export default function CommentSection({
     if (!isMentionPicking) return []
     const query = (mentionContext?.query ?? "").trim().toLowerCase()
 
-    const userById = new Map<number, MentionUser>()
-    for (const user of mentionDirectoryMock) userById.set(user.id, user)
-    for (const item of commentItems) {
-      if (!userById.has(item.userId)) {
-        const identity = resolveCommentIdentity(item)
-        userById.set(item.userId, { id: item.userId, name: identity.userName, meta: identity.userMeta })
-      }
+    const ensureUser = (byId: Map<number, MentionUser>, user: { id: number; name: string; meta: string }) => {
+      if (byId.has(user.id)) return
+      byId.set(user.id, {
+        ...user,
+        avatarSrc: resolveUserAvatar(user.id) ?? "",
+      })
     }
-    userById.set(currentUser.id, { id: currentUser.id, name: currentUser.name, meta: currentUser.meta })
+
+    const participantIds = new Set<number>()
+    for (const item of commentItems) participantIds.add(item.userId)
+
+    const userById = new Map<number, MentionUser>()
+
+    // 1) current post participants (comment writers + current user)
+    for (const item of commentItems) {
+      const identity = resolveCommentIdentity(item)
+      ensureUser(userById, { id: item.userId, name: identity.userName, meta: identity.userMeta })
+    }
+    ensureUser(userById, { id: currentUser.id, name: currentUser.name, meta: currentUser.meta })
+
+    // 2) followed users
+    for (const user of mentionDirectoryMock) {
+      if (!followedUserIds.has(user.id)) continue
+      ensureUser(userById, user)
+    }
+
+    // 3) all users directory
+    for (const user of mentionDirectoryMock) ensureUser(userById, user)
 
     const allUsers = Array.from(userById.values())
-    const followedUsers = allUsers.filter((user) => followedUserIds.has(user.id))
+    const filtered = query ? allUsers.filter((user) => user.name.toLowerCase().includes(query)) : allUsers
 
-    const pool = query ? allUsers : followedUsers
-    const filtered = query
-      ? pool.filter((user) => user.name.toLowerCase().includes(query))
-      : pool
-
-    // stable order: followed first, then name
-    const followedSet = new Set(followedUsers.map((u) => u.id))
     return filtered
       .sort((a, b) => {
-        const af = followedSet.has(a.id) ? 0 : 1
-        const bf = followedSet.has(b.id) ? 0 : 1
-        if (af !== bf) return af - bf
+        const aRank = participantIds.has(a.id) ? 0 : followedUserIds.has(a.id) ? 1 : 2
+        const bRank = participantIds.has(b.id) ? 0 : followedUserIds.has(b.id) ? 1 : 2
+        if (aRank !== bRank) return aRank - bRank
         return a.name.localeCompare(b.name, "ko-KR")
       })
       .slice(0, 8)
   }, [commentItems, currentUser.id, currentUser.meta, currentUser.name, followedUserIds, isMentionPicking, mentionContext])
+
+  useEffect(() => {
+    if (!isMentionPicking) return
+    const panel = mentionPanelRef.current
+    if (!panel) return
+
+    requestAnimationFrame(() => {
+      panel.scrollTop = panel.scrollHeight
+    })
+  }, [isMentionPicking, mentionCandidates.length])
 
   const applyMention = (user: MentionUser) => {
     if (!mentionContext) {
@@ -476,11 +508,14 @@ export default function CommentSection({
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const trimmed = commentValue.trim()
-    if (!trimmed) return
+    if (!trimmed) {
+      setInputToastMessage("내용을 입력해주세요.")
+      return
+    }
 
     const mentionOnlyMatch = trimmed.match(/^@([^\s]{1,20})\s*$/)
     if (mentionOnlyMatch) {
-      setAlertMessage("빈 내용은 등록할 수 없어요")
+      setInputToastMessage("내용을 입력해주세요.")
       return
     }
 
@@ -495,7 +530,7 @@ export default function CommentSection({
         : resolveReplyTarget(mentionName)
     const replyBody = (mentionMatch?.[2] ?? trimmed).trim()
     if (!replyBody) {
-      setAlertMessage("빈 내용은 등록할 수 없어요")
+      setInputToastMessage("내용을 입력해주세요.")
       return
     }
     const storedText = replyTo ? replyBody : mentionName ? `@${mentionName} ${replyBody}` : replyBody
@@ -517,7 +552,7 @@ export default function CommentSection({
       },
     ])
     setCommentValue("")
-    setAlertMessage(null)
+    setInputToastMessage(null)
     setInlineReplyCommentId(null)
     if (inlineReplyCommentId === null) {
       setExpandedReplyParentIds(new Set())
@@ -540,7 +575,7 @@ export default function CommentSection({
   const mentionFromComment = (item: CommentItem) => {
     const nextValue = `@${item.userName} `
     setCommentValue(nextValue)
-    setAlertMessage(null)
+    setInputToastMessage(null)
     setOpenMenuCommentId(null)
     setInlineReplyCommentId(item.id)
     setIsMentionOpen(false)
@@ -694,9 +729,15 @@ export default function CommentSection({
                 <span className="comment_author_name">{item.userName}</span>
               </button>
               <span className={getTierClassName(item.userId)}>{resolveCommentGrade(item, getTierLabel)}</span>
-              <span className="comment_header_dot" aria-hidden="true">·</span>
-              <span className="comment_time">{item.timeLabel}</span>
               {isMyComment ? <span className="author_owner_badge comment_owner_badge">작성자</span> : null}
+              {isMyComment ? (
+                <span className="comment_time is_right">{item.timeLabel}</span>
+              ) : (
+                <>
+                  <span className="comment_header_dot" aria-hidden="true">·</span>
+                  <span className="comment_time">{item.timeLabel}</span>
+                </>
+              )}
             </div>
 
             <div className="comment_content_block">
@@ -807,20 +848,36 @@ export default function CommentSection({
   const mainCommentInputForm = (
     <form className="comment_input" onSubmit={handleSubmit}>
       {isMentionPicking && mentionCandidates.length > 0 ? (
-        <div className="comment_mention_panel" role="listbox" aria-label="태그할 유저 목록">
-          {mentionCandidates.map((user) => (
-            <button
-              key={user.id}
-              type="button"
-              className="comment_mention_item"
-              role="option"
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => applyMention(user)}
-            >
-              <span className="comment_mention_name">@{user.name}</span>
-              <span className="comment_mention_meta">{user.meta}</span>
-            </button>
-          ))}
+        <div ref={mentionPanelRef} className="comment_mention_panel" role="listbox" aria-label="태그할 유저 목록">
+          {[...mentionCandidates].reverse().map((user, index, list) => {
+            const isAuthor = typeof postAuthorId === "number" && Number.isFinite(postAuthorId) && user.id === postAuthorId
+            const isFollowed = followedUserIds.has(user.id) && user.id !== currentUser.id
+
+            return (
+              <button
+                key={user.id}
+                type="button"
+                className="comment_mention_item"
+                role="option"
+                style={{ ["--mention-item-delay" as string]: `${Math.max(0, list.length - 1 - index) * 28}ms` }}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => applyMention(user)}
+              >
+                <span className="comment_mention_left">
+                  <img className="comment_mention_avatar" src={user.avatarSrc} alt="" aria-hidden="true" />
+                  <span className="comment_mention_texts">
+                    <span className="comment_mention_name">{user.name}</span>
+                    {isAuthor || isFollowed ? (
+                      <span className="comment_mention_badges" aria-hidden="true">
+                        {isAuthor ? <span className="comment_mention_badge is_author">작성자</span> : null}
+                        {isFollowed ? <span className="comment_mention_badge is_following">팔로우</span> : null}
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
         </div>
       ) : null}
 
@@ -830,7 +887,7 @@ export default function CommentSection({
         value={commentValue}
         onChange={(event) => {
           setCommentValue(event.target.value)
-          setAlertMessage(null)
+          setInputToastMessage(null)
           setCursorIndex(event.target.selectionStart ?? event.target.value.length)
           setIsMentionOpen(true)
         }}
@@ -856,7 +913,14 @@ export default function CommentSection({
 
   return (
     <>
-      {alertMessage ? <AlertModal message={alertMessage} onConfirm={() => setAlertMessage(null)} /> : null}
+      {inputToastMessage ? (
+        <div className="app_alert_toast" role="status" aria-live="polite">
+          <span className="app_alert_toast_icon is_warning">
+            <img src={iconWarning} alt="" aria-hidden="true" />
+          </span>
+          <p>{inputToastMessage}</p>
+        </div>
+      ) : null}
       {pendingDeleteCommentId !== null ? (
         <PurchaseConfirmModal
           ariaLabel="댓글 삭제 확인"
@@ -899,7 +963,7 @@ export default function CommentSection({
           }}
         >
           <div className="comment_list_header">
-            <h3 className="comment_list_title">댓글 {countOffset + visibleCommentCount}</h3>
+            <h3 className="comment_list_title">댓글 {countOffset + totalCommentCount}</h3>
           </div>
           {mainCommentInputForm}
         <div
@@ -978,7 +1042,7 @@ export default function CommentSection({
           </div>
 
           <span className="comment_pager_label" aria-label="현재 페이지">
-            {visibleCommentCount === 0 ? "0/0" : `${safePageIndex + 1}/${maxPageIndex + 1}`}
+            {totalCommentCount === 0 ? "0/0" : `${safePageIndex + 1}/${maxPageIndex + 1}`}
           </span>
 
           <div className="comment_pager_right" aria-label="다음/마지막 페이지">

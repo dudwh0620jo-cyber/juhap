@@ -45,6 +45,9 @@ export default function VoteListCard({ item }: { item: VoteItem }) {
   const rightPercent = item.options[1].percent
   const isLeftWinner = leftPercent > rightPercent
   const isRightWinner = rightPercent > leftPercent
+  const showResult = !shouldMaskResultBar
+  const isLeftLoser = showResult && isRightWinner
+  const isRightLoser = showResult && isLeftWinner
 
   useEffect(() => {
     if (!active) return
@@ -63,7 +66,7 @@ export default function VoteListCard({ item }: { item: VoteItem }) {
       </div>
 
       <div className="vote_list_vs_row" aria-hidden="true">
-        <div className={`vote_list_vs_side is_left${item.myPickIndex === 0 ? " is_my_pick" : ""}`}>
+        <div className={`vote_list_vs_side is_left${item.myPickIndex === 0 ? " is_my_pick" : ""}${isLeftLoser ? " is_loser" : ""}`}>
           <div className="vote_list_vs_icon">
             {leftIconSrc ? (
               <img className={leftFlip ? "is_flipped" : undefined} src={leftIconSrc} alt="" aria-hidden="true" />
@@ -72,7 +75,7 @@ export default function VoteListCard({ item }: { item: VoteItem }) {
           </div>
         </div>
         <div className="vote_list_vs_text">VS</div>
-        <div className={`vote_list_vs_side is_right${item.myPickIndex === 1 ? " is_my_pick" : ""}`}>
+        <div className={`vote_list_vs_side is_right${item.myPickIndex === 1 ? " is_my_pick" : ""}${isRightLoser ? " is_loser" : ""}`}>
           <div className="vote_list_vs_icon">
             {rightIconSrc ? (
               <img className={rightFlip ? "is_flipped" : undefined} src={rightIconSrc} alt="" aria-hidden="true" />

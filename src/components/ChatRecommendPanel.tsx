@@ -13,6 +13,7 @@ import imgMoreMascot from "../assets/ai_chat_more_01.png"
 import iconSparkle from "../assets/svg/boxicons_sparkle_01.svg"
 import iconCaretRight from "../assets/svg/caretright.svg"
 import type { WineCandidate } from "../utils/chatBotFlow"
+import { usePreloadImages } from "../hooks/usePreloadImages"
 
 type ChatRecommendPanelProps = {
   recommendations: WineCandidate[]
@@ -64,6 +65,13 @@ export default function ChatRecommendPanel({
   onMore,
   showMore,
 }: ChatRecommendPanelProps) {
+  usePreloadImages(
+    recommendations
+      .map((candidate) => getCandidateImage(candidate.id) ?? "")
+      .filter((value) => value.trim().length > 0),
+    { decode: true },
+  )
+
   return (
     <div className="chat_recommend_panel" aria-label={RESULT_LABEL}>
       <div className="chat_recommend_list">

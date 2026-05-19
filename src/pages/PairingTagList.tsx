@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo } from "react"
+﻿import { useLayoutEffect, useMemo } from "react"
 import { useLocation, useNavigate } from "react-router"
 
 import iconCaretLeft from "../assets/svg/caretleft.svg"
@@ -19,8 +19,10 @@ import { getTierClassName } from "../utils/tier"
 import { usersMockById } from "../utils/usersMock"
 
 type NavState = {
-  tagType: CommunityTagType
-  tagValue: string
+  tagType?: CommunityTagType
+  tagValue?: string
+  liquorTag?: string
+  foodTag?: string
   bottomNavActive?: "category"
 }
 
@@ -60,6 +62,8 @@ export default function PairingTagList() {
   const state = (location.state ?? {}) as Partial<NavState>
   const tagType = state.tagType
   const tagValue = state.tagValue?.trim() ?? ""
+  const liquorTag = state.liquorTag?.trim() ?? ""
+  const foodTag = state.foodTag?.trim() ?? ""
   const bottomNavActive = state.bottomNavActive
 
   useLayoutEffect(() => {
@@ -67,13 +71,21 @@ export default function PairingTagList() {
   }, [])
 
   const filtered = useMemo(() => {
+    if (liquorTag && foodTag) {
+      return feedPosts.filter((post) => {
+        if (post.isQna) return false
+        return matchesCommunityTag(post, "liquor", liquorTag) && matchesCommunityTag(post, "food", foodTag)
+      })
+    }
+
     if (!tagType || !tagValue) return []
 
     return feedPosts.filter((post) => {
       if (post.isQna) return false
       return matchesCommunityTag(post, tagType, tagValue)
     })
-  }, [tagType, tagValue])
+  }, [foodTag, liquorTag, tagType, tagValue])
+  const headingTitle = liquorTag && foodTag ? `${liquorTag} + ${foodTag}` : tagValue || "태그 글"
 
   return (
     <section className="community_page page_screen" aria-label="태그 글">
@@ -81,7 +93,7 @@ export default function PairingTagList() {
         <button type="button" className="tag_list_back" aria-label="뒤로가기" onClick={() => navigate(-1)}>
           <img src={iconCaretLeft} alt="" aria-hidden="true" />
         </button>
-        <h3 className="tag_list_title">{tagValue || "태그 글"}</h3>
+        <h3 className="tag_list_title">{headingTitle}</h3>
       </header>
 
       <div className="feed_cards" aria-label="태그 글 목록">
@@ -146,3 +158,4 @@ export default function PairingTagList() {
     </section>
   )
 }
+

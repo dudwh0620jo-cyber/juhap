@@ -322,6 +322,7 @@ export default function PairingDetail() {
           </div>
           <CommentSection
             pairingId={pairingId}
+            postAuthorId={authorId}
             currentUser={currentUser}
             getTierClassName={getUserGradeBadgeClassNameByUserId}
             getTierLabel={getPairingTierLabelByUserId}
@@ -388,6 +389,7 @@ export default function PairingDetail() {
             <>
               <CommentSection
                 pairingId={pairingId}
+                postAuthorId={authorId}
                 currentUser={currentUser}
                 getTierClassName={getUserGradeBadgeClassNameByUserId}
                 getTierLabel={getPairingTierLabelByUserId}

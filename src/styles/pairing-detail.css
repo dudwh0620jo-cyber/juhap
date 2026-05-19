@@ -1442,7 +1442,9 @@
   right: 10px;
   bottom: calc(100% + 10px);
   z-index: 5;
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   max-height: 220px;
   padding: 8px;
   border: 1px solid rgba(224, 194, 167, 0.7);
@@ -1450,11 +1452,30 @@
   background: var(--color-bg-white);
   box-shadow: 0 10px 24px rgba(68, 52, 35, 0.12);
   overflow: auto;
+  animation: comment_mention_panel_in 160ms ease-out;
+  transform-origin: bottom center;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.comment_mention_panel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@keyframes comment_mention_panel_in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .comment_mention_item {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -1462,9 +1483,22 @@
   padding: 8px 12px;
   border: 0;
   border-radius: 12px;
-  background: transparent;
   text-align: left;
   cursor: pointer;
+  background: transparent;
+  animation: comment_mention_item_in 180ms ease-out both;
+  animation-delay: var(--mention-item-delay, 0ms);
+}
+
+@keyframes comment_mention_item_in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .comment_mention_item:hover,
@@ -1476,13 +1510,57 @@
 .comment_mention_name {
   font-weight: 800;
   color: var(--color-text-primary);
+  line-height: 16px;
 }
 
-.comment_mention_meta {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-gray-04);
-  white-space: nowrap;
+.comment_mention_left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.comment_mention_avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex: 0 0 auto;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.comment_mention_texts {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.comment_mention_badges {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.comment_mention_badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  background: rgba(205, 179, 153, 0.24);
+  color: rgba(103, 78, 56, 1);
+}
+
+.comment_mention_badge.is_author {
+  background: rgba(222, 160, 111, 0.22);
+  color: rgba(176, 98, 35, 1);
+}
+
+.comment_mention_badge.is_following {
+  background: rgba(207, 179, 139, 0.22);
+  color: rgba(114, 84, 52, 1);
 }
 
 .comment_row:last-child {

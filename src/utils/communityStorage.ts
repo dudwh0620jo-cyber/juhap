@@ -1,4 +1,4 @@
-import { getSeedCommentCount, getTopLevelCommentItemIdCount, type SeedCommentItem } from "./commentSeeds"
+import { getCommentItemIdCount, getSeedCommentCount, type SeedCommentItem } from "./commentSeeds"
 
 export const COMMUNITY_SEARCH_RECENT_KEY = "community_search_recent_terms"
 export const COMMUNITY_FOLLOWED_USERS_KEY = "community_followed_user_ids"
@@ -17,7 +17,7 @@ export const readStoredPairingCommentCount = (pairingId: string, _fallbackCount 
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return getSeedCommentCount(pairingId)
     if (parsed.length === 0) return getSeedCommentCount(pairingId)
-    return Math.max(getTopLevelCommentItemIdCount(parsed as SeedCommentItem[]), getSeedCommentCount(pairingId))
+    return Math.max(getCommentItemIdCount(parsed as SeedCommentItem[]), getSeedCommentCount(pairingId))
   } catch {
     return getSeedCommentCount(pairingId)
   }

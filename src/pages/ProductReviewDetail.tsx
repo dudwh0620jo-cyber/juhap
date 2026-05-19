@@ -284,6 +284,7 @@ export default function ProductReviewDetail() {
       <div className="product_review_detail_comments" id="product-review-comments">
         <CommentSection
           pairingId={commentTargetId}
+          postAuthorId={displayAuthorId}
           currentUser={currentUser}
           getTierClassName={getUserGradeBadgeClassNameByUserId}
           getTierLabel={getPairingTierLabelByUserId}

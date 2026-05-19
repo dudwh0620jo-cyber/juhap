@@ -1,4 +1,4 @@
-import { type FormEvent, useRef, useState } from "react"
+﻿import { type FormEvent, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import mascotImage from "../assets/onboarding-mascot_05.png"
 import mapPinIcon from "../assets/svg/mappin.svg"
@@ -137,7 +137,6 @@ export default function ProfileSetup() {
     setDetailAddress("주합빌딩 10층")
     setHasTriedSubmit(false)
   }
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setHasTriedSubmit(true)
@@ -370,3 +369,4 @@ export default function ProfileSetup() {
     </section>
   )
 }
+

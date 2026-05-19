@@ -1,6 +1,8 @@
 import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useNavigate } from "react-router"
 import { motion } from "framer-motion"
 import { homeMomentPickCardsBySituation, homeMomentPickItems } from "../data/homeContent"
+import { feedPosts, matchesCommunityTag } from "../utils/communityPosts"
 
 export type SituationItem = {
   id: number
@@ -145,6 +147,7 @@ function MomentPickCard({
 
 export default function SituationSection({ items }: { items: SituationItem[] }) {
   void items
+  const navigate = useNavigate()
   const [selectedKey, setSelectedKey] = useState<string>(() => homeMomentPickItems[0]?.key ?? "")
   const cardsRef = useRef<HTMLDivElement | null>(null)
   const [edgeFades, setEdgeFades] = useState({ left: false, right: false })
@@ -166,6 +169,40 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
     }
     return cardsByKey[selectedKey] ?? cardsByKey.solo
   }, [selectedKey])
+
+  const pairingRouteByCardId = useMemo(() => {
+    const parsePairing = (title: string) => {
+      const normalized = title.replace(/\s+/g, " ").trim()
+      const parts =
+        normalized.includes("×")
+          ? normalized.split("×")
+          : normalized.includes("+")
+            ? normalized.split("+")
+            : normalized.match(/\s[xX]\s/) // avoid splitting on names like "xxx"
+              ? normalized.split(/\s[xX]\s/)
+              : null
+
+      if (!parts || parts.length < 2) return null
+      const liquorTag = (parts[0] ?? "").trim()
+      const foodTag = (parts.slice(1).join(" ") ?? "").trim()
+      if (!liquorTag || !foodTag) return null
+      return { liquorTag, foodTag }
+    }
+
+    const hasSharingPosts = ({ liquorTag, foodTag }: { liquorTag: string; foodTag: string }) => {
+      return feedPosts.some((post) => {
+        if (post.isQna) return false
+        return matchesCommunityTag(post, "liquor", liquorTag) && matchesCommunityTag(post, "food", foodTag)
+      })
+    }
+
+    const map = new Map<string, { liquorTag: string; foodTag: string } | null>()
+    visibleCards.forEach((card) => {
+      const pairing = parsePairing(card.title)
+      map.set(card.id, pairing && hasSharingPosts(pairing) ? pairing : null)
+    })
+    return map
+  }, [visibleCards])
 
   useEffect(() => {
     const cards = cardsRef.current
@@ -215,11 +252,22 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
         <div ref={cardsRef} className="moment_pick_cards" aria-label="Moment Pick 추천 목록">
           <div className="moment_pick_track">
             {visibleCards.map((card, index) => (
+              (() => {
+                const pairing = pairingRouteByCardId.get(card.id)
+                const isDisabled = !pairing
+
+                return (
               <button
                 key={card.id}
-                tabIndex={0}
+                tabIndex={isDisabled ? -1 : 0}
                 type="button"
                 className={`moment_pick_card_button${index === 0 ? " is_first" : " is_second"}`}
+                disabled={isDisabled}
+                onClick={() => {
+                  if (!pairing) return
+                  navigate("/community/tag", { state: { liquorTag: pairing.liquorTag, foodTag: pairing.foodTag } })
+                }}
+                aria-disabled={isDisabled}
               >
                 <MomentPickCard
                   title={card.title}
@@ -230,6 +278,8 @@ export default function SituationSection({ items }: { items: SituationItem[] }) 
                   variant={index === 1 ? "secondary" : "primary"}
                 />
               </button>
+                )
+              })()
             ))}
           </div>
         </div>

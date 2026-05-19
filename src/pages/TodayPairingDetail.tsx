@@ -5,6 +5,7 @@ import AlertModal from "../components/AlertModal"
 import TodayHeroCopy from "../components/TodayHeroCopy"
 import { todayPairingDetailByTitle, todayPairingDetailContent } from "../data/todayPairingDetail"
 import { useHomePageData } from "../hooks/useHomePageData"
+import { usePreloadImages } from "../hooks/usePreloadImages"
 import caretLeft from "../assets/svg/caretleft.svg"
 import caretRightWhite from "../assets/svg/caretright_w.svg"
 import featherIcon from "../assets/svg/feather.svg"
@@ -22,6 +23,9 @@ import fishIcon from "../assets/svg/fish.svg"
 import martiniIcon from "../assets/svg/martini.svg"
 import houseLineIcon from "../assets/svg/houseline.svg"
 import umbrellaIcon from "../assets/svg/umbrella.svg"
+import baseballIcon from "../assets/svg/baseball.svg"
+import monitorPlayIcon from "../assets/svg/monitorplay.svg"
+import popcornIcon from "../assets/svg/popcorn.svg"
 import "../styles/today-pairing-detail.css"
 
 function resolvePairingPointIconSrc(label: string) {
@@ -36,10 +40,14 @@ function resolvePairingPointIconSrc(label: string) {
 }
 
 function resolveMomentIconSrc(tag: string) {
+  if (tag === "#스포츠") return baseballIcon
+  if (tag === "#OTT") return monitorPlayIcon
+  if (tag === "#디저트") return popcornIcon
   if (tag === "#특별한 날") return cheersIcon
+  if (tag === "#파티") return confettiIcon
   if (tag === "#브런치") return forkKnifeIcon
   if (tag === "#피크닉") return treeEvergreenIcon
-  if (tag === "#홈파티") return confettiIcon
+  if (tag === "#홈파티") return houseLineIcon
   if (tag === "#데이트") return calendarHeartIcon
   if (tag === "#일식") return fishIcon
   if (tag === "#식전/중주") return martiniIcon
@@ -99,9 +107,21 @@ export default function TodayPairingDetail() {
   const safeIndex = total > 0 ? (total <= 1 ? 0 : (positionIndex - 1 + total) % total) : 0
   const hero = recommendationItems[safeIndex]
   const detail = (hero ? todayPairingDetailByTitle[hero.title] : undefined) ?? todayPairingDetailContent[0]
-  const isHakurakuseiStory = detail.storyTitle.includes("하쿠라쿠세이")
 
   if (!hero) return null
+
+  const preloadTargets = useMemo(() => {
+    if (recommendationItems.length === 0) return []
+    if (total <= 1) return recommendationItems.map((item) => item.imageSrc ?? "").filter((v) => v.trim())
+    const current = recommendationItems[safeIndex]?.imageSrc ? [recommendationItems[safeIndex].imageSrc] : []
+    const prevIndex = (safeIndex - 1 + total) % total
+    const nextIndex = (safeIndex + 1) % total
+    const prev = recommendationItems[prevIndex]?.imageSrc ? [recommendationItems[prevIndex].imageSrc] : []
+    const next = recommendationItems[nextIndex]?.imageSrc ? [recommendationItems[nextIndex].imageSrc] : []
+    return [...current, ...prev, ...next].filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+  }, [recommendationItems, safeIndex, total])
+
+  usePreloadImages(preloadTargets, { decode: true })
 
   const dots = useMemo(() => Array.from({ length: total }, (_, i) => i), [total])
   const extendedItems = useMemo(() => {
@@ -280,15 +300,11 @@ export default function TodayPairingDetail() {
         <button
           type="button"
           className="today_pairing_bottom_button is_secondary"
-          disabled={!isHakurakuseiStory}
-          onClick={() => {
-            if (!isHakurakuseiStory) return
-            navigate("/product/sake-dassai-23")
-          }}
+          disabled
         >
           이 술 상세보기
         </button>
-        <button type="button" className="today_pairing_bottom_button is_primary" disabled onClick={() => setIsPreparingModalOpen(true)}>
+        <button type="button" className="today_pairing_bottom_button is_primary" disabled>
           비슷한 조합 둘러보기
         </button>
       </div>

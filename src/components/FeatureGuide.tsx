@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { CSSProperties } from "react"
 import { useLocation } from "react-router"
 import closeIcon from "../assets/svg/x.svg"
@@ -16,6 +16,8 @@ type ActiveGuide = {
 const GUIDE_MARGIN = 12
 const GUIDE_ESTIMATED_WIDTH = 260
 const GUIDE_ESTIMATED_HEIGHT = 112
+const AUTO_DISMISS_MS = 3000
+const NO_AUTO_DISMISS_GUIDE_IDS = new Set<string>()
 
 function readDismissedGuideIds() {
   if (typeof window === "undefined") return new Set<string>()
@@ -68,9 +70,11 @@ function getGuideCoordinates(item: FeatureGuideItem, element: Element) {
   if (item.position === "top") {
     const left = clamp(centerX - GUIDE_ESTIMATED_WIDTH / 2, GUIDE_MARGIN, viewportWidth - GUIDE_ESTIMATED_WIDTH - GUIDE_MARGIN)
     return {
-      left,
-      top: clamp(rect.top - GUIDE_ESTIMATED_HEIGHT - GUIDE_MARGIN, GUIDE_MARGIN, viewportHeight - GUIDE_ESTIMATED_HEIGHT - GUIDE_MARGIN),
-      arrowLeft: clamp(centerX - left - 6, 20, GUIDE_ESTIMATED_WIDTH - 32),
+      left: Math.round(left),
+      top: Math.round(
+        clamp(rect.top - GUIDE_ESTIMATED_HEIGHT - GUIDE_MARGIN, GUIDE_MARGIN, viewportHeight - GUIDE_ESTIMATED_HEIGHT - GUIDE_MARGIN),
+      ),
+      arrowLeft: Math.round(clamp(centerX - left - 6, 20, GUIDE_ESTIMATED_WIDTH - 32)),
       arrowTop: 0,
     }
   }
@@ -78,28 +82,30 @@ function getGuideCoordinates(item: FeatureGuideItem, element: Element) {
   if (item.position === "left") {
     const top = clamp(centerY - GUIDE_ESTIMATED_HEIGHT / 2, GUIDE_MARGIN, viewportHeight - GUIDE_ESTIMATED_HEIGHT - GUIDE_MARGIN)
     return {
-      left: clamp(rect.left - GUIDE_ESTIMATED_WIDTH - GUIDE_MARGIN, GUIDE_MARGIN, viewportWidth - GUIDE_ESTIMATED_WIDTH - GUIDE_MARGIN),
-      top,
+      left: Math.round(
+        clamp(rect.left - GUIDE_ESTIMATED_WIDTH - GUIDE_MARGIN, GUIDE_MARGIN, viewportWidth - GUIDE_ESTIMATED_WIDTH - GUIDE_MARGIN),
+      ),
+      top: Math.round(top),
       arrowLeft: 0,
-      arrowTop: clamp(centerY - top - 6, 18, GUIDE_ESTIMATED_HEIGHT - 28),
+      arrowTop: Math.round(clamp(centerY - top - 6, 18, GUIDE_ESTIMATED_HEIGHT - 28)),
     }
   }
 
   if (item.position === "right") {
     const top = clamp(centerY - GUIDE_ESTIMATED_HEIGHT / 2, GUIDE_MARGIN, viewportHeight - GUIDE_ESTIMATED_HEIGHT - GUIDE_MARGIN)
     return {
-      left: clamp(rect.right + GUIDE_MARGIN, GUIDE_MARGIN, viewportWidth - GUIDE_ESTIMATED_WIDTH - GUIDE_MARGIN),
-      top,
+      left: Math.round(clamp(rect.right + GUIDE_MARGIN, GUIDE_MARGIN, viewportWidth - GUIDE_ESTIMATED_WIDTH - GUIDE_MARGIN)),
+      top: Math.round(top),
       arrowLeft: 0,
-      arrowTop: clamp(centerY - top - 6, 18, GUIDE_ESTIMATED_HEIGHT - 28),
+      arrowTop: Math.round(clamp(centerY - top - 6, 18, GUIDE_ESTIMATED_HEIGHT - 28)),
     }
   }
 
   const left = clamp(centerX - GUIDE_ESTIMATED_WIDTH / 2, GUIDE_MARGIN, viewportWidth - GUIDE_ESTIMATED_WIDTH - GUIDE_MARGIN)
   return {
-    left,
-    top: clamp(rect.bottom + GUIDE_MARGIN, GUIDE_MARGIN, viewportHeight - GUIDE_ESTIMATED_HEIGHT - GUIDE_MARGIN),
-    arrowLeft: clamp(centerX - left - 6, 20, GUIDE_ESTIMATED_WIDTH - 32),
+    left: Math.round(left),
+    top: Math.round(clamp(rect.bottom + GUIDE_MARGIN, GUIDE_MARGIN, viewportHeight - GUIDE_ESTIMATED_HEIGHT - GUIDE_MARGIN)),
+    arrowLeft: Math.round(clamp(centerX - left - 6, 20, GUIDE_ESTIMATED_WIDTH - 32)),
     arrowTop: 0,
   }
 }
@@ -116,6 +122,8 @@ export default function FeatureGuide() {
   const { pathname } = useLocation()
   const [dismissedIds, setDismissedIds] = useState(() => readDismissedGuideIds())
   const [activeGuide, setActiveGuide] = useState<ActiveGuide | null>(null)
+  const activeGuideId = activeGuide?.item.id ?? null
+  const autoDismissTimerIdRef = useRef<number | null>(null)
 
   const routeItems = useMemo(
     () => guideItems.filter((item) => matchesRoute(item, pathname) && !dismissedIds.has(item.id)),
@@ -185,19 +193,41 @@ export default function FeatureGuide() {
     }
   }, [updateActiveGuide])
 
-  const dismissGuide = () => {
-    if (!activeGuide) return
-
+  const dismissGuideId = useCallback((guideId: string) => {
     setDismissedIds((prev) => {
+      if (prev.has(guideId)) return prev
       const next = new Set(prev)
-      next.add(activeGuide.item.id)
+      next.add(guideId)
       writeDismissedGuideIds(next)
       return next
     })
-    setActiveGuide(null)
-  }
+    setActiveGuide((prev) => (prev?.item.id === guideId ? null : prev))
+  }, [])
+
+  useEffect(() => {
+    if (autoDismissTimerIdRef.current) {
+      window.clearTimeout(autoDismissTimerIdRef.current)
+      autoDismissTimerIdRef.current = null
+    }
+
+    if (!activeGuideId) return
+    if (NO_AUTO_DISMISS_GUIDE_IDS.has(activeGuideId)) return
+
+    autoDismissTimerIdRef.current = window.setTimeout(() => {
+      autoDismissTimerIdRef.current = null
+      dismissGuideId(activeGuideId)
+    }, AUTO_DISMISS_MS)
+
+    return () => {
+      if (!autoDismissTimerIdRef.current) return
+      window.clearTimeout(autoDismissTimerIdRef.current)
+      autoDismissTimerIdRef.current = null
+    }
+  }, [activeGuideId, dismissGuideId])
 
   if (!activeGuide) return null
+
+  const dismissGuide = () => dismissGuideId(activeGuide.item.id)
 
   return (
     <div
@@ -220,5 +250,4 @@ export default function FeatureGuide() {
     </div>
   )
 }
-
 
