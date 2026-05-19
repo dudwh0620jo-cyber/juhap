@@ -1,7 +1,7 @@
 .scroll_top_button {
   position: fixed;
-  right: calc(50% - 184px);
-  bottom: 96px;
+  right: calc(50% - 194px);
+  bottom: 195px;
   z-index: 12;
   display: flex;
   align-items: center;

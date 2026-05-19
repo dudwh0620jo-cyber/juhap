@@ -2,6 +2,11 @@
   min-height: 100vh;
   background: #fbfaf9;
   padding: 50px 24px 88px;
+  overflow-x: hidden;
+}
+
+.is_phone_device .community_page.page_screen {
+  padding-top: 20px;
 }
 
 .comment_section_shell {
@@ -1424,7 +1429,8 @@
   color: #9d978f;
 }
 
-.comment_input button {
+.comment_submit_button,
+.comment_input > button[type="submit"] {
   min-width: 52px;
   height: 32px;
   padding: 0 14px;
@@ -1447,7 +1453,7 @@
   gap: 4px;
   max-height: 220px;
   padding: 8px;
-  border: 1px solid rgba(224, 194, 167, 0.7);
+  border: 1px solid var(--color-gray-01);
   border-radius: 16px;
   background: var(--color-bg-white);
   box-shadow: 0 10px 24px rgba(68, 52, 35, 0.12);
@@ -1481,11 +1487,11 @@
   width: 100%;
   min-height: 44px;
   padding: 8px 12px;
-  border: 0;
+  border: 1px solid var(--color-gray-01);
   border-radius: 12px;
   text-align: left;
   cursor: pointer;
-  background: transparent;
+  background: var(--color-bg-white);
   animation: comment_mention_item_in 180ms ease-out both;
   animation-delay: var(--mention-item-delay, 0ms);
 }
@@ -1503,8 +1509,8 @@
 
 .comment_mention_item:hover,
 .comment_mention_item:focus-visible {
-  background: #fdf4ea;
-  outline: none;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-point-01);
 }
 
 .comment_mention_name {

@@ -298,7 +298,13 @@ export default function Community() {
   const [reviewSort, setReviewSort] = useState<ReviewSortKey>("latest")
   const [isReviewSortSheetOpen, setIsReviewSortSheetOpen] = useState(false)
   const [entryToastMessage, setEntryToastMessage] = useState<string | null>(null)
+  const [unfollowToastMessage, setUnfollowToastMessage] = useState<string | null>(null)
+  const [isFeedControlsHidden, setIsFeedControlsHidden] = useState(false)
   const feedSearchInputRef = useRef<HTMLInputElement | null>(null)
+  const feedControlsShellRef = useRef<HTMLDivElement | null>(null)
+  const feedControlsShellStartYRef = useRef(140)
+  const lastScrollYRef = useRef(0)
+  const isFeedControlsHiddenRef = useRef(false)
   const [expandedChipGroups, setExpandedChipGroups] = useState<Set<string>>(() => new Set())
   const [collapsibleChipGroups, setCollapsibleChipGroups] = useState<Set<string>>(() => new Set())
   const chipGroupRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
@@ -308,12 +314,7 @@ export default function Community() {
   const [isProfileEditPreparingOpen, setIsProfileEditPreparingOpen] = useState(false)
   const { commentCountByPostId, persistUserPosts, userPostIdSet, userPosts } = useCommunityStoredPosts(feedPosts)
 
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: true } }))
-    return () => {
-      window.dispatchEvent(new CustomEvent("ui:chat-fab-visibility", { detail: { hidden: false } }))
-    }
-  }, [])
+  // allow AI chat button on community pages
 
   useEffect(() => {
     const state = (location.state ?? {}) as { writeSuccessToast?: string; initialFilter?: string }
@@ -331,6 +332,64 @@ export default function Community() {
 
     return () => window.clearTimeout(timer)
   }, [location.hash, location.pathname, location.search, location.state, navigate])
+
+  useEffect(() => {
+    if (!unfollowToastMessage) return
+    const timer = window.setTimeout(() => setUnfollowToastMessage(null), 1500)
+    return () => window.clearTimeout(timer)
+  }, [unfollowToastMessage])
+
+  useLayoutEffect(() => {
+    function updateControlsStartY() {
+      const element = feedControlsShellRef.current
+      if (!element) return
+      const rect = element.getBoundingClientRect()
+      feedControlsShellStartYRef.current = window.scrollY + rect.bottom
+    }
+
+    updateControlsStartY()
+    window.addEventListener("resize", updateControlsStartY)
+    return () => window.removeEventListener("resize", updateControlsStartY)
+  }, [feedFilter])
+
+  useEffect(() => {
+    isFeedControlsHiddenRef.current = isFeedControlsHidden
+  }, [isFeedControlsHidden])
+
+  useEffect(() => {
+    lastScrollYRef.current = window.scrollY
+    let rafId = 0
+
+    function handleScroll() {
+      if (rafId) return
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0
+        const scrollY = window.scrollY
+        const lastScrollY = lastScrollYRef.current
+        const deltaY = scrollY - lastScrollY
+        lastScrollYRef.current = scrollY
+
+        const startY = feedControlsShellStartYRef.current
+        if (scrollY <= startY) {
+          if (isFeedControlsHiddenRef.current) setIsFeedControlsHidden(false)
+          return
+        }
+
+        if (Math.abs(deltaY) < 10) return
+        if (deltaY < 0) {
+          if (isFeedControlsHiddenRef.current) setIsFeedControlsHidden(false)
+        } else {
+          if (!isFeedControlsHiddenRef.current) setIsFeedControlsHidden(true)
+        }
+      })
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true } as AddEventListenerOptions)
+    return () => {
+      window.removeEventListener("scroll", handleScroll as any)
+      if (rafId) window.cancelAnimationFrame(rafId)
+    }
+  }, [])
 
   const deleteUserPost = useCallback(
     (postId: number) => {
@@ -717,7 +776,7 @@ export default function Community() {
         topTab="feed"
         openFilterAriaLabel="커뮤니티 검색 필터 열기"
         onOpenFilter={openFeedFilterPopup}
-        onOpenNotifications={() => {}}
+        notificationsDisabled
       />
 
       <SearchFilterModal
@@ -793,29 +852,35 @@ export default function Community() {
         />
       </SearchFilterModal>
 
-      <div className="community_feed_control_row" data-guide-id="community-feed-controls">
-        <FeedSegmentTabs
-          ariaLabel="커뮤니티 피드 필터"
-          items={feedFilterItems}
-          activeKey={feedFilter}
-          onChange={(key) => changeFeedFilter(key as FeedFilter)}
-        />
-        <button
-          type="button"
-          className="community_review_sort_button"
-          onClick={() => setIsReviewSortSheetOpen(true)}
-        >
-          {reviewSortLabel}
-        </button>
+      <div
+        ref={feedControlsShellRef}
+        className={`community_feed_controls_shell${isFeedControlsHidden ? " is_hidden" : ""}`}
+        data-guide-id="community-feed-controls"
+      >
+        <div className="community_feed_control_row">
+          <FeedSegmentTabs
+            ariaLabel="커뮤니티 피드 필터"
+            items={feedFilterItems}
+            activeKey={feedFilter}
+            onChange={(key) => changeFeedFilter(key as FeedFilter)}
+          />
+          <button
+            type="button"
+            className="community_review_sort_button"
+            onClick={() => setIsReviewSortSheetOpen(true)}
+          >
+            {reviewSortLabel}
+          </button>
+        </div>
+
+        {feedFilter === "review" ? (
+          <FeedWriteRow ariaLabel="페어링 후기 글쓰기" onClickReview={() => navigate("/community/write?mode=review")} />
+        ) : null}
+
+        {feedFilter === "free" ? (
+          <FeedWriteRow ariaLabel="질문 글쓰기" onClickFree={() => navigate("/community/write?mode=free")} />
+        ) : null}
       </div>
-
-      {feedFilter === "review" ? (
-        <FeedWriteRow ariaLabel="페어링 후기 글쓰기" onClickReview={() => navigate("/community/write?mode=review")} />
-      ) : null}
-
-      {feedFilter === "free" ? (
-        <FeedWriteRow ariaLabel="질문 글쓰기" onClickFree={() => navigate("/community/write?mode=free")} />
-      ) : null}
 
       {feedFilter === "free" ? (
         <div className="question_banner_link" role="img" aria-label="질문 작성 배너">
@@ -1067,9 +1132,16 @@ export default function Community() {
           onCancel={() => setPendingUnfollowUser(null)}
           onConfirm={() => {
             toggleFollowUser(pendingUnfollowUser.userId)
+            setUnfollowToastMessage("취소완료")
             setPendingUnfollowUser(null)
           }}
         />
+      ) : null}
+
+      {unfollowToastMessage ? (
+        <div className="app_alert_toast is_center is_compact" role="status" aria-live="polite">
+          <p>{unfollowToastMessage}</p>
+        </div>
       ) : null}
 
       {entryToastMessage ? (

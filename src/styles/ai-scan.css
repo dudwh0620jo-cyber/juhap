@@ -1,10 +1,12 @@
+.is_phone_device .ai_scan_page.page_screen {
+  padding-top: var(--app-page-top-padding);
+}
 .ai_scan_page {
   position: relative;
   padding: 0;
   overflow: hidden;
   color: var(--color-text-primary);
 }
-
 .ai_scan_file_input {
   display: none;
 }
