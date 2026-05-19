@@ -123,13 +123,9 @@ export default function Onboarding() {
 
             {onboardingInfoSlides.map((slide, index) => (
               <div className="onboarding_slide" key={slide.title}>
-                {index + 1 < onboardingInfoSlides.length ? (
-                  <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
-                    건너뛰기
-                  </button>
-                ) : (
-                  <span className="onboarding_skip_spacer" aria-hidden="true" />
-                )}
+                <button className="onboarding_skip_button" type="button" onClick={skipOnboarding}>
+                  건너뛰기
+                </button>
 
                 <div className="onboarding_copy">
                   <h1 className="onboarding_title">{renderAccentText(slide.title, infoAccents[index] ?? "")}</h1>
