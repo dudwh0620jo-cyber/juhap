@@ -14,7 +14,7 @@
   align-content: start;
   justify-items: center;
   gap: 52px;
-  padding: 64px 20px 72px;
+  padding: 34px 20px 72px;
 }
 
 .onboarding_slide.is_start {
@@ -23,7 +23,7 @@
   align-items: center;
   justify-content: flex-start;
   gap: 54px;
-  padding: 150px 20px 170px;
+  padding: 120px 20px 170px;
 }
 
 .onboarding_slider {
@@ -58,23 +58,26 @@
 
 /* Mascot size overrides per slide (order matters) */
 .onboarding_slide.is_start .onboarding_mascot {
-  width: 200px;
+  width: auto;
   height: 200px;
 }
 
 .onboarding_track > .onboarding_slide:nth-child(2) .onboarding_mascot {
-  width: 162px;
-  height: 209px;
+  width: auto;
+  height: 200px;
+  padding-bottom: 40px;
 }
 
 .onboarding_track > .onboarding_slide:nth-child(3) .onboarding_mascot {
-  width: 190px;
-  height: 190px;
+  width: auto;
+  height: 200px;
+  padding-bottom: 40px;
 }
 
 .onboarding_track > .onboarding_slide:nth-child(4) .onboarding_mascot {
-  width: 190px;
-  height: 205px;
+  width: auto;
+  height: 200px;
+  padding-bottom: 40px;
 }
 .onboarding_copy {
   display: flex;
