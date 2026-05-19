@@ -69,7 +69,7 @@
   padding: 0;
   color: var(--color-text-primary);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .profile_setup_field em{
   color: var(--color-point-01);
@@ -134,13 +134,13 @@
   right: 10px;
   min-width: 67px;
   height: 28px;
-  border: 1px solid var(--color-gray-02);
+  border: 1px solid var(--color-primary);
   border-radius: 999px;
-  background: var(--color-bg-base);
-  color: var(--color-gray-05);
+  background: var(--color-primary);
+  color: var(--color-bg-white);
   font-size: 12px;
-  font-weight: 400;
-  font-weight: 130%;
+  font-weight: 700;
+  line-height: 130%;
   transform: translateY(-50%);
   cursor: pointer;
 }
@@ -159,6 +159,42 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 1.3;
+}
+
+.profile_setup_choice_group {
+  display: grid;
+  gap: 8px;
+}
+
+.profile_setup_choice_title {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.profile_setup_choice_row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.profile_setup_choice {
+  height: 44px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--color-point-03);
+  color: var(--color-text-primary);
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.profile_setup_choice.is_selected {
+  border-color: var(--color-primary);
+  background: var(--color-bg-white);
+  color: var(--color-primary);
+  font-weight: 700;
 }
 
 .profile_setup_counter {

@@ -8,6 +8,8 @@ export type UserAccount = {
 export type UserPersonalInfo = {
   nickname: string
   phone: string
+  gender: string
+  ageRange: string
   address: string
   detailAddress: string
   isPhoneVerified: boolean
@@ -43,6 +45,8 @@ export const defaultUserProfile: UserProfile = {
   personalInfo: {
     nickname: "",
     phone: "",
+    gender: "",
+    ageRange: "",
     address: "",
     detailAddress: "",
     isPhoneVerified: false,
