@@ -380,6 +380,22 @@ body.is_category_overlay_open {
   min-height: 100vh;
 }
 
+body.is_onboarding_page,
+body.is_login_page {
+  overflow: hidden;
+}
+
+body.is_onboarding_page .app_root,
+body.is_login_page .app_root,
+body.is_onboarding_page .app_viewport,
+body.is_login_page .app_viewport {
+  height: 100svh;
+  height: 100dvh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
 .app_viewport {
   position: relative;
   width: 100%;
