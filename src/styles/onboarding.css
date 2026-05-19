@@ -1,6 +1,8 @@
 .onboarding_page {
-  height: 100vh;
-  min-height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  min-height: 100svh;
+  min-height: 100dvh;
   overflow: hidden;
   background: var(--color-bg-base);
   color: var(--color-text-primary);
@@ -30,7 +32,8 @@
 
 .onboarding_slider {
   position: relative;
-  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -47,13 +50,15 @@
 }
 
 .onboarding_viewport {
-  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
   overflow: hidden;
 }
 
 .onboarding_track {
   display: flex;
-  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
   transition: transform 360ms ease;
   will-change: transform;
 }
