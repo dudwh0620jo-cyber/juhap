@@ -1,5 +1,6 @@
-﻿import { motion } from "motion/react"
+﻿import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
+import type { Location } from "react-router"
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigationType } from "react-router"
 import AiScan from "./pages/AiScan"
 import Category from "./pages/Category"
@@ -63,15 +64,15 @@ declare global {
 }
 
 const leftNavItems = [
-  { label: "홈", path: "/home", icon: iconHouse, activeIcon: iconHouseActive },
   { label: "카테고리", path: "/category", icon: iconList, activeIcon: iconListActive },
+  { label: "랭킹", path: "/community/ranking", icon: iconRanking, activeIcon: iconRankingActive },
 ] satisfies BottomNavItem[]
 
 const centerNavItem = {
-  label: "랭킹",
-  path: "/community/ranking",
-  icon: iconRanking,
-  activeIcon: iconRankingActive,
+  label: "홈",
+  path: "/home",
+  icon: iconHouse,
+  activeIcon: iconHouseActive,
 } satisfies BottomNavItem
 
 const rightNavItems = [
@@ -178,9 +179,10 @@ export default function App() {
     pathname === "/taste-setup"
   const isQuizPage = pathname.startsWith("/quiz")
   const isRankingActive = pathname === "/community/ranking"
+  const isHomeActive = pathname.startsWith("/home")
+  const isCategoryRoute = pathname === "/category" || pathname.startsWith("/category/")
   const isCategoryActive =
-    pathname === "/category" ||
-    pathname.startsWith("/category/") ||
+    isCategoryRoute ||
     pathname.startsWith("/product/") ||
     navState.bottomNavActive === "category"
   const isCommunityActive = pathname.startsWith("/community") && !isRankingActive && !isCategoryActive
@@ -191,6 +193,21 @@ export default function App() {
     !navState.skipOnboardingGate &&
     initialEntryPathRef.current === currentPath &&
     !isUserOnboardingComplete()
+
+  const [categoryBackgroundLocation, setCategoryBackgroundLocation] = useState<Location>(() =>
+    isCategoryRoute ? ({ ...location, pathname: "/home" } as Location) : location,
+  )
+
+  useEffect(() => {
+    if (!isCategoryRoute) {
+      setCategoryBackgroundLocation(location)
+    }
+  }, [isCategoryRoute, location])
+
+  useEffect(() => {
+    document.body.classList.toggle("is_category_overlay_open", isCategoryRoute)
+    return () => document.body.classList.remove("is_category_overlay_open")
+  }, [isCategoryRoute])
 
   return (
     <main className="app_root">
@@ -227,41 +244,69 @@ export default function App() {
         ) : null}
 
         {shouldShowOnboardingGate ? (
-          <Navigate
-            to="/onboarding"
-            replace
-            state={{ redirectTo: `${pathname}${location.search}${location.hash}` }}
-          />
+          <Navigate to="/onboarding" replace state={{ redirectTo: `${pathname}${location.search}${location.hash}` }} />
         ) : (
-          <Routes>
-            <Route path="/" element={<Navigate to="/onboarding" replace />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/profile-setup" element={<ProfileSetup />} />
-            <Route path="/taste-setup" element={<TasteSetup />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/category" element={<Category />} />
-            <Route path="/category/list" element={<CategoryList />} />
-            <Route path="/chat" element={<Navigate to="/home" replace />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/community/ranking" element={<CommunityRanking />} />
-            <Route path="/community/write" element={<CommunityWrite />} />
-            <Route path="/product/:id/write" element={<CommunityWrite />} />
-            <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
-            <Route path="/community/tag" element={<PairingTagList />} />
-            <Route path="/my" element={<MyPage />} />
-            <Route path="/my/record" element={<MyRecord />} />
-            <Route path="/product/:id/review/:reviewId" element={<ProductReviewDetail />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/quiz" element={<QuizMain />} />
-            <Route path="/quiz/today" element={<QuizToday />} />
-            <Route path="/quiz/result/:kind" element={<QuizResult />} />
-            <Route path="/quiz/previous/:quizId" element={<QuizPrevious />} />
-            <Route path="/vote" element={<VoteList />} />
-            <Route path="/today-pairing/:pairingId" element={<TodayPairingDetail />} />
-            <Route path="/ai-scan" element={<AiScan />} />
-            <Route path="*" element={<Navigate to="/home" replace />} />
-          </Routes>
+          <>
+            <div className="app_route_shell">
+              <Routes location={isCategoryRoute ? categoryBackgroundLocation : location}>
+                <Route path="/" element={<Navigate to="/onboarding" replace />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/profile-setup" element={<ProfileSetup />} />
+                <Route path="/taste-setup" element={<TasteSetup />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/category" element={<Category />} />
+                <Route path="/category/list" element={<CategoryList />} />
+                <Route path="/chat" element={<Navigate to="/home" replace />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/community/ranking" element={<CommunityRanking />} />
+                <Route path="/community/write" element={<CommunityWrite />} />
+                <Route path="/product/:id/write" element={<CommunityWrite />} />
+                <Route path="/community/pairing/:pairingId" element={<PairingDetail />} />
+                <Route path="/community/tag" element={<PairingTagList />} />
+                <Route path="/my" element={<MyPage />} />
+                <Route path="/my/record" element={<MyRecord />} />
+                <Route path="/product/:id/review/:reviewId" element={<ProductReviewDetail />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/quiz" element={<QuizMain />} />
+                <Route path="/quiz/today" element={<QuizToday />} />
+                <Route path="/quiz/result/:kind" element={<QuizResult />} />
+                <Route path="/quiz/previous/:quizId" element={<QuizPrevious />} />
+                <Route path="/vote" element={<VoteList />} />
+                <Route path="/today-pairing/:pairingId" element={<TodayPairingDetail />} />
+                <Route path="/ai-scan" element={<AiScan />} />
+                <Route path="*" element={<Navigate to="/home" replace />} />
+              </Routes>
+            </div>
+
+            <AnimatePresence initial={false}>
+              {isCategoryRoute ? (
+                <>
+                  <motion.div
+                    key="category-overlay-backdrop"
+                    className="category_overlay_backdrop"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                  />
+                  <motion.div
+                    key="category-overlay-shell"
+                    className="category_overlay_shell"
+                    initial={{ x: "-100%" }}
+                    animate={{ x: "0%" }}
+                    exit={{ x: "-100%" }}
+                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <Routes location={location}>
+                      <Route path="/category" element={<Category />} />
+                      <Route path="/category/list" element={<CategoryList />} />
+                    </Routes>
+                  </motion.div>
+                </>
+              ) : null}
+            </AnimatePresence>
+          </>
         )}
 
         <FeatureGuide />
@@ -275,7 +320,12 @@ export default function App() {
             {leftNavItems.map((item) => (
               <NavLink
                 className={({ isActive }) => {
-                  const active = item.path === "/category" ? isCategoryActive : isActive
+                  const active =
+                    item.path === "/category"
+                      ? isCategoryActive
+                      : item.path === "/community/ranking"
+                        ? isRankingActive
+                        : isActive
                   return active ? "bottom_nav_item is_active" : "bottom_nav_item"
                 }}
                 key={item.path}
@@ -285,7 +335,15 @@ export default function App() {
                   <>
                     <img
                       className="bottom_nav_icon"
-                      src={(item.path === "/category" ? isCategoryActive : isActive) ? item.activeIcon : item.icon}
+                      src={
+                        (item.path === "/category"
+                          ? isCategoryActive
+                          : item.path === "/community/ranking"
+                            ? isRankingActive
+                            : isActive)
+                          ? item.activeIcon
+                          : item.icon
+                      }
                       alt={item.label}
                     />
                     <span className="bottom_nav_label">{item.label}</span>
@@ -295,12 +353,12 @@ export default function App() {
             ))}
 
             <NavLink
-              className={() => (isRankingActive ? "bottom_nav_item is_active" : "bottom_nav_item")}
+              className={() => (isHomeActive ? "bottom_nav_item is_active" : "bottom_nav_item")}
               to={centerNavItem.path}
             >
               <img
                 className="bottom_nav_icon"
-                src={isRankingActive ? centerNavItem.activeIcon : centerNavItem.icon}
+                src={isHomeActive ? centerNavItem.activeIcon : centerNavItem.icon}
                 alt={centerNavItem.label}
               />
               <span className="bottom_nav_label">{centerNavItem.label}</span>
@@ -340,3 +398,4 @@ export default function App() {
     </main>
   )
 }
+
